@@ -1,0 +1,6 @@
+@SunDaySchools_HostAddress = http://localhost:5029
+
+GET {{SunDaySchools_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

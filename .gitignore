@@ -1,0 +1,22 @@
+# Build output (for ALL projects)
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Secrets (usually in API project)
+appsettings.Development.json
+secrets.json
+appsettings.json
+.env
+
+# Keys
+*.pfx
+*.pem
+*.key
+
+# Logs
+*.log
