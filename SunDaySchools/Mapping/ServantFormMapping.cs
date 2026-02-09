@@ -10,7 +10,7 @@ namespace SunDaySchools.API.Mapping
 {
     public static class ServantFormMapping
     {
-
+        //Extension Method here 
 
         public static ServantAddDTO ToDto(this ServantAddFormRequest form)
         {

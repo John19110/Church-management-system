@@ -29,7 +29,7 @@ namespace SunDaySchools.BLL.Manager
         {
           return  _mapper.Map<ChildReadDTO>(_childReposatory.GetById(id));
         }
-
+        
          public  void Add(ChildAddDTO child)
         {
             _childReposatory.Add(_mapper.Map<Child>(child));
