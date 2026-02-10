@@ -13,52 +13,90 @@ using System.IdentityModel.Tokens.Jwt;
 
 namespace SunDaySchools.BLL.Manager
 {
-    internal class AccountManager : IaccountManager
+    public class AccountManager : IAccountManager
     {
         private readonly UserManager<ApplicationUser> _usermanager;
         private readonly IConfiguration _configuration;
-        AccountManager(UserManager<ApplicationUser>usermagaer, IConfiguration configuration)
+      public   AccountManager(UserManager<ApplicationUser>usermagaer, IConfiguration configuration)
         {
 
 
             _usermanager = usermagaer;
             _configuration = configuration;
         }
-        public Task<string> Login(LoginDTO loginDto)
+        public async Task<string> Login(LoginDTO loginDto)
+
         {
-            throw new NotImplementedException();
+            var user = await _usermanager.FindByNameAsync(loginDto.Name);
+            if (user==null)
+            {
+                return null;
+            }
+
+            var check =await  _usermanager.CheckPasswordAsync(user, loginDto.Password);
+            if (!check) return null;
+            var claims = await _usermanager.GetClaimsAsync(user); 
+
+
+
+                return GenerateToken(claims);
         }
 
         public async Task<string> Register(RegisterDTO registerDto)
         {
             ApplicationUser user = new ApplicationUser();
-
+            //save email and passwrod
             user.Email = registerDto.Email;
             user.UserName = registerDto.Name;
 
+            //save password and create user 
             var resutlt=  await _usermanager.CreateAsync(user, registerDto.Password);
 
             if (resutlt.Succeeded)
+
             {
+                //create claims
                 List<Claim> claims = new List<Claim>();
-                claims.Add(new Claim("Role", "Admin"));
                 claims.Add(new Claim("Name", registerDto.Name));
+                claims.Add(new Claim("Role", registerDto.Role));
 
-                var SecretKey=_configuration.GetSection("SecretKey").Value;
+                await _usermanager.AddClaimsAsync(user, claims);
 
-                var SecretKeybyte = Encoding.UTF8.GetBytes(SecretKey);
-                SecurityKey securityKey = new SymmetricSecurityKey(SecretKeybyte);
-                SigningCredentials signingCredentials = new SigningCredentials(securityKey,SecurityAlgorithms.HmacSha256);
-                var expire = DateTime.Now.AddDays(7);
-                JwtSecurityToken jwtSecurityToken = new JwtSecurityToken(claims: claims, expires: expire, signingCredentials: signingCredentials);
-                JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler();
-                var token = handler.WriteToken(jwtSecurityToken);
-                return token;
-
-
+                return GenerateToken(claims);
             }
-
+            //if not succeded
             return null;
         }
+
+        private string GenerateToken(IList<Claim> claims)
+        {
+            // get secret key (string)
+            var SecretKey = _configuration.GetSection("SecretKey").Value;
+
+            // convert the secret key  from string to byte 
+            var SecretKeybyte = Encoding.UTF8.GetBytes(SecretKey);
+
+            //SecurityKey is an abstract class so we cant instiantiate it 
+            //thas why we call  SymmetricSecurityKey constructor
+            SecurityKey securityKey = new SymmetricSecurityKey(SecretKeybyte);
+
+            //pass the security key and the algorithm to SigningCredentials to merge them
+            SigningCredentials signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+            //expire date for the token 
+            var expire = DateTime.Now.AddDays(7);
+
+            //generate the token 
+            JwtSecurityToken jwtSecurityToken = new JwtSecurityToken(claims: claims, expires: expire, signingCredentials: signingCredentials);
+
+            //convert back to string from jwtSecurityToken
+            JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler();
+
+            var token = handler.WriteToken(jwtSecurityToken);
+
+            return token;
+        }
+
+
     }
 }

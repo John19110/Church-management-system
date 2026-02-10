@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using SunDaySchools.API.Services.Implementations;
 using SunDaySchools.API.Services.Interfaces;
 using SunDaySchools.BLL.AutoMapper;
@@ -11,6 +13,7 @@ using SunDaySchoolsDAL.DBcontext;
 using SunDaySchoolsDAL.Models;
 using SunDaySchoolsDAL.Repository;
 using System.Diagnostics;
+using System.Text;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,7 +34,28 @@ builder.Services.AddScoped<IChildRepository, ChildRepository>();
 builder.Services.AddScoped<IChildManager, ChildManager>();
 builder.Services.AddScoped<IServantRepository, ServantRepository>();
 builder.Services.AddScoped<IServantManager, ServantManager>();
+builder.Services.AddScoped<IAccountManager, AccountManager>();
 
+builder.Services.AddAuthentication(options =>
+{
+
+    options.DefaultAuthenticateScheme = "jwt";
+    options.DefaultChallengeScheme = "jwt";
+
+}).AddJwtBearer(
+    "jwt",option=>
+    {
+        var SecretKey = builder.Configuration.GetSection("SecretKey").Value;
+        var SecretKeybyte = Encoding.UTF8.GetBytes(SecretKey);
+        SecurityKey securityKey = new SymmetricSecurityKey(SecretKeybyte);
+        option.TokenValidationParameters = new TokenValidationParameters()
+        {
+            IssuerSigningKey = securityKey,
+            ValidateIssuer=false,
+            ValidateAudience=false
+        }
+        ;
+    });
 // DbContext
 builder.Services.AddDbContext<ProgramContext>(options =>
 {

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using SunDaySchools.BLL.DTOS.AccountDtos;   
 namespace SunDaySchools.BLL.Manager
 {
-    public interface IaccountManager
+    public interface IAccountManager
     {
         Task<string> Login(LoginDTO loginDto);
         Task<string> Register(RegisterDTO registerDto);

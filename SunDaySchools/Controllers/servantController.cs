@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using SunDaySchools.API.Services.Interfaces;
 using SunDaySchools.API.Requests;
 using SunDaySchools.API.Mapping;
+using Microsoft.AspNetCore.Authorization;
 namespace SunDaySchools.API.Controllers
 
 
@@ -29,6 +30,7 @@ namespace SunDaySchools.API.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public ActionResult GetAll()
         {
             var servnants = _servantmanager.GetAll();

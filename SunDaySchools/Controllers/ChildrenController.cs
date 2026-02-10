@@ -4,13 +4,15 @@ using SunDaySchools.BLL.DTOS;
 using SunDaySchools.BLL.Manager;
 using SunDaySchools.API.Mapping;
 using SunDaySchools.API.Requests; 
-using SunDaySchools.API.Services.Interfaces; 
+using SunDaySchools.API.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 
 namespace SunDaySchools.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ChildrenController : ControllerBase
     {
         private readonly IChildManager _childmanager;
