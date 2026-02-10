@@ -15,6 +15,8 @@ namespace SunDaySchools.API.Controllers
     public class AccountController:ControllerBase
 
     {
+
+        // Login and Register
         private readonly IAccountManager _accountmanager;
         public AccountController(IAccountManager accountmanager)
         {
