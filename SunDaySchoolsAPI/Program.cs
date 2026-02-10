@@ -36,6 +36,9 @@ builder.Services.AddScoped<IServantRepository, ServantRepository>();
 builder.Services.AddScoped<IServantManager, ServantManager>();
 builder.Services.AddScoped<IAccountManager, AccountManager>();
 
+
+
+//Authuntication
 builder.Services.AddAuthentication(options =>
 {
 

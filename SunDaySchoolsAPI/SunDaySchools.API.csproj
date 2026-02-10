@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\uploads\" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
 
     <ProjectReference Include="..\SunDaySchools.BLL\SunDaySchools.BLL.csproj" />
