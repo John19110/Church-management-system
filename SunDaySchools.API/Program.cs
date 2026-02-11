@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using SunDaySchools.API.Services.Implementations;
 using SunDaySchools.API.Services.Interfaces;
 using SunDaySchools.BLL.AutoMapper;
@@ -14,6 +15,7 @@ using SunDaySchoolsDAL.Models;
 using SunDaySchoolsDAL.Repository;
 using System.Diagnostics;
 using System.Text;
+using Microsoft.OpenApi.Models;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,7 +29,36 @@ builder.Services.AddControllers();
 
 // Swagger / OpenAPI
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "SunDaySchools API", Version = "v1" });
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter token like: Bearer {your token}"
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
 
 // DI
 builder.Services.AddScoped<IChildRepository, ChildRepository>();
@@ -39,26 +70,31 @@ builder.Services.AddScoped<IAccountManager, AccountManager>();
 
 
 //Authuntication
-builder.Services.AddAuthentication(options =>
-{
+//builder.Services.AddAuthentication(option =>
+//{
 
-    options.DefaultAuthenticateScheme = "jwt";
-    options.DefaultChallengeScheme = "jwt";
+//    option.DefaultAuthenticateScheme = "jwt";
+//    option.DefaultChallengeScheme = "jwt";
 
-}).AddJwtBearer(
-    "jwt",option=>
-    {
-        var SecretKey = builder.Configuration.GetSection("SecretKey").Value;
-        var SecretKeybyte = Encoding.UTF8.GetBytes(SecretKey);
-        SecurityKey securityKey = new SymmetricSecurityKey(SecretKeybyte);
-        option.TokenValidationParameters = new TokenValidationParameters()
-        {
-            IssuerSigningKey = securityKey,
-            ValidateIssuer=false,
-            ValidateAudience=false
-        }
-        ;
-    });
+//}).AddJwtBearer(
+//    "jwt",options=>
+//    {
+//        var SecretKey = builder.Configuration.GetSection("SecretKey").Value;
+//        var SecretKeybyte = Encoding.UTF8.GetBytes(SecretKey);
+//        SecurityKey securityKey = new SymmetricSecurityKey(SecretKeybyte);
+//        options.TokenValidationParameters = new TokenValidationParameters()
+//        {
+//            IssuerSigningKey = securityKey,
+//            ValidateIssuer=false,
+//            ValidateAudience=false
+//        }
+//        ;
+//    });
+
+
+
+
+
 // DbContext
 builder.Services.AddDbContext<ProgramContext>(options =>
 {
@@ -72,8 +108,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 // AutoMapper
 builder.Services.AddAutoMapper(m => m.AddProfile(new MappingProfile()));
 
-// OPTIONAL: If you DON'T want to force a fixed port, REMOVE this line.
-// builder.WebHost.UseUrls("http://localhost:5029");
+
 
 var app = builder.Build();
 
@@ -116,13 +151,13 @@ if (app.Environment.IsDevelopment())
 // If you are NOT running HTTPS (and you see it only listens on http),
 // this redirection can prevent reaching Swagger unless HTTPS is configured.
 // You can comment it out if needed.
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 
-// If you use [Authorize] anywhere, you should enable authentication:
-app.UseAuthentication();
-app.UseAuthorization();
+//// If you use [Authorize] anywhere, you should enable authentication:
+//app.UseAuthentication();
+//app.UseAuthorization();
 
 app.MapControllers();
 
