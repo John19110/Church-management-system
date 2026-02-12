@@ -27,17 +27,19 @@ namespace SunDaySchools.BLL.Manager
         public async Task<string> Login(LoginDTO loginDto)
 
         {
+            //search by name 
             var user = await _usermanager.FindByNameAsync(loginDto.Name);
             if (user==null)
             {
                 return null;
             }
-
+            // check password
             var check =await  _usermanager.CheckPasswordAsync(user, loginDto.Password);
+
             if (!check) return null;
+
+            //return claims
             var claims = await _usermanager.GetClaimsAsync(user); 
-
-
 
                 return GenerateToken(claims);
         }
@@ -80,14 +82,17 @@ namespace SunDaySchools.BLL.Manager
             //thas why we call  SymmetricSecurityKey constructor
             SecurityKey securityKey = new SymmetricSecurityKey(SecretKeybyte);
 
+            //3
             //pass the security key and the algorithm to SigningCredentials to merge them
             SigningCredentials signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
+            //2
             //expire date for the token 
             var expire = DateTime.Now.AddDays(7);
 
+            //1
             //generate the token 
-            JwtSecurityToken jwtSecurityToken = new JwtSecurityToken(claims: claims, expires: expire, signingCredentials: signingCredentials);
+                JwtSecurityToken jwtSecurityToken = new JwtSecurityToken(claims: claims, expires: expire, signingCredentials: signingCredentials);
 
             //convert back to string from jwtSecurityToken
             JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler();

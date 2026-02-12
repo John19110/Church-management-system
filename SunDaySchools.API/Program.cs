@@ -70,26 +70,27 @@ builder.Services.AddScoped<IAccountManager, AccountManager>();
 
 
 //Authuntication
-//builder.Services.AddAuthentication(option =>
-//{
+builder.Services.AddAuthentication(option =>
+{
 
-//    option.DefaultAuthenticateScheme = "jwt";
-//    option.DefaultChallengeScheme = "jwt";
+    option.DefaultAuthenticateScheme = "jwt";
+    option.DefaultChallengeScheme = "jwt";
 
-//}).AddJwtBearer(
-//    "jwt",options=>
-//    {
-//        var SecretKey = builder.Configuration.GetSection("SecretKey").Value;
-//        var SecretKeybyte = Encoding.UTF8.GetBytes(SecretKey);
-//        SecurityKey securityKey = new SymmetricSecurityKey(SecretKeybyte);
-//        options.TokenValidationParameters = new TokenValidationParameters()
-//        {
-//            IssuerSigningKey = securityKey,
-//            ValidateIssuer=false,
-//            ValidateAudience=false
-//        }
-//        ;
-//    });
+}).AddJwtBearer(
+    "jwt", options =>
+    {
+        var SecretKey = builder.Configuration.GetSection("SecretKey").Value;
+        var SecretKeybyte = Encoding.UTF8.GetBytes(SecretKey);
+        SecurityKey securityKey = new SymmetricSecurityKey(SecretKeybyte);
+        options.TokenValidationParameters = new TokenValidationParameters()
+        {
+            IssuerSigningKey = securityKey,
+            // we use them if we have another independent server for validation
+            ValidateIssuer = false,
+            ValidateAudience = false
+        };
+    }
+    );
 
 
 
@@ -156,8 +157,8 @@ app.UseStaticFiles();
 
 
 //// If you use [Authorize] anywhere, you should enable authentication:
-//app.UseAuthentication();
-//app.UseAuthorization();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 
