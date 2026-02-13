@@ -12,7 +12,6 @@ namespace SunDaySchools.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class ChildrenController : ControllerBase
     {
         private readonly IChildManager _childmanager;
@@ -25,6 +24,8 @@ namespace SunDaySchools.API.Controllers
         }
 
         [HttpGet]
+       [Authorize]
+
         public ActionResult GetAll()
         {
             var children = _childmanager.GetAll() ?? new List<ChildReadDTO>();
