@@ -24,12 +24,12 @@ namespace SunDaySchools.API.Controllers
         }
 
         [HttpGet]
-       [Authorize]
+           [Authorize]
 
         public ActionResult GetAll()
         {
             var children = _childmanager.GetAll() ?? new List<ChildReadDTO>();
-            if (children==null)
+            if (children == null)
             {
                 return NotFound();
             }

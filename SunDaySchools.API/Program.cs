@@ -103,8 +103,13 @@ builder.Services.AddDbContext<ProgramContext>(options =>
 });
 
 // Identity
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-    .AddEntityFrameworkStores<ProgramContext>();
+//builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+//    .AddEntityFrameworkStores<ProgramContext>();
+builder.Services
+    .AddIdentityCore<ApplicationUser>(options => { })
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<ProgramContext>()
+    .AddDefaultTokenProviders();
 
 // AutoMapper
 builder.Services.AddAutoMapper(m => m.AddProfile(new MappingProfile()));
