@@ -24,7 +24,7 @@ namespace SunDaySchools.API.Controllers
         }
 
         [HttpGet]
-           [Authorize]
+        [Authorize(Roles="Servant")]
 
         public ActionResult GetAll()
         {
@@ -39,6 +39,7 @@ namespace SunDaySchools.API.Controllers
 
         [HttpGet("{id}")]
         public ActionResult GetById(int id)
+        
         {
             {
                 var child = _childmanager.GetById(id);

@@ -48,8 +48,8 @@ namespace SunDaySchools.BLL.Manager
         {
             ApplicationUser user = new ApplicationUser();
             //save email and passwrod
-            user.Email = registerDto.Email;
             user.UserName = registerDto.Name;
+            user.PhoneNumber = registerDto.PhoneNumber;
 
             //save password and create user 
             var resutlt=  await _usermanager.CreateAsync(user, registerDto.Password);
@@ -60,10 +60,7 @@ namespace SunDaySchools.BLL.Manager
                 //create claims
                 List<Claim> claims = new List<Claim>();
                 claims.Add(new Claim("Name", registerDto.Name));
-                claims.Add(new Claim("Role", registerDto.Role));
-
-                await _usermanager.AddClaimsAsync(user, claims);
-
+                await _usermanager.AddToRoleAsync(user, "Servant");
                 return GenerateToken(claims);
             }
             //if not succeded

@@ -1,8 +1,13 @@
-﻿namespace SunDaySchools.Models
+﻿using SunDaySchoolsDAL.Models;
+
+namespace SunDaySchools.Models
 {
     public class Servant
     {
         public int Id { get; set; }
+        public string ApplicationUserId { get; set; } = default!;
+        public ApplicationUser ApplicationUser { get; set; } = default!;
+
         public string? ImageFileName { get; set; }   // e.g. "c3c2... .jpg"
         public string? ImageUrl { get; set; }
         public string? Name { get; set; }
