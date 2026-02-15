@@ -131,7 +131,7 @@ if (app.Environment.IsDevelopment())
     // Auto-open Swagger in default browser (works with ANY port)
     app.Lifetime.ApplicationStarted.Register(() =>
     {
-       
+       try
         {
             var server = app.Services.GetRequiredService<IServer>();
             var addressesFeature = server.Features.Get<IServerAddressesFeature>();
