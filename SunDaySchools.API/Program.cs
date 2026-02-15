@@ -103,8 +103,12 @@ builder.Services.AddDbContext<ProgramContext>(options =>
 });
 
 // Identity
+//this old implementation caused error in authentication
+
 //builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 //    .AddEntityFrameworkStores<ProgramContext>();
+
+
 builder.Services
     .AddIdentityCore<ApplicationUser>(options => { })
     .AddRoles<IdentityRole>()
@@ -127,7 +131,7 @@ if (app.Environment.IsDevelopment())
     // Auto-open Swagger in default browser (works with ANY port)
     app.Lifetime.ApplicationStarted.Register(() =>
     {
-        try
+       
         {
             var server = app.Services.GetRequiredService<IServer>();
             var addressesFeature = server.Features.Get<IServerAddressesFeature>();
