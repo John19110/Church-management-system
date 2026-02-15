@@ -7,17 +7,21 @@ using SunDaySchools.Models;
 
 namespace SunDaySchools.DAL.Models
 {
-    public class Exams
+    public class Exam
     {
         public int Id { get; set; }
 
-        public List<Child> Children { get; set; }
 
+        public int? ClassroomId { get; set; }
+        public Classroom? Classroom { get; set; }
         public DateOnly ExamDate { get; set; }
 
-        public List<Child> TopChilds { get; set; }
+        public int MaxScore { get; set; }
 
         public string   Notes { get; set; }
+
+        public List<ExamResult> Results { get; set; } = new();
+
 
 
 
