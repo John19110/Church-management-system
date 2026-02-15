@@ -38,12 +38,7 @@ namespace SunDaySchoolsDAL.DBcontext
                 new Classroom { Id = 3, Name = "الأيمان", AgeOfChildren = "تالته ورابعه" },
                 new Classroom { Id = 4, Name = "المحبه", AgeOfChildren = "خامسه و سادسه" });
 
-        // child full name computing logic 
-         builder.Entity<Child>()
-        .Property(c => c.FullName)
-        .HasComputedColumnSql(
-            "LTRIM(RTRIM(CONCAT(Name1, ' ', Name2, ' ', Name3)))",
-            stored: true);
+      
 
 
         }
