@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SunDaySchools.DAL.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +9,8 @@ namespace SunDaySchools.DAL.Repository.Interfaces
 {
     public interface IAttendanceRepository
     {
-         void TakeAttendance();
-         void EditAttendance();
+         void TakeAttendance(AttendanceSession session);
+         void EditAttendance(AttendanceSession session);
+
     }
 }

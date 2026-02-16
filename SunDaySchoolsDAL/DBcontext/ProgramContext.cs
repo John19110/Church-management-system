@@ -11,13 +11,24 @@ namespace SunDaySchoolsDAL.DBcontext
     {
         public ProgramContext(DbContextOptions<ProgramContext> options) : base(options)
         {
+
+
+
         }
 
         public DbSet<Child> Children { get; set; }
-        public DbSet<Classroom> Classrooms { get; set; }
+        public DbSet<ChildContact> ChildContacts { get; set; }
+        public DbSet<PhoneCall> PhoneCalls { get; set; }
         public DbSet<Servant> Servants { get; set; }
+        public DbSet<Classroom> Classrooms { get; set; }
         public DbSet<SpiritualCurriculum> SpiritualCurriculums { get; set; }
         public DbSet<Tool> Tools { get; set; }
+        public DbSet<AttendanceSession> AttendanceSessions { get; set; }
+        public DbSet<AttendanceRecord> AttendanceRecords { get; set; }
+        public DbSet<Exam> Exams { get; set; }
+        public DbSet<ExamResult> ExamResults { get; set; }
+
+
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
