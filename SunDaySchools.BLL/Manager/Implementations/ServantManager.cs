@@ -7,9 +7,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using SunDaySchoolsDAL.Repository;
+using SunDaySchools.DAL.Repository.Interfaces;
+using SunDaySchools.BLL.Manager.Interfaces;
 
-namespace SunDaySchools.BLL.Manager
+namespace SunDaySchools.BLL.Manager.Implementations
 {
     public class ServantManager : IServantManager
     {
@@ -35,7 +36,7 @@ namespace SunDaySchools.BLL.Manager
         }
      public  void Update(ServantUpdateDTO ServantUpdateDTO)
         {
-            _sarventReposatory.Update(_mapper.Map<ServantUpdateDTO, Servant>(ServantUpdateDTO, _sarventReposatory.GetById(ServantUpdateDTO.Id)));
+            _sarventReposatory.Update(_mapper.Map(ServantUpdateDTO, _sarventReposatory.GetById(ServantUpdateDTO.Id)));
 
         }
 

@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SunDaySchools.BLL.DTOS;
-using SunDaySchools.BLL.Manager;
 using SunDaySchools.API.Mapping;
-using SunDaySchools.API.Requests; 
+using SunDaySchools.API.Requests;
 using SunDaySchools.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using SunDaySchools.BLL.Manager.Interfaces;
 
 
 namespace SunDaySchools.API.Controllers

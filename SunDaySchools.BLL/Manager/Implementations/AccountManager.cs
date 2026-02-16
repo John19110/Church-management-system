@@ -2,9 +2,10 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using SunDaySchools.BLL.DTOS.AccountDtos;
+using SunDaySchools.BLL.Manager.Interfaces;
+using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchools.Models;
 using SunDaySchoolsDAL.Models;
-using SunDaySchoolsDAL.Repository;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -13,7 +14,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SunDaySchools.BLL.Manager
+namespace SunDaySchools.BLL.Manager.Implementations
 {
     public class AccountManager : IAccountManager
     {

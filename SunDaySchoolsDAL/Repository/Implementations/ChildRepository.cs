@@ -1,8 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchools.Models;
 using SunDaySchoolsDAL.DBcontext;
 
-namespace SunDaySchoolsDAL.Repository
+namespace SunDaySchools.DAL.Repository.Implementations
 {
     public class ChildRepository : IChildRepository
     {

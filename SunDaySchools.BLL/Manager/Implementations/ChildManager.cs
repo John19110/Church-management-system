@@ -1,15 +1,16 @@
 ﻿using AutoMapper;
 using SunDaySchools.BLL.DTOS;
+using SunDaySchools.BLL.Manager.Interfaces;
+using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchools.Models;
 using SunDaySchoolsDAL.DBcontext;
-using SunDaySchoolsDAL.Repository;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SunDaySchools.BLL.Manager
+namespace SunDaySchools.BLL.Manager.Implementations
 {
     public class ChildManager :IChildManager
     {
@@ -36,7 +37,7 @@ namespace SunDaySchools.BLL.Manager
         }
         void IChildManager.Update(ChildUpdateDTO ChildUpdateDTO)
         {
-            _childReposatory.Update(_mapper.Map<ChildUpdateDTO, Child>(ChildUpdateDTO, _childReposatory.GetById(ChildUpdateDTO.Id)));
+            _childReposatory.Update(_mapper.Map(ChildUpdateDTO, _childReposatory.GetById(ChildUpdateDTO.Id)));
 
         }
 

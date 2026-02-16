@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchools.Models;
 using SunDaySchoolsDAL.DBcontext;
-using SunDaySchoolsDAL.Repository;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 
 
-namespace SunDaySchools.DAL.Repository
+namespace SunDaySchools.DAL.Repository.Implementations
 {
     public class ServantRepository: IServantRepository
     {

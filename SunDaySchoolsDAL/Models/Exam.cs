@@ -18,8 +18,5 @@ namespace SunDaySchools.DAL.Models
         public List<ExamResult> Results { get; set; } = new();
 
 
-
-
-
     }
 }

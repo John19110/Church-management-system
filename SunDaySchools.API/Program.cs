@@ -8,11 +8,12 @@ using Microsoft.OpenApi.Models;
 using SunDaySchools.API.Services.Implementations;
 using SunDaySchools.API.Services.Interfaces;
 using SunDaySchools.BLL.AutoMapper;
-using SunDaySchools.BLL.Manager;
-using SunDaySchools.DAL.Repository;
+using SunDaySchools.BLL.Manager.Implementations;
+using SunDaySchools.BLL.Manager.Interfaces;
+using SunDaySchools.DAL.Repository.Implementations;
+using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchoolsDAL.DBcontext;
 using SunDaySchoolsDAL.Models;
-using SunDaySchoolsDAL.Repository;
 using System.Diagnostics;
 using System.Text;
 

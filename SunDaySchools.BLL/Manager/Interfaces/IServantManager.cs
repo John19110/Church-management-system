@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SunDaySchools.BLL.DTOS;
 
-namespace SunDaySchools.BLL.Manager
+namespace SunDaySchools.BLL.Manager.Interfaces
 {
     public interface IServantManager
     {

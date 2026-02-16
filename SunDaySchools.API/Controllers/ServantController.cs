@@ -4,12 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SunDaySchools.BLL.DTOS;
-using SunDaySchools.BLL.Manager;
 using Microsoft.AspNetCore.Mvc;
 using SunDaySchools.API.Services.Interfaces;
 using SunDaySchools.API.Requests;
 using SunDaySchools.API.Mapping;
 using Microsoft.AspNetCore.Authorization;
+using SunDaySchools.BLL.Manager.Interfaces;
 namespace SunDaySchools.API.Controllers
 
 

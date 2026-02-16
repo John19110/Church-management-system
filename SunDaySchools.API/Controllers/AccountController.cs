@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using SunDaySchools.BLL.Manager;
 using SunDaySchools.BLL.DTOS.AccountDtos;
+using SunDaySchools.BLL.Manager.Interfaces;
 
 
 namespace SunDaySchools.API.Controllers

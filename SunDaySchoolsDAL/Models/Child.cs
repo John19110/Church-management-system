@@ -33,14 +33,17 @@ namespace SunDaySchools.Models
         public bool? HaveBrothers { get; set; }
         public List<string>?  BrothersNames { get; set; }
 
+
         public int? ClassroomId { get; set; }   
         public Classroom? Classroom { get; set; }
 
-        public List<string>? Notes { get; set; }
 
         public List<ExamResult>? ExamsResults { get; set; }
 
         public List<AttendanceRecord> AttendanceHistory { get; set; } = new();
+
+        public List<string>? Notes { get; set; }
+
 
     }
 }

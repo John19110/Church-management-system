@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SunDaySchoolsDAL.Repository
+namespace SunDaySchools.DAL.Repository.Interfaces
 {
     public interface IChildRepository
     {
