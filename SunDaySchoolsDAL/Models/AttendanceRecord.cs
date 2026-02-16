@@ -18,9 +18,9 @@ namespace SunDaySchools.DAL.Models
         public int ChildId { get; set; }
         public Child? Child { get; set; }
 
-        public bool MadeHomeWork { get; set; }
+        public bool MadeHomeWork { get; set; } = false;
+        public bool HasTools { get; set; } = false;
 
-        public bool HasTools { get; set; }
 
         public AttendanceStatus Status { get; set; } = AttendanceStatus.Present;
 

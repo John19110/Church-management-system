@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using SunDaySchools.DAL.Models;
 using SunDaySchools.Models;
 using SunDaySchoolsDAL.Models;
 using System.Reflection.Emit;
@@ -38,8 +39,11 @@ namespace SunDaySchoolsDAL.DBcontext
                 new Classroom { Id = 3, Name = "الأيمان", AgeOfChildren = "تالته ورابعه" },
                 new Classroom { Id = 4, Name = "المحبه", AgeOfChildren = "خامسه و سادسه" });
 
-      
 
+            // Attendace appears just one time 
+           builder.Entity<AttendanceRecord>()
+            .HasIndex(x => new { x.AttendanceSessionId, x.ChildId })
+            .IsUnique();
 
         }
     }

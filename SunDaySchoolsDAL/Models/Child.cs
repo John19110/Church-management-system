@@ -40,7 +40,7 @@ namespace SunDaySchools.Models
 
         public List<ExamResult>? ExamsResults { get; set; }
 
-        public List<AttendanceRecord>? AttendacnceHistory { get; set; }
+        public List<AttendanceRecord> AttendanceHistory { get; set; } = new();
 
     }
 }
