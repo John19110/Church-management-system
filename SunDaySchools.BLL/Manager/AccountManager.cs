@@ -1,15 +1,17 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using SunDaySchools.BLL.DTOS.AccountDtos;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SunDaySchoolsDAL.Models;
-using System.Security.Claims;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using SunDaySchools.BLL.DTOS.AccountDtos;
+using SunDaySchools.Models;
+using SunDaySchoolsDAL.Models;
+using SunDaySchoolsDAL.Repository;
+using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Security.Claims;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace SunDaySchools.BLL.Manager
 {
@@ -17,13 +19,17 @@ namespace SunDaySchools.BLL.Manager
     {
         private readonly UserManager<ApplicationUser> _usermanager;
         private readonly IConfiguration _configuration;
-      public   AccountManager(UserManager<ApplicationUser>usermagaer, IConfiguration configuration)
+        private readonly IServantRepository _servantRepo;
+
+        public AccountManager(UserManager<ApplicationUser>usermagaer, IConfiguration configuration, IServantRepository servantRepo)
         {
 
 
             _usermanager = usermagaer;
             _configuration = configuration;
+            _servantRepo = servantRepo;
         }
+
         public async Task<string> Login(LoginDTO loginDto)
 
         {
@@ -39,9 +45,9 @@ namespace SunDaySchools.BLL.Manager
             if (!check) return null;
 
             //return claims
-            var claims = await _usermanager.GetClaimsAsync(user); 
+            var claims = await BuildJwtClaims(user);
+            return GenerateToken(claims);
 
-                return GenerateToken(claims);
         }
 
         public async Task<string> Register(RegisterDTO registerDto)
@@ -55,14 +61,23 @@ namespace SunDaySchools.BLL.Manager
             var resutlt=  await _usermanager.CreateAsync(user, registerDto.Password);
 
             if (resutlt.Succeeded)
-
             {
-                //create claims
-                List<Claim> claims = new List<Claim>();
-                claims.Add(new Claim("Name", registerDto.Name));
                 await _usermanager.AddToRoleAsync(user, "Servant");
+
+                // create domain profile row
+                var servant = new Servant
+                {
+                    ApplicationUserId = user.Id,
+                    Name = registerDto.Name,
+                    PhoneNumber = registerDto.PhoneNumber
+                };
+
+                _servantRepo.Add(servant);
+
+                var claims = await BuildJwtClaims(user);
                 return GenerateToken(claims);
             }
+
             //if not succeded
             return null;
         }
@@ -99,6 +114,20 @@ namespace SunDaySchools.BLL.Manager
             return token;
         }
 
+        private async Task<List<Claim>> BuildJwtClaims(ApplicationUser user)
+        {
+            var claims = new List<Claim>
+    {
+        new Claim(ClaimTypes.NameIdentifier, user.Id),
+        new Claim(ClaimTypes.Name, user.UserName ?? "")
+    };
+
+            var roles = await _usermanager.GetRolesAsync(user);
+            foreach (var role in roles)
+                claims.Add(new Claim(ClaimTypes.Role, role));
+
+            return claims;
+        }
 
     }
 }

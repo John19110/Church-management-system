@@ -43,8 +43,13 @@ namespace SunDaySchools.DAL.Repository
         }
         public void Delete(int id)
         {
-            _context.Servants.Remove(_context.Servants.Find(id));
-            _context.SaveChanges();
+            var servant = _context.Servants.Find(id);
+            if (servant != null)
+            {
+                _context.Servants.Remove(servant);
+                _context.SaveChanges();
+            }
+
         }
 
 

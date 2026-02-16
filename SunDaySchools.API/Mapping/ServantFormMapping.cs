@@ -10,9 +10,9 @@ namespace SunDaySchools.API.Mapping
 {
     public static class ServantFormMapping
     {
-        //Extension Method here 
+        //Extension Methods here 
 
-        public static ServantAddDTO ToDto(this ServantAddFormRequest form)
+        public static ServantAddDTO ToAddDto(this ServantFormRequest form)
         {
             return new ServantAddDTO
             {
@@ -20,7 +20,20 @@ namespace SunDaySchools.API.Mapping
                 Name = form.Name,
                 JoiningDate = form.JoiningDate,
                 BirthDate = form.BirthDate,
-                password=form.password,
+                PhoneNumber = form.PhoneNumber,
+                ClassroomId = form.ClassroomId
+            };
+        }
+
+
+        public static ServantUpdateDTO ToUpdateDto(this ServantFormRequest form)
+        {
+            return new ServantUpdateDTO
+            {
+
+                Name = form.Name,
+                JoiningDate = form.JoiningDate,
+                BirthDate = form.BirthDate,
                 PhoneNumber = form.PhoneNumber,
                 ClassroomId = form.ClassroomId
             };

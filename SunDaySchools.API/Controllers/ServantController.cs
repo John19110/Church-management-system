@@ -30,7 +30,7 @@ namespace SunDaySchools.API.Controllers
         }
 
         [HttpGet]
-        [Authorize]
+ 
         public ActionResult GetAll()
         {
             var servnants = _servantmanager.GetAll();
@@ -51,15 +51,15 @@ namespace SunDaySchools.API.Controllers
 
         [HttpPost]
         [Consumes("multipart/form-data")]
-        public async Task<IActionResult> AddServant([FromForm]ServantAddFormRequest form , CancellationToken ct) 
+        public async Task<IActionResult> AddServant([FromForm]ServantFormRequest form , CancellationToken ct) 
         
         {
             if (form == null) return BadRequest();
 
-            var dto = form.ToDto();
+            var dto = form.ToAddDto();
             if (form.Image != null && form.Image.Length > 0)
             {
-                var key = await _fileStorage.SaveChildImageAsync(form.Image, ct);
+                var key = await _fileStorage.SaveImageAsync(form.Image, ct,"servants");
                 dto.ImageFileName = key;
                 dto.ImageUrl = _fileStorage.GetPublicUrl(key);
             }
@@ -75,22 +75,34 @@ namespace SunDaySchools.API.Controllers
 
 
 
-        [HttpPut("{id}")]
-        public ActionResult Update(int id, ServantUpdateDTO dto)
+        [HttpPut("{id:int}")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> Update([FromForm] ServantFormRequest form,CancellationToken ct )
         {
-            if (dto == null || id != dto.Id)
-                return BadRequest();
+
+
+            // Map form fields -> update dto
+            var updateDto = form.ToUpdateDto();
+
+            // Optional image upload
+            if (form.Image is not null && form.Image.Length > 0)
+            {
+                var key = await _fileStorage.SaveImageAsync(form.Image, ct, "servant");
+                updateDto.ImageFileName = key;
+                updateDto.ImageUrl = _fileStorage.GetPublicUrl(key);
+            }
 
             try
             {
-                _servantmanager.Update(dto);
-                return NoContent(); // standard for PUT
+                _servantmanager.Update(updateDto);
+                return NoContent();
             }
             catch (KeyNotFoundException)
             {
                 return NotFound();
             }
         }
+
 
 
         [HttpDelete("{id}")]

@@ -8,7 +8,7 @@ namespace SunDaySchools.API.Services.Interfaces
 {
     public interface IFileStorage
     {
-        Task<string> SaveChildImageAsync(IFormFile file, CancellationToken ct = default);
+        Task<string> SaveImageAsync(IFormFile file, CancellationToken ct = default, string foldername = default);
 
         string GetPublicUrl(string key);
 

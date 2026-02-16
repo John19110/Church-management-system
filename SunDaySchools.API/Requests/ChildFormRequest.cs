@@ -3,7 +3,7 @@ using SunDaySchools.BLL.DTOS;
 
 namespace SunDaySchools.API.Requests
 {
-    public class ChildAddFormRequest
+    public class ChildFormRequest
     {
         public string? Name1 { get; set; }
         public string? Name2 { get; set; }
@@ -19,7 +19,7 @@ namespace SunDaySchools.API.Requests
         public bool? HaveBrothers { get; set; }
 
         public int? ClassroomId { get; set; }
-        public List<ChildContactDto>? PhoneNumbers { get; set; }
+        public List<ChildContactDTO>? PhoneNumbers { get; set; }
 
         // The uploaded file
         // this field is the reason why we made this entire class 

@@ -13,6 +13,10 @@ namespace SunDaySchools.Models
         public string? Name2 { get; set; }
         public string? Name3 { get; set; }
 
+        public string FullName =>
+        string.Join(" ", new[] { Name1, Name2, Name3 }
+        .Where(n => !string.IsNullOrWhiteSpace(n)));
+
         public string? Gender { get; set; }
         public string? Address { get; set; }
 

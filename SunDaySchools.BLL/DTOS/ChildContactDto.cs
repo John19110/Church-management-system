@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 
 namespace SunDaySchools.BLL.DTOS
 {
+    public class ChildContactDTO
+    {
 
-public class ChildContactDto
-{
-    public string? Relation { get; set; }
-    public string? PhoneNumber { get; set; } 
-}
+        public string? Relation { get; set; }
+        public string? PhoneNumber { get; set; }
+
+    }
 }

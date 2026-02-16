@@ -18,14 +18,14 @@ namespace SunDaySchools.API.Services.Implementations
             _http = http;
         }
 
-        public async Task<string> SaveChildImageAsync(IFormFile file, CancellationToken ct = default)
+        public async Task<string> SaveImageAsync(IFormFile file, CancellationToken ct = default,string foldername=default)
         {
             var allowed = new[] { ".jpg", ".jpeg", ".png", ".webp" };
             var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
             if (!allowed.Contains(ext)) throw new InvalidOperationException("Invalid image type.");
 
             var webRoot = _env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot");
-            var uploads = Path.Combine(webRoot, "uploads", "children");
+            var uploads = Path.Combine(webRoot, "uploads", foldername);
             Directory.CreateDirectory(uploads);
 
             var fileName = $"{Guid.NewGuid()}{ext}";
@@ -35,7 +35,7 @@ namespace SunDaySchools.API.Services.Implementations
             await file.CopyToAsync(stream, ct);
 
             // key saved in DB
-            return $"children/{fileName}";
+            return $"{foldername}/{fileName}";
         }
 
         public string GetPublicUrl(string key)

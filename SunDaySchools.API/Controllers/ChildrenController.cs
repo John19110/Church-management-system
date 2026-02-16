@@ -12,7 +12,7 @@ namespace SunDaySchools.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Servant")]
+ //   [Authorize(Roles = "Servant")]
     public class ChildrenController : ControllerBase
     {
         private readonly IChildManager _childmanager;
@@ -52,25 +52,40 @@ namespace SunDaySchools.API.Controllers
             }
         }
 
+        //[HttpPost]
+        //[Consumes("multipart/form-data")]
+        //public async Task<IActionResult> Create([FromForm] ChildFormRequest form, CancellationToken ct)
+        //{
+        //    if (form == null) return BadRequest();
+
+        //    var dto = form.ToDto();
+        //    if (form.Image != null && form.Image.Length > 0)
+        //    {
+        //        var key = await _fileStorage.SaveImageAsync(form.Image, ct, "children");
+        //        dto.ImageFileName = key;
+        //        dto.ImageUrl = _fileStorage.GetPublicUrl(key);
+        //    }
+
+
+        //    _childmanager.Add(dto);
+
+        //    return StatusCode(201, new { message = "Created Successfully" });
+        //}
+
+
+
         [HttpPost]
-        [Consumes("multipart/form-data")]
-        public async Task<IActionResult> Create([FromForm] ChildAddFormRequest form, CancellationToken ct)
+        public async Task<IActionResult> Create( ChildAddDTO childdto)
         {
-            if (form == null) return BadRequest();
+            if (childdto == null) return BadRequest();
 
-            var dto = form.ToDto();
-            if (form.Image != null && form.Image.Length > 0)
-            {
-                var key = await _fileStorage.SaveChildImageAsync(form.Image, ct);
-                dto.ImageFileName = key;
-                dto.ImageUrl = _fileStorage.GetPublicUrl(key);
-            }
+           
 
-            // 3) Manager uses AutoMapper to map DTO -> Entity
-            _childmanager.Add(dto);
+                _childmanager.Add(childdto);
 
             return StatusCode(201, new { message = "Created Successfully" });
         }
+
 
         [HttpPut("{id}")]
         public ActionResult Update(int id, ChildUpdateDTO dto)

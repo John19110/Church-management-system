@@ -21,7 +21,7 @@ namespace SunDaySchools.BLL.DTOS
         public int? TotalNumberOfDaysAttended { get; set; } = 0;
 
 
-        public List<ChildContactDto>? PhoneNumbers { get; set; }
+        public List<ChildContactDTO>? PhoneNumbers { get; set; }
 
         public bool? HaveBrothers { get; set; }
         public List<string>? BrothersNames { get; set; }

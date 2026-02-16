@@ -25,7 +25,7 @@ namespace SunDaySchools.BLL.DTOS
         public List<string>?  BrothersNames { get; set; }
         public bool? HaveBrothers { get; set; }
         public int? ClassroomId { get; set; }              // ✅ ID only
-        public List<ChildContactDto>? PhoneNumbers { get; set; } // ✅ DTO not entity
+        public List<ChildContactDTO>? PhoneNumbers { get; set; }
 
     }
 }

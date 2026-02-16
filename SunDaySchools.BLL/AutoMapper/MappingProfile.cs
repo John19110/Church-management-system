@@ -15,9 +15,10 @@ namespace SunDaySchools.BLL.AutoMapper
         {
 
             CreateMap<Child, ChildAddDTO>().ReverseMap();
-            CreateMap<Child, ChildReadDTO>().ReverseMap();
+            CreateMap<Child, ChildReadDTO>()
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName));
             CreateMap<Child, ChildUpdateDTO>().ReverseMap();
-            CreateMap<ChildContact, ChildContactDto>().ReverseMap();
+            CreateMap<ChildContact, ChildContactDTO>().ReverseMap();
 
             CreateMap<Servant,ServantAddDTO>().ReverseMap();
             CreateMap<Servant, ServantReadDTO>().ReverseMap();

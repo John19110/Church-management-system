@@ -7,7 +7,7 @@ namespace SunDaySchools.API.Mapping
     {
 
         //Extension Method here 
-        public static ChildAddDTO ToDto(this ChildAddFormRequest form)
+        public static ChildAddDTO ToDto(this ChildFormRequest form)
         {
             return new ChildAddDTO
             {
@@ -23,8 +23,9 @@ namespace SunDaySchools.API.Mapping
                 BrothersNames = form.BrothersNames,
                 HaveBrothers = form.HaveBrothers,
                 ClassroomId = form.ClassroomId,
-                PhoneNumbers = form.PhoneNumbers
-            };
+                PhoneNumbers=form.PhoneNumbers
+
+    };
         }
     }
 }
