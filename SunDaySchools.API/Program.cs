@@ -15,7 +15,6 @@ using SunDaySchoolsDAL.Models;
 using SunDaySchoolsDAL.Repository;
 using System.Diagnostics;
 using System.Text;
-using Microsoft.OpenApi.Models;
 
 
 var builder = WebApplication.CreateBuilder(args);

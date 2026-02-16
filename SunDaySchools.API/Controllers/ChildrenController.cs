@@ -12,6 +12,7 @@ namespace SunDaySchools.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Servant")]
     public class ChildrenController : ControllerBase
     {
         private readonly IChildManager _childmanager;
@@ -24,7 +25,7 @@ namespace SunDaySchools.API.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles="Servant")]
+        
 
         public ActionResult GetAll()
         {
