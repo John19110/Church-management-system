@@ -38,6 +38,9 @@ namespace SunDaySchools.Models
 
         public List<string>? Notes { get; set; }
 
-        public List<ExamResult> ExamsResults { get; set; }
+        public List<ExamResult>? ExamsResults { get; set; }
+
+        public List<AttendanceRecord>? AttendacnceHistory { get; set; }
+
     }
 }
