@@ -12,6 +12,8 @@ namespace SunDaySchools.BLL.Manager.Interfaces
     {
         IEnumerable<ChildReadDTO> GetAll();
 
+        IEnumerable<ChildReadDTO> GetSpecificClassroom(int ClassroomId);
+
         ChildReadDTO GetById(int id);
         void Add(ChildAddDTO child);
         void Update(ChildUpdateDTO child);

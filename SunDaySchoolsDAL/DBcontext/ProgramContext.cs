@@ -56,6 +56,15 @@ namespace SunDaySchoolsDAL.DBcontext
             .HasIndex(x => new { x.AttendanceSessionId, x.ChildId })
             .IsUnique();
 
+
+
+
+            base.OnModelCreating(builder);
+
+            builder.Entity<Child>()
+                .HasIndex(c => c.ClassroomId);
+
+
         }
     }
 }

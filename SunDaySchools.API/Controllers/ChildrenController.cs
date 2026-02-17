@@ -36,18 +36,33 @@ namespace SunDaySchools.API.Controllers
 
         }
 
+        [HttpGet]
+        public ActionResult GetSpecificClassroom(int ClassroomId)
+        {
+
+            var Children = _childmanager.GetSpecificClassroom(ClassroomId);
+
+            if (Children != null)
+            {
+                return Ok(Children);
+            }
+
+            else return NotFound();
+        }
+
+
         [HttpGet("{id}")]
         public ActionResult GetById(int id)
         
         {
-            {
+            
                 var child = _childmanager.GetById(id);
                 if (child != null)
                 {
                     return Ok(child);
                 }
                 else return NotFound();
-            }
+            
         }
 
         //[HttpPost]

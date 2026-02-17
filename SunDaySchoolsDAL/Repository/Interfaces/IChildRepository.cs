@@ -15,7 +15,7 @@ namespace SunDaySchools.DAL.Repository.Interfaces
         void Add(Child child);
         void Update(Child child);
         void Delete(int id);
-
+        IQueryable<Child> GetSpecificClassroom(int ClassroomId);
 
     }
 }

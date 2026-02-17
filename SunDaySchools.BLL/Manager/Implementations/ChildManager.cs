@@ -30,8 +30,14 @@ namespace SunDaySchools.BLL.Manager.Implementations
         {
           return  _mapper.Map<ChildReadDTO>(_childReposatory.GetById(id));
         }
-        
-         public  void Add(ChildAddDTO child)
+        public IEnumerable<ChildReadDTO> GetSpecificClassroom(int ClassroomId)
+        {
+            return _mapper.Map<IEnumerable<ChildReadDTO>>(_childReposatory.GetSpecificClassroom(ClassroomId).ToList());
+
+        }
+
+
+         public void Add(ChildAddDTO child)
         {
             _childReposatory.Add(_mapper.Map<Child>(child));
         }

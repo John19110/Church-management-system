@@ -42,5 +42,11 @@ namespace SunDaySchools.DAL.Repository.Implementations
             _context.Children.Remove(_context.Children.Find(id));
             _context.SaveChanges();
         }
+
+        public IQueryable<Child> GetSpecificClassroom(int classroomId)
+        {
+
+            return _context.Children.Where(ch => ch.ClassroomId == classroomId);
+        }
     }
 }
