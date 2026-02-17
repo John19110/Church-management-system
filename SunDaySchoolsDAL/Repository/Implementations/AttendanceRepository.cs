@@ -14,19 +14,22 @@ namespace SunDaySchools.DAL.Repository.Implementations
             _context = context; 
 
         }
-     public   void TakeAttendance(AttendanceSession session)
+        public AttendanceSession TakeAttendance(AttendanceSession session)
         {
-                _context.AttendanceSessions.Add(session);
-            
-        }
-      public  void EditAttendance(AttendanceSession session)
+            _context.AttendanceSessions.Add(session);
+            _context.SaveChanges();
 
-        {
-
-                        _context.AttendanceSessions.Update(session);
-
-
+            return session;
         }
 
-}
+        public AttendanceSession EditAttendance(AttendanceSession session)
+        {
+            _context.AttendanceSessions.Update(session);
+            _context.SaveChanges();
+
+            return session;
+        }
+
+
+    }
 }

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using SunDaySchools.BLL.Manager.Interfaces;
-
+using SunDaySchools.DAL.Models;
 namespace SunDaySchools.API.Controllers
 {
         [Route("Api/[controller]")]
@@ -21,9 +21,20 @@ namespace SunDaySchools.API.Controllers
 
         }
 
+        [HttpPost]
+        public async Task<IActionResult> TakeAttendance(AttendanceSession attendanceSession)
+        {
+
+
+            var Attendance=_attendanceManager.TakeAttendance(attendanceSession);
+            return Ok();
+
+        }
+
 
 
 
 
     }
 }
+

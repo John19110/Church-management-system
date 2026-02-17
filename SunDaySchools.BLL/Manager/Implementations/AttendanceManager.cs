@@ -18,11 +18,11 @@ namespace SunDaySchools.BLL.Manager.Implementations
     {
         _iAttendanceRepository = iAttendanceRepository;
     }
-      public  void TakeAttendance(AttendanceSession session)
+      public AttendanceSession TakeAttendance(AttendanceSession session)
     {
 
     }
-    public    void EditAttendance(AttendanceSession session)
+    public AttendanceSession EditAttendance(AttendanceSession session)
     {
 
     }
