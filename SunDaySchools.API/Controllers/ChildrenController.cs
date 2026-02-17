@@ -26,21 +26,21 @@ namespace SunDaySchools.API.Controllers
 
         [HttpGet]
         public ActionResult GetAll()
-        {
-            var children = _childmanager.GetAll() ?? new List<ChildReadDTO>();
-            if (children == null)
-            {
-                return NotFound();
-            }
-            return Ok(children);
+        {        
+            var children = _childmanager.GetAll();
 
+            if (!children.Any())
+                return NotFound("No children found.");
+
+            return Ok(children);
         }
 
-        [HttpGet]
-        public ActionResult GetSpecificClassroom(int ClassroomId)
+
+        [HttpGet("classroom/{classroomId}")]
+        public ActionResult GetSpecificClassroom(int classroomId)
         {
 
-            var Children = _childmanager.GetSpecificClassroom(ClassroomId);
+            var Children = _childmanager.GetSpecificClassroom(classroomId);
 
             if (Children != null)
             {
