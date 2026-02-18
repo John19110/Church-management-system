@@ -59,8 +59,8 @@ namespace SunDaySchoolsDAL.DBcontext
 
 
 
-            base.OnModelCreating(builder);
 
+            //specific classroom indexing 
             builder.Entity<Child>()
                 .HasIndex(c => c.ClassroomId);
 
