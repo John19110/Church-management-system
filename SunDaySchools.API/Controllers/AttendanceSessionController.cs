@@ -31,17 +31,24 @@ namespace SunDaySchools.API.Controllers
 
         }
 
-        [HttpPost("Attendance/{attendanceSession}")]
-        public async Task<IActionResult> UpdateAttendance(AttendanceSession attendanceSession)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateAttendance(int id,AttendanceSession attendanceSession)
         {
 
-
+            if (id!= attendanceSession.Id)
+            {
+                return BadRequest();
+            }
             var Attendance = _attendanceManager.TakeAttendance(attendanceSession);
-            return Ok();
+            return Ok(Attendance);
 
         }
 
-
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetAttendance(int id)
+        {
+            // Missing implementation
+        }
 
 
 

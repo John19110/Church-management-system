@@ -14,15 +14,16 @@ namespace SunDaySchools.DAL.Repository.Implementations
             _context = context; 
 
         }
-        public AttendanceSession TakeAttendance(AttendanceSession session)
+        public async Task<AttendanceSession> TakeAttendanceAsync(AttendanceSession session)
         {
-            _context.AttendanceSessions.Add(session);
-            _context.SaveChanges();
-
+            await _context.AttendanceSessions.AddAsync(session);
+            await _context.SaveChangesAsync();
             return session;
         }
 
-        public AttendanceSession EditAttendance(AttendanceSession session)
+
+
+        public  AttendanceSession EditAttendance(AttendanceSession session)
         {
             _context.AttendanceSessions.Update(session);
             _context.SaveChanges();
@@ -30,6 +31,6 @@ namespace SunDaySchools.DAL.Repository.Implementations
             return session;
         }
 
-
+       
     }
 }
