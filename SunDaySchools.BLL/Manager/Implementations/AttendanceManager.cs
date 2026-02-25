@@ -21,11 +21,15 @@ namespace SunDaySchools.BLL.Manager.Implementations
       public AttendanceSession TakeAttendance(AttendanceSession session)
     {
 
+         return   _iAttendanceRepository.TakeAttendance(session);
+
     }
     public AttendanceSession EditAttendance(AttendanceSession session)
     {
+          return  _iAttendanceRepository.EditAttendance(session);
+
+
+        }
 
     }
-
-}
 }
