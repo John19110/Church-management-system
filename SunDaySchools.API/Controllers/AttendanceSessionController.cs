@@ -31,6 +31,16 @@ namespace SunDaySchools.API.Controllers
 
         }
 
+        [HttpPost("Attendance/{attendanceSession}")]
+        public async Task<IActionResult> UpdateAttendance(AttendanceSession attendanceSession)
+        {
+
+
+            var Attendance = _attendanceManager.TakeAttendance(attendanceSession);
+            return Ok();
+
+        }
+
 
 
 
