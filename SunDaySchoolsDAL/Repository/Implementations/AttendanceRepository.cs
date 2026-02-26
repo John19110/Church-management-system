@@ -27,5 +27,17 @@ namespace SunDaySchools.DAL.Repository.Implementations
             await _context.SaveChangesAsync();
             return session;
         }
+
+        public async Task<AttendanceSession> GetAttendance(int  SessionId)
+        {
+             return  _context.AttendanceSessions
+                .FirstOrDefault(c => c.Id == SessionId);
+            
+        }
+
+
+
+
+
     }
 }
