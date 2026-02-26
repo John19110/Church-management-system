@@ -21,6 +21,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
       public AttendanceSession TakeAttendance(AttendanceSession session)
     {
 
+           
          return   _iAttendanceRepository.TakeAttendance(session);
 
     }

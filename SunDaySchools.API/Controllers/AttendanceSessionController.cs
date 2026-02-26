@@ -44,8 +44,8 @@ namespace SunDaySchools.API.Controllers
 
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetAttendance(int id)
+        [HttpGet("{SessionId}")]
+        public async Task<IActionResult> GetAttendance(int SessioId)
         {
             // Missing implementation
         }
