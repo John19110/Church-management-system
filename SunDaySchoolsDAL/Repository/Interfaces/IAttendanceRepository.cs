@@ -11,6 +11,7 @@ namespace SunDaySchools.DAL.Repository.Interfaces
     {
        Task< AttendanceSession>  TakeAttendance(AttendanceSession session);
         Task<AttendanceSession> EditAttendance(AttendanceSession session);
+        Task<AttendanceSession> GetAttendance(int SessionId);
 
     }
 }
