@@ -14,44 +14,39 @@ namespace SunDaySchools.API.Controllers
     {
         private readonly IAttendanceManager _attendanceManager;
         public AttendanceSessionController(IAttendanceManager attendanceManager)
-
         {
             _attendanceManager = attendanceManager;
-
-
         }
 
         [HttpPost]
-        public async Task<IActionResult> TakeAttendance(AttendanceSession attendanceSession)
+        public Task<IActionResult> TakeAttendance([FromBody] AttendanceSession attendanceSession)
         {
-
-
-            var Attendance=_attendanceManager.TakeAttendance(attendanceSession);
-            return Ok();
-
+            if (attendanceSession == null) return Task.FromResult<IActionResult>(BadRequest("AttendanceSession is required."));
+            var created = _attendanceManager.TakeAttendance(attendanceSession);
+            // return 201 with location header to GET endpoint
+            return Task.FromResult<IActionResult>(CreatedAtAction(nameof(GetAttendance), new { SessionId = created.Id }, created));
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateAttendance(int id,AttendanceSession attendanceSession)
+        public Task<IActionResult> UpdateAttendance(int id, [FromBody] AttendanceSession attendanceSession)
         {
+            if (attendanceSession == null) return Task.FromResult<IActionResult>(BadRequest("AttendanceSession is required."));
+            if (id != attendanceSession.Id) return Task.FromResult<IActionResult>(BadRequest("Route id and body id do not match."));
 
-            if (id!= attendanceSession.Id)
-            {
-                return BadRequest();
-            }
-            var Attendance = _attendanceManager.TakeAttendance(attendanceSession);
-            return Ok(Attendance);
-
+            var updated = _attendanceManager.EditAttendance(attendanceSession);
+            return Task.FromResult<IActionResult>(Ok(updated));
         }
 
         [HttpGet("{SessionId}")]
-        public async Task<IActionResult> GetAttendance(int SessioId)
+        public Task<IActionResult> GetAttendance(int SessionId)
         {
-            // Missing implementation
+            if (SessionId <= 0) return Task.FromResult<IActionResult>(BadRequest("Invalid SessionId."));
+
+            var session = _attendanceManager.GetAttendance(SessionId);
+            if (session == null) return Task.FromResult<IActionResult>(NotFound());
+
+            return Task.FromResult<IActionResult>(Ok(session));
         }
-
-
-
     }
 }
 
