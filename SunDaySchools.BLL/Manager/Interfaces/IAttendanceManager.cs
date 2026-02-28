@@ -11,5 +11,7 @@ namespace SunDaySchools.BLL.Manager.Interfaces
     {
         AttendanceSession TakeAttendance(AttendanceSession session);
         AttendanceSession EditAttendance(AttendanceSession session);
+
+        AttendanceSession GetAttendance(int sessionId);
     }
 }
