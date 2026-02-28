@@ -1,5 +1,4 @@
-﻿
-using SunDaySchools.BLL.Manager.Interfaces;
+﻿using SunDaySchools.BLL.Manager.Interfaces;
 using SunDaySchools.DAL.Models;
 using SunDaySchools.DAL.Repository.Interfaces;
 using System;
@@ -54,6 +53,13 @@ namespace SunDaySchools.BLL.Manager.Implementations
             }
 
             var result = _iAttendanceRepository.EditAttendance(session).GetAwaiter().GetResult();
+            return result;
+        }
+
+        public AttendanceSession GetAttendance(int sessionId)
+        {
+            // Call the repository to get the attendance session synchronously
+            var result = _iAttendanceRepository.GetAttendance(sessionId).GetAwaiter().GetResult();
             return result;
         }
     }
