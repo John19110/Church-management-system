@@ -47,6 +47,15 @@ namespace SunDaySchools.API.Controllers
 
             return Task.FromResult<IActionResult>(Ok(session));
         }
+
+
+        public void Delete(int id)
+        {
+
+            _sarventReposatory.Delete(id);
+        }
     }
+
+
 }
 
