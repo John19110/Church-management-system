@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using SunDaySchools.BLL.Manager.Interfaces;
 using SunDaySchools.DAL.Models;
+using SunDaySchools.BLL.DTOS;
 namespace SunDaySchools.API.Controllers
 {
         [Route("Api/[controller]")]
@@ -19,7 +20,7 @@ namespace SunDaySchools.API.Controllers
         }
 
         [HttpPost]
-        public Task<IActionResult> TakeAttendance([FromBody] AttendanceSession attendanceSession)
+        public Task<IActionResult> TakeAttendance([FromBody] AttendanceSessionAddDTO attendanceSession)
         {
             if (attendanceSession == null) return Task.FromResult<IActionResult>(BadRequest("AttendanceSession is required."));
             var created = _attendanceManager.TakeAttendance(attendanceSession);
@@ -28,7 +29,7 @@ namespace SunDaySchools.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public Task<IActionResult> UpdateAttendance(int id, [FromBody] AttendanceSession attendanceSession)
+        public Task<IActionResult> UpdateAttendance(int id, [FromBody] AttendanceSessionUpdateDTO attendanceSession)
         {
             if (attendanceSession == null) return Task.FromResult<IActionResult>(BadRequest("AttendanceSession is required."));
             if (id != attendanceSession.Id) return Task.FromResult<IActionResult>(BadRequest("Route id and body id do not match."));
@@ -49,11 +50,7 @@ namespace SunDaySchools.API.Controllers
         }
 
 
-        public void Delete(int id)
-        {
-
-            _sarventReposatory.Delete(id);
-        }
+       
     }
 
 
