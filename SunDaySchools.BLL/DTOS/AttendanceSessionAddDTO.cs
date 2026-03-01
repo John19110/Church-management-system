@@ -20,10 +20,9 @@ namespace SunDaySchools.BLL.DTOS
 
         public string? Notes { get; set; }
 
-        public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 
         // All child records for this session
-        public List<AttendanceRecord> Records { get; set; } = new();
+        public List<AttendanceRecordAddDTO> Records { get; set; } = new();
 
     }
 }
