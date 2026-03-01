@@ -14,11 +14,10 @@ namespace SunDaySchools.DAL.Repository.Implementations
             _context = context;
         }
 
-        public async Task<AttendanceSession> EditAttendance(AttendanceSession session)
+        public async Task EditAttendance(AttendanceSession session)
         {
             _context.AttendanceSessions.Update(session);
             await _context.SaveChangesAsync();
-            return session;
         }
 
         public async Task<AttendanceSession> TakeAttendance(AttendanceSession session)

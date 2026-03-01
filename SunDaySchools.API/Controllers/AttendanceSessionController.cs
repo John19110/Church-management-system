@@ -34,8 +34,8 @@ namespace SunDaySchools.API.Controllers
             if (attendanceSession == null) return Task.FromResult<IActionResult>(BadRequest("AttendanceSession is required."));
             if (id != attendanceSession.Id) return Task.FromResult<IActionResult>(BadRequest("Route id and body id do not match."));
 
-            var updated = _attendanceManager.EditAttendance(attendanceSession);
-            return Task.FromResult<IActionResult>(Ok(updated));
+           _attendanceManager.EditAttendance(attendanceSession);
+            return Task.FromResult<IActionResult>(Ok());
         }
 
         [HttpGet("{SessionId}")]

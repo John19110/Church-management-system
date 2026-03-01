@@ -35,7 +35,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             return result;
         }
 
-        public AttendanceSession EditAttendance(AttendanceSessionUpdateDTO session)
+        public void EditAttendance(AttendanceSessionUpdateDTO session)
         {
             if (session == null) throw new ArgumentNullException(nameof(session));
             if (session.Id <= 0) throw new ArgumentException("Session must have a valid Id to edit.", nameof(session));
@@ -52,8 +52,6 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 r.UpdatedAtUtc = DateTime.UtcNow;
             }
             var mappedSession = _mapper.Map<AttendanceSession>(session);
-            var result = _iAttendanceRepository.EditAttendance(mappedSession).GetAwaiter().GetResult();
-            return result;
         }
 
         public AttendanceSession GetAttendance(int sessionId)
