@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using SunDaySchools.BLL.DTOS;
+using SunDaySchools.DAL.Models;
 using SunDaySchools.Models;
 using System;
 using System.Collections.Generic;
@@ -23,7 +24,8 @@ namespace SunDaySchools.BLL.AutoMapper
             CreateMap<Servant,ServantAddDTO>().ReverseMap();
             CreateMap<Servant, ServantReadDTO>().ReverseMap();
             CreateMap<Servant, ServantUpdateDTO>().ReverseMap();
-
+            CreateMap<AttendanceSession, AttendanceSessionAddDTO>().ReverseMap();
+            CreateMap<AttendanceSession, AttendanceSessionUpdateDTO>().ReverseMap();
 
 
 

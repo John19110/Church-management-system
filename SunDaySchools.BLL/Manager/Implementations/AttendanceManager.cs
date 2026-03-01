@@ -1,6 +1,8 @@
 ﻿using SunDaySchools.BLL.Manager.Interfaces;
 using SunDaySchools.DAL.Models;
 using SunDaySchools.DAL.Repository.Interfaces;
+using SunDaySchools.BLL.DTOS;
+using AutoMapper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,12 +14,14 @@ namespace SunDaySchools.BLL.Manager.Implementations
     public class AttendanceManager : IAttendanceManager
     {
         private readonly IAttendanceRepository _iAttendanceRepository;
-        public AttendanceManager(IAttendanceRepository iAttendanceRepository)
+        private readonly IMapper _mapper;
+        public AttendanceManager(IAttendanceRepository iAttendanceRepository,IMapper iMapper)
         {
             _iAttendanceRepository = iAttendanceRepository;
+            _mapper = iMapper;
         }
 
-        public AttendanceSession TakeAttendance(AttendanceSession session)
+        public AttendanceSession TakeAttendance(AttendanceSessionAddDTO session)
         {
             if (session == null) throw new ArgumentNullException(nameof(session));
 
@@ -30,11 +34,12 @@ namespace SunDaySchools.BLL.Manager.Implementations
             }
 
             // repository methods are async; call synchronously to match interface
-            var result = _iAttendanceRepository.TakeAttendance(session).GetAwaiter().GetResult();
+            var mappedSession = _mapper.Map<AttendanceSession>(session);
+            var result = _iAttendanceRepository.TakeAttendance(mappedSession).GetAwaiter().GetResult();
             return result;
         }
 
-        public AttendanceSession EditAttendance(AttendanceSession session)
+        public AttendanceSession EditAttendance(AttendanceSessionUpdateDTO session)
         {
             if (session == null) throw new ArgumentNullException(nameof(session));
             if (session.Id <= 0) throw new ArgumentException("Session must have a valid Id to edit.", nameof(session));
@@ -44,15 +49,14 @@ namespace SunDaySchools.BLL.Manager.Implementations
             if (existing == null)
                 throw new InvalidOperationException($"Attendance session with Id {session.Id} not found.");
 
-            // preserve creation timestamp, update records timestamps
-            session.CreatedAtUtc = existing.CreatedAtUtc;
+            // update records timestamps
             session.Records ??= new List<AttendanceRecord>();
             foreach (var r in session.Records)
             {
                 r.UpdatedAtUtc = DateTime.UtcNow;
             }
-
-            var result = _iAttendanceRepository.EditAttendance(session).GetAwaiter().GetResult();
+            var mappedSession = _mapper.Map<AttendanceSession>(session);
+            var result = _iAttendanceRepository.EditAttendance(mappedSession).GetAwaiter().GetResult();
             return result;
         }
 
