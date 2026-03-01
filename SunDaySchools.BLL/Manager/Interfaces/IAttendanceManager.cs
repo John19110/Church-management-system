@@ -11,7 +11,7 @@ namespace SunDaySchools.BLL.Manager.Interfaces
     public interface IAttendanceManager
     {
         AttendanceSession TakeAttendance(AttendanceSessionAddDTO session);
-        AttendanceSession EditAttendance(AttendanceSessionUpdateDTO session);
+        void EditAttendance(AttendanceSessionUpdateDTO session);
 
         AttendanceSession GetAttendance(int sessionId);
     }
