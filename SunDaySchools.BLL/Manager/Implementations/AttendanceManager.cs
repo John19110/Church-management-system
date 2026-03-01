@@ -26,12 +26,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
             if (session == null) throw new ArgumentNullException(nameof(session));
 
             // ensure lists and timestamps are initialized
-            session.CreatedAtUtc = DateTime.UtcNow;
-            session.Records ??= new List<AttendanceRecord>();
-            foreach (var r in session.Records)
-            {
-                r.UpdatedAtUtc = DateTime.UtcNow;
-            }
+            session.Records ??= new List<AttendanceRecordAddDTO>();
+           
 
             // repository methods are async; call synchronously to match interface
             var mappedSession = _mapper.Map<AttendanceSession>(session);

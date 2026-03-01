@@ -28,7 +28,6 @@ namespace SunDaySchools.BLL.DTOS
         public int?  ClassroomId { get; set; }
         public List<string>? Notes { get; set; }
 
-
         public List<AttendanceRecord> AttendanceHistory { get; set; } = new();
 
     }
