@@ -20,7 +20,7 @@ namespace SunDaySchools.DAL.Repository.Implementations
             await _context.SaveChangesAsync();
         }
 
-        public async Task<AttendanceSession> TakeAttendance(AttendanceSession session)
+        public async Task<AttendanceSessionDTO> TakeAttendance(AttendanceSession session)
         {
             await _context.AttendanceSessions.AddAsync(session);
             await _context.SaveChangesAsync();
