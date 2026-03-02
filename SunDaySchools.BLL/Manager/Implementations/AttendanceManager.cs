@@ -52,11 +52,12 @@ namespace SunDaySchools.BLL.Manager.Implementations
             var mappedSession = _mapper.Map<AttendanceSession>(session);
         }
 
-        public AttendanceSession GetAttendance(int sessionId)
+        public AttendanceSessionReadDTO GetAttendance(int sessionId)
         {
             // Call the repository to get the attendance session synchronously
             var result = _iAttendanceRepository.GetAttendance(sessionId).GetAwaiter().GetResult();
-            return result;
+          var  dto=_mapper.Map<AttendanceSessionReadDTO>(result);
+            return dto;
         }
     }
 }

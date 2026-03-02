@@ -13,6 +13,6 @@ namespace SunDaySchools.BLL.Manager.Interfaces
         void TakeAttendance(AttendanceSessionAddDTO session);
         void EditAttendance(AttendanceSessionUpdateDTO session);
 
-        AttendanceSession GetAttendance(int sessionId);
+        AttendanceSessionReadDTO GetAttendance(int sessionId);
     }
 }

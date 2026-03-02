@@ -47,6 +47,17 @@ namespace SunDaySchools.BLL.AutoMapper
                 .ForMember(d => d.CreatedAtUtc, o => o.Ignore()) // don't overwrite created time
                 .ForMember(d => d.Records, o => o.MapFrom(s => s.Records));
 
+            // Update mapping (DTO -> Entity) - adjust based on your DTO shape
+
+            CreateMap<AttendanceSessionReadDTO, AttendanceSession>()
+                .ForMember(d => d.Classroom, o => o.Ignore())
+                .ForMember(d => d.TakenByServant, o => o.Ignore())
+                .ForMember(d => d.CreatedAtUtc, o => o.Ignore()) // don't overwrite created time
+                .ForMember(d => d.Records, o => o.MapFrom(s => s.Records));
+
+
+
+
         }
-}
+    }
 }
