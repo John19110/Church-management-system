@@ -21,7 +21,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             _mapper = iMapper;
         }
 
-        public AttendanceSession TakeAttendance(AttendanceSessionAddDTO session)
+        public void TakeAttendance(AttendanceSessionAddDTO session)
         {
             if (session == null) throw new ArgumentNullException(nameof(session));
 
@@ -31,8 +31,6 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             // repository methods are async; call synchronously to match interface
             var mappedSession = _mapper.Map<AttendanceSession>(session);
-            var result = _iAttendanceRepository.TakeAttendance(mappedSession).GetAwaiter().GetResult();
-            return result;
         }
 
         public void EditAttendance(AttendanceSessionUpdateDTO session)

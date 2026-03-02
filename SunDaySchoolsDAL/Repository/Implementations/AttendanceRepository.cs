@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using SunDaySchools.DAL.Models;
+﻿using SunDaySchools.DAL.Models;
 using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchoolsDAL.DBcontext;
 
@@ -20,11 +19,10 @@ namespace SunDaySchools.DAL.Repository.Implementations
             await _context.SaveChangesAsync();
         }
 
-        public async Task<AttendanceSessionDTO> TakeAttendance(AttendanceSession session)
+        public async Task TakeAttendance(AttendanceSession session)
         {
             await _context.AttendanceSessions.AddAsync(session);
             await _context.SaveChangesAsync();
-            return session;
         }
 
         public async Task<AttendanceSession> GetAttendance(int  SessionId)
