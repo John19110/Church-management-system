@@ -20,12 +20,12 @@ namespace SunDaySchools.API.Controllers
         }
 
         [HttpPost]
-        public Task<IActionResult> TakeAttendance([FromBody] AttendanceSessionAddDTO attendanceSession)
+        public ActionResult TakeAttendance([FromBody] AttendanceSessionAddDTO attendanceSession)
         {
-            if (attendanceSession == null) return Task.FromResult<IActionResult>(BadRequest("AttendanceSession is required."));
-            var created = _attendanceManager.TakeAttendance(attendanceSession);
+            if (attendanceSession == null) return BadRequest("AttendanceSession is required.");
+            _attendanceManager.TakeAttendance(attendanceSession);
             // return 201 with location header to GET endpoint
-            return Task.FromResult<IActionResult>(CreatedAtAction(nameof(GetAttendance), new { SessionId = created.Id }, created));
+            return Ok();
         }
 
         [HttpPut("{id}")]
