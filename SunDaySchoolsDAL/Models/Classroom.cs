@@ -11,7 +11,6 @@ namespace SunDaySchools.Models
         public int? NumberOfDisplineChildren { get; set; }
         public int? TotalChildrenCount => Children?.Count ?? 0;
         public ICollection<Servant>? Servants { get; set; }
-        public int? AttendanceSessionId { get; set; }
         public ICollection<AttendanceSession>? AttendanceHistory { get; set; }
 
 
