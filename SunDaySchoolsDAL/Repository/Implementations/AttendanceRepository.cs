@@ -1,4 +1,5 @@
-﻿using SunDaySchools.DAL.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using SunDaySchools.DAL.Models;
 using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchoolsDAL.DBcontext;
 
@@ -27,7 +28,7 @@ namespace SunDaySchools.DAL.Repository.Implementations
 
         public async Task<AttendanceSession> GetAttendance(int  SessionId)
         {
-             return  _context.AttendanceSessions
+             return  _context.AttendanceSessions.Include(c=>c.Records)
                 .FirstOrDefault(c => c.Id == SessionId);
             
         }

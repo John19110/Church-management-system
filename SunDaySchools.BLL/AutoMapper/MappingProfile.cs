@@ -3,61 +3,78 @@ using SunDaySchools.BLL.DTOS;
 using SunDaySchools.DAL.Models;
 using SunDaySchools.Models;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SunDaySchools.BLL.AutoMapper
 {
-    public class MappingProfile :Profile
+    public class MappingProfile : Profile
     {
         public MappingProfile()
         {
-
+            // =========================
+            // Child
+            // =========================
             CreateMap<Child, ChildAddDTO>().ReverseMap();
+
             CreateMap<Child, ChildReadDTO>()
-                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName));
+                .ForMember(dest => dest.FullName,
+                           opt => opt.MapFrom(src => src.FullName));
+
             CreateMap<Child, ChildUpdateDTO>().ReverseMap();
+
             CreateMap<ChildContact, ChildContactDTO>().ReverseMap();
 
-            CreateMap<Servant,ServantAddDTO>().ReverseMap();
+
+            // =========================
+            // Servant
+            // =========================
+            CreateMap<Servant, ServantAddDTO>().ReverseMap();
             CreateMap<Servant, ServantReadDTO>().ReverseMap();
             CreateMap<Servant, ServantUpdateDTO>().ReverseMap();
 
-            CreateMap<AttendanceRecordAddDTO, AttendanceRecord>()
-                       .ForMember(d => d.Id, o => o.Ignore())
-                       .ForMember(d => d.AttendanceSessionId, o => o.Ignore())
-                       .ForMember(d => d.AttendanceSession, o => o.Ignore())
-                       .ForMember(d => d.Child, o => o.Ignore())
-                       .ForMember(d => d.UpdatedAtUtc, o => o.MapFrom(_ => DateTime.UtcNow));
 
-            // Session Add mapping (DTO -> Entity)
+            // =========================
+            // Attendance Record
+            // =========================
+
+            // Entity -> ReadDTO
+            CreateMap<AttendanceRecord, AttendanceRecordReadDTO>();
+
+            // AddDTO -> Entity
+            CreateMap<AttendanceRecordAddDTO, AttendanceRecord>()
+                .ForMember(d => d.Id, o => o.Ignore())
+                .ForMember(d => d.AttendanceSessionId, o => o.Ignore())
+                .ForMember(d => d.AttendanceSession, o => o.Ignore())
+                .ForMember(d => d.Child, o => o.Ignore())
+                .ForMember(d => d.UpdatedAtUtc,
+                           o => o.MapFrom(_ => DateTime.UtcNow));
+
+
+            // =========================
+            // Attendance Session
+            // =========================
+
+            // Entity -> ReadDTO ✅ (Correct direction)
+            CreateMap<AttendanceSession, AttendanceSessionReadDTO>()
+                .ForMember(d => d.Records,
+                           o => o.MapFrom(s => s.Records));
+
+            // AddDTO -> Entity
             CreateMap<AttendanceSessionAddDTO, AttendanceSession>()
                 .ForMember(d => d.Id, o => o.Ignore())
                 .ForMember(d => d.Classroom, o => o.Ignore())
                 .ForMember(d => d.TakenByServant, o => o.Ignore())
-                .ForMember(d => d.CreatedAtUtc, o => o.MapFrom(_ => DateTime.UtcNow))
-                .ForMember(d => d.Records, o => o.MapFrom(s => s.Records));
+                .ForMember(d => d.CreatedAtUtc,
+                           o => o.MapFrom(_ => DateTime.UtcNow))
+                .ForMember(d => d.Records,
+                           o => o.MapFrom(s => s.Records));
 
-            // Update mapping (DTO -> Entity) - adjust based on your DTO shape
+            // UpdateDTO -> Entity
             CreateMap<AttendanceSessionUpdateDTO, AttendanceSession>()
                 .ForMember(d => d.Classroom, o => o.Ignore())
                 .ForMember(d => d.TakenByServant, o => o.Ignore())
-                .ForMember(d => d.CreatedAtUtc, o => o.Ignore()) // don't overwrite created time
-                .ForMember(d => d.Records, o => o.MapFrom(s => s.Records));
-
-            // Update mapping (DTO -> Entity) - adjust based on your DTO shape
-
-            CreateMap<AttendanceSessionReadDTO, AttendanceSession>()
-                .ForMember(d => d.Classroom, o => o.Ignore())
-                .ForMember(d => d.TakenByServant, o => o.Ignore())
-                .ForMember(d => d.CreatedAtUtc, o => o.Ignore()) // don't overwrite created time
-                .ForMember(d => d.Records, o => o.MapFrom(s => s.Records));
-
-
-
-
+                .ForMember(d => d.CreatedAtUtc, o => o.Ignore()) // don't overwrite
+                .ForMember(d => d.Records,
+                           o => o.MapFrom(s => s.Records));
         }
     }
 }
