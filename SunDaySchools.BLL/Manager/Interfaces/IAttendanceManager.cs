@@ -10,9 +10,10 @@ namespace SunDaySchools.BLL.Manager.Interfaces
 {
     public interface IAttendanceManager
     {
-        void TakeAttendance(AttendanceSessionAddDTO session);
-        void EditAttendance(AttendanceSessionUpdateDTO session);
+        Task TakeAttendanceAsync(AttendanceSessionAddDTO session);
 
-        AttendanceSessionReadDTO GetAttendance(int sessionId);
+        Task EditAttendanceAsync(AttendanceSessionUpdateDTO session);
+
+        Task<AttendanceSessionReadDTO?> GetAttendanceAsync(int sessionId);
     }
 }

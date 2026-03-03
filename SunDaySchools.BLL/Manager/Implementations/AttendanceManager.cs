@@ -1,63 +1,70 @@
-﻿using SunDaySchools.BLL.Manager.Interfaces;
+﻿using AutoMapper;
+using SunDaySchools.BLL.DTOS;
+using SunDaySchools.BLL.Manager.Interfaces;
 using SunDaySchools.DAL.Models;
 using SunDaySchools.DAL.Repository.Interfaces;
-using SunDaySchools.BLL.DTOS;
-using AutoMapper;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SunDaySchools.BLL.Manager.Implementations
 {
     public class AttendanceManager : IAttendanceManager
     {
-        private readonly IAttendanceRepository _iAttendanceRepository;
+        private readonly IAttendanceRepository _attendanceRepository;
         private readonly IMapper _mapper;
-        public AttendanceManager(IAttendanceRepository iAttendanceRepository,IMapper iMapper)
+
+        public AttendanceManager(IAttendanceRepository attendanceRepository, IMapper mapper)
         {
-            _iAttendanceRepository = iAttendanceRepository;
-            _mapper = iMapper;
+            _attendanceRepository = attendanceRepository ?? throw new ArgumentNullException(nameof(attendanceRepository));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
-        public void TakeAttendance(AttendanceSessionAddDTO session)
+        // ✅ Make it async so you don't block threads or risk deadlocks
+        public async Task TakeAttendanceAsync(AttendanceSessionAddDTO session)
         {
             if (session == null) throw new ArgumentNullException(nameof(session));
 
-            // ensure lists and timestamps are initialized
             session.Records ??= new List<AttendanceRecordAddDTO>();
-           
 
-            // repository methods are async; call synchronously to match interface
-            var mappedSession = _mapper.Map<AttendanceSession>(session);
+            // Map DTO -> Entity
+            var entity = _mapper.Map<AttendanceSession>(session);
+
+            // ✅ Actually save
+            await _attendanceRepository.TakeAttendance(entity);
         }
 
-        public void EditAttendance(AttendanceSessionUpdateDTO session)
+        // ✅ Make it async
+        public async Task EditAttendanceAsync(AttendanceSessionUpdateDTO session)
         {
             if (session == null) throw new ArgumentNullException(nameof(session));
             if (session.Id <= 0) throw new ArgumentException("Session must have a valid Id to edit.", nameof(session));
 
-            // ensure the session exists before attempting an update
-            var existing = _iAttendanceRepository.GetAttendance(session.Id).GetAwaiter().GetResult();
+            // Ensure exists (optional but good)
+            var existing = await _attendanceRepository.GetAttendance(session.Id);
             if (existing == null)
                 throw new InvalidOperationException($"Attendance session with Id {session.Id} not found.");
 
-            // update records timestamps
-            session.Records ??= new List<AttendanceRecord>();
-            foreach (var r in session.Records)
-            {
-                r.UpdatedAtUtc = DateTime.UtcNow;
-            }
-            var mappedSession = _mapper.Map<AttendanceSession>(session);
+            // Ensure records list exists (DTO-side)
+            session.Records ??= new List<AttendanceRecordUpdateDTO>();
+
+            // Map DTO -> Entity
+            var entity = _mapper.Map<AttendanceSession>(session);
+
+            // ✅ Actually save update
+            await _attendanceRepository.EditAttendance(entity);
         }
 
-        public AttendanceSessionReadDTO GetAttendance(int sessionId)
+        // ✅ Make it async
+        public async Task<AttendanceSessionReadDTO?> GetAttendanceAsync(int sessionId)
         {
-            // Call the repository to get the attendance session synchronously
-            var result = _iAttendanceRepository.GetAttendance(sessionId).GetAwaiter().GetResult();
-            var  dto=_mapper.Map<AttendanceSessionReadDTO>(result);
-            return dto;
+            var result = await _attendanceRepository.GetAttendance(sessionId);
+
+            if (result == null) return null;
+
+            // NOTE: Records will be empty unless repository loads them:
+            // _context.AttendanceSessions.Include(s => s.Records)...
+            return _mapper.Map<AttendanceSessionReadDTO>(result);
         }
     }
 }
