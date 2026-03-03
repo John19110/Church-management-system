@@ -26,7 +26,7 @@ namespace SunDaySchools.Models
         public DateOnly? SpiritualDateOfBirth { get; set; }
 
         public bool? IsDisciplineChild { get; set; } 
-        public int? TotalNumberOfDaysAttended { get; set; } = 0;  
+        public int TotalNumberOfDaysAttended { get; set; } = 0;  
         
         public List<ChildContact>? PhoneNumbers { get; set; }
 
