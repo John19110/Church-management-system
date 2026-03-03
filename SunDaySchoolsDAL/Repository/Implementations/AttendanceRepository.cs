@@ -24,7 +24,7 @@ namespace SunDaySchools.DAL.Repository.Implementations
         {
             foreach (var record in session.Records)
             {
-                if (record.Status == AttendanceStatus.Present)
+                if (record.Status != AttendanceStatus.Absent)
                 {
                     var child = await _context.Children
                         .FirstOrDefaultAsync(c => c.Id == record.ChildId);
@@ -32,7 +32,7 @@ namespace SunDaySchools.DAL.Repository.Implementations
                     if (child != null)
                     {
                         child.TotalNumberOfDaysAttended++;
-                        if ( child.LastAttendanceDate < session.SessionDate)
+                        if (child.LastAttendanceDate < session.SessionDate)
                             child.LastAttendanceDate = session.SessionDate;
 
                     }
