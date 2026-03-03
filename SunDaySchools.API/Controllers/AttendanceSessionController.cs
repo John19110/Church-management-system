@@ -1,58 +1,61 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using SunDaySchools.BLL.Manager.Interfaces;
-using SunDaySchools.DAL.Models;
+﻿using Microsoft.AspNetCore.Mvc;
 using SunDaySchools.BLL.DTOS;
+using SunDaySchools.BLL.Manager.Interfaces;
+using System;
+using System.Threading.Tasks;
+
 namespace SunDaySchools.API.Controllers
 {
-        [Route("Api/[controller]")]
-        [ApiController]
-    public class AttendanceSessionController:ControllerBase
+    [Route("api/[controller]")]
+    [ApiController]
+    public class AttendanceSessionController : ControllerBase
     {
         private readonly IAttendanceManager _attendanceManager;
+
         public AttendanceSessionController(IAttendanceManager attendanceManager)
         {
-            _attendanceManager = attendanceManager;
+            _attendanceManager = attendanceManager ?? throw new ArgumentNullException(nameof(attendanceManager));
         }
 
         [HttpPost]
-        public ActionResult TakeAttendance([FromBody] AttendanceSessionAddDTO attendanceSession)
+        public async Task<IActionResult> TakeAttendance([FromBody] AttendanceSessionAddDTO attendanceSession)
         {
-            if (attendanceSession == null) return BadRequest("AttendanceSession is required.");
-            _attendanceManager.TakeAttendance(attendanceSession);
-            // return 201 with location header to GET endpoint
+            if (attendanceSession == null)
+                return BadRequest("AttendanceSession is required.");
+
+            await _attendanceManager.TakeAttendanceAsync(attendanceSession);
+
+            // If you have a GET by id endpoint and your repo returns the created id,
+            // prefer CreatedAtAction. For now, OK is fine.
             return Ok();
         }
 
-        [HttpPut("{id}")]
-        public Task<IActionResult> UpdateAttendance(int id, [FromBody] AttendanceSessionUpdateDTO attendanceSession)
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> UpdateAttendance(int id, [FromBody] AttendanceSessionUpdateDTO attendanceSession)
         {
-            if (attendanceSession == null) return Task.FromResult<IActionResult>(BadRequest("AttendanceSession is required."));
-            if (id != attendanceSession.Id) return Task.FromResult<IActionResult>(BadRequest("Route id and body id do not match."));
+            if (attendanceSession == null)
+                return BadRequest("AttendanceSession is required.");
 
-           _attendanceManager.EditAttendance(attendanceSession);
-            return Task.FromResult<IActionResult>(Ok());
+            if (id != attendanceSession.Id)
+                return BadRequest("Route id and body id do not match.");
+
+            await _attendanceManager.EditAttendanceAsync(attendanceSession);
+
+            return Ok();
         }
 
-        [HttpGet("{SessionId}")]
-        public Task<IActionResult> GetAttendance(int SessionId)
+        [HttpGet("{sessionId:int}")]
+        public async Task<IActionResult> GetAttendance(int sessionId)
         {
-            if (SessionId <= 0) return Task.FromResult<IActionResult>(BadRequest("Invalid SessionId."));
+            if (sessionId <= 0)
+                return BadRequest("Invalid sessionId.");
 
-            var session = _attendanceManager.GetAttendance(SessionId);
-            if (session == null) return Task.FromResult<IActionResult>(NotFound());
+            var session = await _attendanceManager.GetAttendanceAsync(sessionId);
 
-            return Task.FromResult<IActionResult>(Ok(session));
+            if (session == null)
+                return NotFound();
+
+            return Ok(session);
         }
-
-
-       
     }
-
-
 }
-
