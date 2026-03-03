@@ -22,6 +22,23 @@ namespace SunDaySchools.DAL.Repository.Implementations
 
         public async Task TakeAttendance(AttendanceSession session)
         {
+            foreach (var record in session.Records)
+            {
+                if (record.Status == AttendanceStatus.Present)
+                {
+                    var child = await _context.Children
+                        .FirstOrDefaultAsync(c => c.Id == record.ChildId);
+
+                    if (child != null)
+                    {
+                        child.TotalNumberOfDaysAttended++;
+                        if ( child.LastAttendanceDate < session.SessionDate)
+                            child.LastAttendanceDate = session.SessionDate;
+
+                    }
+                }
+            }
+
             await _context.AttendanceSessions.AddAsync(session);
             await _context.SaveChangesAsync();
         }
