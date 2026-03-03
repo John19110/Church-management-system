@@ -11,13 +11,9 @@ namespace SunDaySchools.BLL.DTOS
 
         public DateOnly SessionDate { get; set; }
 
-        // Who took attendance
         public int? TakenByServantId { get; set; }
 
         public string? Notes { get; set; }
-
-
-        // All child records for this session
-        public List<AttendanceRecordAddDTO> Records { get; set; } = new();
+        public List<AttendanceRecordReadDTO> Records { get; set; } = new();
     }
 }
