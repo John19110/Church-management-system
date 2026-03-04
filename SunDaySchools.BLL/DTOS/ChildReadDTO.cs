@@ -18,7 +18,7 @@ namespace SunDaySchools.BLL.DTOS
         public string? Gender { get; set; }
         public DateOnly DateOfBirth { get; set; }
         public DateOnly JoiningDate { get; set; }
-        public DateOnly LastAttendanceDate { get; set; }
+        public DateTime LastAttendanceDate { get; set; }
         public DateOnly? SpiritualDateOfBirth { get; set; }
         public bool? IsDisciplineChild { get; set; }
         public int? TotalNumberOfDaysAttended { get; set; }
