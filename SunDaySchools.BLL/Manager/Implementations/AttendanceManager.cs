@@ -36,6 +36,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             //}
 
             // Map DTO -> Entity
+
             var entity = _mapper.Map<AttendanceSession>(session);
 
             // ✅ Actually save
