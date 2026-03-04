@@ -32,8 +32,8 @@ namespace SunDaySchools.DAL.Repository.Implementations
                     if (child != null)
                     {
                         child.TotalNumberOfDaysAttended++;
-                        if (child.LastAttendanceDate < session.CreatedAtUtc)
-                            child.LastAttendanceDate = session.CreatedAtUtc;
+                        if (child.LastAttendanceDate < session.CreatedAt)
+                            child.LastAttendanceDate = session.CreatedAt;
 
                     }
                 }

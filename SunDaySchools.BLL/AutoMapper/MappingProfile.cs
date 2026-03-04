@@ -63,8 +63,8 @@ namespace SunDaySchools.BLL.AutoMapper
                 .ForMember(d => d.Id, o => o.Ignore())
                 .ForMember(d => d.Classroom, o => o.Ignore())
                 .ForMember(d => d.TakenByServant, o => o.Ignore())
-                .ForMember(d => d.CreatedAtUtc,
-                           o => o.MapFrom(_ => DateTime.UtcNow))
+                .ForMember(d => d.CreatedAt,
+                           o => o.MapFrom(_ => DateTime.Now))
                 .ForMember(d => d.Records,
                            o => o.MapFrom(s => s.Records));
 
@@ -72,7 +72,7 @@ namespace SunDaySchools.BLL.AutoMapper
             CreateMap<AttendanceSessionUpdateDTO, AttendanceSession>()
                 .ForMember(d => d.Classroom, o => o.Ignore())
                 .ForMember(d => d.TakenByServant, o => o.Ignore())
-                .ForMember(d => d.CreatedAtUtc, o => o.Ignore()) // don't overwrite
+                .ForMember(d => d.CreatedAt, o => o.Ignore()) // don't overwrite
                 .ForMember(d => d.Records,
                            o => o.MapFrom(s => s.Records));
         }
