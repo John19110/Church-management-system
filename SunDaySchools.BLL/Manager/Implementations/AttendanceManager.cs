@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
 using SunDaySchools.BLL.DTOS;
 using SunDaySchools.BLL.Manager.Interfaces;
 using SunDaySchools.DAL.Models;
@@ -22,24 +21,25 @@ namespace SunDaySchools.BLL.Manager.Implementations
         }
 
         // ✅ Make it async so you don't block threads or risk deadlocks
-        public async Task TakeAttendance(AttendanceSession session)
+        public async Task TakeAttendanceAsync(AttendanceSessionAddDTO session)
         {
-            foreach (var record in session.Records)
-            {
-                if (record.Status == AttendanceStatus.Present)
-                {
-                    var child = await _context.Children
-                        .FirstOrDefaultAsync(c => c.Id == record.ChildId);
+            if (session == null) throw new ArgumentNullException(nameof(session));
 
-                    if (child != null)
-                    {
-                        child.TotalNumberOfDaysAttended++;
-                    }
-                }
-            }
 
-            await _context.AttendanceSessions.AddAsync(session);
-            await _context.SaveChangesAsync();
+
+            session.Records ??= new List<AttendanceRecordAddDTO>();
+
+            //foreach (AttendanceRecordAddDTO c in session.Records)
+            //{
+            //    c.ChildId
+
+            //}
+
+            // Map DTO -> Entity
+            var entity = _mapper.Map<AttendanceSession>(session);
+
+            // ✅ Actually save
+            await _attendanceRepository.TakeAttendance(entity);
         }
 
         // ✅ Make it async

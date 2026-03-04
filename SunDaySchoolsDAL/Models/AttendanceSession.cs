@@ -13,7 +13,7 @@ namespace SunDaySchools.DAL.Models
         public Classroom? Classroom { get; set; }
 
         // The day the weekly meeting happened
-        public DateOnly SessionDate { get; set; }
+       // public DateOnly SessionDate { get; set; }
 
         // Who took attendance
         public int? TakenByServantId { get; set; }
