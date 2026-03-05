@@ -32,9 +32,13 @@ namespace SunDaySchools.DAL.Repository.Implementations
                     if (child != null)
                     {
                         child.TotalNumberOfDaysAttended++;
-                        if (child.LastAttendanceDate < session.CreatedAt)
-                            child.LastAttendanceDate = session.CreatedAt;
 
+                        // Convert session.CreatedAt (DateTime) to DateOnly for comparison
+                        DateOnly sessionDateOnly = DateOnly.FromDateTime(session.CreatedAt);
+
+                        // Only update LastAttendanceDate if this session date is more recent
+                        if ( sessionDateOnly > child.LastAttendanceDate)
+                            child.LastAttendanceDate = sessionDateOnly;
                     }
                 }
             }
@@ -42,7 +46,6 @@ namespace SunDaySchools.DAL.Repository.Implementations
             await _context.AttendanceSessions.AddAsync(session);
             await _context.SaveChangesAsync();
         }
-
         public async Task<AttendanceSession> GetAttendance(int  SessionId)
         {
              return  _context.AttendanceSessions.Include(c=>c.Records)
