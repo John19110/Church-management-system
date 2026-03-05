@@ -26,6 +26,6 @@ namespace SunDaySchools.DAL.Models
 
         public string? Note { get; set; }
 
-        public DateTime UpdatedAtUtc { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt{ get; set; } = DateTime.Now;
     }
 }
