@@ -14,6 +14,9 @@ namespace SunDaySchools.API.Requests
         public DateOnly? JoiningDate { get; set; }
         public DateOnly? BirthDate { get; set; }
         public string? PhoneNumber { get; set; }
+
+        public string ApplicationUserId { get; set; } = default!;
+
         public int? ClassroomId { get; set; }
 
         // The uploaded file
