@@ -44,26 +44,84 @@ namespace SunDaySchools.BLL.Manager.Implementations
         }
 
         // ✅ Make it async
-        public async Task EditAttendanceAsync(AttendanceSessionUpdateDTO session)
+        public async Task EditAttendanceAsync(AttendanceSessionUpdateDTO sessionDto)
         {
-            if (session == null) throw new ArgumentNullException(nameof(session));
-            if (session.Id <= 0) throw new ArgumentException("Session must have a valid Id to edit.", nameof(session));
+            if (sessionDto == null) throw new ArgumentNullException(nameof(sessionDto));
+            if (sessionDto.Id <= 0) throw new ArgumentException("Session must have a valid Id to edit.", nameof(sessionDto));
 
-            // Ensure exists (optional but good)
-            var existing = await _attendanceRepository.GetAttendance(session.Id);
-            if (existing == null)
-                throw new InvalidOperationException($"Attendance session with Id {session.Id} not found.");
+            // Load the existing entity from database WITH records
+            var existingSession = await _attendanceRepository.GetAttendance(sessionDto.Id);
+            if (existingSession == null)
+                throw new InvalidOperationException($"Attendance session with Id {sessionDto.Id} not found.");
 
-            // Ensure records list exists (DTO-side)
-            session.Records ??= new List<AttendanceRecordUpdateDTO>();
+            // Ensure records list exists
+            sessionDto.Records ??= new List<AttendanceRecordUpdateDTO>();
 
-            // Map DTO -> Entity
-            var entity = _mapper.Map<AttendanceSession>(session);
+            // MANUALLY update properties (or use mapper with custom logic)
+            existingSession.ClassroomId = sessionDto.ClassroomId;
+            existingSession.TakenByServantId = sessionDto.TakenByServantId;
+            existingSession.Notes = sessionDto.Notes;
+            // Don't update CreatedAtUtc - keep original
 
-            // ✅ Actually save update
-            await _attendanceRepository.EditAttendance(entity);
+            // Handle records - complex logic here
+            await UpdateAttendanceRecords(existingSession, sessionDto.Records);
+
+            // Save changes
+            await _attendanceRepository.EditAttendance(existingSession);
         }
 
+        private async Task UpdateAttendanceRecords(AttendanceSession existingSession, List<AttendanceRecordUpdateDTO> recordDtos)
+        {
+            // Get existing record IDs
+            var existingRecordIds = existingSession.Records.Select(r => r.Id).ToList();
+            var incomingRecordIds = recordDtos.Where(r => r.Id > 0).Select(r => r.Id).ToList();
+
+            // Remove records that are no longer present
+            var recordsToRemove = existingSession.Records
+                .Where(r => !incomingRecordIds.Contains(r.Id))
+                .ToList();
+
+            foreach (var record in recordsToRemove)
+            {
+                existingSession.Records.Remove(record);
+            }
+
+            // Update or add records
+            foreach (var recordDto in recordDtos)
+            {
+                if (recordDto.Id > 0 && existingRecordIds.Contains(recordDto.Id))
+                {
+                    // Update existing record
+                    var existingRecord = existingSession.Records
+                        .FirstOrDefault(r => r.Id == recordDto.Id);
+
+                    if (existingRecord != null)
+                    {
+                        existingRecord.ChildId = recordDto.ChildId;
+                        existingRecord.MadeHomeWork = recordDto.MadeHomeWork;
+                        existingRecord.HasTools = recordDto.HasTools;
+                        existingRecord.Status = recordDto.Status;
+                        existingRecord.Note = recordDto.Note;
+                        existingRecord.UpdatedAt = DateTime.UtcNow;
+                    }
+                }
+                else
+                {
+                    // Add new record
+                    var newRecord = new AttendanceRecord
+                    {
+                        ChildId = recordDto.ChildId,
+                        MadeHomeWork = recordDto.MadeHomeWork,
+                        HasTools = recordDto.HasTools,
+                        Status = recordDto.Status,
+                        Note = recordDto.Note,
+                        AttendanceSessionId = existingSession.Id,
+                        UpdatedAt = DateTime.Now
+                    };
+                    existingSession.Records.Add(newRecord);
+                }
+            }
+        }
         // ✅ Make it async
         public async Task<AttendanceSessionReadDTO?> GetAttendanceAsync(int sessionId)
         {
