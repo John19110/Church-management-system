@@ -18,6 +18,7 @@ namespace SunDaySchools.API.Mapping
             {
 
                 Name = form.Name,
+                ApplicationUserId=form.ApplicationUserId,
                 JoiningDate = form.JoiningDate,
                 BirthDate = form.BirthDate,
                 PhoneNumber = form.PhoneNumber,
