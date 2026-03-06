@@ -15,9 +15,7 @@ namespace SunDaySchools.BLL.DTOS
         // The day the weekly meeting happened
         // Who took attendance
         public int? TakenByServantId { get; set; }
-
         public string? Notes { get; set; }
-
 
         // All child records for this session
         public List<AttendanceRecordAddDTO> Records { get; set; } = new();

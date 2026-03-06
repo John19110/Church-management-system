@@ -34,11 +34,10 @@ namespace SunDaySchools.DAL.Repository.Implementations
                         child.TotalNumberOfDaysAttended++;
 
                         // Convert session.CreatedAt (DateTime) to DateOnly for comparison
-                        DateOnly sessionDateOnly = DateOnly.FromDateTime(session.CreatedAt);
 
                         // Only update LastAttendanceDate if this session date is more recent
-                        if ( sessionDateOnly > child.LastAttendanceDate)
-                            child.LastAttendanceDate = sessionDateOnly;
+                        if (session.CreatedAt > child.LastAttendanceDate)
+                            child.LastAttendanceDate = session.CreatedAt;
                     }
                 }
             }

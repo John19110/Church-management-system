@@ -9,9 +9,10 @@ namespace SunDaySchools.BLL.DTOS
     public class AttendanceSessionReadDTO
     {
 
-        public DateOnly SessionDate { get; set; }
+        public DateOnly CreatedAt { get; set; }
 
         public int? TakenByServantId { get; set; }
+
 
         public string? Notes { get; set; }
         public List<AttendanceRecordReadDTO> Records { get; set; } = new();
