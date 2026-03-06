@@ -21,7 +21,7 @@ namespace SunDaySchools.DAL.Models
 
         public string? Notes { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateOnly CreatedAt { get; set; } = DateOnly.FromDateTime(DateTime.Today);
 
         // All child records for this session
         public List<AttendanceRecord> Records { get; set; } = new();

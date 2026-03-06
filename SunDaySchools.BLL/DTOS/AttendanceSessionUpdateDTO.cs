@@ -19,7 +19,7 @@ namespace SunDaySchools.BLL.DTOS
 
         public string? Notes { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateOnly CreatedAt { get; set; } = DateOnly.FromDateTime(DateTime.Today);
 
         // All child records for this session
         public List<AttendanceRecordUpdateDTO> Records { get; set; } = new();
