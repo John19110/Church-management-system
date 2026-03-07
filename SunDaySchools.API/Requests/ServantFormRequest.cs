@@ -10,7 +10,6 @@ namespace SunDaySchools.API.Requests
     {
 
 
-        public int Id { get; set; }
         public string? Name { get; set; }
         public DateOnly? JoiningDate { get; set; }
         public DateOnly? BirthDate { get; set; }

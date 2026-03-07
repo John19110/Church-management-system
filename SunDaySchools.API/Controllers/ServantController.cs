@@ -100,10 +100,11 @@ namespace SunDaySchools.API.Controllers
             updateDto.Id = id;
 
 
+
             // Optional image upload
             if (form.Image is not null && form.Image.Length > 0)
             {
-                var key = await _fileStorage.SaveImageAsync(form.Image, ct, "servant");
+                var key = await _fileStorage.SaveImageAsync(form.Image, ct, "servants");
                 updateDto.ImageFileName = key;
                 updateDto.ImageUrl = _fileStorage.GetPublicUrl(key);
             }
