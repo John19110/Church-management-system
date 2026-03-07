@@ -31,7 +31,7 @@ namespace SunDaySchools.API.Controllers
             var children = _childmanager.GetAll();
 
             if (!children.Any())
-                return NotFound("No children found.");
+                throw new NotFoundException($"No Children found.");
 
             return Ok(children);
         }
@@ -48,7 +48,8 @@ namespace SunDaySchools.API.Controllers
                 return Ok(Children);
             }
 
-            else return NotFound();
+              throw new NotFoundException($"Child with for class {classroomId} not found.");
+        
         }
 
 
@@ -70,7 +71,7 @@ namespace SunDaySchools.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create( ChildAddDTO childdto)
         {
-            if (childdto == null) return BadRequest();
+            if (childdto == null)throw new ValidationException();
 
            
 
