@@ -47,7 +47,7 @@ namespace SunDaySchools.API.Controllers
                 return Ok(children);
             }
 
-            throw new NotFoundException($"class {classroomId} not found.");
+            throw new NotFoundException($"class {classroomId} not found or there is no children in it.");
         }
 
         [HttpGet("{id}")]
