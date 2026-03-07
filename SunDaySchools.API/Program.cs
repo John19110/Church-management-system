@@ -22,7 +22,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IFileStorage, LocalFileStorage>();
-
+builder.Services.AddProblemDetails();
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -164,7 +164,7 @@ if (app.Environment.IsDevelopment())
 // this redirection can prevent reaching Swagger unless HTTPS is configured.
 // You can comment it out if needed.
 //app.UseHttpsRedirection();
-
+app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseStaticFiles();
 
 
