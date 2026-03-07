@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SunDaySchools.BLL.DTOS;
+using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Interfaces;
 using System;
 using System.Threading.Tasks;
@@ -21,7 +22,14 @@ namespace SunDaySchools.API.Controllers
         public async Task<IActionResult> TakeAttendance([FromBody] AttendanceSessionAddDTO attendanceSession)
         {
             if (attendanceSession == null)
-                return BadRequest("AttendanceSession is required.");
+            {
+
+                var errors = new Dictionary<string, string[]>
+                {
+                    ["attendanceSession"] = new[] { "The request body cannot be empty." }
+                };
+                throw new ValidationException(errors);
+            }
 
             await _attendanceManager.TakeAttendanceAsync(attendanceSession);
 
@@ -34,10 +42,22 @@ namespace SunDaySchools.API.Controllers
         public async Task<IActionResult> UpdateAttendance(int id, [FromBody] AttendanceSessionUpdateDTO attendanceSession)
         {
             if (attendanceSession == null)
-                return BadRequest("AttendanceSession is required.");
+            {
+                var errors = new Dictionary<string, string[]>
+                {
+                    ["attendanceSession"] = new[] { "The request body cannot be empty." }
+                };
+                throw new ValidationException(errors);
+            }
 
             if (id != attendanceSession.Id)
-                return BadRequest("Route id and body id do not match.");
+            {
+                var errors = new Dictionary<string, string[]>
+                {
+                    ["id"] = new[] { "The ID in the URL does not match the ID in the request body." }
+                };
+                throw new ValidationException(errors);
+            }
 
             await _attendanceManager.EditAttendanceAsync(attendanceSession);
 
