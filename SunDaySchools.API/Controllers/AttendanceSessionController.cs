@@ -68,12 +68,18 @@ namespace SunDaySchools.API.Controllers
         public async Task<IActionResult> GetAttendance(int sessionId)
         {
             if (sessionId <= 0)
-                return BadRequest("Invalid sessionId.");
+            {
+                var errors = new Dictionary<string, string[]>
+                {
+                    ["sessionId"] = new[] { "The Session Id cant be less than 0." }
+                };
+                throw new ValidationException(errors);
 
+            }
             var session = await _attendanceManager.GetAttendanceAsync(sessionId);
 
             if (session == null)
-                return NotFound();
+                throw new NotFoundException($"Sesstion with id {sessionId} not found.");
 
             return Ok(session);
         }
