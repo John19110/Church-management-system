@@ -67,19 +67,21 @@ namespace SunDaySchools.API.Controllers
 
         }
 
-
         [HttpPost]
-        public async Task<IActionResult> Create( ChildAddDTO childdto)
+        public async Task<IActionResult> Create(ChildAddDTO childdto)
         {
-            if (childdto == null)throw new ValidationException();
+            if (childdto == null)
+            {
+                var errors = new Dictionary<string, string[]>
+                {
+                    ["childdto"] = new[] { "The request body cannot be empty." }
+                };
+                throw new ValidationException(errors);
+            }
 
-           
-
-                _childmanager.Add(childdto);
-
+            _childmanager.Add(childdto);
             return StatusCode(201, new { message = "Created Successfully" });
         }
-
 
         [HttpPut("{id}")]
         public ActionResult Update(int id, ChildUpdateDTO dto)
