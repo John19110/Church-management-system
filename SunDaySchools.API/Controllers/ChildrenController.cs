@@ -86,20 +86,27 @@ namespace SunDaySchools.API.Controllers
         [HttpPut("{id}")]
         public ActionResult Update(int id, ChildUpdateDTO dto)
         {
-            if (dto == null || id != dto.Id)
-                return BadRequest();
+            if (dto == null)
+            {
+                var errors = new Dictionary<string, string[]>
+                {
+                    ["childdto"] = new[] { "The request body cannot be empty." }
+                };
+                throw new ValidationException(errors);
+            }
 
-            try
+            if (id != dto.Id)
             {
-                _childmanager.Update(dto);
-                return NoContent(); // standard for PUT
+                var errors = new Dictionary<string, string[]>
+                {
+                    ["id"] = new[] { "The ID in the URL does not match the ID in the request body." }
+                };
+                throw new ValidationException(errors);
             }
-            catch (KeyNotFoundException)
-            {
-                return NotFound();
-            }
+
+            _childmanager.Update(dto); // This will throw NotFoundException if child missing
+            return NoContent();
         }
-
 
         [HttpDelete("{id}")]
         public ActionResult DeletebyId(int id)
