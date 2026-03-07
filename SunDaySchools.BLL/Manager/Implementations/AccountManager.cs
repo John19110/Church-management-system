@@ -13,6 +13,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using SunDaySchools.BLL.Exceptions;          // <-- Add this
 
 namespace SunDaySchools.BLL.Manager.Implementations
 {
@@ -32,56 +33,72 @@ namespace SunDaySchools.BLL.Manager.Implementations
         }
 
         public async Task<string> Login(LoginDTO loginDto)
-
         {
-            //search by name 
+            // Optional: Validate DTO (though controller should handle null)
+            if (loginDto == null)
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["loginDto"] = new[] { "Login data cannot be null." }
+                });
+
             var user = await _usermanager.FindByNameAsync(loginDto.Name);
-            if (user==null)
-            {
-                return null;
-            }
-            // check password
-            var check =await  _usermanager.CheckPasswordAsync(user, loginDto.Password);
+            if (user == null)
+                throw new InvalidCredentialsException();
 
-            if (!check) return null;
+            var check = await _usermanager.CheckPasswordAsync(user, loginDto.Password);
+            if (!check)
+                throw new InvalidCredentialsException();
 
-            //return claims
             var claims = await BuildJwtClaims(user);
             return GenerateToken(claims);
-
         }
 
         public async Task<string> Register(RegisterDTO registerDto)
         {
-            ApplicationUser user = new ApplicationUser();
-            //save email and passwrod
-            user.UserName = registerDto.Name;
-            user.PhoneNumber = registerDto.PhoneNumber;
-
-            //save password and create user 
-            var resutlt=  await _usermanager.CreateAsync(user, registerDto.Password);
-
-            if (resutlt.Succeeded)
-            {
-                await _usermanager.AddToRoleAsync(user, "Servant");
-
-                // create domain profile row
-                var servant = new Servant
+            if (registerDto == null)
+                throw new ValidationException(new Dictionary<string, string[]>
                 {
-                    ApplicationUserId = user.Id,
-                    Name = registerDto.Name,
-                    PhoneNumber = registerDto.PhoneNumber
-                };
+                    ["registerDto"] = new[] { "Registration data cannot be null." }
+                });
 
-                _servantRepo.Add(servant);
+            // Check if user already exists
+            var existingUser = await _usermanager.FindByNameAsync(registerDto.Name);
+            if (existingUser != null)
+                throw new UserAlreadyExistsException();
 
-                var claims = await BuildJwtClaims(user);
-                return GenerateToken(claims);
+            var user = new ApplicationUser
+            {
+                UserName = registerDto.Name,
+                PhoneNumber = registerDto.PhoneNumber
+            };
+
+            var result = await _usermanager.CreateAsync(user, registerDto.Password);
+            if (!result.Succeeded)
+            {
+                // Convert Identity errors to a ValidationException
+                var errors = result.Errors
+                    .GroupBy(e => e.Code) // or use a custom field name
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.Select(e => e.Description).ToArray()
+                    );
+                throw new ValidationException(errors);
             }
 
-            //if not succeded
-            return null;
+            await _usermanager.AddToRoleAsync(user, "Servant");
+
+            var servant = new Servant
+            {
+                ApplicationUserId = user.Id,
+                Name = registerDto.Name,
+                PhoneNumber = registerDto.PhoneNumber
+            };
+            _servantRepo.Add(servant);
+
+            var claims = await BuildJwtClaims(user);
+            return GenerateToken(claims);
         }
+
 
         private string GenerateToken(IList<Claim> claims)
         {
