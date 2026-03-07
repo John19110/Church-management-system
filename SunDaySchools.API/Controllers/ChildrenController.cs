@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using SunDaySchools.BLL.DTOS;
 using SunDaySchools.API.Mapping;
 using SunDaySchools.API.Requests;
 using SunDaySchools.API.Services.Interfaces;
-using Microsoft.AspNetCore.Authorization;
+using SunDaySchools.BLL.DTOS;
+using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Interfaces;
 
 
@@ -61,30 +62,9 @@ namespace SunDaySchools.API.Controllers
                 {
                     return Ok(child);
                 }
-                else return NotFound();
-            
+            throw new NotFoundException($"Child with id {id} not found.");
+
         }
-
-        //[HttpPost]
-        //[Consumes("multipart/form-data")]
-        //public async Task<IActionResult> Create([FromForm] ChildFormRequest form, CancellationToken ct)
-        //{
-        //    if (form == null) return BadRequest();
-
-        //    var dto = form.ToDto();
-        //    if (form.Image != null && form.Image.Length > 0)
-        //    {
-        //        var key = await _fileStorage.SaveImageAsync(form.Image, ct, "children");
-        //        dto.ImageFileName = key;
-        //        dto.ImageUrl = _fileStorage.GetPublicUrl(key);
-        //    }
-
-
-        //    _childmanager.Add(dto);
-
-        //    return StatusCode(201, new { message = "Created Successfully" });
-        //}
-
 
 
         [HttpPost]
