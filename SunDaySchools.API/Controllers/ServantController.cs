@@ -1,15 +1,16 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using SunDaySchools.API.Mapping;
+using SunDaySchools.API.Requests;
+using SunDaySchools.API.Services.Interfaces;
+using SunDaySchools.BLL.DTOS;
+using SunDaySchools.BLL.Exceptions;
+using SunDaySchools.BLL.Manager.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using SunDaySchools.BLL.DTOS;
-using Microsoft.AspNetCore.Mvc;
-using SunDaySchools.API.Services.Interfaces;
-using SunDaySchools.API.Requests;
-using SunDaySchools.API.Mapping;
-using Microsoft.AspNetCore.Authorization;
-using SunDaySchools.BLL.Manager.Interfaces;
 namespace SunDaySchools.API.Controllers
 
 
@@ -36,7 +37,7 @@ namespace SunDaySchools.API.Controllers
             var servnants = _servantmanager.GetAll();
             if (servnants == null)
             {
-                return NotFound();
+                throw new NotFoundException($"No Servants found.");
             }
             return Ok(servnants);
 
@@ -45,6 +46,11 @@ namespace SunDaySchools.API.Controllers
         public ActionResult GetById(int id)
         {
             var Servant = _servantmanager.GetById(id);
+            if (Servant==null)
+            {
+                throw new NotFoundException($"Servant with id {id} not found.");
+
+            }
             return Ok(Servant);
         }
 
@@ -54,7 +60,15 @@ namespace SunDaySchools.API.Controllers
         public async Task<IActionResult> AddServant([FromForm]ServantFormRequest form , CancellationToken ct) 
         
         {
-            if (form == null) return BadRequest();
+            if (form == null)
+            {
+                var errors = new Dictionary<string, string[]>
+                {
+                    ["childdto"] = new[] { "The request body cannot be empty." }
+                };
+                throw new ValidationException(errors);
+            }
+            ;
 
             var dto = form.ToAddDto();
             if (form.Image != null && form.Image.Length > 0)
