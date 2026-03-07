@@ -66,6 +66,17 @@ public class GlobalExceptionMiddleware
                 // Add validation errors as an extension
                 problemDetails.Extensions["errors"] = validation.Errors;
                 break;
+            case InvalidCredentialsException:
+                problemDetails.Title = "Authentication failed";
+                problemDetails.Status = (int)HttpStatusCode.Unauthorized;
+                problemDetails.Detail = exception.Message;
+                break;
+            case UserAlreadyExistsException:
+                problemDetails.Title = "User already exists";
+                problemDetails.Status = (int)HttpStatusCode.Conflict; // 409
+                problemDetails.Detail = exception.Message;
+                break;
+                break;
 
             // You can add more cases for other custom exceptions
 
