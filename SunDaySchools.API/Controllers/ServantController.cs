@@ -91,12 +91,14 @@ namespace SunDaySchools.API.Controllers
 
         [HttpPut("{id:int}")]
         [Consumes("multipart/form-data")]
-        public async Task<IActionResult> Update([FromForm] ServantFormRequest form,CancellationToken ct )
+        public async Task<IActionResult> Update(int id,[FromForm] ServantFormRequest form,CancellationToken ct )
         {
 
 
             // Map form fields -> update dto
             var updateDto = form.ToUpdateDto();
+            updateDto.Id = id;
+
 
             // Optional image upload
             if (form.Image is not null && form.Image.Length > 0)

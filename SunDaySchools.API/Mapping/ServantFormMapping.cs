@@ -31,7 +31,7 @@ namespace SunDaySchools.API.Mapping
         {
             return new ServantUpdateDTO
             {
-
+                Id = form.Id,
                 Name = form.Name,
                 JoiningDate = form.JoiningDate,
                 BirthDate = form.BirthDate,
