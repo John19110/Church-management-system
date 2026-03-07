@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using SunDaySchools.BLL.DTOS;
+using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Interfaces;
 using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchools.Models;
@@ -47,12 +48,14 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
         }
 
-        void IChildManager.Delete(int id)
+        public void Delete(int id)
         {
+            var child = _childReposatory.GetById(id);
+            if (child == null)
+                throw new NotFoundException($"Child with id {id} not found.");
 
-            _childReposatory.Delete(id);    
+            _childReposatory.Delete(id);
         }
-
 
 
 
