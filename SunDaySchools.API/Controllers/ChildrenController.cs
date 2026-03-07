@@ -40,18 +40,15 @@ namespace SunDaySchools.API.Controllers
         [HttpGet("classroom/{classroomId}")]
         public ActionResult GetSpecificClassroom(int classroomId)
         {
+            var children = _childmanager.GetSpecificClassroom(classroomId);
 
-            var Children = _childmanager.GetSpecificClassroom(classroomId);
-
-            if (Children != null)
+            if (children != null && children.Any())
             {
-                return Ok(Children);
+                return Ok(children);
             }
 
-              throw new NotFoundException($"Child with for class {classroomId} not found.");
-        
+            throw new NotFoundException($"class {classroomId} not found.");
         }
-
 
         [HttpGet("{id}")]
         public ActionResult GetById(int id)

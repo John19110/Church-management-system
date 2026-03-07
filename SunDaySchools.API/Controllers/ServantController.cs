@@ -111,9 +111,9 @@ namespace SunDaySchools.API.Controllers
                 _servantmanager.Update(updateDto);
                 return NoContent();
             }
-            catch (KeyNotFoundException)
+            catch (NotFoundException)
             {
-                return NotFound();
+                throw new NotFoundException($"Servant  not found.");
             }
         }
 
