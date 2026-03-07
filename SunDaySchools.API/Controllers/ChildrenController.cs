@@ -104,14 +104,14 @@ namespace SunDaySchools.API.Controllers
                 throw new ValidationException(errors);
             }
 
-            _childmanager.Update(dto); // This will throw NotFoundException if child missing
+            _childmanager.Update(dto); 
             return NoContent();
         }
 
         [HttpDelete("{id}")]
         public ActionResult DeletebyId(int id)
         {
-
+            
             _childmanager.Delete(id);
             return NoContent();
         }
