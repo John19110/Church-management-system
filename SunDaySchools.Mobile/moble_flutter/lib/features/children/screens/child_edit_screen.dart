@@ -6,6 +6,8 @@ import '../providers/children_providers.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/common_widgets.dart';
 
+const _kValidGenders = ['Male', 'Female'];
+
 class ChildEditScreen extends ConsumerStatefulWidget {
   final int id;
   const ChildEditScreen({super.key, required this.id});
@@ -53,7 +55,7 @@ class _ChildEditScreenState extends ConsumerState<ChildEditScreen> {
     _dobController.text = child.dateOfBirth ?? '';
     _joiningController.text = child.joiningDate ?? '';
     _classroomController.text = child.classroomId?.toString() ?? '';
-    _gender = child.gender;
+    _gender = _kValidGenders.contains(child.gender) ? child.gender : null;
     if (child.phoneNumbers != null) {
       for (final p in child.phoneNumbers!) {
         _phoneRelation.add(TextEditingController(text: p.relation ?? ''));
@@ -139,10 +141,9 @@ class _ChildEditScreenState extends ConsumerState<ChildEditScreen> {
                 DropdownButtonFormField<String>(
                   value: _gender,
                   decoration: const InputDecoration(labelText: 'Gender'),
-                  items: const [
-                    DropdownMenuItem(value: 'Male', child: Text('Male')),
-                    DropdownMenuItem(value: 'Female', child: Text('Female')),
-                  ],
+                  items: _kValidGenders
+                      .map((g) => DropdownMenuItem(value: g, child: Text(g)))
+                      .toList(),
                   onChanged: (v) => setState(() => _gender = v),
                 ),
                 const SizedBox(height: 12),
