@@ -3,19 +3,52 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../../core/storage/token_storage.dart';
+import '../../../core/l10n/app_localizations.dart';
+import '../../../core/providers/theme_provider.dart';
+import '../../../core/providers/locale_provider.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final themeMode = ref.watch(themeModeProvider);
+    final locale = ref.watch(localeProvider);
+    final isDark = themeMode == ThemeMode.dark;
+    final isArabic = locale.languageCode == 'ar';
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dashboard'),
+        title: Text(l10n.dashboard),
         actions: [
+          // Language toggle
+          TextButton(
+            onPressed: () {
+              ref.read(localeProvider.notifier).state =
+                  isArabic ? const Locale('en') : const Locale('ar');
+            },
+            child: Text(
+              isArabic ? 'EN' : 'ع',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+          ),
+          // Dark mode toggle
+          IconButton(
+            icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
+            tooltip: isDark ? l10n.lightMode : l10n.darkMode,
+            onPressed: () {
+              ref.read(themeModeProvider.notifier).state =
+                  isDark ? ThemeMode.light : ThemeMode.dark;
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
-            tooltip: 'Logout',
+            tooltip: l10n.logout,
             onPressed: () async {
               await TokenStorage.deleteToken();
               if (context.mounted) context.go('/login');
@@ -41,7 +74,7 @@ class DashboardScreen extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Welcome!',
+                            l10n.welcome,
                             style: Theme.of(context)
                                 .textTheme
                                 .headlineSmall
@@ -51,7 +84,7 @@ class DashboardScreen extends ConsumerWidget {
                                 ),
                           ),
                           Text(
-                            'Sunday School Management',
+                            l10n.sundaySchoolManagement,
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium
@@ -65,7 +98,7 @@ class DashboardScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 24),
               Text(
-                'Quick Access',
+                l10n.quickAccess,
                 style: Theme.of(context)
                     .textTheme
                     .titleLarge
@@ -81,25 +114,25 @@ class DashboardScreen extends ConsumerWidget {
                 children: [
                   _DashboardCard(
                     icon: Icons.child_care,
-                    label: 'Children',
+                    label: l10n.children,
                     color: const Color(0xFF4299E1),
                     onTap: () => context.go('/children'),
                   ),
                   _DashboardCard(
                     icon: Icons.fact_check,
-                    label: 'Attendance',
+                    label: l10n.attendance,
                     color: const Color(0xFF48BB78),
                     onTap: () => context.go('/attendance/take'),
                   ),
                   _DashboardCard(
                     icon: Icons.people,
-                    label: 'Servants',
+                    label: l10n.servants,
                     color: const Color(0xFFED8936),
                     onTap: () => context.go('/servants'),
                   ),
                   _DashboardCard(
                     icon: Icons.logout,
-                    label: 'Logout',
+                    label: l10n.logout,
                     color: const Color(0xFFE53E3E),
                     onTap: () async {
                       await TokenStorage.deleteToken();

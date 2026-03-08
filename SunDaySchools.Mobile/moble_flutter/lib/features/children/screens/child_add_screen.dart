@@ -5,6 +5,7 @@ import '../models/child_models.dart';
 import '../providers/children_providers.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/common_widgets.dart';
+import '../../../core/l10n/app_localizations.dart';
 
 class ChildAddScreen extends ConsumerStatefulWidget {
   const ChildAddScreen({super.key});
@@ -25,7 +26,7 @@ class _ChildAddScreenState extends ConsumerState<ChildAddScreen> {
   String? _gender;
   bool _loading = false;
 
-  // Phone number pairs
+  // Phone number pairs: relation[i] and phoneNumber[i] correspond to the same contact
   final List<TextEditingController> _phoneRelation = [];
   final List<TextEditingController> _phoneNumber = [];
 
@@ -62,6 +63,7 @@ class _ChildAddScreenState extends ConsumerState<ChildAddScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
+    final l10n = AppLocalizations.of(context);
     try {
       final phones = List.generate(
         _phoneRelation.length,
@@ -84,7 +86,7 @@ class _ChildAddScreenState extends ConsumerState<ChildAddScreen> {
             ),
           );
       if (mounted) {
-        showSuccessSnackbar(context, 'Child added successfully');
+        showSuccessSnackbar(context, l10n.childAddedSuccessfully);
         context.pop();
       }
     } catch (e) {
@@ -96,8 +98,9 @@ class _ChildAddScreenState extends ConsumerState<ChildAddScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Child')),
+      appBar: AppBar(title: Text(l10n.addChild)),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -105,54 +108,54 @@ class _ChildAddScreenState extends ConsumerState<ChildAddScreen> {
           children: [
             AppTextField(
               controller: _name1Controller,
-              label: 'First Name',
+              label: l10n.firstName,
               validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'First name is required' : null,
+                  (v == null || v.trim().isEmpty) ? l10n.firstNameRequired : null,
             ),
             const SizedBox(height: 12),
-            AppTextField(controller: _name2Controller, label: 'Middle Name'),
+            AppTextField(controller: _name2Controller, label: l10n.middleName),
             const SizedBox(height: 12),
-            AppTextField(controller: _name3Controller, label: 'Last Name'),
+            AppTextField(controller: _name3Controller, label: l10n.lastName),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               value: _gender,
-              decoration: const InputDecoration(labelText: 'Gender'),
-              items: const [
-                DropdownMenuItem(value: 'Male', child: Text('Male')),
-                DropdownMenuItem(value: 'Female', child: Text('Female')),
+              decoration: InputDecoration(labelText: l10n.gender),
+              items: [
+                DropdownMenuItem(value: 'Male', child: Text(l10n.male)),
+                DropdownMenuItem(value: 'Female', child: Text(l10n.female)),
               ],
               onChanged: (v) => setState(() => _gender = v),
             ),
             const SizedBox(height: 12),
             AppTextField(
               controller: _addressController,
-              label: 'Address',
+              label: l10n.address,
             ),
             const SizedBox(height: 12),
             AppDateField(
               controller: _dobController,
-              label: 'Date of Birth',
+              label: l10n.dateOfBirth,
               validator: (v) =>
-                  (v == null || v.isEmpty) ? 'Date of birth is required' : null,
+                  (v == null || v.isEmpty) ? l10n.dobRequired : null,
             ),
             const SizedBox(height: 12),
             AppDateField(
               controller: _joiningController,
-              label: 'Joining Date',
+              label: l10n.joiningDate,
               validator: (v) =>
-                  (v == null || v.isEmpty) ? 'Joining date is required' : null,
+                  (v == null || v.isEmpty) ? l10n.joiningDateRequired : null,
             ),
             const SizedBox(height: 12),
             AppTextField(
               controller: _classroomController,
-              label: 'Classroom ID',
+              label: l10n.classroomId,
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Phone Numbers',
+                Text(l10n.phoneNumbers,
                     style: Theme.of(context).textTheme.titleSmall),
                 IconButton(
                   icon: const Icon(Icons.add_circle, color: Color(0xFF2B6CB0)),
@@ -169,14 +172,14 @@ class _ChildAddScreenState extends ConsumerState<ChildAddScreen> {
                     Expanded(
                       child: AppTextField(
                         controller: _phoneRelation[i],
-                        label: 'Relation',
+                        label: l10n.relation,
                       ),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: AppTextField(
                         controller: _phoneNumber[i],
-                        label: 'Phone',
+                        label: l10n.phone,
                         keyboardType: TextInputType.phone,
                       ),
                     ),
@@ -193,7 +196,7 @@ class _ChildAddScreenState extends ConsumerState<ChildAddScreen> {
                 ? const Center(child: CircularProgressIndicator())
                 : ElevatedButton(
                     onPressed: _submit,
-                    child: const Text('Add Child'),
+                    child: Text(l10n.addChild),
                   ),
           ],
         ),

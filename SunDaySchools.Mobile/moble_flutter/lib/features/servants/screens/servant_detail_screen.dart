@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/servants_providers.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
+import '../../../core/l10n/app_localizations.dart';
 
 class ServantDetailScreen extends ConsumerWidget {
   final int id;
@@ -10,11 +11,12 @@ class ServantDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final servantAsync = ref.watch(servantDetailProvider(id));
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Servant Details'),
+        title: Text(l10n.servantDetails),
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
@@ -28,14 +30,14 @@ class ServantDetailScreen extends ConsumerWidget {
             onPressed: () async {
               final confirmed = await cw.showConfirmDialog(
                 context,
-                title: 'Delete Servant',
-                content: 'Are you sure you want to delete this servant?',
+                title: l10n.deleteServant,
+                content: l10n.confirmDeleteServant,
               );
               if (!confirmed) return;
               try {
                 await ref.read(servantsRepositoryProvider).delete(id);
                 if (context.mounted) {
-                  cw.showSuccessSnackbar(context, 'Servant deleted');
+                  cw.showSuccessSnackbar(context, l10n.servantDeletedSuccessfully);
                   context.pop();
                 }
               } catch (e) {
@@ -82,10 +84,12 @@ class ServantDetailScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              _InfoTile(label: 'Phone', value: servant.phoneNumber),
-              _InfoTile(label: 'Birth Date', value: servant.birthDate),
-              _InfoTile(label: 'Joining Date', value: servant.joiningDate),
-              _InfoTile(label: 'Classroom', value: servant.classroomId?.toString()),
+              _InfoTile(label: l10n.phone, value: servant.phoneNumber),
+              _InfoTile(label: l10n.birthDate, value: servant.birthDate),
+              _InfoTile(label: l10n.joiningDate, value: servant.joiningDate),
+              _InfoTile(
+                  label: l10n.classroomId,
+                  value: servant.classroomId?.toString()),
             ],
           ),
         ),

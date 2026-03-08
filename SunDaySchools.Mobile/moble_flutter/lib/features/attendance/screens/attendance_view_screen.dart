@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/attendance_models.dart';
 import '../providers/attendance_providers.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
+import '../../../core/l10n/app_localizations.dart';
 
 class AttendanceViewScreen extends ConsumerWidget {
   final int sessionId;
@@ -10,10 +11,11 @@ class AttendanceViewScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final sessionAsync = ref.watch(attendanceSessionProvider(sessionId));
 
     return Scaffold(
-      appBar: AppBar(title: Text('Session #$sessionId')),
+      appBar: AppBar(title: Text('${l10n.sessionId} #$sessionId')),
       body: sessionAsync.when(
         loading: () => const cw.LoadingWidget(),
         error: (e, _) => cw.AppErrorWidget(
@@ -29,14 +31,14 @@ class AttendanceViewScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Session Info',
+                    Text(l10n.sessionInfo,
                         style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 8),
                     if (session.createdAt != null)
-                      Text('Date: ${session.createdAt}'),
+                      Text('${l10n.date}: ${session.createdAt}'),
                     if (session.notes != null && session.notes!.isNotEmpty)
-                      Text('Notes: ${session.notes}'),
-                    Text('Records: ${session.records.length}'),
+                      Text('${l10n.notes}: ${session.notes}'),
+                    Text('${l10n.records}: ${session.records.length}'),
                   ],
                 ),
               ),
@@ -50,7 +52,8 @@ class AttendanceViewScreen extends ConsumerWidget {
                     ),
                     title: Text('Child #${record.childId}'),
                     subtitle: Text(
-                      AttendanceStatus.fromValue(record.status).label,
+                      _statusLabel(
+                          AttendanceStatus.fromValue(record.status), l10n),
                     ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -59,7 +62,8 @@ class AttendanceViewScreen extends ConsumerWidget {
                           const Icon(Icons.book, size: 16, color: Colors.blue),
                         const SizedBox(width: 4),
                         if (record.hasTools)
-                          const Icon(Icons.build, size: 16, color: Colors.green),
+                          const Icon(Icons.build,
+                              size: 16, color: Colors.green),
                       ],
                     ),
                   ),
@@ -68,6 +72,19 @@ class AttendanceViewScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  String _statusLabel(AttendanceStatus s, AppLocalizations l10n) {
+    switch (s) {
+      case AttendanceStatus.present:
+        return l10n.present;
+      case AttendanceStatus.absent:
+        return l10n.absent;
+      case AttendanceStatus.late:
+        return l10n.late;
+      case AttendanceStatus.excused:
+        return l10n.excused;
+    }
   }
 
   IconData _statusIcon(int status) {

@@ -5,6 +5,7 @@ import '../models/auth_models.dart';
 import '../providers/auth_providers.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/common_widgets.dart';
+import '../../../core/l10n/app_localizations.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -54,8 +55,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Create Account')),
+      appBar: AppBar(title: Text(l10n.createAccount)),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -66,28 +68,28 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               children: [
                 AppTextField(
                   controller: _nameController,
-                  label: 'Full Name',
-                  hint: 'Enter your full name',
+                  label: l10n.fullName,
+                  hint: l10n.enterName,
                   validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Name is required' : null,
+                      (v == null || v.trim().isEmpty) ? l10n.nameRequired : null,
                 ),
                 const SizedBox(height: 16),
                 AppTextField(
                   controller: _phoneController,
-                  label: 'Phone Number',
-                  hint: 'Enter your phone number',
+                  label: l10n.phoneNumber,
+                  hint: l10n.enterPhoneNumber,
                   keyboardType: TextInputType.phone,
                   validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Phone number is required' : null,
+                      (v == null || v.trim().isEmpty) ? l10n.phoneRequired : null,
                 ),
                 const SizedBox(height: 16),
                 AppTextField(
                   controller: _passwordController,
-                  label: 'Password',
-                  hint: 'Enter password',
+                  label: l10n.password,
+                  hint: l10n.enterPassword,
                   obscureText: _obscurePassword,
                   validator: (v) =>
-                      (v == null || v.length < 6) ? 'Password must be at least 6 characters' : null,
+                      (v == null || v.length < 6) ? l10n.passwordTooShort : null,
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword ? Icons.visibility : Icons.visibility_off,
@@ -99,12 +101,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 const SizedBox(height: 16),
                 AppTextField(
                   controller: _confirmPasswordController,
-                  label: 'Confirm Password',
-                  hint: 'Confirm your password',
+                  label: l10n.confirmPassword,
+                  hint: l10n.enterConfirmPassword,
                   obscureText: _obscureConfirm,
                   validator: (v) {
-                    if (v == null || v.isEmpty) return 'Please confirm password';
-                    if (v != _passwordController.text) return 'Passwords do not match';
+                    if (v == null || v.isEmpty) return l10n.pleaseConfirmPassword;
+                    if (v != _passwordController.text) return l10n.passwordsDoNotMatch;
                     return null;
                   },
                   suffixIcon: IconButton(
@@ -120,12 +122,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ? const Center(child: CircularProgressIndicator())
                     : ElevatedButton(
                         onPressed: _register,
-                        child: const Text('Register'),
+                        child: Text(l10n.register),
                       ),
                 const SizedBox(height: 16),
                 TextButton(
                   onPressed: () => context.go('/login'),
-                  child: const Text('Already have an account? Login'),
+                  child: Text(l10n.alreadyHaveAccount),
                 ),
               ],
             ),

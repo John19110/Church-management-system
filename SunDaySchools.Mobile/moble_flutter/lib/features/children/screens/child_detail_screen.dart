@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/children_providers.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
+import '../../../core/l10n/app_localizations.dart';
 
 class ChildDetailScreen extends ConsumerWidget {
   final int id;
@@ -10,11 +11,12 @@ class ChildDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final childAsync = ref.watch(childDetailProvider(id));
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Child Details'),
+        title: Text(l10n.childDetails),
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
@@ -28,14 +30,14 @@ class ChildDetailScreen extends ConsumerWidget {
             onPressed: () async {
               final confirmed = await cw.showConfirmDialog(
                 context,
-                title: 'Delete Child',
-                content: 'Are you sure you want to delete this child?',
+                title: l10n.deleteChild,
+                content: l10n.confirmDeleteChild,
               );
               if (!confirmed) return;
               try {
                 await ref.read(childrenRepositoryProvider).delete(id);
                 if (context.mounted) {
-                  cw.showSuccessSnackbar(context, 'Child deleted successfully');
+                  cw.showSuccessSnackbar(context, l10n.childDeletedSuccessfully);
                   context.pop();
                 }
               } catch (e) {
@@ -76,19 +78,26 @@ class ChildDetailScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              _InfoTile(label: 'Gender', value: child.gender),
-              _InfoTile(label: 'Address', value: child.address),
-              _InfoTile(label: 'Date of Birth', value: child.dateOfBirth),
-              _InfoTile(label: 'Joining Date', value: child.joiningDate),
-              _InfoTile(label: 'Last Attendance', value: child.lastAttendanceDate),
+              _InfoTile(label: l10n.gender, value: child.gender),
+              _InfoTile(label: l10n.address, value: child.address),
+              _InfoTile(label: l10n.dateOfBirth, value: child.dateOfBirth),
+              _InfoTile(label: l10n.joiningDate, value: child.joiningDate),
+              _InfoTile(
+                label: 'Last Attendance',
+                value: child.lastAttendanceDate,
+              ),
               _InfoTile(
                 label: 'Days Attended',
                 value: child.totalNumberOfDaysAttended?.toString(),
               ),
-              _InfoTile(label: 'Classroom', value: child.classroomId?.toString()),
-              if (child.phoneNumbers != null && child.phoneNumbers!.isNotEmpty) ...[
+              _InfoTile(
+                  label: l10n.classroomId,
+                  value: child.classroomId?.toString()),
+              if (child.phoneNumbers != null &&
+                  child.phoneNumbers!.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                Text('Phone Numbers', style: Theme.of(context).textTheme.titleMedium),
+                Text(l10n.phoneNumbers,
+                    style: Theme.of(context).textTheme.titleMedium),
                 ...child.phoneNumbers!.map((p) => Padding(
                       padding: const EdgeInsets.only(left: 8, top: 4),
                       child: Text('${p.relation ?? ''}: ${p.phoneNumber ?? ''}'),
@@ -96,7 +105,8 @@ class ChildDetailScreen extends ConsumerWidget {
               ],
               if (child.notes != null && child.notes!.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                Text('Notes', style: Theme.of(context).textTheme.titleMedium),
+                Text(l10n.notes,
+                    style: Theme.of(context).textTheme.titleMedium),
                 ...child.notes!.map((n) => Padding(
                       padding: const EdgeInsets.only(left: 8, top: 4),
                       child: Text('• $n'),
