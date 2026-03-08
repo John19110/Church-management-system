@@ -5,6 +5,7 @@ import '../models/auth_models.dart';
 import '../providers/auth_providers.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/common_widgets.dart';
+import '../../../core/l10n/app_localizations.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -47,6 +48,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -61,7 +63,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const Icon(Icons.church, size: 80, color: Color(0xFF2B6CB0)),
                   const SizedBox(height: 16),
                   Text(
-                    'Sunday School',
+                    l10n.sundaySchool,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.bold,
@@ -69,7 +71,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                   ),
                   Text(
-                    'Management System',
+                    l10n.managementSystem,
                     textAlign: TextAlign.center,
                     style: Theme.of(context)
                         .textTheme
@@ -79,19 +81,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const SizedBox(height: 40),
                   AppTextField(
                     controller: _nameController,
-                    label: 'Name',
-                    hint: 'Enter your name',
+                    label: l10n.name,
+                    hint: l10n.enterName,
                     validator: (v) =>
-                        (v == null || v.trim().isEmpty) ? 'Name is required' : null,
+                        (v == null || v.trim().isEmpty) ? l10n.nameRequired : null,
                   ),
                   const SizedBox(height: 16),
                   AppTextField(
                     controller: _passwordController,
-                    label: 'Password',
-                    hint: 'Enter your password',
+                    label: l10n.password,
+                    hint: l10n.enterPassword,
                     obscureText: _obscurePassword,
                     validator: (v) =>
-                        (v == null || v.isEmpty) ? 'Password is required' : null,
+                        (v == null || v.isEmpty) ? l10n.passwordRequired : null,
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword ? Icons.visibility : Icons.visibility_off,
@@ -105,12 +107,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ? const Center(child: CircularProgressIndicator())
                       : ElevatedButton(
                           onPressed: _login,
-                          child: const Text('Login'),
+                          child: Text(l10n.login),
                         ),
                   const SizedBox(height: 16),
                   TextButton(
                     onPressed: () => context.go('/register'),
-                    child: const Text("Don't have an account? Register"),
+                    child: Text(l10n.dontHaveAccount),
                   ),
                 ],
               ),
