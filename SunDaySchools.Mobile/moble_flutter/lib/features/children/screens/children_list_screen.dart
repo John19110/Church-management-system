@@ -3,16 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/children_providers.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
+import '../../../core/l10n/app_localizations.dart';
 
 class ChildrenListScreen extends ConsumerWidget {
   const ChildrenListScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final childrenAsync = ref.watch(childrenListProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Children')),
+      appBar: AppBar(title: Text(l10n.children)),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           await context.push('/children/add');
@@ -28,8 +30,8 @@ class ChildrenListScreen extends ConsumerWidget {
         ),
         data: (children) {
           if (children.isEmpty) {
-            return const cw.EmptyWidget(
-              message: 'No children yet. Tap + to add one.',
+            return cw.EmptyWidget(
+              message: l10n.noChildren,
               icon: Icons.child_care,
             );
           }

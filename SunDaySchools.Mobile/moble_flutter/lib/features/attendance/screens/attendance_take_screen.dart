@@ -6,6 +6,7 @@ import '../providers/attendance_providers.dart';
 import '../../children/providers/children_providers.dart';
 import '../../children/models/child_models.dart';
 import '../../../shared/widgets/common_widgets.dart';
+import '../../../core/l10n/app_localizations.dart';
 
 /// State for a single attendance record row.
 class _RecordState {
@@ -78,13 +79,14 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
   }
 
   Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context);
     if (_records == null || _records!.isEmpty) {
-      showErrorSnackbar(context, 'Load children first');
+      showErrorSnackbar(context, l10n.loadChildrenFirst);
       return;
     }
     final classroomId = int.tryParse(_classroomController.text.trim());
     if (classroomId == null) {
-      showErrorSnackbar(context, 'Enter a classroom ID');
+      showErrorSnackbar(context, l10n.enterClassroomId);
       return;
     }
     setState(() => _submitting = true);
@@ -104,7 +106,7 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
       );
       await ref.read(attendanceRepositoryProvider).create(dto);
       if (mounted) {
-        showSuccessSnackbar(context, 'Attendance saved!');
+        showSuccessSnackbar(context, l10n.attendanceSaved);
         context.pop();
       }
     } catch (e) {
@@ -114,10 +116,24 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
     }
   }
 
+  String _statusLabel(AttendanceStatus s, AppLocalizations l10n) {
+    switch (s) {
+      case AttendanceStatus.present:
+        return l10n.present;
+      case AttendanceStatus.absent:
+        return l10n.absent;
+      case AttendanceStatus.late:
+        return l10n.late;
+      case AttendanceStatus.excused:
+        return l10n.excused;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Take Attendance')),
+      appBar: AppBar(title: Text(l10n.takeAttendance)),
       body: Column(
         children: [
           Padding(
@@ -128,9 +144,9 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
                   child: TextField(
                     controller: _classroomController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Classroom ID',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.classroomId,
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                 ),
@@ -146,7 +162,7 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
                           height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Load'),
+                      : Text(l10n.load),
                 ),
               ],
             ),
@@ -155,9 +171,9 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: TextField(
               controller: _notesController,
-              decoration: const InputDecoration(
-                labelText: 'Session Notes (optional)',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.sessionNotes,
+                border: const OutlineInputBorder(),
               ),
             ),
           ),
@@ -168,7 +184,7 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
               child: Row(
                 children: [
                   Text(
-                    '${_records!.length} children',
+                    '${_records!.length} ${l10n.children.toLowerCase()}',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                   const Spacer(),
@@ -178,7 +194,7 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
                         r.status = AttendanceStatus.present;
                       }
                     }),
-                    child: const Text('Mark All Present'),
+                    child: Text(l10n.markAllPresent),
                   ),
                 ],
               ),
@@ -200,7 +216,8 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
                             children: [
                               Expanded(
                                 child: Text(
-                                  record.child.fullName ?? 'Child #${record.child.id}',
+                                  record.child.fullName ??
+                                      'Child #${record.child.id}',
                                   style: Theme.of(context)
                                       .textTheme
                                       .titleSmall
@@ -210,12 +227,12 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
                               DropdownButton<AttendanceStatus>(
                                 value: record.status,
                                 isDense: true,
-                                onChanged: (v) => setState(
-                                    () => record.status = v!),
+                                onChanged: (v) =>
+                                    setState(() => record.status = v!),
                                 items: AttendanceStatus.values
                                     .map((s) => DropdownMenuItem(
                                           value: s,
-                                          child: Text(s.label),
+                                          child: Text(_statusLabel(s, l10n)),
                                         ))
                                     .toList(),
                               ),
@@ -229,14 +246,14 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
                                 onChanged: (v) =>
                                     setState(() => record.madeHomework = v!),
                               ),
-                              const Text('Homework'),
+                              Text(l10n.homework),
                               const SizedBox(width: 16),
                               Checkbox(
                                 value: record.hasTools,
                                 onChanged: (v) =>
                                     setState(() => record.hasTools = v!),
                               ),
-                              const Text('Tools'),
+                              Text(l10n.tools),
                             ],
                           ),
                         ],
@@ -247,12 +264,12 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
               ),
             ),
           ] else
-            const Expanded(
+            Expanded(
               child: Center(
                 child: Text(
-                  'Enter a classroom ID and tap Load\nto see children.',
+                  l10n.enterClassroomAndLoad,
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey),
+                  style: const TextStyle(color: Colors.grey),
                 ),
               ),
             ),
@@ -264,7 +281,7 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
             ? const Center(child: CircularProgressIndicator())
             : ElevatedButton(
                 onPressed: _submit,
-                child: const Text('Save Attendance'),
+                child: Text(l10n.submit),
               ),
       ),
     );
