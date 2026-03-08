@@ -13,6 +13,82 @@ class AppTheme {
   static const Color textPrimary = Color(0xFF1A202C);
   static const Color textSecondary = Color(0xFF718096);
 
+  // Dark theme colour constants
+  static const Color darkBackground = Color(0xFF1A202C);
+  static const Color darkSurface = Color(0xFF2D3748);
+  static const Color darkPrimary = Color(0xFF4299E1);
+  static const Color darkTextPrimary = Color(0xFFE2E8F0);
+  static const Color darkTextSecondary = Color(0xFFA0AEC0);
+
+  static ThemeData get darkTheme {
+    final base = ColorScheme.fromSeed(
+      seedColor: darkPrimary,
+      brightness: Brightness.dark,
+      primary: darkPrimary,
+      secondary: accent,
+      surface: darkSurface,
+      error: error,
+      onPrimary: onPrimary,
+    );
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: base,
+      scaffoldBackgroundColor: darkBackground,
+      textTheme: GoogleFonts.poppinsTextTheme(ThemeData.dark().textTheme).copyWith(
+        bodyLarge: GoogleFonts.poppins(color: darkTextPrimary),
+        bodyMedium: GoogleFonts.poppins(color: darkTextPrimary),
+        titleLarge: GoogleFonts.poppins(
+            color: darkTextPrimary, fontWeight: FontWeight.w600),
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: darkSurface,
+        foregroundColor: darkTextPrimary,
+        elevation: 0,
+        titleTextStyle: GoogleFonts.poppins(
+            color: darkTextPrimary, fontSize: 20, fontWeight: FontWeight.w600),
+      ),
+      cardTheme: CardThemeData(
+        color: darkSurface,
+        elevation: 2,
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: darkPrimary,
+          foregroundColor: onPrimary,
+          minimumSize: const Size(double.infinity, 48),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          textStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: darkPrimary,
+          minimumSize: const Size(double.infinity, 48),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          side: const BorderSide(color: darkPrimary),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: darkSurface,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: darkPrimary, width: 2)),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        labelStyle: GoogleFonts.poppins(color: darkTextSecondary),
+      ),
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+          backgroundColor: darkPrimary, foregroundColor: onPrimary),
+    );
+  }
+
   static ThemeData get lightTheme {
     final base = ColorScheme.fromSeed(
       seedColor: primary,
