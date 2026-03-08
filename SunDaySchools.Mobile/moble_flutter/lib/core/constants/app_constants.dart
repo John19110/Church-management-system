@@ -1,6 +1,12 @@
+  import 'dart:io';
 class AppConstants {
   // Change this to your backend server address
-  static const String baseUrl = 'http://10.0.2.2:5000';
+
+
+ static  String baseUrl = Platform.isAndroid
+    ? "http://192.168.1.3:5000"
+    : "http://10.0.2.2:5000";
+
 
   // Auth endpoints (capital A)
   static const String loginEndpoint = '/Api/Account/Login';
