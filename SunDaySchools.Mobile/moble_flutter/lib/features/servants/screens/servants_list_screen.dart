@@ -3,16 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/servants_providers.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
+import '../../../core/l10n/app_localizations.dart';
 
 class ServantsListScreen extends ConsumerWidget {
   const ServantsListScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final servantsAsync = ref.watch(servantsListProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Servants')),
+      appBar: AppBar(title: Text(l10n.servants)),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           await context.push('/servants/add');
@@ -28,8 +30,8 @@ class ServantsListScreen extends ConsumerWidget {
         ),
         data: (servants) {
           if (servants.isEmpty) {
-            return const cw.EmptyWidget(
-              message: 'No servants yet. Tap + to add one.',
+            return cw.EmptyWidget(
+              message: l10n.noServants,
               icon: Icons.people,
             );
           }

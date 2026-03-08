@@ -5,6 +5,7 @@ import '../models/child_models.dart';
 import '../providers/children_providers.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/common_widgets.dart';
+import '../../../core/l10n/app_localizations.dart';
 
 const _kValidGenders = ['Male', 'Female'];
 
@@ -49,7 +50,6 @@ class _ChildEditScreenState extends ConsumerState<ChildEditScreen> {
   void _initFromChild(ChildReadDto child) {
     if (_initialized) return;
     _initialized = true;
-    // fullName may be "name1 name2 name3"; we just populate name1
     _name1Controller.text = child.fullName ?? '';
     _addressController.text = child.address ?? '';
     _dobController.text = child.dateOfBirth ?? '';
@@ -83,6 +83,7 @@ class _ChildEditScreenState extends ConsumerState<ChildEditScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
+    final l10n = AppLocalizations.of(context);
     try {
       final phones = List.generate(
         _phoneRelation.length,
@@ -105,7 +106,7 @@ class _ChildEditScreenState extends ConsumerState<ChildEditScreen> {
             ),
           );
       if (mounted) {
-        showSuccessSnackbar(context, 'Child updated successfully');
+        showSuccessSnackbar(context, l10n.childUpdatedSuccessfully);
         context.pop();
       }
     } catch (e) {
@@ -117,10 +118,11 @@ class _ChildEditScreenState extends ConsumerState<ChildEditScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final childAsync = ref.watch(childDetailProvider(widget.id));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Child')),
+      appBar: AppBar(title: Text(l10n.editChild)),
       body: childAsync.when(
         loading: () => const LoadingWidget(),
         error: (e, _) => AppErrorWidget(message: e.toString()),
@@ -133,45 +135,46 @@ class _ChildEditScreenState extends ConsumerState<ChildEditScreen> {
               children: [
                 AppTextField(
                   controller: _name1Controller,
-                  label: 'Full Name',
+                  label: l10n.fullName,
                   validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Name is required' : null,
+                      (v == null || v.trim().isEmpty) ? l10n.nameRequired : null,
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   value: _gender,
-                  decoration: const InputDecoration(labelText: 'Gender'),
-                  items: _kValidGenders
-                      .map((g) => DropdownMenuItem(value: g, child: Text(g)))
-                      .toList(),
+                  decoration: InputDecoration(labelText: l10n.gender),
+                  items: [
+                    DropdownMenuItem(value: 'Male', child: Text(l10n.male)),
+                    DropdownMenuItem(value: 'Female', child: Text(l10n.female)),
+                  ],
                   onChanged: (v) => setState(() => _gender = v),
                 ),
                 const SizedBox(height: 12),
                 AppTextField(
                   controller: _addressController,
-                  label: 'Address',
+                  label: l10n.address,
                 ),
                 const SizedBox(height: 12),
                 AppDateField(
                   controller: _dobController,
-                  label: 'Date of Birth',
+                  label: l10n.dateOfBirth,
                 ),
                 const SizedBox(height: 12),
                 AppDateField(
                   controller: _joiningController,
-                  label: 'Joining Date',
+                  label: l10n.joiningDate,
                 ),
                 const SizedBox(height: 12),
                 AppTextField(
                   controller: _classroomController,
-                  label: 'Classroom ID',
+                  label: l10n.classroomId,
                   keyboardType: TextInputType.number,
                 ),
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Phone Numbers',
+                    Text(l10n.phoneNumbers,
                         style: Theme.of(context).textTheme.titleSmall),
                     IconButton(
                       icon: const Icon(Icons.add_circle,
@@ -189,14 +192,14 @@ class _ChildEditScreenState extends ConsumerState<ChildEditScreen> {
                         Expanded(
                           child: AppTextField(
                             controller: _phoneRelation[i],
-                            label: 'Relation',
+                            label: l10n.relation,
                           ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: AppTextField(
                             controller: _phoneNumber[i],
-                            label: 'Phone',
+                            label: l10n.phone,
                             keyboardType: TextInputType.phone,
                           ),
                         ),
@@ -214,7 +217,7 @@ class _ChildEditScreenState extends ConsumerState<ChildEditScreen> {
                     ? const Center(child: CircularProgressIndicator())
                     : ElevatedButton(
                         onPressed: _submit,
-                        child: const Text('Save Changes'),
+                        child: Text(l10n.save),
                       ),
               ],
             ),
