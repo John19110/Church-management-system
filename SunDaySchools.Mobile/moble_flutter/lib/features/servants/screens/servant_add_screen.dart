@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import '../providers/servants_providers.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/common_widgets.dart';
+import '../../../core/l10n/app_localizations.dart';
 
 class ServantAddScreen extends ConsumerStatefulWidget {
   const ServantAddScreen({super.key});
@@ -45,6 +46,7 @@ class _ServantAddScreenState extends ConsumerState<ServantAddScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
+    final l10n = AppLocalizations.of(context);
     try {
       await ref.read(servantsRepositoryProvider).create(
             name: _nameController.text.trim(),
@@ -56,7 +58,7 @@ class _ServantAddScreenState extends ConsumerState<ServantAddScreen> {
             image: _image,
           );
       if (mounted) {
-        showSuccessSnackbar(context, 'Servant added successfully');
+        showSuccessSnackbar(context, l10n.servantAddedSuccessfully);
         context.pop();
       }
     } catch (e) {
@@ -68,8 +70,9 @@ class _ServantAddScreenState extends ConsumerState<ServantAddScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Servant')),
+      appBar: AppBar(title: Text(l10n.addServant)),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -93,32 +96,32 @@ class _ServantAddScreenState extends ConsumerState<ServantAddScreen> {
             const SizedBox(height: 16),
             AppTextField(
               controller: _nameController,
-              label: 'Name',
+              label: l10n.name,
               validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Name is required' : null,
+                  (v == null || v.trim().isEmpty) ? l10n.nameRequired : null,
             ),
             const SizedBox(height: 12),
             AppTextField(
               controller: _phoneController,
-              label: 'Phone Number',
+              label: l10n.phoneNumber,
               keyboardType: TextInputType.phone,
             ),
             const SizedBox(height: 12),
             AppTextField(
               controller: _userIdController,
-              label: 'Application User ID',
-              hint: 'Required — user UUID from auth system',
+              label: l10n.applicationUserId,
+              hint: l10n.userIdHint,
               validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'User ID is required' : null,
+                  (v == null || v.trim().isEmpty) ? l10n.userIdRequired : null,
             ),
             const SizedBox(height: 12),
-            AppDateField(controller: _joiningController, label: 'Joining Date'),
+            AppDateField(controller: _joiningController, label: l10n.joiningDate),
             const SizedBox(height: 12),
-            AppDateField(controller: _birthController, label: 'Birth Date'),
+            AppDateField(controller: _birthController, label: l10n.birthDate),
             const SizedBox(height: 12),
             AppTextField(
               controller: _classroomController,
-              label: 'Classroom ID',
+              label: l10n.classroomId,
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 24),
@@ -126,7 +129,7 @@ class _ServantAddScreenState extends ConsumerState<ServantAddScreen> {
                 ? const Center(child: CircularProgressIndicator())
                 : ElevatedButton(
                     onPressed: _submit,
-                    child: const Text('Add Servant'),
+                    child: Text(l10n.addServant),
                   ),
           ],
         ),
