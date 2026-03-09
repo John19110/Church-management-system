@@ -13,8 +13,7 @@ namespace SunDaySchools.API.Requests
         [Phone]
         public string? PhoneNumber { get; set; }
 
-        [Required]
-        public string ApplicationUserId { get; set; } = default!;
+   
 
         public int? ClassroomId { get; set; }
 
