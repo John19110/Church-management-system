@@ -3,6 +3,7 @@ using SunDaySchools.BLL.DTOS;
 using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Interfaces;
 using SunDaySchools.DAL.Repository;
+using SunDaySchools.DAL.Repository.Implementations;
 using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchools.Models;
 using System;
@@ -15,41 +16,65 @@ namespace SunDaySchools.BLL.Manager.Implementations
 {
     public class ServantManager : IServantManager
     {
-        private readonly IServantRepository _sarventReposatory;
+        private readonly IServantRepository _servantRepository;
         private readonly IMapper _mapper;
         public ServantManager(IServantRepository sarventReposatory, IMapper mapper)
         {
-            _sarventReposatory = sarventReposatory;
+            _servantRepository = sarventReposatory;
             _mapper = mapper;
         }
         public IEnumerable<ServantReadDTO> GetAll()
         {
-            return _mapper.Map<IEnumerable<ServantReadDTO>>(_sarventReposatory.GetAll().ToList());
+            var servants = _servantRepository.GetAll().ToList();
+            return _mapper.Map<IEnumerable<ServantReadDTO>>(servants);
         }
-        public  ServantReadDTO GetById(int id)
+        public ServantReadDTO? GetById(int id)
         {
-            return _mapper.Map<ServantReadDTO>(_sarventReposatory.GetById(id));
+            var servant = _servantRepository.GetById(id);
+            if (servant == null) return null;
+
+            return _mapper.Map<ServantReadDTO>(servant);
+        }
+        public ServantReadDTO? GetByApplicationUserId(string applicationUserId)
+        {
+            var servant = _servantRepository.GetByApplicationUserId(applicationUserId);
+            if (servant == null) return null;
+
+            return _mapper.Map<ServantReadDTO>(servant);
         }
 
-        public void Add(ServantAddDTO servant)
+        public int Add(ServantAddDTO servantDto)
         {
-            _sarventReposatory.Add(_mapper.Map<Servant>(servant));
+            var existing = _servantRepository.GetByApplicationUserId(servantDto.ApplicationUserId);
+            if (existing != null)
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["ApplicationUserId"] = new[] { "This user already has a servant profile." }
+                });
+            }
+
+            var servant = _mapper.Map<Servant>(servantDto);
+            _servantRepository.Add(servant);
+
+            return servant.Id;
         }
+
         public void Update(ServantUpdateDTO servantUpdateDTO)
         {
-            var existing = _sarventReposatory.GetById(servantUpdateDTO.Id);
+            var existing = _servantRepository.GetById(servantUpdateDTO.Id);
 
             if (existing == null)
                 throw new NotFoundException($"Servant with id {servantUpdateDTO.Id} not found.");
 
             _mapper.Map(servantUpdateDTO, existing);
-            _sarventReposatory.Update(existing);
+            _servantRepository.Update(existing);
         }
 
         public  void Delete(int id)
         {
 
-            _sarventReposatory.Delete(id);
+            _servantRepository.Delete(id);
         }
 
 
