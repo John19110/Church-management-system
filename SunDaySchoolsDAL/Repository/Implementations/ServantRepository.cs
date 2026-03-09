@@ -48,11 +48,10 @@ namespace SunDaySchools.DAL.Repository.Implementations
             _context.Servants.Add(servant);
             _context.SaveChanges();
         }
+
         public void Update(Servant servant)
         {
-
             _context.SaveChanges();
-
         }
         public void Delete(int id)
         {
