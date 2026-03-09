@@ -4,6 +4,7 @@ using SunDaySchools.API.Requests;
 using SunDaySchools.API.Services.Interfaces;
 using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Interfaces;
+using System.Security.Claims;
 
 namespace SunDaySchools.API.Controllers
 {
@@ -68,6 +69,7 @@ namespace SunDaySchools.API.Controllers
 
             var updateDto = form.ToUpdateDto();
             updateDto.Id = id;
+            updateDto.ApplicationUserId= User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (form.Image is not null && form.Image.Length > 0)
             {
