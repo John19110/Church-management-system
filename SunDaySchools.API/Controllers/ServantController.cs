@@ -1,107 +1,74 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using SunDaySchools.API.Mapping;
 using SunDaySchools.API.Requests;
 using SunDaySchools.API.Services.Interfaces;
-using SunDaySchools.BLL.DTOS;
 using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 namespace SunDaySchools.API.Controllers
-
-
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class servantController:ControllerBase
+    public class ServantController : ControllerBase
     {
-
-        private readonly IServantManager _servantmanager;
+        private readonly IServantManager _servantManager;
         private readonly IFileStorage _fileStorage;
 
-        public servantController(IServantManager servantmanager,IFileStorage filestorage)
+        public ServantController(IServantManager servantManager, IFileStorage fileStorage)
         {
-
-            _servantmanager = servantmanager;
-            _fileStorage = filestorage;
+            _servantManager = servantManager;
+            _fileStorage = fileStorage;
         }
 
         [HttpGet]
- 
         public ActionResult GetAll()
         {
-            var servnants = _servantmanager.GetAll();
-            if (servnants == null)
-            {
-                throw new NotFoundException($"No Servants found.");
-            }
-            return Ok(servnants);
-
+            var servants = _servantManager.GetAll();
+            return Ok(servants);
         }
-        [HttpGet("{id}")]
+
+        [HttpGet("{id:int}")]
         public ActionResult GetById(int id)
         {
-            var Servant = _servantmanager.GetById(id);
-            if (Servant==null)
-            {
+            var servant = _servantManager.GetById(id);
+
+            if (servant == null)
                 throw new NotFoundException($"Servant with id {id} not found.");
 
-            }
-            return Ok(Servant);
+            return Ok(servant);
         }
-
 
         [HttpPost]
         [Consumes("multipart/form-data")]
-        public async Task<IActionResult> AddServant([FromForm]ServantFormRequest form , CancellationToken ct) 
-        
+        public async Task<IActionResult> AddServant([FromForm] ServantFormRequest form, CancellationToken ct)
         {
-            if (form == null)
-            {
-                var errors = new Dictionary<string, string[]>
-                {
-                    ["childdto"] = new[] { "The request body cannot be empty." }
-                };
-                throw new ValidationException(errors);
-            }
-            ;
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
 
             var dto = form.ToAddDto();
-            if (form.Image != null && form.Image.Length > 0)
+
+            if (form.Image is not null && form.Image.Length > 0)
             {
-                var key = await _fileStorage.SaveImageAsync(form.Image, ct,"servants");
+                var key = await _fileStorage.SaveImageAsync(form.Image, ct, "servants");
                 dto.ImageFileName = key;
                 dto.ImageUrl = _fileStorage.GetPublicUrl(key);
             }
 
-            // 3) Manager uses AutoMapper to map DTO -> Entity
-            _servantmanager.Add(dto);
+            _servantManager.Add(dto);
 
-            return StatusCode(201, new { message = "Created Successfully" });
-
-
-
+            return Ok();
         }
-
-
 
         [HttpPut("{id:int}")]
         [Consumes("multipart/form-data")]
-        public async Task<IActionResult> Update(int id,[FromForm] ServantFormRequest form,CancellationToken ct )
+        public async Task<IActionResult> Update(int id, [FromForm] ServantFormRequest form, CancellationToken ct)
         {
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
 
-
-            // Map form fields -> update dto
             var updateDto = form.ToUpdateDto();
             updateDto.Id = id;
 
-
-
-            // Optional image upload
             if (form.Image is not null && form.Image.Length > 0)
             {
                 var key = await _fileStorage.SaveImageAsync(form.Image, ct, "servants");
@@ -109,24 +76,15 @@ namespace SunDaySchools.API.Controllers
                 updateDto.ImageUrl = _fileStorage.GetPublicUrl(key);
             }
 
-            try
-            {
-                _servantmanager.Update(updateDto);
-                return NoContent();
-            }
-            catch (NotFoundException)
-            {
-                throw new NotFoundException($"Servant  not found.");
-            }
+            _servantManager.Update(updateDto);
+
+            return NoContent();
         }
 
-
-
-        [HttpDelete("{id}")]
-        public ActionResult DeletebyId(int id)
+        [HttpDelete("{id:int}")]
+        public IActionResult DeleteById(int id)
         {
-
-            _servantmanager.Delete(id);
+            _servantManager.Delete(id);
             return NoContent();
         }
     }

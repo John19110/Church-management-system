@@ -1,24 +1,22 @@
-  import 'dart:io';
+import 'dart:io';
+
 class AppConstants {
-  // Change this to your backend server address
+  // When using USB + adb reverse the phone should call localhost
+  static String baseUrl = Platform.isAndroid
+      ? 'http://127.0.0.1:5000'
+      : 'http://localhost:5000';
 
-
- static  String baseUrl = Platform.isAndroid
-    ? "http://192.168.1.3:5000"
-    : "http://10.0.2.2:5000";
-
-
-  // Auth endpoints (capital A)
+  // Auth endpoints
   static const String loginEndpoint = '/Api/Account/Login';
   static const String registerEndpoint = '/Api/Account/Register';
 
-  // Children endpoints (lowercase a, capital C)
+  // Children endpoints
   static const String childrenEndpoint = '/api/Children';
 
-  // Servant endpoints (lowercase a, lowercase s)
+  // Servant endpoints
   static const String servantEndpoint = '/api/servant';
 
-  // AttendanceSession endpoints (lowercase a, capital A, capital S)
+  // AttendanceSession endpoints
   static const String attendanceEndpoint = '/api/AttendanceSession';
 
   static const String tokenKey = 'jwt_token';
