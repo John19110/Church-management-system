@@ -1,4 +1,4 @@
-# Sunday School Management System API
+# Sunday School Management System 
 
 Backend system built with **ASP.NET Core Web API** for managing Sunday schools in churches.
 
