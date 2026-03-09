@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -19,7 +18,8 @@ namespace SunDaySchools.BLL.DTOS
         public string? PhoneNumber { get; set; }
         public int? ClassroomId { get; set; }
 
-        var applicationUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        public string ApplicationUserId { get; set; } = default!;
+
     }
 }
     

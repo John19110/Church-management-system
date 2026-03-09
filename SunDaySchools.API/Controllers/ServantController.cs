@@ -39,26 +39,26 @@ namespace SunDaySchools.API.Controllers
             return Ok(servant);
         }
 
-        [HttpPost]
-        [Consumes("multipart/form-data")]
-        public async Task<IActionResult> AddServant([FromForm] ServantFormRequest form, CancellationToken ct)
-        {
-            if (!ModelState.IsValid)
-                return ValidationProblem(ModelState);
+        //[HttpPost]
+        //[Consumes("multipart/form-data")]
+        //public async Task<IActionResult> AddServant([FromForm] ServantFormRequest form, CancellationToken ct)
+        //{
+        //    if (!ModelState.IsValid)
+        //        return ValidationProblem(ModelState);
 
-            var dto = form.ToAddDto();
+        //    var dto = form.ToAddDto();
 
-            if (form.Image is not null && form.Image.Length > 0)
-            {
-                var key = await _fileStorage.SaveImageAsync(form.Image, ct, "servants");
-                dto.ImageFileName = key;
-                dto.ImageUrl = _fileStorage.GetPublicUrl(key);
-            }
+        //    if (form.Image is not null && form.Image.Length > 0)
+        //    {
+        //        var key = await _fileStorage.SaveImageAsync(form.Image, ct, "servants");
+        //        dto.ImageFileName = key;
+        //        dto.ImageUrl = _fileStorage.GetPublicUrl(key);
+        //    }
 
-            _servantManager.Add(dto);
+        //    _servantManager.Add(dto);
 
-            return Ok();
-        }
+        //    return Ok();
+        //}
 
         [HttpPut("{id:int}")]
         [Consumes("multipart/form-data")]

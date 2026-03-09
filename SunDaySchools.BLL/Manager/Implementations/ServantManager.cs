@@ -43,16 +43,16 @@ namespace SunDaySchools.BLL.Manager.Implementations
             return _mapper.Map<ServantReadDTO>(servant);
         }
 
-        public void Add(ServantAddDTO servantDto)
-        {
-            var existing = _servantRepository.GetByApplicationUserId(servantDto.ApplicationUserId);
-            if (existing != null)
-            {
-                throw new ValidationException(new Dictionary<string, string[]>
-                {
-                    ["ApplicationUserId"] = new[] { "This user already has a servant profile." }
-                });
-            }
+        //public void Add(ServantAddDTO servantDto)
+        //{
+        //    var existing = _servantRepository.GetByApplicationUserId(servantDto.ApplicationUserId);
+        //    if (existing != null)
+        //    {
+        //        throw new ValidationException(new Dictionary<string, string[]>
+        //        {
+        //            ["ApplicationUserId"] = new[] { "This user already has a servant profile." }
+        //        });
+        //    }
 
             var servant = _mapper.Map<Servant>(servantDto);
             _servantRepository.Add(servant);
