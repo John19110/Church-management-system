@@ -65,6 +65,17 @@ namespace SunDaySchoolsDAL.DBcontext
                 .HasIndex(c => c.ClassroomId);
 
 
+
+            builder.Entity<Servant>()
+                .HasOne(s => s.ApplicationUser)
+                .WithOne(u => u.ServantProfile)
+                .HasForeignKey<Servant>(s => s.ApplicationUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<Servant>()
+                .HasIndex(s => s.ApplicationUserId)
+                .IsUnique();
+
         }
     }
 }

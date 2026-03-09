@@ -11,7 +11,9 @@ namespace SunDaySchools.BLL.Manager.Interfaces
     {
         IEnumerable<ServantReadDTO> GetAll();
 
-        ServantReadDTO GetById(int id);
+        ServantReadDTO? GetById(int id);
+        ServantReadDTO? GetByApplicationUserId(string applicationUserId);
+
         void Add(ServantAddDTO Servant);
         void Update(ServantUpdateDTO servant);
         void Delete(int id);

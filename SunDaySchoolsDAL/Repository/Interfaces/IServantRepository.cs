@@ -11,6 +11,8 @@ namespace SunDaySchools.DAL.Repository.Interfaces
     {
         IQueryable<Servant> GetAll();
 
+        Servant? GetByApplicationUserId(string applicationUserId);
+
         Servant GetById(int id);
         void Add(Servant servant);
         void Update(Servant servant);

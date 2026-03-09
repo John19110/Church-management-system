@@ -43,7 +43,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             return _mapper.Map<ServantReadDTO>(servant);
         }
 
-        public int Add(ServantAddDTO servantDto)
+        public void Add(ServantAddDTO servantDto)
         {
             var existing = _servantRepository.GetByApplicationUserId(servantDto.ApplicationUserId);
             if (existing != null)
@@ -57,7 +57,6 @@ namespace SunDaySchools.BLL.Manager.Implementations
             var servant = _mapper.Map<Servant>(servantDto);
             _servantRepository.Add(servant);
 
-            return servant.Id;
         }
 
         public void Update(ServantUpdateDTO servantUpdateDTO)
@@ -71,12 +70,14 @@ namespace SunDaySchools.BLL.Manager.Implementations
             _servantRepository.Update(existing);
         }
 
-        public  void Delete(int id)
+        public void Delete(int id)
         {
+            var existing = _servantRepository.GetById(id);
+            if (existing == null)
+                throw new NotFoundException($"Servant with id {id} not found.");
 
             _servantRepository.Delete(id);
         }
-
 
     }
 }
