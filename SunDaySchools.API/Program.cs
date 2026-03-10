@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Identity;
+using SunDaySchoolsDAL.DBcontext;
 using SunDaySchools.API.Services.Implementations;
 using SunDaySchools.API.Services.Interfaces;
 using SunDaySchools.BLL.AutoMapper;
@@ -123,6 +125,12 @@ builder.Services.AddAutoMapper(m => m.AddProfile(new MappingProfile()));
 
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    await IdentitySeeder.SeedRolesAsync(roleManager);
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
