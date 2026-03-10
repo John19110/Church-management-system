@@ -12,8 +12,13 @@ namespace SunDaySchoolsDAL.DBcontext
             {
                 if (!await roleManager.RoleExistsAsync(role))
                 {
-                    await roleManager.CreateAsync(new IdentityRole(role));
+                    var result=  await roleManager.CreateAsync(new IdentityRole(role));
+                    if (!result.Succeeded)
+                    {
+                        throw new Exception($"Failed to create role {role}");
+                    }
                 }
+                
             }
         }
     }
