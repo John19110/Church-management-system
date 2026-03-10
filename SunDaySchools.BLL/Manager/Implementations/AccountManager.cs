@@ -93,7 +93,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 Name = registerDto.Name,
                 PhoneNumber = registerDto.PhoneNumber
             };
-            _servantRepo.Add(servant);
+          //  _servantRepo.Add(servant);
 
             var claims = await BuildJwtClaims(user);
             return GenerateToken(claims);
@@ -139,6 +139,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 {
                     new Claim(ClaimTypes.NameIdentifier, user.Id),
                     new Claim(ClaimTypes.Name, user.UserName ?? "")
+                  //  new Claim(ClaimTypes.UserData,user.ClassroomId)
                 };
 
             var roles = await _usermanager.GetRolesAsync(user);

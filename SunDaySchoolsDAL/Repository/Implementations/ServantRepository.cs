@@ -43,11 +43,11 @@ namespace SunDaySchools.DAL.Repository.Implementations
                 .Include(s => s.ApplicationUser)
                 .FirstOrDefault(s => s.ApplicationUserId == applicationUserId);
         }
-        public void Add(Servant servant)
-        {
-            _context.Servants.Add(servant);
-            _context.SaveChanges();
-        }
+        //public void Add(Servant servant)
+        //{
+        //    _context.Servants.Add(servant);
+        //    _context.SaveChanges();
+        //}
 
         public void Update(Servant servant)
         {
