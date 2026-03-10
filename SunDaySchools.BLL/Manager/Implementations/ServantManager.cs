@@ -54,10 +54,10 @@ namespace SunDaySchools.BLL.Manager.Implementations
         //        });
         //    }
 
-            var servant = _mapper.Map<Servant>(servantDto);
-            _servantRepository.Add(servant);
+        //    var servant = _mapper.Map<Servant>(servantDto);
+        //    _servantRepository.Add(servant);
 
-        }
+        //}
 
         public void Update(ServantUpdateDTO servantUpdateDTO)
         {

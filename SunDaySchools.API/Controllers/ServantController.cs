@@ -68,7 +68,9 @@ namespace SunDaySchools.API.Controllers
                 return ValidationProblem(ModelState);
 
             var updateDto = form.ToUpdateDto();
+
             updateDto.Id = id;
+
             updateDto.ApplicationUserId= User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (form.Image is not null && form.Image.Length > 0)
