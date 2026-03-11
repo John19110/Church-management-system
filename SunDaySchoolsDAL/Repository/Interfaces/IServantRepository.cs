@@ -14,6 +14,7 @@ namespace SunDaySchools.DAL.Repository.Interfaces
         Servant? GetByApplicationUserId(string applicationUserId);
 
         Servant GetById(int id);
+
        // void Add(Servant servant);
         void Update(Servant servant);
         void Delete(int id);
