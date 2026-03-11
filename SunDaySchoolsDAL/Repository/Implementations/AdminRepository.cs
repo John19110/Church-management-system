@@ -4,16 +4,26 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SunDaySchools.DAL.Repository.Interfaces;
-using SunDaySchools.DAL.Repository.DBcontext;
-
+using SunDaySchoolsDAL.DBcontext;
+using System.Linq.Generic;
 
 namespace SunDaySchools.DAL.Repository.Implementations
 {
     public class AdminRepository:IAdminRepository
     {
 
-        private readonly ProgramContext 
+        private readonly ProgramContext _context;
+        public AdminRepository(ProgramContext context)
+        {
+            _context = context;
 
+        }
+        void AssignClassToServant(int ServantId,int ClassId)
+        {
+           var servant= _context.Servants.FirstOrDeafult()
+
+
+        }
 
 
 
