@@ -50,7 +50,7 @@ namespace SunDaySchools.API.Controllers
         }
 
         [HttpGet("{id}")]
-        public ActionResult GetById(int id)
+        public ActionResult<ChildReadDTO> GetById(int id)
         
         {
             
