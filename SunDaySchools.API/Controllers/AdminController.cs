@@ -13,6 +13,9 @@ namespace SunDaySchools.API.Controllers
     public class AdminController : ControllerBase
     {
 
+
+
+
     }
 
 }

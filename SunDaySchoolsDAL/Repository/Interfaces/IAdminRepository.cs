@@ -10,6 +10,8 @@ namespace SunDaySchools.DAL.Repository.Interfaces
     {
         void AssignClassToServant();
 
+        void ApprovServant();
+
 
     }
 }

@@ -26,12 +26,11 @@ namespace SunDaySchools.API.Controllers
         }
 
         [HttpGet]
-        public ActionResult GetAll()
+        public ActionResult<IEnumerable<ChildReadDTO>> GetAll()
         {        
             var children = _childmanager.GetAll();
 
-            if (!children.Any())
-                throw new NotFoundException($"No Children found.");
+  
 
             return Ok(children);
         }
