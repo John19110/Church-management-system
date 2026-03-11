@@ -27,7 +27,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
         {
           return  _mapper.Map<IEnumerable<ChildReadDTO>>(_childReposatory.GetAll().ToList());
         }
-        ChildReadDTO IChildManager.GetById(int id)
+        ChildReadDTO? IChildManager.GetById(int id)
         {
           return  _mapper.Map<ChildReadDTO>(_childReposatory.GetById(id));
         }
