@@ -5,10 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchoolsDAL.DBcontext;
+using SunDaySchools.DAL.Models;
+using SunDaySchools.Models;
+
 
 namespace SunDaySchools.DAL.Repository.Implementations
 {
-    public class AdminRepository:IAdminRepository
+    public class AdminRepository: IAdminRepository
     {
 
         private readonly ProgramContext _context;
@@ -17,14 +20,11 @@ namespace SunDaySchools.DAL.Repository.Implementations
             _context = context;
 
         }
-        void AssignClassToServant(int ServantId,int ClassId)
+       public (Servant?,Classroom?) AssignClassToServant(int ServantId,int ClassroomId)
         {
             var servant = _context.Servants.FirstOrDefault(p => p.Id ==ServantId);
-            if(servant== null)
-            {
-               // return throw
-            }
-
+            var classroom = _context.Classrooms.FirstOrDefault(p => p.Id == ClassroomId);
+            return (servant, classroom);
 
         }
 
