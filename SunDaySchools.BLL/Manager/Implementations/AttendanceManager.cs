@@ -26,15 +26,9 @@ namespace SunDaySchools.BLL.Manager.Implementations
             if (session == null) throw new ArgumentNullException(nameof(session));
 
 
-
             session.Records ??= new List<AttendanceRecordAddDTO>();
 
-            //foreach (AttendanceRecordAddDTO c in session.Records)
-            //{
-            //    c.ChildId
-
-            //}
-
+          
             // Map DTO -> Entity
 
             var entity = _mapper.Map<AttendanceSession>(session);

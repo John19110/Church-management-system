@@ -15,12 +15,9 @@ namespace SunDaySchools.DAL.Repository.Interfaces
 
         Servant GetById(int id);
 
-       // void Add(Servant servant);
+        // void Add(Servant servant);
         void Update(Servant servant);
         void Delete(int id);
-
-
-
 
     }
 }

@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchoolsDAL.DBcontext;
-using System.Linq.Generic;
 
 namespace SunDaySchools.DAL.Repository.Implementations
 {
@@ -20,7 +19,11 @@ namespace SunDaySchools.DAL.Repository.Implementations
         }
         void AssignClassToServant(int ServantId,int ClassId)
         {
-           var servant= _context.Servants.FirstOrDeafult()
+            var servant = _context.Servants.FirstOrDefault(p => p.Id ==ServantId);
+            if(servant== null)
+            {
+               // return throw
+            }
 
 
         }
