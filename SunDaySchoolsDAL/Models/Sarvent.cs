@@ -13,8 +13,8 @@ namespace SunDaySchools.Models
         public DateOnly? BirthDate { get; set; }
         public DateOnly? JoiningDate { get; set; }
         public string? PhoneNumber { get; set; }
-        public int? ClassroomId { get; set; }
-        public Classroom? Classroom { get; set; }
+        public List<int>? ClassroomIds { get; set; }
+        public List<Classroom>? Classrooms { get; set; }
 
 
     }

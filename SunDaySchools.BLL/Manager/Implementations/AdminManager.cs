@@ -37,13 +37,13 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 throw new NotFoundException($"Classroom with id : {ClassroomId} not found");
 
 
-            if (servant.ClassroomId == ClassroomId)
+            if (servant.ClassroomIds.Contains(ClassroomId))
             {
                 throw new Exception("Servant is already assigned to this class");
             }
 
 
-            servant.ClassroomId = ClassroomId;
+            servant.ClassroomIds.Add( ClassroomId);
 
             if (!classroom.Servants.Any(s => s.Id == servant.Id))
             {
