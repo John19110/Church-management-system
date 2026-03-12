@@ -63,6 +63,7 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 // DI
+
 builder.Services.AddScoped<IChildManager, ChildManager>();
 builder.Services.AddScoped<IAccountManager, AccountManager>();
 builder.Services.AddScoped<IServantManager, ServantManager>();
@@ -70,6 +71,8 @@ builder.Services.AddScoped<IAttendanceManager, AttendanceManager>();
 builder.Services.AddScoped<IServantRepository, ServantRepository>();
 builder.Services.AddScoped<IChildRepository, ChildRepository>();
 builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
+builder.Services.AddScoped<IAdminManager,AdminManager >();
+builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 
 
 
