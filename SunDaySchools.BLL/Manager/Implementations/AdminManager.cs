@@ -18,6 +18,16 @@ namespace SunDaySchools.BLL.Manager.Implementations
             _adminRepository = adminRepository;
         }
 
+        public void AssignClassToServant(int ClassroomId,int ServantId)
+
+        {
+            var ClassAndServant = _adminRepository.AssignClassToServant(ClassroomId, ServantId);
+
+
+        }
+
+
+
 
 
     }
