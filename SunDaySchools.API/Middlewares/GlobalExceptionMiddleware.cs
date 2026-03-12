@@ -76,7 +76,14 @@ public class GlobalExceptionMiddleware
                 problemDetails.Status = (int)HttpStatusCode.Conflict; // 409
                 problemDetails.Detail = exception.Message;
                 break;
+            case ServantAlreayAssigned:
+                problemDetails.Title = "Servant already Assigned to the class";
+                problemDetails.Status = (int)HttpStatusCode.Conflict; // 409
+                problemDetails.Detail = exception.Message;
                 break;
+
+
+
 
             // You can add more cases for other custom exceptions
 
