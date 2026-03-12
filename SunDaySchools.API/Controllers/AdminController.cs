@@ -21,7 +21,7 @@ namespace SunDaySchools.API.Controllers
 
         }
 
-        [HttpPut("{ServantId}/{ClassroomId}")]
+        [HttpPut("assign-class{ServantId}/{ClassroomId}")]
 
         public ActionResult AssignClassToServant(int ServantId,int ClassroomId)
         {
