@@ -25,8 +25,6 @@ namespace SunDaySchools.API.Controllers
 
         public ActionResult AssignClassToServant(int ServantId,int ClassroomId)
         {
-
-
             _adminManager.AssignClassToServant(ServantId, ClassroomId);
             return Ok();
 

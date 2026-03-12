@@ -23,14 +23,14 @@ namespace SunDaySchools.DAL.Repository.Implementations
         public IQueryable<Servant> GetAll()
         {
             return _context.Servants
-                .Include(s => s.Classroom)
+                .Include(s => s.Classrooms)
                 .Include(s => s.ApplicationUser);
         }
 
         public Servant? GetById(int id)
         {
             return _context.Servants
-                .Include(s => s.Classroom)
+                .Include(s => s.Classrooms)
                 .Include(s => s.ApplicationUser)
                 .FirstOrDefault(s => s.Id == id);
         }
@@ -39,7 +39,7 @@ namespace SunDaySchools.DAL.Repository.Implementations
         public Servant? GetByApplicationUserId(string applicationUserId)
         {
             return _context.Servants
-                .Include(s => s.Classroom)
+                .Include(s => s.Classrooms)
                 .Include(s => s.ApplicationUser)
                 .FirstOrDefault(s => s.ApplicationUserId == applicationUserId);
         }
