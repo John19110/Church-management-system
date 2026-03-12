@@ -10,7 +10,7 @@ namespace SunDaySchools.DAL.Repository.Interfaces
 {
     public  interface IAdminRepository
     {
-        (Servant?,Classroom?) AssignClassToServant(int ServantId,int ClassroomId);
+        (Servant? servant, Classroom? classroom) AssignClassToServant(int ServantId,int ClassroomId);
 
         //   void ApprovServant();
 

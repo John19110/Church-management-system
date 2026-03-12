@@ -20,7 +20,7 @@ namespace SunDaySchools.DAL.Repository.Implementations
             _context = context;
 
         }
-       public (Servant?,Classroom?) AssignClassToServant(int ServantId,int ClassroomId)
+       public (Servant? servant,Classroom? classroom) AssignClassToServant(int ServantId,int ClassroomId)
         {
             var servant = _context.Servants.FirstOrDefault(p => p.Id ==ServantId);
             var classroom = _context.Classrooms.FirstOrDefault(p => p.Id == ClassroomId);
