@@ -8,11 +8,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using SunDaySchools.BLL.Manager.Interfaces;
+
 namespace SunDaySchools.BLL.Manager.Implementations
 {
-    public class AdminManager
+    public class AdminManager : IAdminManager
     {
-        private readonly IAdminRepository _adminRepository;
+
+        
+    private readonly IAdminRepository _adminRepository;
 
 
         public AdminManager(IAdminRepository adminRepository)
@@ -20,7 +24,9 @@ namespace SunDaySchools.BLL.Manager.Implementations
             _adminRepository = adminRepository;
         }
 
-        public void AssignClassToServant(int ClassroomId, int ServantId)
+
+
+        public void AssignClassToServant(int ServantId, int ClassroomId)
         {
             var (servant, classroom) = _adminRepository.AssignClassToServant(ServantId, ClassroomId);
 
@@ -30,22 +36,27 @@ namespace SunDaySchools.BLL.Manager.Implementations
             if (classroom is null)
                 throw new NotFoundException($"Classroom with id : {ClassroomId} not found");
 
+
+            if (servant.ClassroomId == ClassroomId)
+            {
+                throw new Exception("Servant is already assigned to this class");
+            }
+
+
             servant.ClassroomId = ClassroomId;
+
             if (!classroom.Servants.Any(s => s.Id == servant.Id))
             {
                 classroom.Servants.Add(servant);
             }
-            else
-            {
-                throw new Exception("Sarvent already assigned to this class");
-            }
 
-                _adminRepository.Save();
-        }
+            _adminRepository.Save();
+
         }
 
 
-
-
+        
 
     }
+
+       }

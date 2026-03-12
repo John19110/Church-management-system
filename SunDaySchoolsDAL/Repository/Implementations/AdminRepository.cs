@@ -1,12 +1,13 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using SunDaySchools.DAL.Models;
+using SunDaySchools.DAL.Repository.Interfaces;
+using SunDaySchools.Models;
+using SunDaySchoolsDAL.DBcontext;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using SunDaySchools.DAL.Repository.Interfaces;
-using SunDaySchoolsDAL.DBcontext;
-using SunDaySchools.DAL.Models;
-using SunDaySchools.Models;
 
 
 namespace SunDaySchools.DAL.Repository.Implementations
@@ -23,7 +24,9 @@ namespace SunDaySchools.DAL.Repository.Implementations
        public (Servant? servant,Classroom? classroom) AssignClassToServant(int ServantId,int ClassroomId)
         {
             var servant = _context.Servants.FirstOrDefault(p => p.Id ==ServantId);
-            var classroom = _context.Classrooms.FirstOrDefault(p => p.Id == ClassroomId);
+             var classroom = _context.Classrooms
+                                     .Include(c => c.Servants)
+                                     .FirstOrDefault(c => c.Id == ClassroomId);
             return (servant, classroom);
 
         }
