@@ -14,6 +14,6 @@ namespace SunDaySchools.DAL.Repository.Interfaces
 
         //   void ApprovServant();
 
-
+        public void Save();
     }
 }
