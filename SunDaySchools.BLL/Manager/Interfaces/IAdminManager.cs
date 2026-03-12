@@ -8,5 +8,8 @@ namespace SunDaySchools.BLL.Manager.Interfaces
 {
     public interface IAdminManager
     {
+        ()
+
+
     }
 }
