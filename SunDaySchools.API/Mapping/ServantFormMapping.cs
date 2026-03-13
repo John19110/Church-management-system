@@ -22,7 +22,7 @@ namespace SunDaySchools.API.Mapping
                 JoiningDate = form.JoiningDate,
                 BirthDate = form.BirthDate,
                 PhoneNumber = form.PhoneNumber,
-                ClassroomId = form.ClassroomId,
+            //    Classrooms = form.Classrooms,
             };
         }
     }

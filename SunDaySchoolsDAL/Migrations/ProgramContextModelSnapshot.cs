@@ -43,7 +43,7 @@ namespace SunDaySchools.Migrations
 
                     b.HasIndex("ChildId");
 
-                    b.ToTable("ChildContacts");
+                    b.ToTable("ChildContacts", (string)null);
                 });
 
             modelBuilder.Entity("ClassroomServant", b =>
@@ -58,7 +58,7 @@ namespace SunDaySchools.Migrations
 
                     b.HasIndex("ServantsId");
 
-                    b.ToTable("ClassroomServant");
+                    b.ToTable("ClassroomServant", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -230,7 +230,7 @@ namespace SunDaySchools.Migrations
                     b.HasIndex("AttendanceSessionId", "ChildId")
                         .IsUnique();
 
-                    b.ToTable("AttendanceRecords");
+                    b.ToTable("AttendanceRecords", (string)null);
                 });
 
             modelBuilder.Entity("SunDaySchools.DAL.Models.AttendanceSession", b =>
@@ -259,7 +259,7 @@ namespace SunDaySchools.Migrations
 
                     b.HasIndex("TakenByServantId");
 
-                    b.ToTable("AttendanceSessions");
+                    b.ToTable("AttendanceSessions", (string)null);
                 });
 
             modelBuilder.Entity("SunDaySchools.DAL.Models.Exam", b =>
@@ -287,7 +287,7 @@ namespace SunDaySchools.Migrations
 
                     b.HasIndex("ClassroomId");
 
-                    b.ToTable("Exams");
+                    b.ToTable("Exams", (string)null);
                 });
 
             modelBuilder.Entity("SunDaySchools.DAL.Models.ExamResult", b =>
@@ -322,7 +322,7 @@ namespace SunDaySchools.Migrations
 
                     b.HasIndex("ExamId");
 
-                    b.ToTable("ExamResults");
+                    b.ToTable("ExamResults", (string)null);
                 });
 
             modelBuilder.Entity("SunDaySchools.Models.Child", b =>
@@ -388,7 +388,7 @@ namespace SunDaySchools.Migrations
 
                     b.HasIndex("ClassroomId");
 
-                    b.ToTable("Children");
+                    b.ToTable("Children", (string)null);
                 });
 
             modelBuilder.Entity("SunDaySchools.Models.Classroom", b =>
@@ -410,7 +410,7 @@ namespace SunDaySchools.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Classrooms");
+                    b.ToTable("Classrooms", (string)null);
 
                     b.HasData(
                         new
@@ -482,7 +482,7 @@ namespace SunDaySchools.Migrations
 
                     b.HasIndex("SpiritualCurriculumid");
 
-                    b.ToTable("Servants");
+                    b.ToTable("Servants", (string)null);
                 });
 
             modelBuilder.Entity("SunDaySchools.Models.SpiritualCurriculum", b =>
@@ -528,7 +528,7 @@ namespace SunDaySchools.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("SpiritualCurriculums");
+                    b.ToTable("SpiritualCurriculums", (string)null);
                 });
 
             modelBuilder.Entity("SunDaySchools.Models.Tool", b =>
@@ -565,7 +565,7 @@ namespace SunDaySchools.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Tools");
+                    b.ToTable("Tools", (string)null);
                 });
 
             modelBuilder.Entity("SunDaySchoolsDAL.Models.ApplicationUser", b =>
@@ -656,7 +656,7 @@ namespace SunDaySchools.Migrations
 
                     b.HasIndex("ServantId");
 
-                    b.ToTable("PhoneCalls");
+                    b.ToTable("PhoneCalls", (string)null);
                 });
 
             modelBuilder.Entity("ChildContact", b =>
