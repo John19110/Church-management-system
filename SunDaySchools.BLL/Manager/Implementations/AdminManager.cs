@@ -1,14 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using SunDaySchools.BLL.DTOS;
 using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Interfaces;
+using SunDaySchools.DAL.Models;
 using SunDaySchools.DAL.Repository.Implementations;
 using SunDaySchools.DAL.Repository.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using SunDaySchools.Models;
+using SunDaySchoolsDAL.Models;
 
 namespace SunDaySchools.BLL.Manager.Implementations
 {
@@ -17,12 +17,13 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
         
     private readonly IAdminRepository _adminRepository;
-        private readonly IMapper _mapper;
+    private readonly IMapper _mapper;
 
 
-        public AdminManager(IAdminRepository adminRepository)
+        public AdminManager(IAdminRepository adminRepository,IMapper mapper)
         {
             _adminRepository = adminRepository;
+            _mapper = mapper;
         }
 
 
@@ -56,11 +57,11 @@ namespace SunDaySchools.BLL.Manager.Implementations
         }
 
 
-        public void Addservant(ServantAddDTO servant)
+        public void AddServant(ServantAddDTO servant)
         {
 
-            
-            _adminRepository.AddServnat(servant);
+            var model=_mapper.Map<Servant>(servant);
+            _adminRepository.AddServant(model);
 
         }
 

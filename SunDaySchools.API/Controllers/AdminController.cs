@@ -54,7 +54,7 @@ namespace SunDaySchools.API.Controllers
                 dto.ImageUrl = _fileStorage.GetPublicUrl(key);
             }
 
-            AdminManager.Add(dto);
+            AdminManager.AddServant(dto);
 
             return Ok();
         }
