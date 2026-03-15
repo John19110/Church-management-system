@@ -13,6 +13,7 @@ namespace SunDaySchools.DAL.Repository.Interfaces
         (Servant? servant, Classroom? classroom) AssignClassToServant(int ServantId,int ClassroomId);
 
         //   void ApprovServant();
+        void AddServant(Servant  servant);
 
         public void Save();
     }
