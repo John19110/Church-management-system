@@ -3,18 +3,11 @@ using SunDaySchools.API.Requests;
 using SunDaySchools.BLL.DTOS.AccountDtos;
 using SunDaySchools.BLL.Manager.Implementations;
 using SunDaySchools.BLL.Manager.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
 using SunDaySchools.API.Mapping;
-using SunDaySchools.API.Requests;
 using SunDaySchools.API.Services.Interfaces;
-using SunDaySchools.BLL.Exceptions;
-using SunDaySchools.BLL.Manager.Interfaces;
-using System.Security.Claims;
+using SunDaySchools.API.Services.Implementations;
+
+
 namespace SunDaySchools.API.Controllers
 {
     [ApiController]
@@ -23,9 +16,12 @@ namespace SunDaySchools.API.Controllers
     {
 
         private readonly IAdminManager _adminManager;
-        public AdminController(IAdminManager adminmanager)
+        private readonly IFileStorage _filestorage;
+
+        public AdminController(IAdminManager adminmanager,IFileStorage filestorage)
         {
             _adminManager = adminmanager;
+            _filestorage = filestorage;
 
         }
 
@@ -49,9 +45,9 @@ namespace SunDaySchools.API.Controllers
 
             if (form.Image is not null && form.Image.Length > 0)
             {
-                var key = await _fileStorage.SaveImageAsync(form.Image, ct, "servants");
+                var key = await _filestorage.SaveImageAsync(form.Image, ct, "servants");
                 dto.ImageFileName = key;
-                dto.ImageUrl = _fileStorage.GetPublicUrl(key);
+                dto.ImageUrl = _filestorage.GetPublicUrl(key);
             }
 
             AdminManager.AddServant(dto);
