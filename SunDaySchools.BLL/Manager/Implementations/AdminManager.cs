@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SunDaySchools.BLL.DTOS;
 using SunDaySchools.BLL.Exceptions;
+using SunDaySchools.BLL.Manager.Interfaces;
 using SunDaySchools.DAL.Repository.Implementations;
 using SunDaySchools.DAL.Repository.Interfaces;
 using System;
@@ -7,8 +9,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
-using SunDaySchools.BLL.Manager.Interfaces;
 
 namespace SunDaySchools.BLL.Manager.Implementations
 {
@@ -54,6 +54,12 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
         }
 
+
+        public void Addservant(ServantAddDTO servant)
+        {
+
+
+        }
 
         
 
