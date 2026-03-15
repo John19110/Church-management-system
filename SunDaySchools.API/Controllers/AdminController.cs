@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
+using SunDaySchools.API.Mapping;
 using SunDaySchools.API.Requests;
+using SunDaySchools.API.Services.Implementations;
+using SunDaySchools.API.Services.Interfaces;
+using SunDaySchools.BLL.DTOS;
 using SunDaySchools.BLL.DTOS.AccountDtos;
 using SunDaySchools.BLL.Manager.Implementations;
 using SunDaySchools.BLL.Manager.Interfaces;
-using SunDaySchools.API.Mapping;
-using SunDaySchools.API.Services.Interfaces;
-using SunDaySchools.API.Services.Implementations;
+using SunDaySchools.BLL.Exceptions;
 
 
 namespace SunDaySchools.API.Controllers
@@ -34,27 +36,24 @@ namespace SunDaySchools.API.Controllers
 
         }
 
-        [HttpPost("add-servant{}")]
+        [HttpPost("add-servant")]
         [Consumes("multipart/form-data")]
-        public async Task<IActionResult> AddServant([FromForm] ServantFormRequest form, CancellationToken ct)
+        public async Task<IActionResult> AddServant(ServantAddDTO servant)
         {
-            if (!ModelState.IsValid)
-                return ValidationProblem(ModelState);
-
-            var dto = form.ToAddDto();
-
-            if (form.Image is not null && form.Image.Length > 0)
+            if (servant == null)
             {
-                var key = await _filestorage.SaveImageAsync(form.Image, ct, "servants");
-                dto.ImageFileName = key;
-                dto.ImageUrl = _filestorage.GetPublicUrl(key);
+                var errors = new Dictionary<string, string[]>
+                {
+                    ["childdto"] = new[] { "The request body cannot be empty." }
+                };
+                throw new ValidationException(errors);
             }
+            _adminManager.AddServant(servant);
 
-            AdminManager.AddServant(dto);
-
-            return Ok();
+            return StatusCode(201, new { message = "Created Successfully" });
         }
 
+      
 
 
 
