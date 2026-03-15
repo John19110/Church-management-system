@@ -36,6 +36,11 @@ namespace SunDaySchools.DAL.Repository.Implementations
             _context.SaveChanges();
         }
 
+        public void AddServant(Servant servant)
+        {
+            _context.Servants.Add(servant);
+            _context.SaveChanges();
+        }
 
 
     }

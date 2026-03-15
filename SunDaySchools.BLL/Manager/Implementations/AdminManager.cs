@@ -17,6 +17,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
         
     private readonly IAdminRepository _adminRepository;
+        private readonly IMapper _mapper;
 
 
         public AdminManager(IAdminRepository adminRepository)
@@ -58,6 +59,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
         public void Addservant(ServantAddDTO servant)
         {
 
+            
+            _adminRepository.AddServnat(servant);
 
         }
 
