@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace SunDaySchoolsDAL.Models
 {
-    public class PhoneCall : SchoolEntity
+    public class PhoneCall : ChurchEntity
     {
         public int Id { get; set; }
 

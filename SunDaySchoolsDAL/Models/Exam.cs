@@ -7,7 +7,7 @@ using SunDaySchools.Models;
 
 namespace SunDaySchools.DAL.Models
 {
-    public class Exam : SchoolEntity
+    public class Exam : ChurchEntity
     {
         public int Id { get; set; }
         public int? ClassroomId { get; set; }

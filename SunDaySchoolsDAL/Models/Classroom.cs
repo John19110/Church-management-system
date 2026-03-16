@@ -2,7 +2,7 @@
 
 namespace SunDaySchools.Models
 {
-    public class Classroom : SchoolEntity
+    public class Classroom : ChurchEntity
     {
         public int Id { get; set; }
         public string? Name { get; set; }
