@@ -57,7 +57,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             return GenerateToken(claims);
         }
 
-        public async Task<string> Register(RegisterDTO registerDto)
+        public async Task<string> RegisterAdmin(RegisterDTO registerDto)
         {
             if (registerDto == null)
                 throw new ValidationException(new Dictionary<string, string[]>
@@ -102,6 +102,54 @@ namespace SunDaySchools.BLL.Manager.Implementations
             var claims = await BuildJwtClaims(user);
             return GenerateToken(claims);
         }
+
+
+        public async Task<string> Register(RegisterDTO registerDto)
+        {
+            if (registerDto == null)
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["registerDto"] = new[] { "Registration data cannot be null." }
+                });
+
+            // Check if user already exists
+            var existingUser = await _usermanager.FindByNameAsync(registerDto.Name);
+            if (existingUser != null)
+                throw new UserAlreadyExistsException();
+
+            var user = new ApplicationUser
+            {
+                UserName = registerDto.Name,
+                PhoneNumber = registerDto.PhoneNumber
+            };
+
+            var result = await _usermanager.CreateAsync(user, registerDto.Password);
+            if (!result.Succeeded)
+            {
+                // Convert Identity errors to a ValidationException
+                var errors = result.Errors
+                    .GroupBy(e => e.Code) // or use a custom field name
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.Select(e => e.Description).ToArray()
+                    );
+                throw new ValidationException(errors);
+            }
+
+            await _usermanager.AddToRoleAsync(user, "Servant");
+
+            var servant = new Servant
+            {
+                ApplicationUserId = user.Id,
+                Name = registerDto.Name,
+                PhoneNumber = registerDto.PhoneNumber
+            };
+            //  _servantRepo.Add(servant);
+
+            var claims = await BuildJwtClaims(user);
+            return GenerateToken(claims);
+        }
+
 
 
         private string GenerateToken(IList<Claim> claims)
