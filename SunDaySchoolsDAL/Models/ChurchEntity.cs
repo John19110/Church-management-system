@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 
 namespace SunDaySchools.DAL.Models
 {
-    public abstract class SchoolEntity
+    public abstract class ChurchEntity
     {
-        public int SchoolId { get; set; }
+        public int? ChurchId { get; set; }
+        public Church? Chuch { get; set; }
+
 
     }
 }

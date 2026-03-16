@@ -14,6 +14,7 @@ namespace SunDaySchoolsDAL.Models
     {
         public Servant? ServantProfile { get; set; } // navigation only
                                                      //the ? means that not all the user should be servants they may be admin only 
+        public int SchoolId { get; set; }
 
 
         // Servant table = servant data such as classroom, phone calls, attendance work, etc.

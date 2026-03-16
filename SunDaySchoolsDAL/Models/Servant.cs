@@ -3,7 +3,7 @@ using SunDaySchoolsDAL.Models;
 
 namespace SunDaySchools.Models
 {
-    public class Servant : SchoolEntity
+    public class Servant : ChurchEntity
     {
         public int Id { get; set; }
         public string ApplicationUserId { get; set; } = default!;

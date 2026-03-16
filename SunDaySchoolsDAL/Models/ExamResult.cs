@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SunDaySchools.DAL.Models
 {
-    public class ExamResult : SchoolEntity
+    public class ExamResult : ChurchEntity
     {
         public int Id { get; set; }                 // or composite key (ExamId + ChildId)
         public int ExamId { get; set; }

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SunDaySchools.DAL.Models
 {
-    public class AttendanceRecord :SchoolEntity
+    public class AttendanceRecord : ChurchEntity
     {
 
 
