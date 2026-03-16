@@ -16,6 +16,8 @@ namespace SunDaySchoolsDAL.Models
                                                      //the ? means that not all the user should be servants they may be admin only 
         public int SchoolId { get; set; }
 
+        public bool IsApproved { get; set; } = false;
+
 
         // Servant table = servant data such as classroom, phone calls, attendance work, etc.
 
