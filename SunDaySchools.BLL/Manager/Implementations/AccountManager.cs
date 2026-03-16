@@ -87,7 +87,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
             {
                 UserName = registerChurchAdminDTO.Name,
                 PhoneNumber = registerChurchAdminDTO.PhoneNumber,
-                IsApproved = true
+                IsApproved = true,
+                ChurchId = church.Id
             }; 
             
             var result = await _usermanager.CreateAsync(user, registerChurchAdminDTO.Password);
@@ -112,7 +113,6 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 ApplicationUserId = user.Id,
                 Name = registerChurchAdminDTO.Name,
                 PhoneNumber = registerChurchAdminDTO.PhoneNumber
-                ChurchId
 
             };
             _adminRepo.AddServant(servant);
