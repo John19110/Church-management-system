@@ -1,6 +1,8 @@
-﻿namespace SunDaySchools.Models
+﻿using SunDaySchools.DAL.Models;
+
+namespace SunDaySchools.Models
 {
-    public class Tool
+    public class Tool : SchoolEntity
     {
         public int Id { get; set; }
         public string? Name { get; set; }

@@ -1,4 +1,5 @@
-﻿using SunDaySchools.Models;
+﻿using SunDaySchools.DAL.Models;
+using SunDaySchools.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace SunDaySchoolsDAL.Models
 {
-    public class PhoneCall
+    public class PhoneCall : SchoolEntity
     {
         public int Id { get; set; }
 
