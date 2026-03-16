@@ -1,8 +1,9 @@
-﻿using SunDaySchoolsDAL.Models;
+﻿using SunDaySchools.DAL.Models;
+using SunDaySchoolsDAL.Models;
 
 namespace SunDaySchools.Models
 {
-    public class Servant
+    public class Servant : SchoolEntity
     {
         public int Id { get; set; }
         public string ApplicationUserId { get; set; } = default!;

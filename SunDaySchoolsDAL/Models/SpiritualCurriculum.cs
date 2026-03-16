@@ -1,6 +1,8 @@
-﻿namespace SunDaySchools.Models
+﻿using SunDaySchools.DAL.Models;
+
+namespace SunDaySchools.Models
 {
-    public class SpiritualCurriculum
+    public class SpiritualCurriculum : SchoolEntity
     {
         public int id { get; set; }
         public string? Name { get; set; }

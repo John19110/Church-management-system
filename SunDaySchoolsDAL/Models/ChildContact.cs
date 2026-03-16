@@ -1,7 +1,8 @@
-﻿using SunDaySchools.Models;
+﻿using SunDaySchools.DAL.Models;
+using SunDaySchools.Models;
 using SunDaySchoolsDAL.Models;
 
-public class ChildContact
+public class ChildContact : SchoolEntity
 {
     public int Id { get; set; }
     public string? Relation { get; set; }
