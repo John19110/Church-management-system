@@ -1,8 +1,8 @@
-public class SchoolMiddleware
+public class ChurchMiddleware
 {
     private readonly RequestDelegate _next;
 
-    public SchoolMiddleware(RequestDelegate next)
+    public ChurchMiddleware(RequestDelegate next)
     {
         _next = next;
     }
