@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using SunDaySchools.BLL.DTOS.AccountDtos;
+using SunDaySchools.BLL.Exceptions;          // <-- Add this
 using SunDaySchools.BLL.Manager.Interfaces;
 using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchools.Models;
@@ -13,7 +14,6 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using SunDaySchools.BLL.Exceptions;          // <-- Add this
 
 namespace SunDaySchools.BLL.Manager.Implementations
 {
@@ -22,14 +22,17 @@ namespace SunDaySchools.BLL.Manager.Implementations
         private readonly UserManager<ApplicationUser> _usermanager;
         private readonly IConfiguration _configuration;
         private readonly IServantRepository _servantRepo;
+        private readonly IChurchRepository _churchRepo;
+        private readonly IAdminRepository _adminRepo; 
 
-        public AccountManager(UserManager<ApplicationUser>usermagaer, IConfiguration configuration, IServantRepository servantRepo)
+        public AccountManager(UserManager<ApplicationUser>usermagaer, IConfiguration configuration, IServantRepository servantRepo, IChurchRepository chruchRepo,IAdminRepository adminRepo)
         {
 
-
+            _churchRepo = chruchRepo;
             _usermanager = usermagaer;
             _configuration = configuration;
             _servantRepo = servantRepo;
+            _adminRepo = adminRepo;
         }
 
         public async Task<string> Login(LoginDTO loginDto)
@@ -57,26 +60,37 @@ namespace SunDaySchools.BLL.Manager.Implementations
             return GenerateToken(claims);
         }
 
-        public async Task<string> RegisterAdmin(RegisterDTO registerDto)
+        public async Task<string> RegisterChurchAdmin(RegisterChurchAdminDTO registerChurchAdminDTO)
         {
-            if (registerDto == null)
+            if (registerChurchAdminDTO == null)
                 throw new ValidationException(new Dictionary<string, string[]>
                 {
                     ["registerDto"] = new[] { "Registration data cannot be null." }
                 });
 
             // Check if user already exists
-            var existingUser = await _usermanager.FindByNameAsync(registerDto.Name);
+            var existingUser = await _usermanager.FindByNameAsync(registerChurchAdminDTO.Name);
             if (existingUser != null)
                 throw new UserAlreadyExistsException();
 
-            var user = new ApplicationUser
+
+            // Create the church 
+            var church = new Church
             {
-                UserName = registerDto.Name,
-                PhoneNumber = registerDto.PhoneNumber
+                Name = registerChurchAdminDTO.ChurchName
             };
 
-            var result = await _usermanager.CreateAsync(user, registerDto.Password);
+             await _churchRepo.AddChurch(church);
+
+            // Creaet the user 
+            var user = new ApplicationUser
+            {
+                UserName = registerChurchAdminDTO.Name,
+                PhoneNumber = registerChurchAdminDTO.PhoneNumber,
+                IsApproved = true
+            }; 
+            
+            var result = await _usermanager.CreateAsync(user, registerChurchAdminDTO.Password);
             if (!result.Succeeded)
             {
                 // Convert Identity errors to a ValidationException
@@ -89,15 +103,19 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 throw new ValidationException(errors);
             }
 
-            await _usermanager.AddToRoleAsync(user, "Servant");
+            await _usermanager.AddToRoleAsync(user, "Admin");
 
+
+            // Create the servant
             var servant = new Servant
             {
                 ApplicationUserId = user.Id,
-                Name = registerDto.Name,
-                PhoneNumber = registerDto.PhoneNumber
+                Name = registerChurchAdminDTO.Name,
+                PhoneNumber = registerChurchAdminDTO.PhoneNumber
+                ChurchId
+
             };
-          //  _servantRepo.Add(servant);
+            _adminRepo.AddServant(servant);
 
             var claims = await BuildJwtClaims(user);
             return GenerateToken(claims);

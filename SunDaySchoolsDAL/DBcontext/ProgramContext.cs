@@ -32,6 +32,8 @@ namespace SunDaySchoolsDAL.DBcontext
         public DbSet<SpiritualCurriculum> SpiritualCurriculums { get; set; }
         public DbSet<Tool> Tools { get; set; }
 
+        public DbSet<Church> Churches { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

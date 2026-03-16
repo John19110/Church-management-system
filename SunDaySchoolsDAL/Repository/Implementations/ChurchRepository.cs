@@ -1,0 +1,30 @@
+﻿using Microsoft.EntityFrameworkCore;
+using SunDaySchools.DAL.Models;
+using SunDaySchools.DAL.Repository.Interfaces;
+using SunDaySchools.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using SunDaySchoolsDAL.DBcontext;
+
+namespace SunDaySchools.DAL.Repository.Implementations
+{
+    public class ChurchRepository: IChurchRepository
+    {
+        private readonly ProgramContext _context;
+        public ChurchRepository(ProgramContext context)
+        {
+            _context = context;
+
+        }
+
+        public async Task AddChurch(Church church)
+        {
+ 
+            await _context.Churches.AddAsync(church);
+            await _context.SaveChangesAsync();
+        }
+    }
+}
