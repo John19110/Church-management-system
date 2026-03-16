@@ -12,6 +12,10 @@ namespace SunDaySchools.BLL.DTOS.AccountDtos
         public String PhoneNumber { get; set; }
         public String Password { get; set; }
         public string ConfirmPassword { get; set; }
+        
+        public string ChurchName { get; set; }
+
+
 
 
 

@@ -41,9 +41,13 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     ["loginDto"] = new[] { "Login data cannot be null." }
                 });
 
+
             var user = await _usermanager.FindByNameAsync(loginDto.Name);
             if (user == null)
                 throw new InvalidCredentialsException();
+
+            if (!user.IsApproved)
+                return "Account waiting for church admin approval";
 
             var check = await _usermanager.CheckPasswordAsync(user, loginDto.Password);
             if (!check)
