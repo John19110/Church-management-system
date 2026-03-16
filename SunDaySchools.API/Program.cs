@@ -29,6 +29,8 @@ builder.Services.AddProblemDetails();
 // Add services to the container.
 builder.Services.AddControllers();
 
+builder.Services.AddHttpContextAccessor();
+
 // Swagger / OpenAPI
 builder.Services.AddEndpointsApiExplorer();
 
