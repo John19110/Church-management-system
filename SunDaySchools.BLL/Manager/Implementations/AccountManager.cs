@@ -122,7 +122,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
         }
 
 
-        public async Task<string> Register(RegisterDTO registerDto)
+        public async Task<string> RegisterServant(RegisterServantDTO registerDto)
         {
             if (registerDto == null)
                 throw new ValidationException(new Dictionary<string, string[]>
@@ -135,10 +135,19 @@ namespace SunDaySchools.BLL.Manager.Implementations
             if (existingUser != null)
                 throw new UserAlreadyExistsException();
 
+            var church = await _churchRepo.GetChurchById(registerDto.ChurchId);
+            if (church==null)
+            {
+                throw new NotFoundException($"Church with id {registerDto.ChurchId} not found."); 
+           }
+
+
             var user = new ApplicationUser
             {
                 UserName = registerDto.Name,
-                PhoneNumber = registerDto.PhoneNumber
+                PhoneNumber = registerDto.PhoneNumber,
+                ChurchId = registerDto.ChurchId,
+                IsApproved = false
             };
 
             var result = await _usermanager.CreateAsync(user, registerDto.Password);
@@ -161,8 +170,10 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 ApplicationUserId = user.Id,
                 Name = registerDto.Name,
                 PhoneNumber = registerDto.PhoneNumber
-            };
-            //  _servantRepo.Add(servant);
+
+            }; 
+
+            _adminRepo.AddServant(servant);
 
             var claims = await BuildJwtClaims(user);
             return GenerateToken(claims);
@@ -208,7 +219,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
                 {
                     new Claim(ClaimTypes.NameIdentifier, user.Id),
-                    new Claim(ClaimTypes.Name, user.UserName ?? "")
+                    new Claim(ClaimTypes.Name, user.UserName ?? ""),
+                    new Claim("ChurchId", user.ChurchId.ToString())
                   //  new Claim(ClaimTypes.UserData,user.ClassroomId)
                 };
 

@@ -26,5 +26,11 @@ namespace SunDaySchools.DAL.Repository.Implementations
             await _context.Churches.AddAsync(church);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<Church?> GetChurchById(int id)
+        {
+            return  await _context.Churches.FirstOrDefaultAsync(c=>c.Id==id);
+
+        }
     }
 }
