@@ -1,56 +1,51 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using SunDaySchools.BLL.DTOS.AccountDtos;
 using SunDaySchools.BLL.Manager.Interfaces;
-
 
 namespace SunDaySchools.API.Controllers
 {
     [ApiController]
-    [Route("Api/[controller]")]
-    public class AccountController:ControllerBase
-
+    [Route("api/[controller]")]
+    public class AccountController : ControllerBase
     {
-
-        // Login and Register
         private readonly IAccountManager _accountmanager;
+
         public AccountController(IAccountManager accountmanager)
         {
             _accountmanager = accountmanager;
-
         }
-        [HttpPost]
-        [Route("Login")]
-        public async Task<ActionResult>Login (LoginDTO logindto)
+
+        // =========================
+        // LOGIN
+        // =========================
+        [HttpPost("login")]
+        public async Task<ActionResult> Login(LoginDTO loginDto)
         {
+            var result = await _accountmanager.Login(loginDto);
 
-            var result = await _accountmanager.Login(logindto);
-            if (result == null)
-            {
-                return Unauthorized();
-            }
-            else return Ok(result); 
+            return Ok(new { token = result });
         }
 
-
-        [HttpPost]
-        [Route("Register")]
-        [Consumes("multipart/form-data")]
-        public async Task<ActionResult> Register([FromForm]RegisterDTO registerdto)
+        // =========================
+        // REGISTER CHURCH ADMIN
+        // =========================
+        [HttpPost("register-admin")]
+        public async Task<ActionResult> RegisterChurchAdmin(RegisterChurchAdminDTO dto)
         {
+            var result = await _accountmanager.RegisterChurchAdmin(dto);
 
-            var result = await _accountmanager.Register(registerdto);
-            if (result == null)
-            {
-                return Unauthorized();
-            }
-            else return Ok(result);
+            return Ok(new { token = result });
         }
 
+        // =========================
+        // REGISTER SERVANT
+        // =========================
+        [HttpPost("register-servant")]
+        public async Task<ActionResult> RegisterServant(RegisterServantDTO dto)
+        {
+            var result = await _accountmanager.RegisterServant(dto);
 
+            return Ok(new { token = result });
+        }
     }
 }

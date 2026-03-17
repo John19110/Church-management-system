@@ -75,7 +75,7 @@ builder.Services.AddScoped<IChildRepository, ChildRepository>();
 builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
 builder.Services.AddScoped<IAdminManager,AdminManager >();
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
-
+builder.Services.AddScoped<IChurchRepository, ChurchRepository>();
 
 
 //Authuntication

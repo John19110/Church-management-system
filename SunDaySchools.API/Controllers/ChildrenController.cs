@@ -64,7 +64,8 @@ namespace SunDaySchools.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(ChildAddDTO childdto)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> Create([FromForm] ChildAddDTO childdto)
         {
             if (childdto == null)
             {

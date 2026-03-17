@@ -10,5 +10,7 @@ namespace SunDaySchools.DAL.Repository.Interfaces
     {
          Task AddChurch(Church church);
 
+        Task<Church?> GetChurchById(int ChurchId);
+
     }
 }
