@@ -112,7 +112,9 @@ namespace SunDaySchools.BLL.Manager.Implementations
             {
                 ApplicationUserId = user.Id,
                 Name = registerChurchAdminDTO.Name,
-                PhoneNumber = registerChurchAdminDTO.PhoneNumber
+                PhoneNumber = registerChurchAdminDTO.PhoneNumber,
+                ChurchId = church.Id // 🔥 THIS LINE IS MISSING
+
 
             };
             _adminRepo.AddServant(servant);

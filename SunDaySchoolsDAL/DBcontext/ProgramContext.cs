@@ -97,19 +97,27 @@ namespace SunDaySchoolsDAL.DBcontext
             }
         }
 
-        // Automatically enforce ChurchId when saving
         private void ApplyChurchId()
         {
-            var churchId = _httpContextAccessor.HttpContext?.Items["ChurchId"];
-
-            if (churchId == null)
-                throw new Exception("ChurchId is missing from the request.");
+            var churchIdFromContext = _httpContextAccessor.HttpContext?.Items["ChurchId"];
 
             foreach (var entry in ChangeTracker.Entries<ChurchEntity>())
             {
                 if (entry.State == EntityState.Added || entry.State == EntityState.Modified)
                 {
-                    entry.Entity.ChurchId = (int)churchId;
+                    // ✅ Case 1: already set manually (like in Register)
+                    if (entry.Entity.ChurchId != null && entry.Entity.ChurchId != 0)
+                        continue;
+
+                    // ✅ Case 2: use HttpContext
+                    if (churchIdFromContext != null)
+                    {
+                        entry.Entity.ChurchId = (int)churchIdFromContext;
+                        continue;
+                    }
+
+                    // ❌ Case 3: no ChurchId at all
+                    throw new Exception("ChurchId is missing from the request.");
                 }
             }
         }
