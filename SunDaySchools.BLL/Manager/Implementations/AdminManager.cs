@@ -70,7 +70,13 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
         public async Task<List<PendingServantDTO>> GetPendingServants()
         {
-            var churchId = int.Parse(_httpContextAccessor.HttpContext.User.FindFirst("ChurchId").Value);
+            var claim = _httpContextAccessor.HttpContext?.User?.FindFirst("ChurchId");
+
+            if (claim == null)
+                throw new UnauthorizedAccessException("ChurchId claim is missing");
+
+            var churchId = int.Parse(claim.Value);
+
             var users = await _usermanager.Users
                 .Where(u => !u.IsApproved && u.ChurchId == churchId)
                 .Select(u => new PendingServantDTO
@@ -83,7 +89,6 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             return users;
         }
-
         public async Task ApproveServant(string userId)
         {
             var user = await _usermanager.FindByIdAsync(userId);
