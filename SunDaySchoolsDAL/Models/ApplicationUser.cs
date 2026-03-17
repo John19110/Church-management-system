@@ -9,7 +9,7 @@ namespace SunDaySchoolsDAL.Models
         public Servant? ServantProfile { get; set; }
 
         // multi-tenant relation
-        public int ChurchId { get; set; }
+        public int? ChurchId { get; set; }
 
         public Church? Church { get; set; }
 
