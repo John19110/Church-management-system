@@ -171,7 +171,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
             {
                 ApplicationUserId = user.Id,
                 Name = registerDto.Name,
-                PhoneNumber = registerDto.PhoneNumber
+                PhoneNumber = registerDto.PhoneNumber,
+                ChurchId = registerDto.ChurchId
 
             }; 
 

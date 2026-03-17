@@ -8,7 +8,7 @@ using SunDaySchoolsDAL.DBcontext;
 
 #nullable disable
 
-namespace SunDaySchools.Migrations
+namespace SunDaySchools.DAL.Migrations
 {
     [DbContext(typeof(ProgramContext))]
     partial class ProgramContextModelSnapshot : ModelSnapshot
