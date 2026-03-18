@@ -23,7 +23,10 @@ namespace SunDaySchools.BLL.AutoMapper
             // =========================
             // Servant
             // =========================
-            CreateMap<Servant, ServantAddDTO>().ReverseMap();
+            CreateMap<ServantAddDTO, Servant>()
+                .ForMember(dest => dest.ImageFileName, opt => opt.Ignore())
+                .ForMember(dest => dest.ImageUrl, opt => opt.Ignore());
+
             CreateMap<Servant, ServantReadDTO>().ReverseMap();
             CreateMap<Servant, ServantUpdateDTO>().ReverseMap();
 
