@@ -1,4 +1,5 @@
-﻿using SunDaySchools.Models;
+﻿using Microsoft.AspNetCore.Http;
+using SunDaySchools.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +16,7 @@ namespace SunDaySchools.BLL.DTOS
 
         //public string ApplicationUserId { get; set; } = default!;
 
-        public string? ImageUrl { get; set; }
+        public IFormFile? Image { get; set; }   // ✅ correct way
         public string? Name { get; set; }
         public DateOnly? JoiningDate { get; set; }
         public DateOnly? BirthDate { get; set; }

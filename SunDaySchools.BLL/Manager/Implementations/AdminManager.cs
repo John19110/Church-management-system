@@ -60,14 +60,29 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
         }
 
-        public void AddServant(ServantAddDTO servant)
+        public void AddServant(ServantAddDTO servantDto)
         {
+            string? fileName = null;
 
-            var model=_mapper.Map<Servant>(servant);
+            if (servantDto.Image != null)
+            {
+                fileName = Guid.NewGuid().ToString() + Path.GetExtension(servantDto.Image.FileName);
+
+                var filePath = Path.Combine("wwwroot/images", fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    servantDto.Image.CopyTo(stream);
+                }
+            }
+
+            var model = _mapper.Map<Servant>(servantDto);
+
+            model.ImageFileName = fileName;
+            model.ImageUrl = fileName != null ? $"/images/{fileName}" : null;
+
             _adminRepository.AddServant(model);
-
         }
-
         public async Task<List<PendingServantDTO>> GetPendingServants()
         {
             var claim = _httpContextAccessor.HttpContext?.User?.FindFirst("ChurchId");
