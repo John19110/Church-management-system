@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SunDaySchools.BLL.DTOS;
+using SunDaySchools.BLL.DTOS.AccountDtos;
 using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Interfaces;
 using SunDaySchools.DAL.Models;
@@ -60,23 +61,23 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
         }
 
-        public void AddServant(ServantAddDTO servantDto)
+        public void AddServant(AdminAddServantDTO servantDto)
         {
             string? fileName = null;
 
-            if (servantDto.Image != null)
+            if (servantDto.Servant.Image != null)
             {
-                fileName = Guid.NewGuid().ToString() + Path.GetExtension(servantDto.Image.FileName);
+                fileName = Guid.NewGuid().ToString() + Path.GetExtension(servantDto.Servant.Image.FileName);
 
                 var filePath = Path.Combine("wwwroot/images", fileName);
 
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
-                    servantDto.Image.CopyTo(stream);
+                    servantDto.Servant.Image.CopyTo(stream);
                 }
             }
 
-            var model = _mapper.Map<Servant>(servantDto);
+            var model = _mapper.Map<Servant>(servantDto.Servant);
 
             model.ImageFileName = fileName;
             model.ImageUrl = fileName != null ? $"/images/{fileName}" : null;
