@@ -4,8 +4,9 @@ using SunDaySchools.API.Requests;
 using SunDaySchools.API.Services.Implementations;
 using SunDaySchools.API.Services.Interfaces;
 using SunDaySchools.BLL.DTOS;
-using SunDaySchools.BLL.Manager.Interfaces;
+using SunDaySchools.BLL.DTOS.AccountDtos;
 using SunDaySchools.BLL.Exceptions;
+using SunDaySchools.BLL.Manager.Interfaces;
 
 namespace SunDaySchools.API.Controllers
 {
@@ -33,7 +34,7 @@ namespace SunDaySchools.API.Controllers
         // Add servant
         [HttpPost("add-servant")]
         [Consumes("multipart/form-data")]
-        public IActionResult AddServant([FromForm]ServantAddDTO servant)
+        public IActionResult AddServant([FromForm] AdminAddServantDTO servant)
         {
             if (servant == null)
             {

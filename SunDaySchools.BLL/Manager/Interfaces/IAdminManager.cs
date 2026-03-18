@@ -1,4 +1,5 @@
 ﻿using SunDaySchools.BLL.DTOS;
+using SunDaySchools.BLL.DTOS.AccountDtos;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -8,7 +9,7 @@ namespace SunDaySchools.BLL.Manager.Interfaces
     {
         void AssignClassToServant(int ServantId, int ClassroomId);
 
-        void AddServant(ServantAddDTO servant);
+        void AddServant(AdminAddServantDTO servant);
 
         Task<List<PendingServantDTO>> GetPendingServants();
 
