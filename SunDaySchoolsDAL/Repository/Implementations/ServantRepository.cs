@@ -27,7 +27,7 @@ namespace SunDaySchools.DAL.Repository.Implementations
                 .Include(s => s.ApplicationUser);
         }
 
-        public Servant? GetById(int id)
+        public async Task<Servant?> GetById(int id)
         {
             return _context.Servants
                 .Include(s => s.Classrooms)
@@ -36,7 +36,14 @@ namespace SunDaySchools.DAL.Repository.Implementations
         }
 
 
-        public Servant? GetByApplicationUserId(string applicationUserId)
+        public async Task<IEnumerable<Classroom>> GetByServantIdAsync(int servantId)
+        {
+            return await _context.Classrooms
+                .Where(c => c.Servants.Any(s => s.Id == servantId))
+                .ToListAsync();
+        }
+
+        public async Task<Servant?> GetByApplicationUserId(string applicationUserId)
         {
             return _context.Servants
                 .Include(s => s.Classrooms)
@@ -51,7 +58,7 @@ namespace SunDaySchools.DAL.Repository.Implementations
         //    _context.SaveChanges();
         //}
 
-        public void Update(Servant servant)
+        public  async Task Update(Servant servant)
         {
             _context.SaveChanges();
         }
