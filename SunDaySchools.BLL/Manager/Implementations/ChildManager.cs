@@ -2,6 +2,7 @@
 using SunDaySchools.BLL.DTOS;
 using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Interfaces;
+using SunDaySchools.DAL.Repository.Implementations;
 using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchools.Models;
 using SunDaySchoolsDAL.DBcontext;
@@ -38,9 +39,33 @@ namespace SunDaySchools.BLL.Manager.Implementations
         }
 
 
-         public void Add(ChildAddDTO child)
+         public void Add(ChildAddDTO childdto)
         {
-            _childReposatory.Add(_mapper.Map<Child>(child));
+
+            {
+                string? fileName = null;
+
+                if (childdto.Image != null)
+                {
+                    fileName = Guid.NewGuid().ToString() + Path.GetExtension(childdto.Image.FileName);
+
+                    var filePath = Path.Combine("wwwroot/images", fileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        childdto.Image.CopyTo(stream);
+                    }
+                }
+
+
+
+             var  model= _mapper.Map<Child>(childdto);
+            _childReposatory.Add(model);
+
+                model.ImageFileName = fileName;
+                model.ImageUrl = fileName != null ? $"/images/{fileName}" : null;
+
+            }
         }
         void IChildManager.Update(ChildUpdateDTO ChildUpdateDTO)
         {

@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +11,8 @@ using SunDaySchools.DAL.Repository.Implementations;
 using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchools.Models;
 using SunDaySchoolsDAL.Models;
+using SunDaySchools.BLL.Manager.Interfaces;
+
 
 namespace SunDaySchools.BLL.Manager.Implementations
 {
@@ -23,14 +24,16 @@ namespace SunDaySchools.BLL.Manager.Implementations
     private readonly IMapper _mapper;
     private readonly UserManager<ApplicationUser> _usermanager;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IAccountManager _accountManager;
 
 
-        public AdminManager(IAdminRepository adminRepository,IMapper mapper, UserManager<ApplicationUser> usermanager, IHttpContextAccessor httpContextAccessor)
+        public AdminManager(IAdminRepository adminRepository,IMapper mapper, UserManager<ApplicationUser> usermanager, IHttpContextAccessor httpContextAccessor,IAccountManager accountManager)
         {
             _adminRepository = adminRepository;
             _mapper = mapper;
             _usermanager = usermanager;
             _httpContextAccessor = httpContextAccessor;
+            _accountManager = accountManager;
         }
 
         public void AssignClassToServant(int ServantId, int ClassroomId)
@@ -61,7 +64,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
         }
 
-        public void AddServant(AdminAddServantDTO servantDto) 
+        public async Task AddServant(AdminAddServantDTO servantDto) 
         {
             string? fileName = null;
 
@@ -77,8 +80,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 }
             }
 
-         //   RegisterServant(RegisterServantDTO registerDto);
-
+            await _accountManager.RegisterServant(servantDto.Account);
 
 
             var model = _mapper.Map<Servant>(servantDto.Servant);

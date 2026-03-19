@@ -10,7 +10,7 @@ namespace SunDaySchools.BLL.DTOS.AccountDtos
     {
         public ServantAddDTO Servant { get; set; }
 
-        public RegisterServantDTO Account { get; set; }
+        public RegisterServamtinAddAdmin Account { get; set; }
 
     }
 }

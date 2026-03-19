@@ -12,9 +12,9 @@ namespace SunDaySchools.BLL.DTOS
     {
 
 
-        //        public string? ImageFileName { get; set; }
+       //        public string? ImageFileName { get; set; }
 
-        //public string ApplicationUserId { get; set; } = default!;
+       // public string ApplicationUserId { get; set; } = default!;
 
        // public string? Name { get; set; }
         public IFormFile? Image { get; set; }   // ✅ correct way
@@ -22,7 +22,7 @@ namespace SunDaySchools.BLL.DTOS
         public DateOnly? BirthDate { get; set; }
         public List<int> classroomsIds { get; set; }
 
-        //public string? PhoneNumber { get; set; }
+       //  public string? PhoneNumber { get; set; }
 
        // public int ChurchId { get; set; }
 
