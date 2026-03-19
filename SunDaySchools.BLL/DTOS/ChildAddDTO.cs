@@ -14,8 +14,10 @@ namespace SunDaySchools.BLL.DTOS
         public string? Name2 { get; set; }
         public string? Name3 { get; set; }
         public string? Gender { get; set; }
-        public string? ImageFileName { get; set; }   // e.g. "c3c2... .jpg"
-        public string? ImageUrl { get; set; }
+        public IFormFile? Image { get; set; }   // ✅ correct way
+
+        //public string? ImageFileName { get; set; }   // e.g. "c3c2... .jpg"
+        //public string? ImageUrl { get; set; }
 
         public string? Address { get; set; }
         public DateOnly DateOfBirth { get; set; }

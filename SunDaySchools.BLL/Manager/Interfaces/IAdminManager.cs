@@ -9,7 +9,7 @@ namespace SunDaySchools.BLL.Manager.Interfaces
     {
         void AssignClassToServant(int ServantId, int ClassroomId);
 
-        void AddServant(AdminAddServantDTO servant);
+        Task AddServant(AdminAddServantDTO servant);
 
         Task<List<PendingServantDTO>> GetPendingServants();
 
