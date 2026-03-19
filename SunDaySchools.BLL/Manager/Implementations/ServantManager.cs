@@ -17,6 +17,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
     public class ServantManager : IServantManager
     {
         private readonly IServantRepository _servantRepository;
+        private readonly IChildRepository _childrenRepository;
         private readonly IMapper _mapper;
         public ServantManager(IServantRepository sarventReposatory, IMapper mapper)
         {
@@ -42,32 +43,26 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             return _mapper.Map<ServantReadDTO>(servant);
         }
-
-        //public void Add(ServantAddDTO servantDto)
-        //{
-        //    var existing = _servantRepository.GetByApplicationUserId(servantDto.ApplicationUserId);
-        //    if (existing != null)
-        //    {
-        //        throw new ValidationException(new Dictionary<string, string[]>
-        //        {
-        //            ["ApplicationUserId"] = new[] { "This user already has a servant profile." }
-        //        });
-        //    }
-
-        //    var servant = _mapper.Map<Servant>(servantDto);
-        //    _servantRepository.Add(servant);
-
-        //}
-
-        public void Update(ServantUpdateDTO servantUpdateDTO)
+        public async Task<IEnumerable<Classroom>> GetClassesByUserId(string userId)
         {
-            var existing = _servantRepository.GetById(servantUpdateDTO.Id);
+            // 1. Get servant by ApplicationUserId
+            var servant = await _servantRepository.GetByUserIdAsync(userId);
+
+            if (servant == null)
+                throw new NotFoundException("Servant not found");
+
+            // 2. Get classes
+            return await _childrenRepository.GetByServantIdAsync(servant.Id);
+        }
+        public  async Task Update(ServantUpdateDTO servantUpdateDTO)
+        {
+            var existing = await _servantRepository.GetById(servantUpdateDTO.Id);
 
             if (existing == null)
                 throw new NotFoundException($"Servant with id {servantUpdateDTO.Id} not found.");
 
             _mapper.Map(servantUpdateDTO, existing);
-            _servantRepository.Update(existing);
+         await   _servantRepository.Update(existing);
         }
 
         public void Delete(int id)

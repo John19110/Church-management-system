@@ -1,9 +1,10 @@
-﻿using System;
+﻿using SunDaySchools.BLL.DTOS;
+using SunDaySchools.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using SunDaySchools.BLL.DTOS;
 
 namespace SunDaySchools.BLL.Manager.Interfaces
 {
@@ -15,7 +16,8 @@ namespace SunDaySchools.BLL.Manager.Interfaces
         ServantReadDTO? GetByApplicationUserId(string applicationUserId);
 
      //   void Add(ServantAddDTO Servant);
-        void Update(ServantUpdateDTO servant);
+        Task Update(ServantUpdateDTO servant);
+        Task<IEnumerable<Classroom>> GetClassesByServantId(int servantId);
         void Delete(int id);
 
 

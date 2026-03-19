@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SunDaySchools.API.Mapping;
 using SunDaySchools.API.Requests;
 using SunDaySchools.API.Services.Interfaces;
@@ -38,28 +39,30 @@ namespace SunDaySchools.API.Controllers
 
             return Ok(servant);
         }
+       // [Authorize]
+        [HttpGet("my-classes")]
+        //[Authorize]
+        //[HttpGet("my-classes")]
+        public async Task<IActionResult> GetMyClasses()
+        {
+            try
+            {
+                // 1. Extract user ID from token
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-        //[HttpPost]
-        //[Consumes("multipart/form-data")]
-        //public async Task<IActionResult> AddServant([FromForm] ServantFormRequest form, CancellationToken ct)
-        //{
-        //    if (!ModelState.IsValid)
-        //        return ValidationProblem(ModelState);
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized("Invalid token");
 
-        //    var dto = form.ToAddDto();
+                // 2. Call business layer
+                var classes = await _servantManager.GetClassesByUserId(userId);
 
-        //    if (form.Image is not null && form.Image.Length > 0)
-        //    {
-        //        var key = await _fileStorage.SaveImageAsync(form.Image, ct, "servants");
-        //        dto.ImageFileName = key;
-        //        dto.ImageUrl = _fileStorage.GetPublicUrl(key);
-        //    }
-
-        //    _servantManager.Add(dto);
-
-        //    return Ok();
-        //}
-
+                return Ok(classes);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Server error");
+            }
+        }
         [HttpPut("{id:int}")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Update(int id, [FromForm] ServantFormRequest form, CancellationToken ct)

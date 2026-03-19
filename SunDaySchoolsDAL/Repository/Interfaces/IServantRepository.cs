@@ -11,12 +11,15 @@ namespace SunDaySchools.DAL.Repository.Interfaces
     {
         IQueryable<Servant> GetAll();
 
-        Servant? GetByApplicationUserId(string applicationUserId);
+        Task<Servant?> GetByApplicationUserId(string applicationUserId);
 
-        Servant GetById(int id);
+       Task< Servant?> GetById(int id);
 
         // void Add(Servant servant);
-        void Update(Servant servant);
+
+        Task<IEnumerable<Classroom>> GetByServantIdAsync(int servantId);
+
+        Task  Update(Servant servant);
         void Delete(int id);
 
     }
