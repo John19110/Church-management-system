@@ -174,8 +174,28 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 PhoneNumber = registerDto.PhoneNumber,
                 ChurchId = registerDto.ChurchId
 
-            }; 
+            };
+            string? fileName = null;
 
+            if (registerDto.Image != null)
+            {
+                fileName = Guid.NewGuid().ToString() + Path.GetExtension(registerDto.Image.FileName);
+
+                var folderPath = Path.Combine("wwwroot", "images");
+
+                // 🔥 FIX HERE
+                Directory.CreateDirectory(folderPath);
+
+                var filePath = Path.Combine(folderPath, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    registerDto.Image.CopyTo(stream);
+                }
+            }
+
+            servant.ImageFileName = fileName;
+            servant.ImageUrl = fileName != null ? $"/images/{fileName}" : null;
             _adminRepo.AddServant(servant);
 
             var claims = await BuildJwtClaims(user);
@@ -183,6 +203,25 @@ namespace SunDaySchools.BLL.Manager.Implementations
         }
 
 
+
+
+        private async Task<List<Claim>> BuildJwtClaims(ApplicationUser user)
+        {
+            var claims = new List<Claim>
+
+                {
+                    new Claim(ClaimTypes.NameIdentifier, user.Id),
+                    new Claim(ClaimTypes.Name, user.UserName ?? ""),
+                    new Claim("ChurchId", user.ChurchId.ToString())
+                  //  new Claim(ClaimTypes.UserData,user.ClassroomId)
+                };
+
+            var roles = await _usermanager.GetRolesAsync(user);
+            foreach (var role in roles)
+                claims.Add(new Claim(ClaimTypes.Role, role));
+
+            return claims;
+        }
 
         private string GenerateToken(IList<Claim> claims)
         {
@@ -215,24 +254,5 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             return token;
         }
-
-        private async Task<List<Claim>> BuildJwtClaims(ApplicationUser user)
-        {
-            var claims = new List<Claim>
-
-                {
-                    new Claim(ClaimTypes.NameIdentifier, user.Id),
-                    new Claim(ClaimTypes.Name, user.UserName ?? ""),
-                    new Claim("ChurchId", user.ChurchId.ToString())
-                  //  new Claim(ClaimTypes.UserData,user.ClassroomId)
-                };
-
-            var roles = await _usermanager.GetRolesAsync(user);
-            foreach (var role in roles)
-                claims.Add(new Claim(ClaimTypes.Role, role));
-
-            return claims;
-        }
-
     }
 }

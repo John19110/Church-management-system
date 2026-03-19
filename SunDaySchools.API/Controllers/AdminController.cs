@@ -34,7 +34,7 @@ namespace SunDaySchools.API.Controllers
         // Add servant
         [HttpPost("add-servant")]
         [Consumes("multipart/form-data")]
-        public IActionResult AddServant([FromForm] AdminAddServantDTO servant)
+        public async Task<IActionResult> AddServant([FromForm(Name = "")] AdminAddServantDTO servant)
         {
             if (servant == null)
             {
@@ -45,9 +45,9 @@ namespace SunDaySchools.API.Controllers
                 throw new ValidationException(errors);
             }
 
-            _adminManager.AddServant(servant);
+           await _adminManager.AddServant(servant);
 
-            return StatusCode(201, new { message = "Created Successfully" });
+            return  StatusCode(201, new { message = "Created Successfully" });
         }
 
         // =========================
