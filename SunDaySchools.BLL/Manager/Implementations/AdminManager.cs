@@ -61,7 +61,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
         }
 
-        public void AddServant(AdminAddServantDTO servantDto)
+        public void AddServant(AdminAddServantDTO servantDto) 
         {
             string? fileName = null;
 
@@ -76,6 +76,10 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     servantDto.Servant.Image.CopyTo(stream);
                 }
             }
+
+         //   RegisterServant(RegisterServantDTO registerDto);
+
+
 
             var model = _mapper.Map<Servant>(servantDto.Servant);
 
