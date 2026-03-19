@@ -8,9 +8,11 @@ namespace SunDaySchools.BLL.DTOS.AccountDtos
 {
     public class AdminAddServantDTO
     {
-        public ServantAddDTO Servant { get; set; }
+       
+            public ServantAddDTO Servant { get; set; } = new(); // ✅ prevents null
 
-        public RegisterServamtinAddAdmin Account { get; set; }
+            public RegisterServamtinAddAdmin Account { get; set; } = new();
+        
 
     }
 }

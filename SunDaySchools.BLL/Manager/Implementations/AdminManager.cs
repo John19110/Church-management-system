@@ -64,31 +64,28 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
         }
 
-        public async Task AddServant(AdminAddServantDTO servantDto) 
+        public async Task AddServant(AdminAddServantDTO servantDto)
         {
-            string? fileName = null;
+            var registerDTO = _mapper.Map<RegisterServantDTO>(servantDto.Account);
 
-            if (servantDto.Servant.Image != null)
-            {
-                fileName = Guid.NewGuid().ToString() + Path.GetExtension(servantDto.Servant.Image.FileName);
+            // 🔥 FIX: pass image
+            registerDTO.Image = servantDto.Servant.Image;
 
-                var filePath = Path.Combine("wwwroot/images", fileName);
+            // 🔐 Get ChurchId safely
+            var claim = _httpContextAccessor.HttpContext?.User?.FindFirst("ChurchId");
 
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    servantDto.Servant.Image.CopyTo(stream);
-                }
-            }
+            if (claim == null)
+                throw new UnauthorizedAccessException("ChurchId claim is missing");
 
-            await _accountManager.RegisterServant(servantDto.Account);
+            if (!int.TryParse(claim.Value, out var churchId))
+                throw new UnauthorizedAccessException("Invalid ChurchId");
 
+            registerDTO.ChurchId = churchId;
 
-            var model = _mapper.Map<Servant>(servantDto.Servant);
+            // ✅ Register
+            await _accountManager.RegisterServant(registerDTO);
 
-            model.ImageFileName = fileName;
-            model.ImageUrl = fileName != null ? $"/images/{fileName}" : null;
-
-            _adminRepository.AddServant(model);
+            // (Optional later) assign classrooms
         }
         public async Task<List<PendingServantDTO>> GetPendingServants()
         {
