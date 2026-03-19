@@ -6,12 +6,14 @@ using SunDaySchools.BLL.DTOS;
 using SunDaySchools.BLL.DTOS.AccountDtos;
 using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Interfaces;
+using SunDaySchools.BLL.Manager.Interfaces;
 using SunDaySchools.DAL.Models;
 using SunDaySchools.DAL.Repository.Implementations;
 using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchools.Models;
 using SunDaySchoolsDAL.Models;
-using SunDaySchools.BLL.Manager.Interfaces;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 
 namespace SunDaySchools.BLL.Manager.Implementations
@@ -83,7 +85,24 @@ namespace SunDaySchools.BLL.Manager.Implementations
             registerDTO.ChurchId = churchId;
 
             // ✅ Register
-            await _accountManager.RegisterServant(registerDTO);
+          var CreatedUserToken=  await _accountManager.RegisterServant(registerDTO);
+
+
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(CreatedUserToken);
+
+            // Extract userId
+            var userIdClaim = jwtToken.Claims
+                .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+
+            var userId = userIdClaim?.Value;
+            var user = await _usermanager.FindByIdAsync(userId);
+
+            user.IsApproved = true;
+
+            await _usermanager.UpdateAsync(user);
+
+
 
             // (Optional later) assign classrooms
         }
