@@ -12,7 +12,7 @@ public class ChurchMiddleware
         var host = context.Request.Host.Host;
         var subdomain = host.Split('.')[0];
 
-        context.Items["ChurchlId"] = subdomain;
+        context.Items["ChurchId"] = subdomain;
 
         await _next(context);
     }
