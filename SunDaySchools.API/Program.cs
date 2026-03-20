@@ -181,6 +181,7 @@ if (app.Environment.IsDevelopment())
 // this redirection can prevent reaching Swagger unless HTTPS is configured.
 // You can comment it out if needed.
 //app.UseHttpsRedirection();
+app.UseMiddleware<MeetingMiddleware>();
 
 app.UseMiddleware<ChurchMiddleware>();
 app.UseMiddleware<GlobalExceptionMiddleware>();

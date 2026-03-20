@@ -79,7 +79,7 @@ namespace SunDaySchoolsDAL.DBcontext
                 if (typeof(ChurchEntity).IsAssignableFrom(entityType.ClrType))
                 {
                     var method = typeof(ProgramContext)
-                        .GetMethod(nameof(SetChurchFilter), BindingFlags.NonPublic | BindingFlags.Instance)
+                        .GetMethod(nameof(SetGlobalFilter), BindingFlags.NonPublic | BindingFlags.Instance)
                         ?.MakeGenericMethod(entityType.ClrType);
 
                     method?.Invoke(this, new object[] { builder });
@@ -122,25 +122,17 @@ namespace SunDaySchoolsDAL.DBcontext
             }
         }
 
-        public override int SaveChanges()
-        {
-            ApplyChurchId();
-            return base.SaveChanges();
-        }
 
-        public override async Task<int> SaveChangesAsync(
-            CancellationToken cancellationToken = default)
-        {
-            ApplyChurchId();
-            return await base.SaveChangesAsync(cancellationToken);
-        }
 
         // Global filter for all ChurchEntity tables
-        private void SetChurchFilter<TEntity>(ModelBuilder modelBuilder)
-            where TEntity : ChurchEntity
+        private void SetGlobalFilter<TEntity>(ModelBuilder modelBuilder)
+      where TEntity : ChurchEntity
         {
             modelBuilder.Entity<TEntity>()
-                .HasQueryFilter(e => !CurrentChurchId.HasValue || e.ChurchId == CurrentChurchId);
+                .HasQueryFilter(e =>
+                    (!CurrentChurchId.HasValue || e.ChurchId == CurrentChurchId) &&
+                    (!CurrentMeetingId.HasValue || e.MeetingId == CurrentMeetingId)
+                );
         }
 
         private int? CurrentChurchId
@@ -149,6 +141,65 @@ namespace SunDaySchoolsDAL.DBcontext
             {
                 return _httpContextAccessor.HttpContext?.Items["ChurchId"] as int?;
             }
+        }
+
+
+
+        private void ApplyMeetinghId()
+        {
+            var MeetingIdFromContext = _httpContextAccessor.HttpContext?.Items["MeetingId"];
+
+            foreach (var entry in ChangeTracker.Entries<ChurchEntity>())
+            {
+                if (entry.State == EntityState.Added || entry.State == EntityState.Modified)
+                {
+                    // ✅ Case 1: already set manually (like in Register)
+                    if (entry.Entity.MeetingId != null && entry.Entity.MeetingId != 0)
+                        continue;
+
+                    // ✅ Case 2: use HttpContext
+                    if (MeetingIdFromContext != null)
+                    {
+                        entry.Entity.MeetingId = (int)MeetingIdFromContext;
+                        continue;
+                    }
+
+                    // ❌ Case 3: no ChurchId at all
+                    throw new Exception("MeetingId is missing from the request.");
+                }
+            }
+        }
+
+        // Global filter for all ChurchEntity tables (Meetings)
+
+        private void SetMeetingFilter<TEntity>(ModelBuilder modelBuilder)
+            where TEntity : ChurchEntity
+        {
+            modelBuilder.Entity<TEntity>()
+                .HasQueryFilter(e => !CurrentMeetingId.HasValue || e.MeetingId == CurrentMeetingId);
+        }
+
+        private int? CurrentMeetingId
+        {
+            get
+            {
+                return _httpContextAccessor.HttpContext?.Items["MeetingId"] as int?;
+            }
+        }
+
+        public override int SaveChanges()
+        {
+            ApplyChurchId();
+            ApplyMeetinghId();
+            return base.SaveChanges();
+        }
+
+        public override async Task<int> SaveChangesAsync(
+            CancellationToken cancellationToken = default)
+        {
+            ApplyChurchId();
+            ApplyMeetinghId();
+            return await base.SaveChangesAsync(cancellationToken);
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SunDaySchools.API.Mapping;
-using SunDaySchools.API.Requests;
+//using SunDaySchools.API.Requests;
 using SunDaySchools.API.Services.Interfaces;
 using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Interfaces;
@@ -39,30 +39,29 @@ namespace SunDaySchools.API.Controllers
 
             return Ok(servant);
         }
-       // [Authorize]
-        [HttpGet("my-classes")]
+       
         //[Authorize]
         //[HttpGet("my-classes")]
-        public async Task<IActionResult> GetMyClasses()
-        {
-            try
-            {
-                // 1. Extract user ID from token
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        //public async Task<IActionResult> GetMyClasses()
+        //{
+        //    try
+        //    {
+        //        // 1. Extract user ID from token
+        //        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-                if (string.IsNullOrEmpty(userId))
-                    return Unauthorized("Invalid token");
+        //        if (string.IsNullOrEmpty(userId))
+        //            return Unauthorized("Invalid token");
 
-                // 2. Call business layer
-                var classes = await _servantManager.GetClassesByUserId(userId);
+        //        // 2. Call business layer
+        //        var classes = await _servantManager.GetClassesByUserId(userId);
 
-                return Ok(classes);
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, "Server error");
-            }
-        }
+        //        return Ok(classes);
+        //    }
+        //    catch (Exception)
+        //    {
+        //        return StatusCode(500, "Server error");
+        //    }
+        //}
         [HttpPut("{id:int}")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Update(int id, [FromForm] ServantFormRequest form, CancellationToken ct)

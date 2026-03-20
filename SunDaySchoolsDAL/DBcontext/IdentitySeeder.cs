@@ -24,17 +24,17 @@ namespace SunDaySchoolsDAL.DBcontext
                 }
             }
 
-            var admin = await userManager.FindByNameAsync("john");
+         //   var admin = await userManager.FindByNameAsync("John");
 
-            if (admin != null && !await userManager.IsInRoleAsync(admin, "Admin"))
-            {
-                var result = await userManager.AddToRoleAsync(admin, "Admin");
+            //if (admin != null && !await userManager.IsInRoleAsync(admin, "Admin"))
+            //{
+            //    var result = await userManager.AddToRoleAsync(admin, "Admin");
 
-                if (!result.Succeeded)
-                {
-                    throw new Exception("Failed to assign Admin role");
-                }
-            }
+            //    if (!result.Succeeded)
+            //    {
+            //        throw new Exception("Failed to assign Admin role");
+            //    }
+            //}
         }
     }
 }

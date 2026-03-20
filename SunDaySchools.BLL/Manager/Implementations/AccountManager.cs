@@ -122,8 +122,6 @@ namespace SunDaySchools.BLL.Manager.Implementations
             var claims = await BuildJwtClaims(user);
             return GenerateToken(claims);
         }
-
-
         public async Task<string> RegisterServant(RegisterServantDTO registerDto)
         {
             if (registerDto == null)
@@ -201,10 +199,6 @@ namespace SunDaySchools.BLL.Manager.Implementations
             var claims = await BuildJwtClaims(user);
             return GenerateToken(claims);
         }
-
-
-
-
         private async Task<List<Claim>> BuildJwtClaims(ApplicationUser user)
         {
             var claims = new List<Claim>
@@ -212,7 +206,9 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 {
                     new Claim(ClaimTypes.NameIdentifier, user.Id),
                     new Claim(ClaimTypes.Name, user.UserName ?? ""),
-                    new Claim("ChurchId", user.ChurchId.ToString())
+                    new Claim("ChurchId", user.ChurchId.ToString()),
+                    new Claim("MeetingId", user.MeetingId.ToString())
+
                   //  new Claim(ClaimTypes.UserData,user.ClassroomId)
                 };
 
