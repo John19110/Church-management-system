@@ -11,7 +11,7 @@ namespace SunDaySchools.DAL.Repository.Interfaces
     {
         IQueryable<Servant> GetAll();
 
-        Task<Servant?> GetByApplicationUserId(string applicationUserId);
+        Task<Servant?> GetByApplicationUserIdAsync(string applicationUserId);
 
        Task< Servant?> GetById(int id);
 

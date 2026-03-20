@@ -48,5 +48,11 @@ namespace SunDaySchools.DAL.Repository.Implementations
 
             return _context.Children.Where(ch => ch.ClassroomId == classroomId);
         }
+
+        public IQueryable<Child> GetSpecificClassroomChildren(int classroomId)
+        {
+
+            return _context.Children.Where(ch => ch.ClassroomId == classroomId);
+        }
     }
 }

@@ -43,7 +43,7 @@ namespace SunDaySchools.DAL.Repository.Implementations
                 .ToListAsync();
         }
 
-        public async Task<Servant?> GetByApplicationUserId(string applicationUserId)
+        public async Task<Servant?> GetByApplicationUserIdAsync(string applicationUserId)
         {
             return _context.Servants
                 .Include(s => s.Classrooms)

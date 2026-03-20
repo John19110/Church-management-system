@@ -13,11 +13,11 @@ namespace SunDaySchools.BLL.Manager.Interfaces
         IEnumerable<ServantReadDTO> GetAll();
 
         ServantReadDTO? GetById(int id);
-        ServantReadDTO? GetByApplicationUserId(string applicationUserId);
+    //    ServantReadDTO? GetByApplicationUserId(string applicationUserId);
 
      //   void Add(ServantAddDTO Servant);
         Task Update(ServantUpdateDTO servant);
-        Task<IEnumerable<Classroom>> GetClassesByServantId(int servantId);
+        //Task<IEnumerable<Classroom>> GetClassesByUserId(int servantId);
         void Delete(int id);
 
 

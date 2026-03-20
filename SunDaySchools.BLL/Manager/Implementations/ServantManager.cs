@@ -36,24 +36,25 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             return _mapper.Map<ServantReadDTO>(servant);
         }
-        public ServantReadDTO? GetByApplicationUserId(string applicationUserId)
-        {
-            var servant = _servantRepository.GetByApplicationUserId(applicationUserId);
-            if (servant == null) return null;
+        //public ServantReadDTO? GetByApplicationUserId(string applicationUserId)
+        //{
+        //    var servant = _servantRepository.GetByApplicationUserId(applicationUserId);
+        //    if (servant == null) return null;
 
-            return _mapper.Map<ServantReadDTO>(servant);
-        }
-        public async Task<IEnumerable<Classroom>> GetClassesByUserId(string userId)
-        {
-            // 1. Get servant by ApplicationUserId
-            var servant = await _servantRepository.GetByUserIdAsync(userId);
+        //    return _mapper.Map<ServantReadDTO>(servant);
+        //}
+       // public async Task<IEnumerable<Classroom>> GetClassesByUserId(string userId)
+       // {
+       //     // 1. Get servant by ApplicationUserId
+       //     var servant = await _servantRepository.GetByApplicationUserIdAsync(userId);
 
-            if (servant == null)
-                throw new NotFoundException("Servant not found");
+       //     if (servant == null)
+       //         throw new NotFoundException("Servant not found");
+       //     return;
 
-            // 2. Get classes
-            return await _childrenRepository.GetByServantIdAsync(servant.Id);
-        }
+       //     // 2. Get classes
+       ////     return await _childrenRepository.GetByServantIdAsync(servant.Id);
+       // }
         public  async Task Update(ServantUpdateDTO servantUpdateDTO)
         {
             var existing = await _servantRepository.GetById(servantUpdateDTO.Id);
