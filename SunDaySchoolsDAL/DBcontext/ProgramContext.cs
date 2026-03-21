@@ -38,7 +38,7 @@ namespace SunDaySchoolsDAL.DBcontext
         {
             base.OnModelCreating(builder);
 
-            // Child ↔ Classroom relationship
+            // Member ↔ Classroom relationship
             builder.Entity<Member>()
                 .HasOne(c => c.Classroom)
                 .WithMany(cl => cl.Members)

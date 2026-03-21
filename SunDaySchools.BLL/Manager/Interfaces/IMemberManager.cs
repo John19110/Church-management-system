@@ -15,8 +15,8 @@ namespace SunDaySchools.BLL.Manager.Interfaces
         IEnumerable<MemberReadDTO> GetSpecificClassroom(int ClassroomId);
 
         MemberReadDTO GetById(int id);
-        void Add(MemberAddDTO child);
-        void Update(MemberUpdateDTO child);
+        void Add(MemberAddDTO member);
+        void Update(MemberUpdateDTO member);
         void Delete(int id);
     }
 }

@@ -53,7 +53,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
        //     return;
 
        //     // 2. Get classes
-       ////     return await _childrenRepository.GetByServantIdAsync(servant.Id);
+       ////     return await _MemberrenRepository.GetByServantIdAsync(servant.Id);
        // }
         public  async Task Update(ServantUpdateDTO servantUpdateDTO)
         {

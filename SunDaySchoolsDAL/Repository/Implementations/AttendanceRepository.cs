@@ -26,18 +26,18 @@ namespace SunDaySchools.DAL.Repository.Implementations
             {
                 if (record.Status != AttendanceStatus.Absent)
                 {
-                    var child = await _context.Members
+                    var member = await _context.Members
                         .FirstOrDefaultAsync(c => c.Id == record.MemberId);
 
-                    if (child != null)
+                    if (member != null)
                     {
-                        child.TotalNumberOfDaysAttended++;
+                        member.TotalNumberOfDaysAttended++;
 
                         // Convert session.CreatedAt (DateTime) to DateOnly for comparison
 
                         // Only update LastAttendanceDate if this session date is more recent
-                        if (session.CreatedAt > child.LastAttendanceDate)
-                            child.LastAttendanceDate = session.CreatedAt;
+                        if (session.CreatedAt > member.LastAttendanceDate)
+                            member.LastAttendanceDate = session.CreatedAt;
                     }
                 }
             }
