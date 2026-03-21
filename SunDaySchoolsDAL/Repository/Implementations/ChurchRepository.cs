@@ -32,5 +32,14 @@ namespace SunDaySchools.DAL.Repository.Implementations
             return  await _context.Churches.FirstOrDefaultAsync(c=>c.Id==id);
 
         }
+
+        public async Task<Church?> GetChurchByName(string churchName)
+        { 
+
+             return await _context.Churches.FirstOrDefaultAsync(c => c.Name == churchName);
+        }
+
+
+
     }
 }

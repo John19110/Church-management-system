@@ -8,8 +8,9 @@ namespace SunDaySchools.DAL.Repository.Interfaces
 {
     public  interface IChurchRepository
     {
-         Task AddChurch(Church church);
+        Task AddChurch(Church church);
 
+        Task<Church?> GetChurchByName(string churchName);
         Task<Church?> GetChurchById(int ChurchId);
 
     }

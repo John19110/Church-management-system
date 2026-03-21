@@ -66,15 +66,23 @@ builder.Services.AddSwaggerGen(options =>
 
 // DI
 
-builder.Services.AddScoped<IMemberManager, MemberManager>();
-builder.Services.AddScoped<IAccountManager, AccountManager>();
-builder.Services.AddScoped<IServantManager, ServantManager>();
-builder.Services.AddScoped<IAttendanceManager, AttendanceManager>();
-builder.Services.AddScoped<IServantRepository, ServantRepository>();
-builder.Services.AddScoped<IMemberRepository, MemberRepository>();
-builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
 builder.Services.AddScoped<IAdminManager,AdminManager >();
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
+
+builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
+builder.Services.AddScoped<IAttendanceManager, AttendanceManager>();
+
+builder.Services.AddScoped<IAccountManager, AccountManager>();
+
+builder.Services.AddScoped<IMemberManager, MemberManager>();
+builder.Services.AddScoped<IMemberRepository, MemberRepository>();
+
+builder.Services.AddScoped<IClassroomRepository, ClassroomRepository>();
+builder.Services.AddScoped<IMeetingRepository, MeetingRepository>();
+
+builder.Services.AddScoped<IServantManager, ServantManager>();
+builder.Services.AddScoped<IServantRepository, ServantRepository>();
+
 builder.Services.AddScoped<IChurchRepository, ChurchRepository>();
 
 
