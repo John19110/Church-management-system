@@ -91,7 +91,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
                     if (existingRecord != null)
                     {
-                        existingRecord.ChildId = recordDto.ChildId;
+                        existingRecord.MemberId = recordDto.MemberId;
                         existingRecord.MadeHomeWork = recordDto.MadeHomeWork;
                         existingRecord.HasTools = recordDto.HasTools;
                         existingRecord.Status = recordDto.Status;
@@ -104,7 +104,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     // Add new record
                     var newRecord = new AttendanceRecord
                     {
-                        ChildId = recordDto.ChildId,
+                        MemberId = recordDto.MemberId,
                         MadeHomeWork = recordDto.MadeHomeWork,
                         HasTools = recordDto.HasTools,
                         Status = recordDto.Status,

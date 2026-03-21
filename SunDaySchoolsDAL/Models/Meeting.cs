@@ -14,9 +14,8 @@ namespace SunDaySchools.DAL.Models
 
         public ICollection<Servant>? Servants { get; set; }
 
-        public MeetingKind? kind { get; set; }
-
-
+        public ICollection<Member>? Members { get; set; }
+             
 
 
 

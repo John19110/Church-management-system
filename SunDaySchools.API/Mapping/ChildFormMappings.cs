@@ -7,9 +7,9 @@ namespace SunDaySchools.API.Mapping
     {
 
         //Extension Method here 
-        public static ChildAddDTO ToDto(this ChildFormRequest form)
+        public static MemberAddDTO ToDto(this ChildFormRequest form)
         {
-            return new ChildAddDTO
+            return new MemberAddDTO
             {
                 Name1 = form.Name1,
                 Name2 = form.Name2,

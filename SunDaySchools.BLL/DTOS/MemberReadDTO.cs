@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace SunDaySchools.BLL.DTOS
 {
-    public class ChildReadDTO
+    public class MemberReadDTO
     {
         public string? FullName { get; set; }
         public string? ImageFileName { get; set; }
@@ -21,7 +21,7 @@ namespace SunDaySchools.BLL.DTOS
         public DateOnly? SpiritualDateOfBirth { get; set; }
         public bool? IsDisciplineChild { get; set; }
         public int? TotalNumberOfDaysAttended { get; set; }
-        public List<ChildContactDTO>? PhoneNumbers { get; set; }   
+        public List<MemberContactDTO>? PhoneNumbers { get; set; }   
         public bool? HaveBrothers { get; set; }
         public List<string>? BrothersNames { get; set; }
         public int?  ClassroomId { get; set; }

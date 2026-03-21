@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace SunDaySchools.BLL.DTOS
 {
-    public class ChildUpdateDTO
+    public class MemberUpdateDTO
     {
         public int Id { get; set; }
         public string? Name1 { get; set; }
@@ -21,7 +21,7 @@ namespace SunDaySchools.BLL.DTOS
         public int? TotalNumberOfDaysAttended { get; set; } = 0;
 
 
-        public List<ChildContactDTO>? PhoneNumbers { get; set; }
+        public List<MemberContactDTO>? PhoneNumbers { get; set; }
 
         public bool? HaveBrothers { get; set; }
         public List<string>? BrothersNames { get; set; }

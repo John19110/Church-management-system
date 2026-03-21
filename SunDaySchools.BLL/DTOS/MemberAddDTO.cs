@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 namespace SunDaySchools.BLL.DTOS
 {
-    public class ChildAddDTO
+    public class MemberAddDTO
     {
 
         public string? Name1 { get; set; }
@@ -27,7 +27,7 @@ namespace SunDaySchools.BLL.DTOS
         public List<string>?  BrothersNames { get; set; }
         public bool? HaveBrothers { get; set; }
         public int? ClassroomId { get; set; }              // ✅ ID only
-        public List<ChildContactDTO>? PhoneNumbers { get; set; }
+        public List<MemberContactDTO>? PhoneNumbers { get; set; }
 
     }
 }

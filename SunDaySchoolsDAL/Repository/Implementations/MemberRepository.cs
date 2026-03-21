@@ -5,33 +5,33 @@ using SunDaySchoolsDAL.DBcontext;
 
 namespace SunDaySchools.DAL.Repository.Implementations
 {
-    public class ChildRepository : IChildRepository
+    public class MemberRepository : IMemberRepository
     {
 
         private readonly ProgramContext _context;
-        public ChildRepository(ProgramContext context)
+        public MemberRepository(ProgramContext context)
         {
         _context=context;
         }
-        public IQueryable<Child> GetAll()
+        public IQueryable<Member> GetAll()
         {
-            return _context.Children
+            return _context.Members
                 .Include(c => c.PhoneNumbers);
         }
 
-        public Child? GetById(int id)
+        public Member? GetById(int id)
         {
-            return _context.Children
+            return _context.Members
                 .Include(c => c.PhoneNumbers)
                 .FirstOrDefault(c => c.Id == id);
         }
 
-        public void Add(Child child)
+        public void Add(Member child)
         {
-            _context.Children.Add(child);
+            _context.Members.Add(child);
             _context.SaveChanges();
         }
-       public  void Update(Child child)
+       public  void Update(Member child)
         {
 
             _context.SaveChanges();
@@ -39,20 +39,20 @@ namespace SunDaySchools.DAL.Repository.Implementations
         }
        public void Delete(int id)
         {
-            _context.Children.Remove(_context.Children.Find(id));
+            _context.Members.Remove(_context.Members.Find(id));
             _context.SaveChanges();
         }
 
-        public IQueryable<Child> GetSpecificClassroom(int classroomId)
+        public IQueryable<Member> GetSpecificClassroom(int classroomId)
         {
 
-            return _context.Children.Where(ch => ch.ClassroomId == classroomId);
+            return _context.Members.Where(ch => ch.ClassroomId == classroomId);
         }
 
-        public IQueryable<Child> GetSpecificClassroomChildren(int classroomId)
+        public IQueryable<Member> GetSpecificClassroomChildren(int classroomId)
         {
 
-            return _context.Children.Where(ch => ch.ClassroomId == classroomId);
+            return _context.Members.Where(ch => ch.ClassroomId == classroomId);
         }
     }
 }

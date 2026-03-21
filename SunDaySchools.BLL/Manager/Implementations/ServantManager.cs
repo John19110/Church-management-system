@@ -17,7 +17,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
     public class ServantManager : IServantManager
     {
         private readonly IServantRepository _servantRepository;
-        private readonly IChildRepository _childrenRepository;
+        private readonly IMemberRepository _memberRepository;
         private readonly IMapper _mapper;
         public ServantManager(IServantRepository sarventReposatory, IMapper mapper)
         {

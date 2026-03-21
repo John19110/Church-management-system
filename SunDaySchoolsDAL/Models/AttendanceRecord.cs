@@ -15,8 +15,8 @@ namespace SunDaySchools.DAL.Models
         public int AttendanceSessionId { get; set; }
         public AttendanceSession? AttendanceSession { get; set; }
 
-        public int ChildId { get; set; }
-        public Child? Child { get; set; }
+        public int MemberId { get; set; }
+        public Member? Member { get; set; }
 
         public bool MadeHomeWork { get; set; } = false;
         public bool HasTools { get; set; } = false;

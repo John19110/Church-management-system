@@ -11,5 +11,5 @@ public class ChildContact : ChurchEntity
 
     // Foreign Key
     public int ChildId { get; set; }
-    public Child Child { get; set; }   // Navigation property
+    public Member Child { get; set; }   // Navigation property
 }

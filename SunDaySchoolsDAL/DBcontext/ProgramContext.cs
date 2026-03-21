@@ -20,7 +20,7 @@ namespace SunDaySchoolsDAL.DBcontext
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public DbSet<Child> Children { get; set; }
+        public DbSet<Member> Members { get; set; }
         public DbSet<ChildContact> ChildContacts { get; set; }
         public DbSet<PhoneCall> PhoneCalls { get; set; }
         public DbSet<Servant> Servants { get; set; }
@@ -39,27 +39,27 @@ namespace SunDaySchoolsDAL.DBcontext
             base.OnModelCreating(builder);
 
             // Child ↔ Classroom relationship
-            builder.Entity<Child>()
+            builder.Entity<Member>()
                 .HasOne(c => c.Classroom)
-                .WithMany(cl => cl.Children)
+                .WithMany(cl => cl.Members)
                 .HasForeignKey(c => c.ClassroomId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Classroom seed data
             builder.Entity<Classroom>().HasData(
-                new Classroom { Id = 1, Name = "الوداعه", AgeOfChildren = "حضانه و كيجي" },
-                new Classroom { Id = 2, Name = "السلام", AgeOfChildren = "اولي و تانيه" },
-                new Classroom { Id = 3, Name = "الأيمان", AgeOfChildren = "تالته ورابعه" },
-                new Classroom { Id = 4, Name = "المحبه", AgeOfChildren = "خامسه و سادسه" }
+                new Classroom { Id = 1, Name = "الوداعه", AgeOfMembers = "حضانه و كيجي" },
+                new Classroom { Id = 2, Name = "السلام", AgeOfMembers = "اولي و تانيه" },
+                new Classroom { Id = 3, Name = "الأيمان", AgeOfMembers = "تالته ورابعه" },
+                new Classroom { Id = 4, Name = "المحبه", AgeOfMembers = "خامسه و سادسه" }
             );
 
             // Prevent duplicate attendance records
             builder.Entity<AttendanceRecord>()
-                .HasIndex(x => new { x.AttendanceSessionId, x.ChildId })
+                .HasIndex(x => new { x.AttendanceSessionId, x.MemberId })
                 .IsUnique();
 
             // Index for classroom lookup
-            builder.Entity<Child>()
+            builder.Entity<Member>()
                 .HasIndex(c => c.ClassroomId);
 
             // Servant ↔ ApplicationUser relationship

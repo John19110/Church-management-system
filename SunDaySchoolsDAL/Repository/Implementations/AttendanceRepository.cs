@@ -26,8 +26,8 @@ namespace SunDaySchools.DAL.Repository.Implementations
             {
                 if (record.Status != AttendanceStatus.Absent)
                 {
-                    var child = await _context.Children
-                        .FirstOrDefaultAsync(c => c.Id == record.ChildId);
+                    var child = await _context.Members
+                        .FirstOrDefaultAsync(c => c.Id == record.MemberId);
 
                     if (child != null)
                     {

@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using SunDaySchools.BLL.DTOS.AccountDtos;
 using SunDaySchools.BLL.Exceptions;          // <-- Add this
 using SunDaySchools.BLL.Manager.Interfaces;
+using SunDaySchools.DAL.Models;
 using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchools.Models;
 using SunDaySchoolsDAL.Models;
@@ -122,6 +123,79 @@ namespace SunDaySchools.BLL.Manager.Implementations
             var claims = await BuildJwtClaims(user);
             return GenerateToken(claims);
         }
+
+
+        public async Task<string> RegisterMeetingAdmin(RegisterMeetingAdminDTO registerMeetingAdminDTO)
+        {
+            if (registerMeetingAdminDTO == null)
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["registerDto"] = new[] { "Registration data cannot be null." }
+                });
+
+            // Check if user already exists
+            var existingUser = await _usermanager.FindByNameAsync(registerMeetingAdminDTO.Name);
+            if (existingUser != null)
+                throw new UserAlreadyExistsException();
+
+
+
+            var meeting = new Meeting
+            {
+                Name = registerMeetingAdminDTO.MeetingName
+            };
+
+
+            // Create the church 
+            var church = new Church
+            {
+                Name = registerMeetingAdminDTO.ChurchName
+            };
+
+            await _churchRepo.AddChurch(church);
+
+            // Creaet the user 
+            var user = new ApplicationUser
+            {
+                UserName = registerMeetingAdminDTO.Name,
+                PhoneNumber = registerMeetingAdminDTO.PhoneNumber,
+                IsApproved = true,
+                ChurchId = church.Id
+            };
+
+            var result = await _usermanager.CreateAsync(user, registerMeetingAdminDTO.Password);
+            if (!result.Succeeded)
+            {
+                // Convert Identity errors to a ValidationException
+                var errors = result.Errors
+                    .GroupBy(e => e.Code) // or use a custom field name
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.Select(e => e.Description).ToArray()
+                    );
+                throw new ValidationException(errors);
+            }
+
+            await _usermanager.AddToRoleAsync(user, "Admin");
+
+
+            // Create the servant
+            var servant = new Servant
+            {
+                ApplicationUserId = user.Id,
+                Name = registerMeetingAdminDTO.Name,
+                PhoneNumber = registerMeetingAdminDTO.PhoneNumber,
+                ChurchId = church.Id // 🔥 THIS LINE IS MISSING
+
+
+            };
+            _adminRepo.AddServant(servant);
+
+            var claims = await BuildJwtClaims(user);
+            return GenerateToken(claims);
+        }
+
+
         public async Task<string> RegisterServant(RegisterServantDTO registerDto)
         {
             if (registerDto == null)

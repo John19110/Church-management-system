@@ -6,10 +6,10 @@ namespace SunDaySchools.Models
     {
         public int Id { get; set; }
         public string? Name { get; set; }
-        public string? AgeOfChildren { get; set; }
-        public ICollection<Child>? Children { get; set; }
-        public int? NumberOfDisplineChildren { get; set; }
-        public int? TotalChildrenCount => Children?.Count ?? 0;
+        public string? AgeOfMembers { get; set; }
+        public ICollection<Member>? Members { get; set; }
+        public int? NumberOfDisplineMembers { get; set; }
+        public int? TotalMembersCount => Members?.Count ?? 0;
         public ICollection<Servant>? Servants { get; set; }
         public ICollection<AttendanceSession>? AttendanceHistory { get; set; }
 

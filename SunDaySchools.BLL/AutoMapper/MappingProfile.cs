@@ -14,12 +14,12 @@ namespace SunDaySchools.BLL.AutoMapper
             // =========================
             // Child
             // =========================
-            CreateMap<Child, ChildAddDTO>().ReverseMap();
-            CreateMap<Child, ChildReadDTO>()
+            CreateMap<Member, MemberAddDTO>().ReverseMap();
+            CreateMap<Member, MemberReadDTO>()
                 .ForMember(dest => dest.FullName,
                            opt => opt.MapFrom(src => src.FullName));
-            CreateMap<Child, ChildUpdateDTO>().ReverseMap();
-            CreateMap<ChildContact, ChildContactDTO>().ReverseMap();
+            CreateMap<Member, MemberUpdateDTO>().ReverseMap();
+            CreateMap<ChildContact, MemberContactDTO>().ReverseMap();
 
             // =========================
             // Servant
@@ -41,7 +41,7 @@ namespace SunDaySchools.BLL.AutoMapper
                 .ForMember(d => d.Id, o => o.Ignore())
                 .ForMember(d => d.AttendanceSessionId, o => o.Ignore())
                 .ForMember(d => d.AttendanceSession, o => o.Ignore())
-                .ForMember(d => d.Child, o => o.Ignore())
+                .ForMember(d => d.Member, o => o.Ignore())
                 .ForMember(d => d.UpdatedAt,
                            o => o.MapFrom(_ => DateTime.Now));
 
@@ -50,7 +50,7 @@ namespace SunDaySchools.BLL.AutoMapper
                 .ForMember(d => d.Id, o => o.Ignore())
                 .ForMember(d => d.AttendanceSessionId, o => o.Ignore())
                 .ForMember(d => d.AttendanceSession, o => o.Ignore())
-                .ForMember(d => d.Child, o => o.Ignore())
+                .ForMember(d => d.Member, o => o.Ignore())
                 .ForMember(d => d.UpdatedAt,
                            o => o.MapFrom(_ => DateTime.Now));
 

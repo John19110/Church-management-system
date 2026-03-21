@@ -12,9 +12,9 @@ namespace SunDaySchools.BLL.DTOS
     {
         public string? Name { get; set; }
         public string? AgeOfChildren { get; set; }
-        public ICollection<Child>? Children { get; set; }
+        public ICollection<Member>? Members { get; set; }
         public int? NumberOfDisplineChildren { get; set; }
-        public int? TotalChildrenCount => Children?.Count ?? 0;
+        public int? TotalChildrenCount => Members?.Count ?? 0;
         public ICollection<Servant>? Servants { get; set; }
         public ICollection<AttendanceSession>? AttendanceHistory { get; set; }
 
