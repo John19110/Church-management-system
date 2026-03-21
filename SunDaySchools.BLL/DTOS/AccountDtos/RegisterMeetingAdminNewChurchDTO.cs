@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SunDaySchools.BLL.DTOS.AccountDtos
 {
-    public class RegisterMeetingAdminDTO
+    public class RegisterMeetingAdminNewChurchDTO
     {
             public string Name { get; set; }
 
@@ -19,6 +19,10 @@ namespace SunDaySchools.BLL.DTOS.AccountDtos
             public string ChurchName { get; set; }
 
             public string MeetingName { get; set; }
+
+
+
+
 
         }
     

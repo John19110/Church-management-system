@@ -3,6 +3,7 @@ using SunDaySchools.DAL.Models;
 using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchoolsDAL.DBcontext;
 
+
 namespace SunDaySchools.DAL.Repository.Implementations
 {
     public class AttendanceRepository : IAttendanceRepository
