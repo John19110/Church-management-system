@@ -3,7 +3,7 @@ using SunDaySchools.BLL.DTOS;
 
 namespace SunDaySchools.API.Requests
 {
-    public class ChildFormRequest
+    public class MemberFormRequest
     {
         public string? Name1 { get; set; }
         public string? Name2 { get; set; }

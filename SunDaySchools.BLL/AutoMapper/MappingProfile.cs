@@ -12,14 +12,14 @@ namespace SunDaySchools.BLL.AutoMapper
         public MappingProfile()
         {
             // =========================
-            // Child
+            // Member
             // =========================
             CreateMap<Member, MemberAddDTO>().ReverseMap();
             CreateMap<Member, MemberReadDTO>()
                 .ForMember(dest => dest.FullName,
                            opt => opt.MapFrom(src => src.FullName));
             CreateMap<Member, MemberUpdateDTO>().ReverseMap();
-            CreateMap<ChildContact, MemberContactDTO>().ReverseMap();
+            CreateMap<MemberContact, MemberContactDTO>().ReverseMap();
 
             // =========================
             // Servant

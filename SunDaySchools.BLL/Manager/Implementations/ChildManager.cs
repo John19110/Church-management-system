@@ -14,72 +14,72 @@ using System.Threading.Tasks;
 
 namespace SunDaySchools.BLL.Manager.Implementations
 {
-    public class ChildManager :IMemberManager
+    public class MemberManager :IMemberManager
     {
 
-        private readonly IMemberRepository _childReposatory;
+        private readonly IMemberRepository _memberReposatory;
         private readonly IMapper _mapper;   
-        public ChildManager(IMemberRepository childReposatory,IMapper mapper)
+        public MemberManager(IMemberRepository memberReposatory,IMapper mapper)
         {
-            _childReposatory = childReposatory;
+            _memberReposatory = memberReposatory;
             _mapper = mapper;
         }
        public  IEnumerable<MemberReadDTO> GetAll()
         {
-          return  _mapper.Map<IEnumerable<MemberReadDTO>>(_childReposatory.GetAll().ToList());
+          return  _mapper.Map<IEnumerable<MemberReadDTO>>(_memberReposatory.GetAll().ToList());
         }
         MemberReadDTO? IMemberManager.GetById(int id)
         {
-          return  _mapper.Map<MemberReadDTO>(_childReposatory.GetById(id));
+          return  _mapper.Map<MemberReadDTO>(_memberReposatory.GetById(id));
         }
         public IEnumerable<MemberReadDTO> GetSpecificClassroom(int ClassroomId)
         {
-            return _mapper.Map<IEnumerable<MemberReadDTO>>(_childReposatory.GetSpecificClassroom(ClassroomId).ToList());
+            return _mapper.Map<IEnumerable<MemberReadDTO>>(_memberReposatory.GetSpecificClassroom(ClassroomId).ToList());
 
         }
 
 
-         public void Add(MemberAddDTO childdto)
+         public void Add(MemberAddDTO memberdto)
         {
 
             {
                 string? fileName = null;
 
-                if (childdto.Image != null)
+                if (memberdto.Image != null)
                 {
-                    fileName = Guid.NewGuid().ToString() + Path.GetExtension(childdto.Image.FileName);
+                    fileName = Guid.NewGuid().ToString() + Path.GetExtension(memberdto.Image.FileName);
 
                     var filePath = Path.Combine("wwwroot/images", fileName);
 
                     using (var stream = new FileStream(filePath, FileMode.Create))
                     {
-                        childdto.Image.CopyTo(stream);
+                        memberdto.Image.CopyTo(stream);
                     }
                 }
 
 
 
-             var  model= _mapper.Map<Member>(childdto);
-            _childReposatory.Add(model);
+             var  model= _mapper.Map<Member>(memberdto);
+                _memberReposatory.Add(model);
 
                 model.ImageFileName = fileName;
                 model.ImageUrl = fileName != null ? $"/images/{fileName}" : null;
 
             }
         }
-        void IMemberManager.Update(MemberUpdateDTO ChildUpdateDTO)
+        void IMemberManager.Update(MemberUpdateDTO MemberUpdateDTO)
         {
-            _childReposatory.Update(_mapper.Map(ChildUpdateDTO, _childReposatory.GetById(ChildUpdateDTO.Id)));
+            _memberReposatory.Update(_mapper.Map(MemberUpdateDTO, _memberReposatory.GetById(MemberUpdateDTO.Id)));
 
         }
 
         public void Delete(int id)
         {
-            var child = _childReposatory.GetById(id);
-            if (child == null)
-                throw new NotFoundException($"Child with id {id} not found.");
+            var member = _memberReposatory.GetById(id);
+            if (member == null)
+                throw new NotFoundException($"Member with id {id} not found.");
 
-            _childReposatory.Delete(id);
+            _memberReposatory.Delete(id);
         }
 
 
