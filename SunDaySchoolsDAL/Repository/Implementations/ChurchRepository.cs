@@ -29,14 +29,20 @@ namespace SunDaySchools.DAL.Repository.Implementations
 
         public async Task<Church?> GetChurchById(int id)
         {
-            return  await _context.Churches.FirstOrDefaultAsync(c=>c.Id==id);
-
+            return await _context.Churches
+                .Include(c => c.Members)
+                .Include(c => c.Servants)
+                .Include(c => c.Meetings)
+                .FirstOrDefaultAsync(c => c.Id == id);
         }
-
         public async Task<Church?> GetChurchByName(string churchName)
         { 
 
-             return await _context.Churches.FirstOrDefaultAsync(c => c.Name == churchName);
+             return await _context.Churches
+                .Include(c => c.Members)
+                .Include(c => c.Servants)
+                .Include(c => c.Meetings)
+                .FirstOrDefaultAsync(c => c.Name == churchName);
         }
 
 

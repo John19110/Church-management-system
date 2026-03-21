@@ -8,12 +8,14 @@ using System.Threading.Tasks;
 
 namespace SunDaySchoolsDAL.Models
 {
-    public class PhoneCall : ChurchEntity
+    public class PhoneCall
     {
         public int Id { get; set; }
 
         public DateOnly? DateOFthecall;
         public Servant? Servant { get; set; } 
-        public string? Notes { get; set; }   
+        public string? Notes { get; set; }
+        public int MemberContactId { get; set; }
+        public MemberContact MemberContact { get; set; } = default!;
     }
 }

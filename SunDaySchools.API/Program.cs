@@ -69,6 +69,8 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddScoped<IAdminManager,AdminManager >();
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 
+
+
 builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
 builder.Services.AddScoped<IAttendanceManager, AttendanceManager>();
 
@@ -82,6 +84,10 @@ builder.Services.AddScoped<IMeetingRepository, MeetingRepository>();
 
 builder.Services.AddScoped<IServantManager, ServantManager>();
 builder.Services.AddScoped<IServantRepository, ServantRepository>();
+
+builder.Services.AddScoped<ISuperAdminRepository, SuperAdminRepository>();
+builder.Services.AddScoped<ISuperAdminManager, SuperAdminManager>();
+
 
 builder.Services.AddScoped<IChurchRepository, ChurchRepository>();
 

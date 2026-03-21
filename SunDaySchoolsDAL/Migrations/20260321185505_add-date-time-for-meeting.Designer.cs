@@ -12,8 +12,8 @@ using SunDaySchoolsDAL.DBcontext;
 namespace SunDaySchools.DAL.Migrations
 {
     [DbContext(typeof(ProgramContext))]
-    [Migration("20260321103127_apply-member-names")]
-    partial class applymembernames
+    [Migration("20260321185505_add-date-time-for-meeting")]
+    partial class adddatetimeformeeting
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -33,11 +33,6 @@ namespace SunDaySchools.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Discriminator")
-                        .IsRequired()
-                        .HasMaxLength(8)
-                        .HasColumnType("nvarchar(8)");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -45,10 +40,6 @@ namespace SunDaySchools.DAL.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Churches");
-
-                    b.HasDiscriminator<string>("Discriminator").HasValue("Church");
-
-                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("ClassroomServant", b =>
@@ -74,12 +65,6 @@ namespace SunDaySchools.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("ChurchId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("MeetingId")
-                        .HasColumnType("int");
-
                     b.Property<int>("MemberId")
                         .HasColumnType("int");
 
@@ -90,10 +75,6 @@ namespace SunDaySchools.DAL.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ChurchId");
-
-                    b.HasIndex("MeetingId");
 
                     b.HasIndex("MemberId");
 
@@ -290,17 +271,11 @@ namespace SunDaySchools.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("ChurchId")
-                        .HasColumnType("int");
-
                     b.Property<int>("ClassroomId")
                         .HasColumnType("int");
 
                     b.Property<DateOnly>("CreatedAt")
                         .HasColumnType("date");
-
-                    b.Property<int?>("MeetingId")
-                        .HasColumnType("int");
 
                     b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
@@ -310,11 +285,7 @@ namespace SunDaySchools.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ChurchId");
-
                     b.HasIndex("ClassroomId");
-
-                    b.HasIndex("MeetingId");
 
                     b.HasIndex("TakenByServantId");
 
@@ -402,6 +373,30 @@ namespace SunDaySchools.DAL.Migrations
                     b.HasIndex("MemberId");
 
                     b.ToTable("ExamResults");
+                });
+
+            modelBuilder.Entity("SunDaySchools.DAL.Models.Meeting", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ChurchId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Weekly_appointment")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChurchId");
+
+                    b.ToTable("Meetings");
                 });
 
             modelBuilder.Entity("SunDaySchools.Models.Classroom", b =>
@@ -786,13 +781,7 @@ namespace SunDaySchools.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("ChurchId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("MeetingId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("MemberContactId")
+                    b.Property<int>("MemberContactId")
                         .HasColumnType("int");
 
                     b.Property<string>("Notes")
@@ -803,30 +792,11 @@ namespace SunDaySchools.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ChurchId");
-
-                    b.HasIndex("MeetingId");
-
                     b.HasIndex("MemberContactId");
 
                     b.HasIndex("ServantId");
 
                     b.ToTable("PhoneCalls");
-                });
-
-            modelBuilder.Entity("SunDaySchools.DAL.Models.Meeting", b =>
-                {
-                    b.HasBaseType("Church");
-
-                    b.Property<int?>("ChurchId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("MeetingName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasIndex("ChurchId");
-
-                    b.HasDiscriminator().HasValue("Meeting");
                 });
 
             modelBuilder.Entity("ClassroomServant", b =>
@@ -846,23 +816,11 @@ namespace SunDaySchools.DAL.Migrations
 
             modelBuilder.Entity("MemberContact", b =>
                 {
-                    b.HasOne("Church", "Chuch")
-                        .WithMany()
-                        .HasForeignKey("ChurchId");
-
-                    b.HasOne("SunDaySchools.DAL.Models.Meeting", "Meeting")
-                        .WithMany()
-                        .HasForeignKey("MeetingId");
-
                     b.HasOne("SunDaySchools.Models.Member", "Member")
                         .WithMany("PhoneNumbers")
                         .HasForeignKey("MemberId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Chuch");
-
-                    b.Navigation("Meeting");
 
                     b.Navigation("Member");
                 });
@@ -951,29 +909,17 @@ namespace SunDaySchools.DAL.Migrations
 
             modelBuilder.Entity("SunDaySchools.DAL.Models.AttendanceSession", b =>
                 {
-                    b.HasOne("Church", "Chuch")
-                        .WithMany()
-                        .HasForeignKey("ChurchId");
-
                     b.HasOne("SunDaySchools.Models.Classroom", "Classroom")
                         .WithMany("AttendanceHistory")
                         .HasForeignKey("ClassroomId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SunDaySchools.DAL.Models.Meeting", "Meeting")
-                        .WithMany()
-                        .HasForeignKey("MeetingId");
-
                     b.HasOne("SunDaySchools.Models.Servant", "TakenByServant")
                         .WithMany()
                         .HasForeignKey("TakenByServantId");
 
-                    b.Navigation("Chuch");
-
                     b.Navigation("Classroom");
-
-                    b.Navigation("Meeting");
 
                     b.Navigation("TakenByServant");
                 });
@@ -1013,12 +959,13 @@ namespace SunDaySchools.DAL.Migrations
 
                     b.HasOne("SunDaySchools.DAL.Models.Meeting", "Meeting")
                         .WithMany()
-                        .HasForeignKey("MeetingId");
+                        .HasForeignKey("MeetingId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("SunDaySchools.Models.Member", "Member")
                         .WithMany("ExamsResults")
                         .HasForeignKey("MemberId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Chuch");
@@ -1028,6 +975,17 @@ namespace SunDaySchools.DAL.Migrations
                     b.Navigation("Meeting");
 
                     b.Navigation("Member");
+                });
+
+            modelBuilder.Entity("SunDaySchools.DAL.Models.Meeting", b =>
+                {
+                    b.HasOne("Church", "Church")
+                        .WithMany("Meetings")
+                        .HasForeignKey("ChurchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Church");
                 });
 
             modelBuilder.Entity("SunDaySchools.Models.Classroom", b =>
@@ -1057,7 +1015,7 @@ namespace SunDaySchools.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("SunDaySchools.DAL.Models.Meeting", "Meeting")
-                        .WithMany()
+                        .WithMany("Members")
                         .HasForeignKey("MeetingId");
 
                     b.Navigation("Chuch");
@@ -1080,7 +1038,7 @@ namespace SunDaySchools.DAL.Migrations
                         .HasForeignKey("ChurchId");
 
                     b.HasOne("SunDaySchools.DAL.Models.Meeting", "Meeting")
-                        .WithMany()
+                        .WithMany("Servants")
                         .HasForeignKey("MeetingId");
 
                     b.HasOne("SunDaySchools.Models.SpiritualCurriculum", null)
@@ -1141,34 +1099,19 @@ namespace SunDaySchools.DAL.Migrations
 
             modelBuilder.Entity("SunDaySchoolsDAL.Models.PhoneCall", b =>
                 {
-                    b.HasOne("Church", "Chuch")
-                        .WithMany()
-                        .HasForeignKey("ChurchId");
-
-                    b.HasOne("SunDaySchools.DAL.Models.Meeting", "Meeting")
-                        .WithMany()
-                        .HasForeignKey("MeetingId");
-
-                    b.HasOne("MemberContact", null)
+                    b.HasOne("MemberContact", "MemberContact")
                         .WithMany("CallsHistory")
-                        .HasForeignKey("MemberContactId");
+                        .HasForeignKey("MemberContactId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("SunDaySchools.Models.Servant", "Servant")
                         .WithMany()
                         .HasForeignKey("ServantId");
 
-                    b.Navigation("Chuch");
-
-                    b.Navigation("Meeting");
+                    b.Navigation("MemberContact");
 
                     b.Navigation("Servant");
-                });
-
-            modelBuilder.Entity("SunDaySchools.DAL.Models.Meeting", b =>
-                {
-                    b.HasOne("Church", null)
-                        .WithMany("Meetings")
-                        .HasForeignKey("ChurchId");
                 });
 
             modelBuilder.Entity("Church", b =>
@@ -1193,6 +1136,13 @@ namespace SunDaySchools.DAL.Migrations
             modelBuilder.Entity("SunDaySchools.DAL.Models.Exam", b =>
                 {
                     b.Navigation("Results");
+                });
+
+            modelBuilder.Entity("SunDaySchools.DAL.Models.Meeting", b =>
+                {
+                    b.Navigation("Members");
+
+                    b.Navigation("Servants");
                 });
 
             modelBuilder.Entity("SunDaySchools.Models.Classroom", b =>

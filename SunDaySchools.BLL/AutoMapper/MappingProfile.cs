@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using SunDaySchools.BLL.DTOS;
+using SunDaySchools.BLL.DTOS.Meeting;
 using SunDaySchools.BLL.DTOS.AccountDtos;
 using SunDaySchools.DAL.Models;
 using SunDaySchools.Models;
@@ -33,10 +34,18 @@ namespace SunDaySchools.BLL.AutoMapper
 
             CreateMap<RegisterServamtinAddAdmin, RegisterServantDTO>();
 
+           // CreateMap<RegisterServamtinAddAdmin, PendingServantDTO>();
+
+
+
+
+
             // =========================
             // Attendance Record
             // =========================
             CreateMap<AttendanceRecord, AttendanceRecordReadDTO>();
+
+            CreateMap<MeetingAddDTO,Meeting>();
             CreateMap<AttendanceRecordAddDTO, AttendanceRecord>()
                 .ForMember(d => d.Id, o => o.Ignore())
                 .ForMember(d => d.AttendanceSessionId, o => o.Ignore())

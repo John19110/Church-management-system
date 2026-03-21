@@ -1,4 +1,4 @@
-﻿using SunDaySchools.BLL.DTOS;
+﻿using SunDaySchools.BLL.DTOS.Meeting;
 using SunDaySchools.BLL.DTOS.AccountDtos;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -16,5 +16,8 @@ namespace SunDaySchools.BLL.Manager.Interfaces
         Task ApproveServant(string userId);
 
         Task RejectServant(string userId);
+
+
+        Task AddMeeting(MeetingAddDTO meeting);
     }
 }
