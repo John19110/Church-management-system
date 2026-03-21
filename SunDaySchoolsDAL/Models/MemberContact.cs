@@ -2,7 +2,7 @@
 using SunDaySchools.Models;
 using SunDaySchoolsDAL.Models;
 
-public class MemberContact : ChurchEntity
+public class MemberContact 
 {
     public int Id { get; set; }
     public string? Relation { get; set; }

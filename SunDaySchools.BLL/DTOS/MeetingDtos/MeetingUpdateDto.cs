@@ -4,12 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SunDaySchools.DAL.Repository.Interfaces
+namespace SunDaySchools.BLL.DTOS.MeetingDtos
 {
-    public interface ISuperAdminRepository
+    internal class MeetingUpdateDto
     {
-
-
-
     }
 }

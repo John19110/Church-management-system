@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace SunDaySchools.DAL.Models
 {
-    public class AttendanceSession : ChurchEntity
+    public class AttendanceSession 
     {
         public int Id { get; set; }
 

@@ -11,8 +11,8 @@ namespace SunDaySchools.DAL.Models
         public int? ChurchId { get; set; }
         public Church? Chuch { get; set; }
 
-        public int MeetingId { get; set; }
-        public Meeting meeting { get; set; }
+        public int? MeetingId { get; set; }
+        public Meeting? Meeting { get; set; }
 
 
 

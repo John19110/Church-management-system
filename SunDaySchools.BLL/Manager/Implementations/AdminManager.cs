@@ -14,6 +14,8 @@ using SunDaySchools.Models;
 using SunDaySchoolsDAL.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using SunDaySchools.BLL.DTOS.Meeting;
+
 
 
 namespace SunDaySchools.BLL.Manager.Implementations
@@ -24,18 +26,22 @@ namespace SunDaySchools.BLL.Manager.Implementations
         
     private readonly IAdminRepository _adminRepository;
     private readonly IMapper _mapper;
-    private readonly UserManager<ApplicationUser> _usermanager;
+    private readonly UserManager<ApplicationUser> _userManager;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IAccountManager _accountManager;
+    private readonly IMeetingRepository _meetingRepository;
 
 
-        public AdminManager(IAdminRepository adminRepository,IMapper mapper, UserManager<ApplicationUser> usermanager, IHttpContextAccessor httpContextAccessor,IAccountManager accountManager)
+        public AdminManager(IAdminRepository adminRepository,IMapper mapper
+            , UserManager<ApplicationUser> usermanager, IHttpContextAccessor httpContextAccessor
+            ,IAccountManager accountManager,IMeetingRepository meetingRepository)
         {
             _adminRepository = adminRepository;
             _mapper = mapper;
-            _usermanager = usermanager;
+            _userManager = usermanager;
             _httpContextAccessor = httpContextAccessor;
             _accountManager = accountManager;
+            _meetingRepository = meetingRepository;
         }
 
         public async Task AssignClassToServant(int ServantId, int ClassroomId)
@@ -96,11 +102,11 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
 
             var userId = userIdClaim?.Value;
-            var user = await _usermanager.FindByIdAsync(userId);
+            var user = await _userManager.FindByIdAsync(userId);
 
             user.IsApproved = true;
 
-            await _usermanager.UpdateAsync(user);
+            await _userManager.UpdateAsync(user);
 
 
 
@@ -115,21 +121,30 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             var churchId = int.Parse(claim.Value);
 
-            var users = await _usermanager.Users
-                .Where(u => !u.IsApproved && u.ChurchId == churchId)
-                .Select(u => new PendingServantDTO
-                {
-                    Id = u.Id,
-                    Name = u.UserName,
-                    PhoneNumber = u.PhoneNumber
-                })
-                .ToListAsync();
+            var users = await _userManager.Users
+                                        .Where(u => !u.IsApproved && u.ChurchId == churchId)
+                                        .ToListAsync();
 
-            return users;
+            var result = new List<PendingServantDTO>();
+
+            foreach (var user in users)
+            {
+                if (await _userManager.IsInRoleAsync(user, "Servant"))
+                {
+                    result.Add(new PendingServantDTO
+                    {
+                        Id = user.Id,
+                        Name = user.UserName,
+                        PhoneNumber = user.PhoneNumber
+                    });
+                }
+            }
+
+            return result;
         }
         public async Task ApproveServant(string userId)
         {
-            var user = await _usermanager.FindByIdAsync(userId);
+            var user = await _userManager.FindByIdAsync(userId);
 
             if (user == null)
                 throw new NotFoundException($"User with id {userId} not found.");
@@ -142,7 +157,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             user.IsApproved = true;
 
-            var result = await _usermanager.UpdateAsync(user);
+            var result = await _userManager.UpdateAsync(user);
 
             if (!result.Succeeded)
             {
@@ -159,7 +174,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
         public async Task RejectServant(string userId)
         {
-            var user = await _usermanager.FindByIdAsync(userId);
+            var user = await _userManager.FindByIdAsync(userId);
 
             if (user == null)
                 throw new NotFoundException($"User with id {userId} not found.");
@@ -170,7 +185,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     ["User"] = new[] { "Approved users cannot be rejected." }
                 });
 
-            var result = await _usermanager.DeleteAsync(user);
+            var result = await _userManager.DeleteAsync(user);
 
             if (!result.Succeeded)
             {
@@ -183,6 +198,21 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
                 throw new ValidationException(errors);
             }
+        }
+
+        public async Task AddMeeting(MeetingAddDTO meeting)
+        {
+            var model=_mapper.Map<Meeting>(meeting);
+
+            var claim = _httpContextAccessor.HttpContext?.User?.FindFirst("ChurchId");
+
+            if (claim == null)
+                throw new UnauthorizedAccessException("ChurchId claim is missing");
+
+            var churchId = int.Parse(claim.Value);
+
+            model.ChurchId = churchId;
+            _meetingRepository.AddAsync(model);
         }
 
     }

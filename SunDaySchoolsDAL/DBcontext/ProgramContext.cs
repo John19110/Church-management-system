@@ -47,12 +47,12 @@ namespace SunDaySchoolsDAL.DBcontext
                 .HasForeignKey(c => c.ClassroomId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Classroom seed data
+            //Classroom seed data
             builder.Entity<Classroom>().HasData(
-                new Classroom { Id = 1, Name = "الوداعه", AgeOfMembers = "حضانه و كيجي" },
-                new Classroom { Id = 2, Name = "السلام", AgeOfMembers = "اولي و تانيه" },
-                new Classroom { Id = 3, Name = "الأيمان", AgeOfMembers = "تالته ورابعه" },
-                new Classroom { Id = 4, Name = "المحبه", AgeOfMembers = "خامسه و سادسه" }
+               new Classroom { Id = 1, Name = "الوداعه", AgeOfMembers = "حضانه و كيجي" },
+               new Classroom { Id = 2, Name = "السلام", AgeOfMembers = "اولي و تانيه" },
+               new Classroom { Id = 3, Name = "الأيمان", AgeOfMembers = "تالته ورابعه" },
+               new Classroom { Id = 4, Name = "المحبه", AgeOfMembers = "خامسه و سادسه" }
             );
 
             // Prevent duplicate attendance records
@@ -75,6 +75,17 @@ namespace SunDaySchoolsDAL.DBcontext
                 .HasIndex(s => s.ApplicationUserId)
                 .IsUnique();
 
+            builder.Entity<ExamResult>()
+                    .HasOne(er => er.Meeting)
+                    .WithMany()
+                    .HasForeignKey(er => er.MeetingId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<ExamResult>()
+                    .HasOne(er => er.Member)
+                    .WithMany(m => m.ExamsResults)
+                    .HasForeignKey(er => er.MemberId)
+                    .OnDelete(DeleteBehavior.NoAction);
             // Apply multi-tenant filters automatically
             foreach (var entityType in builder.Model.GetEntityTypes())
             {

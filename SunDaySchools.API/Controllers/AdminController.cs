@@ -5,6 +5,7 @@ using SunDaySchools.API.Services.Implementations;
 using SunDaySchools.API.Services.Interfaces;
 using SunDaySchools.BLL.DTOS;
 using SunDaySchools.BLL.DTOS.AccountDtos;
+using SunDaySchools.BLL.DTOS.Meeting;
 using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Interfaces;
 
@@ -77,5 +78,19 @@ namespace SunDaySchools.API.Controllers
             await _adminManager.RejectServant(userId);
             return Ok(new { message = "Servant rejected successfully" });
         }
+
+
+        [HttpPost("add-meeting")]
+        public async Task<IActionResult> AddMeeting(MeetingAddDTO meeting)
+        {
+            await  _adminManager.AddMeeting(meeting);
+            return Ok(new { message = "Meeting added successfully" });
+
+
+
+        }
+
+
+
     }
 }
