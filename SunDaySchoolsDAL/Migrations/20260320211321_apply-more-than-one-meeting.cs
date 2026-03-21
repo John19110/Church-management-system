@@ -80,7 +80,7 @@ namespace SunDaySchools.DAL.Migrations
 
             migrationBuilder.AddColumn<int>(
                 name: "MeetingId",
-                table: "Children",
+                table: "Members",
                 type: "int",
                 nullable: true);
 
@@ -178,7 +178,7 @@ namespace SunDaySchools.DAL.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_Children_MeetingId",
-                table: "Children",
+                table: "Members",
                 column: "MeetingId");
 
             migrationBuilder.CreateIndex(
@@ -231,7 +231,7 @@ namespace SunDaySchools.DAL.Migrations
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Children_Churches_MeetingId",
-                table: "Children",
+                table: "Members",
                 column: "MeetingId",
                 principalTable: "Churches",
                 principalColumn: "Id");
@@ -314,7 +314,7 @@ namespace SunDaySchools.DAL.Migrations
 
             migrationBuilder.DropForeignKey(
                 name: "FK_Children_Churches_MeetingId",
-                table: "Children");
+                table: "Members");
 
             migrationBuilder.DropForeignKey(
                 name: "FK_Churches_Churches_ChurchId",
@@ -382,7 +382,7 @@ namespace SunDaySchools.DAL.Migrations
 
             migrationBuilder.DropIndex(
                 name: "IX_Children_MeetingId",
-                table: "Children");
+                table: "Members");
 
             migrationBuilder.DropIndex(
                 name: "IX_ChildContacts_MeetingId",
@@ -446,7 +446,7 @@ namespace SunDaySchools.DAL.Migrations
 
             migrationBuilder.DropColumn(
                 name: "MeetingId",
-                table: "Children");
+                table: "Members");
 
             migrationBuilder.DropColumn(
                 name: "MeetingId",

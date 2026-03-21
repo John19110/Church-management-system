@@ -14,32 +14,32 @@ using System.Threading.Tasks;
 
 namespace SunDaySchools.BLL.Manager.Implementations
 {
-    public class ChildManager :IChildManager
+    public class ChildManager :IMemberManager
     {
 
-        private readonly IChildRepository _childReposatory;
+        private readonly IMemberRepository _childReposatory;
         private readonly IMapper _mapper;   
-        public ChildManager(IChildRepository childReposatory,IMapper mapper)
+        public ChildManager(IMemberRepository childReposatory,IMapper mapper)
         {
             _childReposatory = childReposatory;
             _mapper = mapper;
         }
-       public  IEnumerable<ChildReadDTO> GetAll()
+       public  IEnumerable<MemberReadDTO> GetAll()
         {
-          return  _mapper.Map<IEnumerable<ChildReadDTO>>(_childReposatory.GetAll().ToList());
+          return  _mapper.Map<IEnumerable<MemberReadDTO>>(_childReposatory.GetAll().ToList());
         }
-        ChildReadDTO? IChildManager.GetById(int id)
+        MemberReadDTO? IMemberManager.GetById(int id)
         {
-          return  _mapper.Map<ChildReadDTO>(_childReposatory.GetById(id));
+          return  _mapper.Map<MemberReadDTO>(_childReposatory.GetById(id));
         }
-        public IEnumerable<ChildReadDTO> GetSpecificClassroom(int ClassroomId)
+        public IEnumerable<MemberReadDTO> GetSpecificClassroom(int ClassroomId)
         {
-            return _mapper.Map<IEnumerable<ChildReadDTO>>(_childReposatory.GetSpecificClassroom(ClassroomId).ToList());
+            return _mapper.Map<IEnumerable<MemberReadDTO>>(_childReposatory.GetSpecificClassroom(ClassroomId).ToList());
 
         }
 
 
-         public void Add(ChildAddDTO childdto)
+         public void Add(MemberAddDTO childdto)
         {
 
             {
@@ -59,7 +59,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
 
 
-             var  model= _mapper.Map<Child>(childdto);
+             var  model= _mapper.Map<Member>(childdto);
             _childReposatory.Add(model);
 
                 model.ImageFileName = fileName;
@@ -67,7 +67,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             }
         }
-        void IChildManager.Update(ChildUpdateDTO ChildUpdateDTO)
+        void IMemberManager.Update(MemberUpdateDTO ChildUpdateDTO)
         {
             _childReposatory.Update(_mapper.Map(ChildUpdateDTO, _childReposatory.GetById(ChildUpdateDTO.Id)));
 

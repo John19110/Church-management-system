@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SunDaySchools.BLL.DTOS
 {
-    public class ChildContactDTO
+    public class MemberContactDTO
     {
 
         public string? Relation { get; set; }

@@ -2,7 +2,7 @@
 
 namespace SunDaySchools.Models
 {
-    public class Child : ChurchEntity
+    public class Member : ChurchEntity
     {
         public int Id { get; set; }
 
@@ -25,7 +25,7 @@ namespace SunDaySchools.Models
         public DateOnly LastAttendanceDate { get; set; }
         public DateOnly? SpiritualDateOfBirth { get; set; }
 
-        public bool IsDisciplineChild { get; set; } 
+        public bool IsDisciplined { get; set; } 
         public int TotalNumberOfDaysAttended { get; set; } = 0;  
         
         public List<ChildContact>? PhoneNumbers { get; set; }

@@ -256,7 +256,7 @@ namespace SunDaySchools.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Children",
+                name: "Members",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -378,7 +378,7 @@ namespace SunDaySchools.DAL.Migrations
                     table.ForeignKey(
                         name: "FK_ChildContacts_Children_ChildId",
                         column: x => x.ChildId,
-                        principalTable: "Children",
+                        principalTable: "Members",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -408,7 +408,7 @@ namespace SunDaySchools.DAL.Migrations
                     table.ForeignKey(
                         name: "FK_ExamResults_Children_ChildId",
                         column: x => x.ChildId,
-                        principalTable: "Children",
+                        principalTable: "Members",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -539,7 +539,7 @@ namespace SunDaySchools.DAL.Migrations
                     table.ForeignKey(
                         name: "FK_AttendanceRecords_Children_ChildId",
                         column: x => x.ChildId,
-                        principalTable: "Children",
+                        principalTable: "Members",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -647,12 +647,12 @@ namespace SunDaySchools.DAL.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_Children_ChurchId",
-                table: "Children",
+                table: "Members",
                 column: "ChurchId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Children_ClassroomId",
-                table: "Children",
+                table: "Members",
                 column: "ClassroomId");
 
             migrationBuilder.CreateIndex(
@@ -781,7 +781,7 @@ namespace SunDaySchools.DAL.Migrations
                 name: "Servants");
 
             migrationBuilder.DropTable(
-                name: "Children");
+                name: "Members");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");

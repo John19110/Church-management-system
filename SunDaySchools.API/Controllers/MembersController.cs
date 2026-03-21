@@ -14,19 +14,19 @@ namespace SunDaySchools.API.Controllers
     [Route("api/[controller]")]
     [ApiController]
   //  [Authorize(Roles = "Servant")]
-    public class ChildrenController : ControllerBase
+    public class MembersController : ControllerBase
     {
-        private readonly IChildManager _childmanager;
+        private readonly IMemberManager _childmanager;
         private readonly IFileStorage _fileStorage;
 
-        public ChildrenController(IChildManager childmanager, IFileStorage fileStorage)
+        public MembersController(IMemberManager childmanager, IFileStorage fileStorage)
         {
             _childmanager = childmanager;
             _fileStorage = fileStorage;
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<ChildReadDTO>> GetAll()
+        public ActionResult<IEnumerable<MemberReadDTO>> GetAll()
         {        
             var children = _childmanager.GetAll();
 
@@ -50,7 +50,7 @@ namespace SunDaySchools.API.Controllers
         }
 
         [HttpGet("{id}")]
-        public ActionResult<ChildReadDTO> GetById(int id)
+        public ActionResult<MemberReadDTO> GetById(int id)
         
         {
             
@@ -65,7 +65,7 @@ namespace SunDaySchools.API.Controllers
 
         [HttpPost]
         [Consumes("multipart/form-data")]
-        public async Task<IActionResult> Create([FromForm] ChildAddDTO childdto)
+        public async Task<IActionResult> Create([FromForm] MemberAddDTO childdto)
         {
             if (childdto == null)
             {
@@ -81,7 +81,7 @@ namespace SunDaySchools.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public ActionResult Update(int id, ChildUpdateDTO dto)
+        public ActionResult Update(int id, MemberUpdateDTO dto)
         {
             if (dto == null)
             {

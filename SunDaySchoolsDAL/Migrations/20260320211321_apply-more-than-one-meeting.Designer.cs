@@ -477,7 +477,7 @@ namespace SunDaySchools.DAL.Migrations
 
                     b.HasIndex("MeetingId");
 
-                    b.ToTable("Children");
+                    b.ToTable("Members");
                 });
 
             modelBuilder.Entity("SunDaySchools.Models.Classroom", b =>
@@ -1036,11 +1036,11 @@ namespace SunDaySchools.DAL.Migrations
             modelBuilder.Entity("SunDaySchools.Models.Child", b =>
                 {
                     b.HasOne("Church", "Chuch")
-                        .WithMany("Children")
+                        .WithMany("Members")
                         .HasForeignKey("ChurchId");
 
                     b.HasOne("SunDaySchools.Models.Classroom", "Classroom")
-                        .WithMany("Children")
+                        .WithMany("Members")
                         .HasForeignKey("ClassroomId")
                         .OnDelete(DeleteBehavior.Restrict);
 
@@ -1181,7 +1181,7 @@ namespace SunDaySchools.DAL.Migrations
 
             modelBuilder.Entity("Church", b =>
                 {
-                    b.Navigation("Children");
+                    b.Navigation("Members");
 
                     b.Navigation("Meetings");
 
@@ -1211,7 +1211,7 @@ namespace SunDaySchools.DAL.Migrations
                 {
                     b.Navigation("AttendanceHistory");
 
-                    b.Navigation("Children");
+                    b.Navigation("Members");
                 });
 
             modelBuilder.Entity("SunDaySchools.Models.SpiritualCurriculum", b =>

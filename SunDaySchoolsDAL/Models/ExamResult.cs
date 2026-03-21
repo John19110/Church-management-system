@@ -13,8 +13,8 @@ namespace SunDaySchools.DAL.Models
         public int ExamId { get; set; }
         public Exam Exam { get; set; } = null!;
 
-        public int ChildId { get; set; }
-        public Child Child { get; set; } = null!;
+        public int MemberId { get; set; }
+        public Member Member { get; set; } = null!;
 
         public int Score { get; set; }              // grade
         public bool IsAbsent { get; set; }          // useful

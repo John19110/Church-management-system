@@ -7,15 +7,15 @@ using System.Threading.Tasks;
 
 namespace SunDaySchools.DAL.Repository.Interfaces
 {
-    public interface IChildRepository
+    public interface IMemberRepository
     {
-        IQueryable<Child> GetAll();
+        IQueryable<Member> GetAll();
         
-        Child GetById(int id);
-        void Add(Child child);
-        void Update(Child child);
+        Member GetById(int id);
+        void Add(Member member);
+        void Update(Member member);
         void Delete(int id);
-        IQueryable<Child> GetSpecificClassroom(int ClassroomId);
+        IQueryable<Member> GetSpecificClassroom(int ClassroomId);
 
     }
 }

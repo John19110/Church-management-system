@@ -66,12 +66,12 @@ builder.Services.AddSwaggerGen(options =>
 
 // DI
 
-builder.Services.AddScoped<IChildManager, ChildManager>();
+builder.Services.AddScoped<IMemberManager, ChildManager>();
 builder.Services.AddScoped<IAccountManager, AccountManager>();
 builder.Services.AddScoped<IServantManager, ServantManager>();
 builder.Services.AddScoped<IAttendanceManager, AttendanceManager>();
 builder.Services.AddScoped<IServantRepository, ServantRepository>();
-builder.Services.AddScoped<IChildRepository, ChildRepository>();
+builder.Services.AddScoped<IMemberRepository, MemberRepository>();
 builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
 builder.Services.AddScoped<IAdminManager,AdminManager >();
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
@@ -182,7 +182,6 @@ if (app.Environment.IsDevelopment())
 // You can comment it out if needed.
 //app.UseHttpsRedirection();
 app.UseMiddleware<MeetingMiddleware>();
-
 app.UseMiddleware<ChurchMiddleware>();
 app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseStaticFiles();

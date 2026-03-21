@@ -19,7 +19,7 @@ namespace SunDaySchools.API.Requests
         public bool? HaveBrothers { get; set; }
 
         public int? ClassroomId { get; set; }
-        public List<ChildContactDTO>? PhoneNumbers { get; set; }
+        public List<MemberContactDTO>? PhoneNumbers { get; set; }
 
         // The uploaded file
         // this field is the reason why we made this entire class 
