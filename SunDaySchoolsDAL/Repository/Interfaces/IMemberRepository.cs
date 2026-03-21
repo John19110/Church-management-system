@@ -1,21 +1,21 @@
 ﻿using SunDaySchools.Models;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SunDaySchools.DAL.Repository.Interfaces
 {
     public interface IMemberRepository
     {
-        IQueryable<Member> GetAll();
-        
-        Member GetById(int id);
-        void Add(Member member);
-        void Update(Member member);
-        void Delete(int id);
-        IQueryable<Member> GetSpecificClassroom(int ClassroomId);
+        Task<IEnumerable<Member>> GetAllAsync();
 
+        Task<Member?> GetByIdAsync(int id);
+
+        Task AddAsync(Member member);
+
+        Task UpdateAsync(Member member);
+
+        Task DeleteAsync(int id);
+
+        Task<IEnumerable<Member>> GetSpecificClassroomAsync(int classroomId);
     }
 }

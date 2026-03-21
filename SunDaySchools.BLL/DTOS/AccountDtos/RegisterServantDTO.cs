@@ -16,5 +16,7 @@ namespace SunDaySchools.BLL.DTOS.AccountDtos
         public string ConfirmPassword { get; set; }
 
         public int ChurchId { get; set; }
+
+        public int MeetingId { get; set; }
     }
 }

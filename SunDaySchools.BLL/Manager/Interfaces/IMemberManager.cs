@@ -8,15 +8,18 @@ using System.Threading.Tasks;
 
 namespace SunDaySchools.BLL.Manager.Interfaces
 {
-    public interface  IMemberManager
+    public interface IMemberManager
     {
-        IEnumerable<MemberReadDTO> GetAll();
+        Task<IEnumerable<MemberReadDTO>> GetAllAsync();
 
-        IEnumerable<MemberReadDTO> GetSpecificClassroom(int ClassroomId);
+        Task<IEnumerable<MemberReadDTO>> GetSpecificClassroomAsync(int classroomId);
 
-        MemberReadDTO GetById(int id);
-        void Add(MemberAddDTO member);
-        void Update(MemberUpdateDTO member);
-        void Delete(int id);
+        Task<MemberReadDTO?> GetByIdAsync(int id);
+
+        Task AddAsync(MemberAddDTO member);
+
+        Task UpdateAsync(MemberUpdateDTO member);
+
+        Task DeleteAsync(int id);
     }
 }

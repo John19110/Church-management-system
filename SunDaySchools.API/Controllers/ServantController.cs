@@ -23,45 +23,23 @@ namespace SunDaySchools.API.Controllers
         }
 
         [HttpGet]
-        public ActionResult GetAll()
+        public async Task<ActionResult> GetAll()
         {
-            var servants = _servantManager.GetAll();
+            var servants = await _servantManager.GetAllAsync();
             return Ok(servants);
         }
 
         [HttpGet("{id:int}")]
-        public ActionResult GetById(int id)
+        public async Task<ActionResult> GetById(int id)
         {
-            var servant = _servantManager.GetById(id);
+            var servant = await _servantManager.GetByIdAsync(id);
 
             if (servant == null)
                 throw new NotFoundException($"Servant with id {id} not found.");
 
             return Ok(servant);
         }
-       
-        //[Authorize]
-        //[HttpGet("my-classes")]
-        //public async Task<IActionResult> GetMyClasses()
-        //{
-        //    try
-        //    {
-        //        // 1. Extract user ID from token
-        //        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-        //        if (string.IsNullOrEmpty(userId))
-        //            return Unauthorized("Invalid token");
-
-        //        // 2. Call business layer
-        //        var classes = await _servantManager.GetClassesByUserId(userId);
-
-        //        return Ok(classes);
-        //    }
-        //    catch (Exception)
-        //    {
-        //        return StatusCode(500, "Server error");
-        //    }
-        //}
         [HttpPut("{id:int}")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Update(int id, [FromForm] ServantFormRequest form, CancellationToken ct)
@@ -70,10 +48,8 @@ namespace SunDaySchools.API.Controllers
                 return ValidationProblem(ModelState);
 
             var updateDto = form.ToUpdateDto();
-
             updateDto.Id = id;
-
-            updateDto.ApplicationUserId= User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            updateDto.ApplicationUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (form.Image is not null && form.Image.Length > 0)
             {
@@ -82,15 +58,15 @@ namespace SunDaySchools.API.Controllers
                 updateDto.ImageUrl = _fileStorage.GetPublicUrl(key);
             }
 
-            _servantManager.Update(updateDto);
+            await _servantManager.UpdateAsync(updateDto);
 
             return NoContent();
         }
 
         [HttpDelete("{id:int}")]
-        public IActionResult DeleteById(int id)
+        public async Task<IActionResult> DeleteById(int id)
         {
-            _servantManager.Delete(id);
+            await _servantManager.DeleteAsync(id);
             return NoContent();
         }
     }

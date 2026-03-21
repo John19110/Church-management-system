@@ -29,11 +29,11 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
 
         public AccountManager(UserManager<ApplicationUser>usermagaer, IConfiguration configuration,
-            IServantRepository servantRepo, IChurchRepository chruchRepo,IAdminRepository adminRepo,
+            IServantRepository servantRepo, IChurchRepository churchRepo, IAdminRepository adminRepo,
             IMeetingRepository meetingRepo)
         {
 
-            _churchRepo = chruchRepo;
+            _churchRepo = churchRepo;
             _usermanager = usermagaer;
             _configuration = configuration;
             _servantRepo = servantRepo;
@@ -109,7 +109,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 throw new ValidationException(errors);
             }
 
-            await _usermanager.AddToRoleAsync(user, "Super Admin");
+            await _usermanager.AddToRoleAsync(user, "SuperAdmin");
 
 
             // Create the servant
@@ -225,6 +225,23 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 throw new UserAlreadyExistsException();
 
 
+            //Check if church already exists 
+            var existingChurch = await _churchRepo.GetChurchById(RegisterDTO.ChurchId);
+            if (existingChurch == null)
+                throw new NotFoundException("Church not found");
+
+            var existingMeeting = await _meetingRepo.GetByIdAsync(RegisterDTO.MeetingId);
+            if (existingMeeting == null)
+                throw new NotFoundException("Meeting not found");
+
+
+            if (existingMeeting.ChurchId != RegisterDTO.ChurchId)
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["MeetingId"] = new[] { "The selected meeting does not belong to the selected church." }
+                });
+
+
             var user = new ApplicationUser
             {
                 UserName = RegisterDTO.Name,
@@ -250,17 +267,19 @@ namespace SunDaySchools.BLL.Manager.Implementations
             await _usermanager.AddToRoleAsync(user, "Admin");
 
 
-            // Create the servant
-            //var servant = new Servant
-            //{
-            //    ApplicationUserId = user.Id,
-            //    Name = registerMeetingAdminDTO.Name,
-            //    PhoneNumber = registerMeetingAdminDTO.PhoneNumber,
-            //    ChurchId = church.Id // 🔥 THIS LINE IS MISSING
+            //Create the servant
+           var servant = new Servant
+           {
+               ApplicationUserId = user.Id,
+               Name = RegisterDTO.Name,
+               PhoneNumber = RegisterDTO.PhoneNumber,
+               ChurchId = RegisterDTO.ChurchId, // 🔥 THIS LINE IS MISSING
+               MeetingId = RegisterDTO.MeetingId // 🔥 THIS LINE IS MISSING
 
 
-            //};
-            //_adminRepo.AddServant(servant);
+
+           };
+            await _adminRepo.AddServantAsync(servant);
 
             var claims = await BuildJwtClaims(user);
             return GenerateToken(claims);
@@ -283,7 +302,19 @@ namespace SunDaySchools.BLL.Manager.Implementations
             if (church==null)
             {
                 throw new NotFoundException($"Church with id {registerDto.ChurchId} not found."); 
-           }
+            }
+
+            var existingMeeting = await _meetingRepo.GetByIdAsync(registerDto.MeetingId);
+            if (existingMeeting == null)
+                throw new NotFoundException("Meeting not found");
+
+
+            if (existingMeeting.ChurchId != registerDto.ChurchId)
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["MeetingId"] = new[] { "The selected meeting does not belong to the selected church." }
+                });
+
 
 
             var user = new ApplicationUser

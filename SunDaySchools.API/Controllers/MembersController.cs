@@ -8,86 +8,80 @@ using SunDaySchools.BLL.DTOS;
 using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Interfaces;
 
-
 namespace SunDaySchools.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-  //  [Authorize(Roles = "Servant")]
+    // [Authorize(Roles = "Servant")]
     public class MembersController : ControllerBase
     {
-        private readonly IMemberManager _membermanager;
+        private readonly IMemberManager _memberManager;
         private readonly IFileStorage _fileStorage;
 
-        public MembersController(IMemberManager membermanager, IFileStorage fileStorage)
+        public MembersController(IMemberManager memberManager, IFileStorage fileStorage)
         {
-            _membermanager = membermanager;
+            _memberManager = memberManager;
             _fileStorage = fileStorage;
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<MemberReadDTO>> GetAll()
-        {        
-            var Members = _membermanager.GetAll();
-
-  
-
-            return Ok(Members);
+        public async Task<ActionResult<IEnumerable<MemberReadDTO>>> GetAll()
+        {
+            var members = await _memberManager.GetAllAsync();
+            return Ok(members);
         }
 
-
         [HttpGet("classroom/{classroomId}")]
-        public ActionResult GetSpecificClassroom(int classroomId)
+        public async Task<ActionResult<IEnumerable<MemberReadDTO>>> GetSpecificClassroom(int classroomId)
         {
-            var Members = _membermanager.GetSpecificClassroom(classroomId);
+            var members = await _memberManager.GetSpecificClassroomAsync(classroomId);
 
-            if (Members != null && Members.Any())
+            if (members != null && members.Any())
             {
-                return Ok(Members);
+                return Ok(members);
             }
 
-            throw new NotFoundException($"class {classroomId} not found or there is no Members in it.");
+            throw new NotFoundException($"Classroom {classroomId} not found or there are no members in it.");
         }
 
         [HttpGet("{id}")]
-        public ActionResult<MemberReadDTO> GetById(int id)
-        
+        public async Task<ActionResult<MemberReadDTO>> GetById(int id)
         {
-            
-                var member = _membermanager.GetById(id);
-                if (member != null)
-                {
-                    return Ok(member);
-                }
-            throw new NotFoundException($"Member with id {id} not found.");
+            var member = await _memberManager.GetByIdAsync(id);
 
+            if (member != null)
+            {
+                return Ok(member);
+            }
+
+            throw new NotFoundException($"Member with id {id} not found.");
         }
 
         [HttpPost]
         [Consumes("multipart/form-data")]
-        public async Task<IActionResult> Create([FromForm] MemberAddDTO memberdto)
+        public async Task<IActionResult> Create([FromForm] MemberAddDTO memberDto)
         {
-            if (memberdto == null)
+            if (memberDto == null)
             {
                 var errors = new Dictionary<string, string[]>
                 {
-                    ["memberdto"] = new[] { "The request body cannot be empty." }
+                    ["memberDto"] = new[] { "The request body cannot be empty." }
                 };
                 throw new ValidationException(errors);
             }
 
-            _membermanager.Add(memberdto);
+            await _memberManager.AddAsync(memberDto);
             return StatusCode(201, new { message = "Created Successfully" });
         }
 
         [HttpPut("{id}")]
-        public ActionResult Update(int id, MemberUpdateDTO dto)
+        public async Task<IActionResult> Update(int id, [FromBody] MemberUpdateDTO dto)
         {
             if (dto == null)
             {
                 var errors = new Dictionary<string, string[]>
                 {
-                    ["memberdto"] = new[] { "The request body cannot be empty." }
+                    ["memberDto"] = new[] { "The request body cannot be empty." }
                 };
                 throw new ValidationException(errors);
             }
@@ -101,16 +95,15 @@ namespace SunDaySchools.API.Controllers
                 throw new ValidationException(errors);
             }
 
-            _membermanager.Update(dto); 
+            await _memberManager.UpdateAsync(dto);
             return NoContent();
         }
 
         [HttpDelete("{id}")]
-        public ActionResult DeletebyId(int id)
+        public async Task<IActionResult> DeleteById(int id)
         {
-            
-            _membermanager.Delete(id);
+            await _memberManager.DeleteAsync(id);
             return NoContent();
         }
     }
-    }
+}
