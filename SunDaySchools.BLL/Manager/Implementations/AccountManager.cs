@@ -125,7 +125,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
         }
 
 
-        public async Task<string> RegisterMeetingAdmin(RegisterMeetingAdminDTO registerMeetingAdminDTO)
+        public async Task<string> RegisterMeetingAdminNewChurch(RegisterMeetingAdminNewChurchDTO registerMeetingAdminDTO)
         {
             if (registerMeetingAdminDTO == null)
                 throw new ValidationException(new Dictionary<string, string[]>

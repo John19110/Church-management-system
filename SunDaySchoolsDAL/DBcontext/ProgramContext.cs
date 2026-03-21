@@ -34,6 +34,8 @@ namespace SunDaySchoolsDAL.DBcontext
 
         public DbSet<Church> Churches { get; set; }
 
+        public DbSet<Meeting> Meetings { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
