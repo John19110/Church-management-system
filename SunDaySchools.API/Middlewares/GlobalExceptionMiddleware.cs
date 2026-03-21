@@ -82,6 +82,18 @@ public class GlobalExceptionMiddleware
                 problemDetails.Detail = exception.Message;
                 break;
 
+            case ChurchAlreadyExistsException:
+
+                problemDetails.Title = "Church already exists";
+                problemDetails.Status = (int)HttpStatusCode.Conflict; // 409
+                problemDetails.Detail = exception.Message;
+                break;
+
+            case MeetingAlreadyExistsException:
+                problemDetails.Title = "Meeting already exists";
+                problemDetails.Status = (int)HttpStatusCode.Conflict; // 409
+                problemDetails.Detail = exception.Message;
+                break;
 
 
 

@@ -9,7 +9,7 @@ namespace SunDaySchoolsDAL.DBcontext
             RoleManager<IdentityRole> roleManager,
             UserManager<ApplicationUser> userManager)
         {
-            string[] roles = { "Admin", "Servant" };
+            string[] roles = { "Admin", "Servant","Super Admin" };
 
             foreach (var role in roles)
             {
@@ -24,17 +24,7 @@ namespace SunDaySchoolsDAL.DBcontext
                 }
             }
 
-         //   var admin = await userManager.FindByNameAsync("John");
-
-            //if (admin != null && !await userManager.IsInRoleAsync(admin, "Admin"))
-            //{
-            //    var result = await userManager.AddToRoleAsync(admin, "Admin");
-
-            //    if (!result.Succeeded)
-            //    {
-            //        throw new Exception("Failed to assign Admin role");
-            //    }
-            //}
+        
         }
     }
 }
