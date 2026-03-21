@@ -12,4 +12,5 @@ public class MemberContact : ChurchEntity
     // Foreign Key
     public int MemberId { get; set; }
     public Member Member { get; set; }   // Navigation property
+
 }

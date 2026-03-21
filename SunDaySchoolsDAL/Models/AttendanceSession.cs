@@ -25,5 +25,8 @@ namespace SunDaySchools.DAL.Models
 
         // All Members records for this session
         public List<AttendanceRecord> Records { get; set; } = new();
+
+
+
     }
 }

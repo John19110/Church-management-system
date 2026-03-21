@@ -4,16 +4,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SunDaySchools.BLL.DTOS.AccountDtos;
+
 namespace SunDaySchools.BLL.Manager.Interfaces
 {
     public interface IAccountManager
     {
         Task<string> Login(LoginDTO loginDto);
-        public Task<string> RegisterChurchSuperAdmin(RegisterChurchAdminDTO registerChurchAdminDTO);
-        public Task<string> RegisterServant(RegisterServantDTO registerDto);
 
+        Task<string> RegisterChurchSuperAdmin(RegisterChurchAdminDTO registerChurchAdminDTO);
 
+        Task<string> RegisterMeetingAdminNewChurch(RegisterMeetingAdminNewChurchDTO registerMeetingAdminDTO);
 
+        Task<string> RegisterMeetingAdminExistingChurch(RegisterMeetingAdminExistingChurch registerDTO);
 
+        Task<string> RegisterServant(RegisterServantDTO registerDto);
     }
 }

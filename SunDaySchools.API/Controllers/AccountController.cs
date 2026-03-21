@@ -8,44 +8,46 @@ namespace SunDaySchools.API.Controllers
     [Route("api/[controller]")]
     public class AccountController : ControllerBase
     {
-        private readonly IAccountManager _accountmanager;
+        private readonly IAccountManager _accountManager;
 
-        public AccountController(IAccountManager accountmanager)
+        public AccountController(IAccountManager accountManager)
         {
-            _accountmanager = accountmanager;
+            _accountManager = accountManager;
         }
 
-        // =========================
-        // LOGIN
-        // =========================
         [HttpPost("login")]
-        public async Task<ActionResult> Login(LoginDTO loginDto)
+        public async Task<ActionResult> Login([FromBody] LoginDTO loginDto)
         {
-            var result = await _accountmanager.Login(loginDto);
-
-            return Ok(new { token = result });
+            var token = await _accountManager.Login(loginDto);
+            return Ok(new { token });
         }
 
-        // =========================
-        // REGISTER CHURCH ADMIN
-        // =========================
-        [HttpPost("register-admin")]
-        public async Task<ActionResult> RegisterChurchAdmin(RegisterChurchAdminDTO dto)
+        [HttpPost("register-church-superadmin")]
+        public async Task<ActionResult> RegisterChurchSuperAdmin([FromBody] RegisterChurchAdminDTO dto)
         {
-            var result = await _accountmanager.RegisterChurchSuperAdmin(dto);
-
-            return Ok(new { token = result });
+            var token = await _accountManager.RegisterChurchSuperAdmin(dto);
+            return Ok(new { token });
         }
 
-        // =========================
-        // REGISTER SERVANT
-        // =========================
+        [HttpPost("register-meeting-admin-new-church")]
+        public async Task<ActionResult> RegisterMeetingAdminNewChurch([FromBody] RegisterMeetingAdminNewChurchDTO dto)
+        {
+            var token = await _accountManager.RegisterMeetingAdminNewChurch(dto);
+            return Ok(new { token });
+        }
+
+        [HttpPost("register-meeting-admin-existing-church")]
+        public async Task<ActionResult> RegisterMeetingAdminExistingChurch([FromBody] RegisterMeetingAdminExistingChurch dto)
+        {
+            var token = await _accountManager.RegisterMeetingAdminExistingChurch(dto);
+            return Ok(new { token });
+        }
+
         [HttpPost("register-servant")]
-        public async Task<ActionResult> RegisterServant(RegisterServantDTO dto)
+        public async Task<ActionResult> RegisterServant([FromForm] RegisterServantDTO dto)
         {
-            var result = await _accountmanager.RegisterServant(dto);
-
-            return Ok(new { token = result });
+            var token = await _accountManager.RegisterServant(dto);
+            return Ok(new { token });
         }
     }
 }
