@@ -13,7 +13,10 @@ public class GlobalExceptionMiddleware
     private readonly ILogger<GlobalExceptionMiddleware> _logger;
     private readonly IWebHostEnvironment _env;
 
-    public GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger, IWebHostEnvironment env)
+    public GlobalExceptionMiddleware(
+        RequestDelegate next,
+        ILogger<GlobalExceptionMiddleware> logger,
+        IWebHostEnvironment env)
     {
         _next = next;
         _logger = logger;
@@ -36,7 +39,6 @@ public class GlobalExceptionMiddleware
     {
         _logger.LogError(exception, "An unhandled exception occurred.");
 
-        // Default to 500 if unexpected
         var response = context.Response;
         response.ContentType = "application/problem+json";
 
@@ -45,10 +47,9 @@ public class GlobalExceptionMiddleware
             Title = "An error occurred while processing your request.",
             Status = (int)HttpStatusCode.InternalServerError,
             Instance = context.Request.Path,
-            Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1" // generic server error
+            Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1"
         };
 
-        // Customize based on exception type
         switch (exception)
         {
             case NotFoundException notFound:
@@ -63,44 +64,52 @@ public class GlobalExceptionMiddleware
                 problemDetails.Status = (int)HttpStatusCode.BadRequest;
                 problemDetails.Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1";
                 problemDetails.Detail = validation.Message;
-                // Add validation errors as an extension
                 problemDetails.Extensions["errors"] = validation.Errors;
                 break;
-            case InvalidCredentialsException:
-                problemDetails.Title = "Authentication failed";
+
+            case InvalidCredentialsException invalidCredentials:
+                problemDetails.Title = "Authentication failed.";
                 problemDetails.Status = (int)HttpStatusCode.Unauthorized;
-                problemDetails.Detail = exception.Message;
-                break;
-            case UserAlreadyExistsException:
-                problemDetails.Title = "User already exists";
-                problemDetails.Status = (int)HttpStatusCode.Conflict; // 409
-                problemDetails.Detail = exception.Message;
-                break;
-            case ServantAlreayAssigned:
-                problemDetails.Title = "Servant already Assigned to the class";
-                problemDetails.Status = (int)HttpStatusCode.Conflict; // 409
-                problemDetails.Detail = exception.Message;
+                problemDetails.Type = "https://tools.ietf.org/html/rfc7235#section-3.1";
+                problemDetails.Detail = invalidCredentials.Message;
                 break;
 
-            case ChurchAlreadyExistsException:
-
-                problemDetails.Title = "Church already exists";
-                problemDetails.Status = (int)HttpStatusCode.Conflict; // 409
-                problemDetails.Detail = exception.Message;
+            case AccountNotApprovedException accountNotApproved:
+                problemDetails.Title = "Account not approved.";
+                problemDetails.Status = (int)HttpStatusCode.Forbidden;
+                problemDetails.Type = "https://tools.ietf.org/html/rfc7231#section-6.5.3";
+                problemDetails.Detail = accountNotApproved.Message;
                 break;
 
-            case MeetingAlreadyExistsException:
-                problemDetails.Title = "Meeting already exists";
-                problemDetails.Status = (int)HttpStatusCode.Conflict; // 409
-                problemDetails.Detail = exception.Message;
+            case UserAlreadyExistsException userAlreadyExists:
+                problemDetails.Title = "User already exists.";
+                problemDetails.Status = (int)HttpStatusCode.Conflict;
+                problemDetails.Type = "https://tools.ietf.org/html/rfc7231#section-6.5.8";
+                problemDetails.Detail = userAlreadyExists.Message;
                 break;
 
+            case ServantAlreayAssigned servantAlreadyAssigned:
+                problemDetails.Title = "Servant already assigned to the class.";
+                problemDetails.Status = (int)HttpStatusCode.Conflict;
+                problemDetails.Type = "https://tools.ietf.org/html/rfc7231#section-6.5.8";
+                problemDetails.Detail = servantAlreadyAssigned.Message;
+                break;
 
+            case ChurchAlreadyExistsException churchAlreadyExists:
+                problemDetails.Title = "Church already exists.";
+                problemDetails.Status = (int)HttpStatusCode.Conflict;
+                problemDetails.Type = "https://tools.ietf.org/html/rfc7231#section-6.5.8";
+                problemDetails.Detail = churchAlreadyExists.Message;
+                break;
 
-            // You can add more cases for other custom exceptions
+            case MeetingAlreadyExistsException meetingAlreadyExists:
+                problemDetails.Title = "Meeting already exists.";
+                problemDetails.Status = (int)HttpStatusCode.Conflict;
+                problemDetails.Type = "https://tools.ietf.org/html/rfc7231#section-6.5.8";
+                problemDetails.Detail = meetingAlreadyExists.Message;
+                break;
 
             default:
-                // For security, don't leak exception details in production
                 if (_env.IsDevelopment())
                 {
                     problemDetails.Detail = exception.ToString();
@@ -112,8 +121,10 @@ public class GlobalExceptionMiddleware
                 break;
         }
 
-        response.StatusCode = problemDetails.Status.Value;
+        response.StatusCode = problemDetails.Status ?? (int)HttpStatusCode.InternalServerError;
+
         var json = JsonSerializer.Serialize(problemDetails);
+
         await response.WriteAsync(json);
     }
 }

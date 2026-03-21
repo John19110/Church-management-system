@@ -1,12 +1,12 @@
-﻿//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Text;
-//using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-//namespace SunDaySchools.DAL.Repository.Interfaces
-//{
-//    internal interface ISuperAdminRepository
-//    {
-//    }
-//}
+namespace SunDaySchools.DAL.Repository.Interfaces
+{
+    public interface ISuperAdminRepository
+    {
+    }
+}

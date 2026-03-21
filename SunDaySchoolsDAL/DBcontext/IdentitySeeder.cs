@@ -9,7 +9,7 @@ namespace SunDaySchoolsDAL.DBcontext
             RoleManager<IdentityRole> roleManager,
             UserManager<ApplicationUser> userManager)
         {
-            string[] roles = { "Admin", "Servant","Super Admin" };
+            string[] roles = { "Admin", "Servant","SuperAdmin" };
 
             foreach (var role in roles)
             {

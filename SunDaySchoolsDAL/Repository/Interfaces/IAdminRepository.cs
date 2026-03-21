@@ -1,20 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SunDaySchools.DAL.Models;
+﻿using SunDaySchools.DAL.Models;
 using SunDaySchools.Models;
 
 namespace SunDaySchools.DAL.Repository.Interfaces
 {
-    public  interface IAdminRepository
+    public interface IAdminRepository
     {
-        (Servant? servant, Classroom? classroom) AssignClassToServant(int ServantId,int ClassroomId);
+        Task<(Servant? servant, Classroom? classroom)> AssignClassToServantAsync(int servantId, int classroomId);
 
-        //   void ApprovServant();
-        void AddServant(Servant  servant);
+        Task AddServantAsync(Servant servant);
 
-        public void Save();
+        Task SaveAsync();
     }
 }

@@ -101,24 +101,21 @@ namespace SunDaySchoolsDAL.DBcontext
 
         private void ApplyChurchId()
         {
-            var churchIdFromContext = _httpContextAccessor.HttpContext?.Items["ChurchId"];
+            var churchIdFromContext = _httpContextAccessor.HttpContext?.Items["ChurchId"] as int?;
 
             foreach (var entry in ChangeTracker.Entries<ChurchEntity>())
             {
                 if (entry.State == EntityState.Added || entry.State == EntityState.Modified)
                 {
-                    // ✅ Case 1: already set manually (like in Register)
                     if (entry.Entity.ChurchId != null && entry.Entity.ChurchId != 0)
                         continue;
 
-                    // ✅ Case 2: use HttpContext
-                    if (churchIdFromContext != null)
+                    if (churchIdFromContext.HasValue)
                     {
-                        entry.Entity.ChurchId = (int)churchIdFromContext;
+                        entry.Entity.ChurchId = churchIdFromContext.Value;
                         continue;
                     }
 
-                    // ❌ Case 3: no ChurchId at all
                     throw new Exception("ChurchId is missing from the request.");
                 }
             }
@@ -141,37 +138,33 @@ namespace SunDaySchoolsDAL.DBcontext
         {
             get
             {
-                return _httpContextAccessor.HttpContext?.Items["ChurchId"] as int?;
+                var value = _httpContextAccessor.HttpContext?.Items["ChurchId"];
+                return value is int churchId ? churchId : null;
             }
         }
 
 
-
-        private void ApplyMeetinghId()
+        private void ApplyMeetingId()
         {
-            var MeetingIdFromContext = _httpContextAccessor.HttpContext?.Items["MeetingId"];
+            var meetingIdFromContext = _httpContextAccessor.HttpContext?.Items["MeetingId"] as int?;
 
             foreach (var entry in ChangeTracker.Entries<ChurchEntity>())
             {
                 if (entry.State == EntityState.Added || entry.State == EntityState.Modified)
                 {
-                    // ✅ Case 1: already set manually (like in Register)
                     if (entry.Entity.MeetingId != null && entry.Entity.MeetingId != 0)
                         continue;
 
-                    // ✅ Case 2: use HttpContext
-                    if (MeetingIdFromContext != null)
+                    if (meetingIdFromContext.HasValue)
                     {
-                        entry.Entity.MeetingId = (int)MeetingIdFromContext;
-                        continue;
+                        entry.Entity.MeetingId = meetingIdFromContext.Value;
                     }
 
-                    // ❌ Case 3: no ChurchId at all
-                    throw new Exception("MeetingId is missing from the request.");
+                    // no exception here
+                    // because some users are church-level, not meeting-level
                 }
             }
         }
-
         // Global filter for all ChurchEntity tables (Meetings)
 
         private void SetMeetingFilter<TEntity>(ModelBuilder modelBuilder)
@@ -185,14 +178,15 @@ namespace SunDaySchoolsDAL.DBcontext
         {
             get
             {
-                return _httpContextAccessor.HttpContext?.Items["MeetingId"] as int?;
+                var value = _httpContextAccessor.HttpContext?.Items["MeetingId"];
+                return value is int meetingId ? meetingId : null;
             }
         }
 
         public override int SaveChanges()
         {
             ApplyChurchId();
-            ApplyMeetinghId();
+            ApplyMeetingId();
             return base.SaveChanges();
         }
 
@@ -200,7 +194,7 @@ namespace SunDaySchoolsDAL.DBcontext
             CancellationToken cancellationToken = default)
         {
             ApplyChurchId();
-            ApplyMeetinghId();
+            ApplyMeetingId();
             return await base.SaveChangesAsync(cancellationToken);
         }
     }

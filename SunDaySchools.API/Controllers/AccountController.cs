@@ -32,7 +32,7 @@ namespace SunDaySchools.API.Controllers
         [HttpPost("register-admin")]
         public async Task<ActionResult> RegisterChurchAdmin(RegisterChurchAdminDTO dto)
         {
-            var result = await _accountmanager.RegisterChurchAdmin(dto);
+            var result = await _accountmanager.RegisterChurchSuperAdmin(dto);
 
             return Ok(new { token = result });
         }

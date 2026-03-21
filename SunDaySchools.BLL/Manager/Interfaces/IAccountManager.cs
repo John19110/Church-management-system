@@ -9,7 +9,7 @@ namespace SunDaySchools.BLL.Manager.Interfaces
     public interface IAccountManager
     {
         Task<string> Login(LoginDTO loginDto);
-        public Task<string> RegisterChurchAdmin(RegisterChurchAdminDTO registerChurchAdminDTO);
+        public Task<string> RegisterChurchSuperAdmin(RegisterChurchAdminDTO registerChurchAdminDTO);
         public Task<string> RegisterServant(RegisterServantDTO registerDto);
 
 
