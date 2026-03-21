@@ -2,57 +2,63 @@
 using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchools.Models;
 using SunDaySchoolsDAL.DBcontext;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace SunDaySchools.DAL.Repository.Implementations
 {
     public class MemberRepository : IMemberRepository
     {
-
         private readonly ProgramContext _context;
+
         public MemberRepository(ProgramContext context)
         {
-        _context=context;
-        }
-        public IQueryable<Member> GetAll()
-        {
-            return _context.Members
-                .Include(c => c.PhoneNumbers);
+            _context = context;
         }
 
-        public Member? GetById(int id)
+        public async Task<IEnumerable<Member>> GetAllAsync()
         {
-            return _context.Members
+            return await _context.Members
                 .Include(c => c.PhoneNumbers)
-                .FirstOrDefault(c => c.Id == id);
+                .ToListAsync();
         }
 
-        public void Add(Member member)
+        public async Task<Member?> GetByIdAsync(int id)
         {
-            _context.Members.Add(member);
-            _context.SaveChanges();
-        }
-       public  void Update(Member member)
-        {
-
-            _context.SaveChanges();
-           
-        }
-       public void Delete(int id)
-        {
-            _context.Members.Remove(_context.Members.Find(id));
-            _context.SaveChanges();
+            return await _context.Members
+                .Include(c => c.PhoneNumbers)
+                .FirstOrDefaultAsync(c => c.Id == id);
         }
 
-        public IQueryable<Member> GetSpecificClassroom(int classroomId)
+        public async Task AddAsync(Member member)
         {
-
-            return _context.Members.Where(ch => ch.ClassroomId == classroomId);
+            await _context.Members.AddAsync(member);
+            await _context.SaveChangesAsync();
         }
 
-        public IQueryable<Member> GetSpecificClassroomMembers(int classroomId)
+        public async Task UpdateAsync(Member member)
         {
+            await _context.SaveChangesAsync();
+        }
 
-            return _context.Members.Where(ch => ch.ClassroomId == classroomId);
+        public async Task DeleteAsync(int id)
+        {
+            var member = await _context.Members.FindAsync(id);
+
+            if (member != null)
+            {
+                _context.Members.Remove(member);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<IEnumerable<Member>> GetSpecificClassroomAsync(int classroomId)
+        {
+            return await _context.Members
+                .Where(ch => ch.ClassroomId == classroomId)
+                .Include(c => c.PhoneNumbers)
+                .ToListAsync();
         }
     }
 }

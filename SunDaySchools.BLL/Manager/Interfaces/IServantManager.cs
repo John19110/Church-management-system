@@ -10,16 +10,12 @@ namespace SunDaySchools.BLL.Manager.Interfaces
 {
     public interface IServantManager
     {
-        IEnumerable<ServantReadDTO> GetAll();
+        Task<IEnumerable<ServantReadDTO>> GetAllAsync();
 
-        ServantReadDTO? GetById(int id);
-    //    ServantReadDTO? GetByApplicationUserId(string applicationUserId);
+        Task<ServantReadDTO?> GetByIdAsync(int id);
 
-     //   void Add(ServantAddDTO Servant);
-        Task Update(ServantUpdateDTO servant);
-        //Task<IEnumerable<Classroom>> GetClassesByUserId(int servantId);
-        void Delete(int id);
+        Task UpdateAsync(ServantUpdateDTO servant);
 
-
+        Task DeleteAsync(int id);
     }
 }
