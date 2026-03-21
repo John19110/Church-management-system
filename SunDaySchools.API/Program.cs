@@ -66,7 +66,7 @@ builder.Services.AddSwaggerGen(options =>
 
 // DI
 
-builder.Services.AddScoped<IMemberManager, ChildManager>();
+builder.Services.AddScoped<IMemberManager, MemberManager>();
 builder.Services.AddScoped<IAccountManager, AccountManager>();
 builder.Services.AddScoped<IServantManager, ServantManager>();
 builder.Services.AddScoped<IAttendanceManager, AttendanceManager>();

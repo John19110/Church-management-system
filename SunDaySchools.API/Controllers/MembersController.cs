@@ -16,37 +16,37 @@ namespace SunDaySchools.API.Controllers
   //  [Authorize(Roles = "Servant")]
     public class MembersController : ControllerBase
     {
-        private readonly IMemberManager _childmanager;
+        private readonly IMemberManager _membermanager;
         private readonly IFileStorage _fileStorage;
 
-        public MembersController(IMemberManager childmanager, IFileStorage fileStorage)
+        public MembersController(IMemberManager membermanager, IFileStorage fileStorage)
         {
-            _childmanager = childmanager;
+            _membermanager = membermanager;
             _fileStorage = fileStorage;
         }
 
         [HttpGet]
         public ActionResult<IEnumerable<MemberReadDTO>> GetAll()
         {        
-            var children = _childmanager.GetAll();
+            var Members = _membermanager.GetAll();
 
   
 
-            return Ok(children);
+            return Ok(Members);
         }
 
 
         [HttpGet("classroom/{classroomId}")]
         public ActionResult GetSpecificClassroom(int classroomId)
         {
-            var children = _childmanager.GetSpecificClassroom(classroomId);
+            var Members = _membermanager.GetSpecificClassroom(classroomId);
 
-            if (children != null && children.Any())
+            if (Members != null && Members.Any())
             {
-                return Ok(children);
+                return Ok(Members);
             }
 
-            throw new NotFoundException($"class {classroomId} not found or there is no children in it.");
+            throw new NotFoundException($"class {classroomId} not found or there is no Members in it.");
         }
 
         [HttpGet("{id}")]
@@ -54,29 +54,29 @@ namespace SunDaySchools.API.Controllers
         
         {
             
-                var child = _childmanager.GetById(id);
-                if (child != null)
+                var member = _membermanager.GetById(id);
+                if (member != null)
                 {
-                    return Ok(child);
+                    return Ok(member);
                 }
-            throw new NotFoundException($"Child with id {id} not found.");
+            throw new NotFoundException($"Member with id {id} not found.");
 
         }
 
         [HttpPost]
         [Consumes("multipart/form-data")]
-        public async Task<IActionResult> Create([FromForm] MemberAddDTO childdto)
+        public async Task<IActionResult> Create([FromForm] MemberAddDTO memberdto)
         {
-            if (childdto == null)
+            if (memberdto == null)
             {
                 var errors = new Dictionary<string, string[]>
                 {
-                    ["childdto"] = new[] { "The request body cannot be empty." }
+                    ["memberdto"] = new[] { "The request body cannot be empty." }
                 };
                 throw new ValidationException(errors);
             }
 
-            _childmanager.Add(childdto);
+            _membermanager.Add(memberdto);
             return StatusCode(201, new { message = "Created Successfully" });
         }
 
@@ -87,7 +87,7 @@ namespace SunDaySchools.API.Controllers
             {
                 var errors = new Dictionary<string, string[]>
                 {
-                    ["childdto"] = new[] { "The request body cannot be empty." }
+                    ["memberdto"] = new[] { "The request body cannot be empty." }
                 };
                 throw new ValidationException(errors);
             }
@@ -101,7 +101,7 @@ namespace SunDaySchools.API.Controllers
                 throw new ValidationException(errors);
             }
 
-            _childmanager.Update(dto); 
+            _membermanager.Update(dto); 
             return NoContent();
         }
 
@@ -109,7 +109,7 @@ namespace SunDaySchools.API.Controllers
         public ActionResult DeletebyId(int id)
         {
             
-            _childmanager.Delete(id);
+            _membermanager.Delete(id);
             return NoContent();
         }
     }

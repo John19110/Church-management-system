@@ -23,7 +23,7 @@ namespace SunDaySchools.DAL.Models
 
         public DateOnly CreatedAt { get; set; } = DateOnly.FromDateTime(DateTime.Today);
 
-        // All child records for this session
+        // All Members records for this session
         public List<AttendanceRecord> Records { get; set; } = new();
     }
 }

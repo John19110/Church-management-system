@@ -49,7 +49,7 @@ namespace SunDaySchools.DAL.Repository.Implementations
             return _context.Members.Where(ch => ch.ClassroomId == classroomId);
         }
 
-        public IQueryable<Member> GetSpecificClassroomChildren(int classroomId)
+        public IQueryable<Member> GetSpecificClassroomMembers(int classroomId)
         {
 
             return _context.Members.Where(ch => ch.ClassroomId == classroomId);

@@ -2,7 +2,7 @@
 using SunDaySchools.Models;
 using SunDaySchoolsDAL.Models;
 
-public class ChildContact : ChurchEntity
+public class MemberContact : ChurchEntity
 {
     public int Id { get; set; }
     public string? Relation { get; set; }
@@ -10,6 +10,6 @@ public class ChildContact : ChurchEntity
     public List<PhoneCall>? CallsHistory { get; set; }
 
     // Foreign Key
-    public int ChildId { get; set; }
-    public Member Child { get; set; }   // Navigation property
+    public int MemberId { get; set; }
+    public Member Member { get; set; }   // Navigation property
 }

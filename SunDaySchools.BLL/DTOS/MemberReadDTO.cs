@@ -19,7 +19,7 @@ namespace SunDaySchools.BLL.DTOS
         public DateOnly JoiningDate { get; set; }
         public DateOnly LastAttendanceDate { get; set; }
         public DateOnly? SpiritualDateOfBirth { get; set; }
-        public bool? IsDisciplineChild { get; set; }
+        public bool? IsDiscipline { get; set; }
         public int? TotalNumberOfDaysAttended { get; set; }
         public List<MemberContactDTO>? PhoneNumbers { get; set; }   
         public bool? HaveBrothers { get; set; }

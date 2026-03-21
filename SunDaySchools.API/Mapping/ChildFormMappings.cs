@@ -3,11 +3,11 @@ using SunDaySchools.BLL.DTOS;
 
 namespace SunDaySchools.API.Mapping
 {
-    public static class ChildFormMappings
+    public static class MemberFormMappings
     {
 
         //Extension Method here 
-        public static MemberAddDTO ToDto(this ChildFormRequest form)
+        public static MemberAddDTO ToDto(this MemberFormRequest form)
         {
             return new MemberAddDTO
             {

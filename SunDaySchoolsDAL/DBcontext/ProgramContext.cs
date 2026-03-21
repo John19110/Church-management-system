@@ -21,7 +21,7 @@ namespace SunDaySchoolsDAL.DBcontext
         }
 
         public DbSet<Member> Members { get; set; }
-        public DbSet<ChildContact> ChildContacts { get; set; }
+        public DbSet<MemberContact> MemberContacts { get; set; }
         public DbSet<PhoneCall> PhoneCalls { get; set; }
         public DbSet<Servant> Servants { get; set; }
         public DbSet<Classroom> Classrooms { get; set; }
