@@ -26,12 +26,12 @@ namespace SunDaySchools.DAL.Repository.Implementations
                 .FirstOrDefault(c => c.Id == id);
         }
 
-        public void Add(Member child)
+        public void Add(Member member)
         {
-            _context.Members.Add(child);
+            _context.Members.Add(member);
             _context.SaveChanges();
         }
-       public  void Update(Member child)
+       public  void Update(Member member)
         {
 
             _context.SaveChanges();

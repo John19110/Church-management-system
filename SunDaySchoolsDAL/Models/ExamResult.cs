@@ -9,7 +9,7 @@ namespace SunDaySchools.DAL.Models
 {
     public class ExamResult : ChurchEntity
     {
-        public int Id { get; set; }                 // or composite key (ExamId + ChildId)
+        public int Id { get; set; }                 // or composite key (ExamId + MemberId)
         public int ExamId { get; set; }
         public Exam Exam { get; set; } = null!;
 
