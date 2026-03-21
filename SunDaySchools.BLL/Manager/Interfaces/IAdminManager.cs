@@ -7,7 +7,7 @@ namespace SunDaySchools.BLL.Manager.Interfaces
 {
     public interface IAdminManager
     {
-        void AssignClassToServant(int ServantId, int ClassroomId);
+        Task AssignClassToServant(int ServantId, int ClassroomId);
 
         Task AddServant(AdminAddServantDTO servant);
 

@@ -38,9 +38,9 @@ namespace SunDaySchools.BLL.Manager.Implementations
             _accountManager = accountManager;
         }
 
-        public void AssignClassToServant(int ServantId, int ClassroomId)
+        public async Task AssignClassToServant(int ServantId, int ClassroomId)
         {
-            var (servant, classroom) = _adminRepository.AssignClassToServant(ServantId, ClassroomId);
+            var (servant, classroom) = await _adminRepository.AssignClassToServantAsync(ServantId, ClassroomId);
 
             if (servant is null)
                 throw new NotFoundException($"Servant with id : {ServantId} not found");
@@ -62,7 +62,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 classroom.Servants.Add(servant);
             }
 
-            _adminRepository.Save();
+          await  _adminRepository.SaveAsync();
 
         }
 

@@ -8,5 +8,7 @@ namespace SunDaySchools.DAL.Repository.Implementations
 {
     public class SuperAdminRepository
     {
+
+
     }
 }

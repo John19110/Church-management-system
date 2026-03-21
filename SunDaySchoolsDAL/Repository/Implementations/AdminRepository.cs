@@ -3,45 +3,39 @@ using SunDaySchools.DAL.Models;
 using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchools.Models;
 using SunDaySchoolsDAL.DBcontext;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 
 namespace SunDaySchools.DAL.Repository.Implementations
 {
-    public class AdminRepository: IAdminRepository
+    public class AdminRepository : IAdminRepository
     {
-
         private readonly ProgramContext _context;
+
         public AdminRepository(ProgramContext context)
         {
             _context = context;
-
         }
-       public (Servant? servant,Classroom? classroom) AssignClassToServant(int ServantId,int ClassroomId)
+
+        public async Task<(Servant? servant, Classroom? classroom)> AssignClassToServantAsync(int servantId, int classroomId)
         {
-            var servant = _context.Servants.FirstOrDefault(p => p.Id ==ServantId);
-             var classroom = _context.Classrooms
-                                     .Include(c => c.Servants)
-                                     .FirstOrDefault(c => c.Id == ClassroomId);
+            var servant = await _context.Servants
+                .FirstOrDefaultAsync(p => p.Id == servantId);
+
+            var classroom = await _context.Classrooms
+                .Include(c => c.Servants)
+                .FirstOrDefaultAsync(c => c.Id == classroomId);
+
             return (servant, classroom);
-
         }
 
-        public void Save()
+        public async Task SaveAsync()
         {
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
-        public void AddServant(Servant servant)
+        public async Task AddServantAsync(Servant servant)
         {
-            _context.Servants.Add(servant);
-            _context.SaveChanges();
+            await _context.Servants.AddAsync(servant);
+            await _context.SaveChangesAsync();
         }
-
-
     }
 }

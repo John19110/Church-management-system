@@ -56,8 +56,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 throw new InvalidCredentialsException();
 
             if (!user.IsApproved)
-                return "Account waiting for church admin approval";
-
+                throw new AccountNotApprovedException();
             var check = await _usermanager.CheckPasswordAsync(user, loginDto.Password);
             if (!check)
                 throw new InvalidCredentialsException();
@@ -123,7 +122,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
 
             };
-            _adminRepo.AddServant(servant);
+         await   _adminRepo.AddServantAsync(servant);
 
             var claims = await BuildJwtClaims(user);
             return GenerateToken(claims);
@@ -168,7 +167,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 ChurchId = church.Id
             };
 
-            _meetingRepo.AddAsync(meeting);
+          await  _meetingRepo.AddAsync(meeting);
 
             // Creaet the user 
             var user = new ApplicationUser
@@ -206,7 +205,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
 
             };
-            _adminRepo.AddServant(servant);
+          await  _adminRepo.AddServantAsync(servant);
 
             var claims = await BuildJwtClaims(user);
             return GenerateToken(claims);
@@ -331,15 +330,13 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
                 var filePath = Path.Combine(folderPath, fileName);
 
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    registerDto.Image.CopyTo(stream);
-                }
+                using var stream = new FileStream(filePath, FileMode.Create);
+                await registerDto.Image.CopyToAsync(stream);
             }
 
             servant.ImageFileName = fileName;
             servant.ImageUrl = fileName != null ? $"/images/{fileName}" : null;
-            _adminRepo.AddServant(servant);
+         await   _adminRepo.AddServantAsync(servant);
 
             var claims = await BuildJwtClaims(user);
             return GenerateToken(claims);
@@ -347,15 +344,16 @@ namespace SunDaySchools.BLL.Manager.Implementations
         private async Task<List<Claim>> BuildJwtClaims(ApplicationUser user)
         {
             var claims = new List<Claim>
+    {
+        new Claim(ClaimTypes.NameIdentifier, user.Id),
+        new Claim(ClaimTypes.Name, user.UserName ?? ""),
+        new Claim("ChurchId", user.ChurchId.ToString())
+    };
 
-                {
-                    new Claim(ClaimTypes.NameIdentifier, user.Id),
-                    new Claim(ClaimTypes.Name, user.UserName ?? ""),
-                    new Claim("ChurchId", user.ChurchId.ToString()),
-                    new Claim("MeetingId", user.MeetingId.ToString())
-
-                  //  new Claim(ClaimTypes.UserData,user.ClassroomId)
-                };
+            if (user.MeetingId.HasValue)
+            {
+                claims.Add(new Claim("MeetingId", user.MeetingId.Value.ToString()));
+            }
 
             var roles = await _usermanager.GetRolesAsync(user);
             foreach (var role in roles)
