@@ -7,10 +7,14 @@ using System.Threading.Tasks;
 
 namespace SunDaySchools.DAL.Models
 {
-    public class Meeting : ChurchEntity
+    public class Meeting 
     {
         public int Id { get; set; }
         public string? Name { get; set; }
+        public int ChurchId { get; set; }
+        public Church Church { get; set; }
+
+
 
         public ICollection<Servant>? Servants { get; set; }
 

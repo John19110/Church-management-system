@@ -13,6 +13,8 @@ namespace SunDaySchools.Models
         public bool? IsAvailable { get; set; } = true;
         public DateOnly? DateOfLastUse { get; set; }
         public string? Notes { get; set; }
+
+
     }
 
 }
