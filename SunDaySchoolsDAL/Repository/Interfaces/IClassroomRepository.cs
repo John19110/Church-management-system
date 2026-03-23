@@ -21,6 +21,9 @@ namespace SunDaySchools.DAL.Repository.Interfaces
         Task<List<Classroom>> GetByChurchIdAsync(int? churchId);
 
 
+        Task SaveAsync();
+
+
 
     }
 }

@@ -31,6 +31,15 @@ namespace SunDaySchools.DAL.Repository.Implementations
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
 
+        public async Task<List<Member>> GetByIdsAsync(List<int> ids)
+        {
+            return await _context.Members
+                .Where(m => ids.Contains(m.Id))
+                .ToListAsync();
+        }
+
+
+
         public async Task AddAsync(Member member)
         {
             await _context.Members.AddAsync(member);

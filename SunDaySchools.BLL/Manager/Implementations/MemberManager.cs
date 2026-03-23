@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using SunDaySchools.BLL.DTOS;
 using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Interfaces;
@@ -15,11 +16,15 @@ namespace SunDaySchools.BLL.Manager.Implementations
     {
         private readonly IMemberRepository _memberRepository;
         private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public MemberManager(IMemberRepository memberRepository, IMapper mapper)
+
+        public MemberManager(IMemberRepository memberRepository, IMapper mapper,
+            IHttpContextAccessor httpContextAccessor)
         {
             _memberRepository = memberRepository;
             _mapper = mapper;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<IEnumerable<MemberReadDTO>> GetAllAsync()
@@ -43,6 +48,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
             return _mapper.Map<IEnumerable<MemberReadDTO>>(members);
         }
 
+
+     
         public async Task AddAsync(MemberAddDTO memberDto)
         {
             string? fileName = null;

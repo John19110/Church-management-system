@@ -1,7 +1,8 @@
 ﻿using AutoMapper;
 using SunDaySchools.BLL.DTOS;
-using SunDaySchools.BLL.DTOS.Meeting;
 using SunDaySchools.BLL.DTOS.AccountDtos;
+using SunDaySchools.BLL.DTOS.ClsssroomDtos;
+using SunDaySchools.BLL.DTOS.Meeting;
 using SunDaySchools.DAL.Models;
 using SunDaySchools.Models;
 using System;
@@ -33,6 +34,10 @@ namespace SunDaySchools.BLL.AutoMapper
             CreateMap<Servant, ServantUpdateDTO>().ReverseMap();
 
             CreateMap<RegisterServamtinAddAdmin, RegisterServantDTO>();
+
+            
+            CreateMap< ClassroomAddDTO, Classroom>();
+            CreateMap<Classroom,ClassroomReadDTO>();
 
            // CreateMap<RegisterServamtinAddAdmin, PendingServantDTO>();
 
