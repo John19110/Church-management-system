@@ -20,19 +20,14 @@ namespace SunDaySchools.API.Controllers
         }
 
 
-        //[HttpGet("classrooms")]
-        //public async Task<IActionResult> GetClassrooms()
-        //{
-        //    var currentUser = new CurrentUserDto
-        //    {
-        //        UserId = User.FindFirst("sub")?.Value,
-        //        Role = User.FindFirst(ClaimTypes.Role)?.Value
-        //    };
+        [HttpGet("visible")]
+        public async Task<IActionResult> GetVisibleClassrooms()
+        {
+            var result = await _classroomManager.GetVisibleClassrooms();
+            return Ok(result);
+        }
 
-        //    var result = await _classroomManager.GetVisibleClassroomsAsync(currentUser);
-        //    return Ok(result);
-        //}
 
 
     }
-    }
+}

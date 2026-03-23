@@ -57,21 +57,21 @@ namespace SunDaySchools.DAL.Repository.Implementations
             }
         }
 
-        public async Task<List<Classroom>> GetByServantIdAsync(int servantId)
+        public async Task<List<Classroom>> GetByServantIdAsync(int? servantId)
         {
             return await _context.Classrooms
                 .Where(c => c.Servants.Any(s => s.Id == servantId))
                 .ToListAsync();
         }
 
-        public async Task<List<Classroom>> GetByMeetingIdAsync(int meetingId)
+        public async Task<List<Classroom>> GetByMeetingIdAsync(int? meetingId)
         {
             return await _context.Classrooms
                 .Where(c => c.MeetingId == meetingId)
                 .ToListAsync();
         }
 
-        public async Task<List<Classroom>> GetByChurchIdAsync(int churchId)
+        public async Task<List<Classroom>> GetByChurchIdAsync(int? churchId)
         {
             return await _context.Classrooms
                 .Where(c => c.ChurchId == churchId)

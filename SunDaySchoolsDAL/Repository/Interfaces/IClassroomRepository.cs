@@ -16,9 +16,9 @@ namespace SunDaySchools.DAL.Repository.Interfaces
         Task UpdateAsync(Classroom classroom);
         Task DeleteAsync(int id);
 
-        Task<List<Classroom>> GetByServantIdAsync(int servantId);
-        Task<List<Classroom>> GetByMeetingIdAsync(int meetingId);
-        Task<List<Classroom>> GetByChurchIdAsync(int churchId);
+        Task<List<Classroom>> GetByServantIdAsync(int? servantId);
+        Task<List<Classroom>> GetByMeetingIdAsync(int? meetingId);
+        Task<List<Classroom>> GetByChurchIdAsync(int? churchId);
 
 
 
