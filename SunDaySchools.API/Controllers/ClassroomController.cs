@@ -49,21 +49,9 @@ namespace SunDaySchools.API.Controllers
 
 
 
-        [HttpGet("servants/select")]
-        [Authorize(Roles = "Admin,SuperAdmin")]
-        public async Task<IActionResult> GetServantsForSelection()
-        {
-            var result = await _servantManager.GetServantsForSelection();
-            return Ok(result);
-        }
+    
 
-        [HttpGet("members/select")]
-        [Authorize(Roles = "Admin,SuperAdmin")]
-        public async Task<IActionResult> GetMembersForSelection()
-        {
-            var result = await _memberManager.GetMembersForSelection();
-            return Ok(result);
-        }
+    
 
     }
 }
