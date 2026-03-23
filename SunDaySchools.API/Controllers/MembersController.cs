@@ -25,22 +25,22 @@ namespace SunDaySchools.API.Controllers
         }
 
 
-        [HttpPost]
-        [Consumes("multipart/form-data")]
-        public async Task<IActionResult> Create([FromForm] MemberAddDTO memberDto,int ClassroomId)
+       [HttpPost("/api/classrooms/{classroomId}/members")]
+[Consumes("multipart/form-data")]
+public async Task<IActionResult> Create(int classroomId, [FromForm] MemberAddDTO memberDto)
+{
+    if (memberDto == null)
+    {
+        var errors = new Dictionary<string, string[]>
         {
-            if (memberDto == null)
-            {
-                var errors = new Dictionary<string, string[]>
-                {
-                    ["memberDto"] = new[] { "The request body cannot be empty." }
-                };
-                throw new ValidationException(errors);
-            }
+            ["memberDto"] = new[] { "The request body cannot be empty." }
+        };
+        throw new ValidationException(errors);
+    }
 
-            await _memberManager.AddAsync(memberDto, ClassroomId);
-            return StatusCode(201, new { message = "Created Successfully" });
-        }
+    await _memberManager.AddAsync(memberDto, classroomId);
+    return StatusCode(201, new { message = "Created Successfully" });
+}
 
 
         [HttpGet] 

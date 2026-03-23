@@ -4,7 +4,11 @@ using SunDaySchools.BLL.DTOS;
 using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Interfaces;
 using SunDaySchools.DAL.Repository.Interfaces;
+using Microsoft.AspNetCore.Identity;
 using SunDaySchools.Models;
+using System.Security.Claims;
+using SunDaySchools.Models;
+using SunDaySchoolsDAL.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,16 +19,18 @@ namespace SunDaySchools.BLL.Manager.Implementations
     public class MemberManager : IMemberManager
     {
         private readonly IMemberRepository _memberRepository;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
 
         public MemberManager(IMemberRepository memberRepository, IMapper mapper,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor, UserManager<ApplicationUser> userManager)
         {
             _memberRepository = memberRepository;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
+            _userManager = userManager;
         }
 
         public async Task<IEnumerable<MemberReadDTO>> GetAllAsync()
@@ -66,7 +72,26 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 using var stream = new FileStream(filePath, FileMode.Create);
                 await memberDto.Image.CopyToAsync(stream);
             }
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null)
+                throw new UnauthorizedAccessException("User is not authenticated.");
 
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userIdClaim))
+                throw new UnauthorizedAccessException("UserId claim is missing.");
+
+            var appuser = await _userManager.FindByIdAsync(userIdClaim);
+            if (appuser.ServantProfile == null)
+                throw new UnauthorizedAccessException("Current user is not linked to a servant profile.");
+            if (!appuser.ServantProfile.classroomsIds.Contains(classroomId))
+            
+                throw new UnauthorizedAccessException("this class is not assigned to you.");
+
+        
+
+
+            // if(user.ServantProfile)
             var model = _mapper.Map<Member>(memberDto);
             model.ImageFileName = fileName;
             model.ImageUrl = fileName != null ? $"/images/{fileName}" : null;
