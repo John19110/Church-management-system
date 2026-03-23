@@ -38,6 +38,27 @@ namespace SunDaySchools.API.Controllers
             return Ok();
         }
 
+
+        [HttpGet("{sessionId:int}")]
+        public async Task<IActionResult> GetAttendance(int sessionId)
+        {
+            if (sessionId <= 0)
+            {
+                var errors = new Dictionary<string, string[]>
+                {
+                    ["sessionId"] = new[] { "The Session Id cant be less than 0." }
+                };
+                throw new ValidationException(errors);
+
+            }
+            var session = await _attendanceManager.GetAttendanceAsync(sessionId);
+
+            if (session == null)
+                throw new NotFoundException($"Sesstion with id {sessionId} not found.");
+
+            return Ok(session);
+        }
+
         [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdateAttendance(int id, [FromBody] AttendanceSessionUpdateDTO attendanceSession)
         {
@@ -64,24 +85,6 @@ namespace SunDaySchools.API.Controllers
             return Ok();
         }
 
-        [HttpGet("{sessionId:int}")]
-        public async Task<IActionResult> GetAttendance(int sessionId)
-        {
-            if (sessionId <= 0)
-            {
-                var errors = new Dictionary<string, string[]>
-                {
-                    ["sessionId"] = new[] { "The Session Id cant be less than 0." }
-                };
-                throw new ValidationException(errors);
-
-            }
-            var session = await _attendanceManager.GetAttendanceAsync(sessionId);
-
-            if (session == null)
-                throw new NotFoundException($"Sesstion with id {sessionId} not found.");
-
-            return Ok(session);
-        }
+       
     }
 }

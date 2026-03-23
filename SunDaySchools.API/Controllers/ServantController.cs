@@ -40,6 +40,14 @@ namespace SunDaySchools.API.Controllers
             return Ok(servant);
         }
 
+        [HttpGet("servants/select")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        public async Task<IActionResult> GetServantsForSelection()
+        {
+            var result = await _servantManager.GetServantsForSelection();
+            return Ok(result);
+        }
+
         [HttpPut("{id:int}")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Update(int id, [FromForm] ServantFormRequest form, CancellationToken ct)
