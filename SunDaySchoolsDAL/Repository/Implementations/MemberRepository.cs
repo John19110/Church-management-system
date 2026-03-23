@@ -69,5 +69,11 @@ namespace SunDaySchools.DAL.Repository.Implementations
                 .Include(c => c.PhoneNumbers)
                 .ToListAsync();
         }
+
+        public async Task SaveAsync()
+        {
+            await _context.SaveChangesAsync();
+        }
+
     }
 }

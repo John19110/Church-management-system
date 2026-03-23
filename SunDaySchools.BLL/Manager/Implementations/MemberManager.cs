@@ -19,18 +19,22 @@ namespace SunDaySchools.BLL.Manager.Implementations
     public class MemberManager : IMemberManager
     {
         private readonly IMemberRepository _memberRepository;
+        private readonly IClassroomRepository _classroomRepository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
 
         public MemberManager(IMemberRepository memberRepository, IMapper mapper,
-            IHttpContextAccessor httpContextAccessor, UserManager<ApplicationUser> userManager)
+            IHttpContextAccessor httpContextAccessor, UserManager<ApplicationUser> userManager,
+            IClassroomRepository classroomRepository)
         {
             _memberRepository = memberRepository;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
             _userManager = userManager;
+            _classroomRepository = classroomRepository;
+
         }
 
         public async Task<IEnumerable<MemberReadDTO>> GetAllAsync()
@@ -54,10 +58,28 @@ namespace SunDaySchools.BLL.Manager.Implementations
             return _mapper.Map<IEnumerable<MemberReadDTO>>(members);
         }
 
-
-     
-        public async Task AddAsync(MemberAddDTO memberDto,int classroomId)
+        public async Task AddAsync(MemberAddDTO memberDto, int classroomId)
         {
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null)
+                throw new UnauthorizedAccessException("User is not authenticated.");
+
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+                throw new UnauthorizedAccessException("UserId claim is missing.");
+
+            var appUser = await _userManager.FindByIdAsync(userIdClaim);
+            if (appUser == null)
+                throw new NotFoundException("User not found.");
+
+            if (appUser.ServantProfile == null)
+                throw new UnauthorizedAccessException("Current user is not linked to a servant profile.");
+
+            var isAssigned = await _classroomRepository.IsServantAssignedAsync(appUser.ServantProfile.Id, classroomId);
+
+            if (!isAssigned)
+                throw new UnauthorizedAccessException("This class is not assigned to you.");
+
             string? fileName = null;
 
             if (memberDto.Image != null)
@@ -72,32 +94,14 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 using var stream = new FileStream(filePath, FileMode.Create);
                 await memberDto.Image.CopyToAsync(stream);
             }
-            var user = _httpContextAccessor.HttpContext?.User;
-            if (user == null)
-                throw new UnauthorizedAccessException("User is not authenticated.");
 
-            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (string.IsNullOrEmpty(userIdClaim))
-                throw new UnauthorizedAccessException("UserId claim is missing.");
-
-            var appuser = await _userManager.FindByIdAsync(userIdClaim);
-            if (appuser.ServantProfile == null)
-                throw new UnauthorizedAccessException("Current user is not linked to a servant profile.");
-            if (!appuser.ServantProfile.classroomsIds.Contains(classroomId))
-            
-                throw new UnauthorizedAccessException("this class is not assigned to you.");
-
-        
-
-
-            // if(user.ServantProfile)
             var model = _mapper.Map<Member>(memberDto);
             model.ImageFileName = fileName;
             model.ImageUrl = fileName != null ? $"/images/{fileName}" : null;
             model.ClassroomId = classroomId;
 
             await _memberRepository.AddAsync(model);
+            await _memberRepository.SaveAsync();
         }
         public async Task<List<SelectOptionDTO>> GetMembersForSelection()
         {

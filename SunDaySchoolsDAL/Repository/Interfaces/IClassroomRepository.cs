@@ -10,7 +10,7 @@ namespace SunDaySchools.DAL.Repository.Interfaces
 {
     public interface IClassroomRepository
     {
-        Task<IQueryable<Classroom>> GetAllAsync(); // Or perhaps Task<List<Classroom>>? IQueryable might be tricky with async, but it's possible.
+        Task<IQueryable<Classroom>> GetAllAsync(); 
         Task<Classroom?> GetByIdAsync(int id);
         Task AddAsync(Classroom classroom);
         Task UpdateAsync(Classroom classroom);
@@ -20,7 +20,7 @@ namespace SunDaySchools.DAL.Repository.Interfaces
         Task<List<Classroom>> GetByMeetingIdAsync(int? meetingId);
         Task<List<Classroom>> GetByChurchIdAsync(int? churchId);
 
-
+        Task<bool> IsServantAssignedAsync(int servantId, int classroomId);
         Task SaveAsync();
 
 
