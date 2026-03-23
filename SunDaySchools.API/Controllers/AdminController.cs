@@ -46,16 +46,7 @@ namespace SunDaySchools.API.Controllers
 
 
 
-        [HttpPost("add-meeting")]
-        public async Task<IActionResult> AddMeeting(MeetingAddDTO meeting)
-        {
-            await _adminManager.AddMeeting(meeting);
-            return Ok(new { message = "Meeting added successfully" });
-
-
-
-        }
-
+      
 
         // Get pending servants
         [HttpGet("pending-servants")]

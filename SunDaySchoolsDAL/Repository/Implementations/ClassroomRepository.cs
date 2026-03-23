@@ -56,5 +56,27 @@ namespace SunDaySchools.DAL.Repository.Implementations
                 await _context.SaveChangesAsync();
             }
         }
+
+        public async Task<List<Classroom>> GetByServantIdAsync(int servantId)
+        {
+            return await _context.Classrooms
+                .Where(c => c.Servants.Any(s => s.Id == servantId))
+                .ToListAsync();
+        }
+
+        public async Task<List<Classroom>> GetByMeetingIdAsync(int meetingId)
+        {
+            return await _context.Classrooms
+                .Where(c => c.MeetingId == meetingId)
+                .ToListAsync();
+        }
+
+        public async Task<List<Classroom>> GetByChurchIdAsync(int churchId)
+        {
+            return await _context.Classrooms
+                .Where(c => c.ChurchId == churchId)
+                .ToListAsync();
+        }
+
     }
 }
