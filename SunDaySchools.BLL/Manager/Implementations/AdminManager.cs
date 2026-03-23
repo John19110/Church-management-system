@@ -2,15 +2,12 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using SunDaySchools.BLL.DTOS;
 using SunDaySchools.BLL.DTOS.AccountDtos;
 using SunDaySchools.BLL.Exceptions;
-using SunDaySchools.BLL.Manager.Interfaces;
 using SunDaySchools.BLL.Manager.Interfaces;
 using SunDaySchools.DAL.Models;
 using SunDaySchools.DAL.Repository.Implementations;
 using SunDaySchools.DAL.Repository.Interfaces;
-using SunDaySchools.Models;
 using SunDaySchoolsDAL.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
