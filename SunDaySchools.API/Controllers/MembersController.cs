@@ -27,7 +27,7 @@ namespace SunDaySchools.API.Controllers
 
         [HttpPost]
         [Consumes("multipart/form-data")]
-        public async Task<IActionResult> Create([FromForm] MemberAddDTO memberDto)
+        public async Task<IActionResult> Create([FromForm] MemberAddDTO memberDto,int ClassroomId)
         {
             if (memberDto == null)
             {
@@ -38,12 +38,12 @@ namespace SunDaySchools.API.Controllers
                 throw new ValidationException(errors);
             }
 
-            await _memberManager.AddAsync(memberDto);
+            await _memberManager.AddAsync(memberDto, ClassroomId);
             return StatusCode(201, new { message = "Created Successfully" });
         }
 
 
-        [HttpGet]
+        [HttpGet] 
         public async Task<ActionResult<IEnumerable<MemberReadDTO>>> GetAll()
         {
             var members = await _memberManager.GetAllAsync();
