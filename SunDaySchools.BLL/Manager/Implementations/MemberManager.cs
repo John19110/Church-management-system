@@ -50,7 +50,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
 
      
-        public async Task AddAsync(MemberAddDTO memberDto)
+        public async Task AddAsync(MemberAddDTO memberDto,int classroomId)
         {
             string? fileName = null;
 
@@ -70,6 +70,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             var model = _mapper.Map<Member>(memberDto);
             model.ImageFileName = fileName;
             model.ImageUrl = fileName != null ? $"/images/{fileName}" : null;
+            model.ClassroomId = classroomId;
 
             await _memberRepository.AddAsync(model);
         }
