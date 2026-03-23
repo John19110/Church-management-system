@@ -73,7 +73,16 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             await _memberRepository.AddAsync(model);
         }
+        public async Task<List<SelectOptionDTO>> GetMembersForSelection()
+        {
+            var members = await _memberRepository.GetAllAsync();
 
+            return members.Select(m => new SelectOptionDTO
+            {
+                Id = m.Id,
+                Name = m.FullName
+            }).ToList();
+        }
         public async Task UpdateAsync(MemberUpdateDTO memberUpdateDto)
         {
             var existing = await _memberRepository.GetByIdAsync(memberUpdateDto.Id);
