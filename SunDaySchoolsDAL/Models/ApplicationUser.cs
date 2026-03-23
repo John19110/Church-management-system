@@ -23,6 +23,6 @@ namespace SunDaySchoolsDAL.Models
         public bool IsApproved { get; set; } = false;
 
         // auditing
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 }

@@ -33,6 +33,15 @@ namespace SunDaySchools.DAL.Repository.Implementations
                 .FirstOrDefaultAsync(s => s.Id == id);
         }
 
+        public async Task<List<Servant>> GetByIdsAsync(List<int> ids)
+        {
+            return await _context.Servants
+                .Where(s => ids.Contains(s.Id))
+                .ToListAsync();
+        }
+
+
+
         public async Task<IEnumerable<Classroom>> GetByServantIdAsync(int servantId)
         {
             return await _context.Classrooms
@@ -47,6 +56,7 @@ namespace SunDaySchools.DAL.Repository.Implementations
                 .Include(s => s.ApplicationUser)
                 .FirstOrDefaultAsync(s => s.ApplicationUserId == applicationUserId);
         }
+
 
         public async Task UpdateAsync(Servant servant)
         {

@@ -14,6 +14,8 @@ namespace SunDaySchools.BLL.Manager.Interfaces
 
         Task<ServantReadDTO?> GetByIdAsync(int id);
 
+        Task<List<SelectOptionDTO>> GetServantsForSelection();
+
         Task UpdateAsync(ServantUpdateDTO servant);
 
         Task DeleteAsync(int id);

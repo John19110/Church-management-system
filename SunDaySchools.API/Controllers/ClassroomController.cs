@@ -1,10 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using SunDaySchools.BLL.DTOS;
+using SunDaySchools.BLL.DTOS.ClsssroomDtos;
 using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Interfaces;
 using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
+
+
 
 namespace SunDaySchools.API.Controllers
 {
@@ -26,6 +29,15 @@ namespace SunDaySchools.API.Controllers
             var result = await _classroomManager.GetVisibleClassrooms();
             return Ok(result);
         }
+
+
+        [HttpPost]
+        public async Task<IActionResult> AddClassroom(ClassroomAddDTO classroom)
+        {
+             await _classroomManager.AddClassroom(classroom);
+            return Ok();
+        }
+
 
 
 
