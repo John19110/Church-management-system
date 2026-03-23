@@ -15,6 +15,7 @@ namespace SunDaySchools.BLL.Manager.Interfaces
         Task<IEnumerable<MemberReadDTO>> GetSpecificClassroomAsync(int classroomId);
 
         Task<MemberReadDTO?> GetByIdAsync(int id);
+         Task<List<SelectOptionDTO>> GetMembersForSelection();
 
         Task AddAsync(MemberAddDTO member);
 

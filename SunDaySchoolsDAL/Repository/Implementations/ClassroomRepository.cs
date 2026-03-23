@@ -78,5 +78,11 @@ namespace SunDaySchools.DAL.Repository.Implementations
                 .ToListAsync();
         }
 
+
+        public async Task SaveAsync()
+        {
+            await _context.SaveChangesAsync();
+        }
+
     }
 }
