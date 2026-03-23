@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SunDaySchools.BLL.DTOS;
@@ -6,13 +7,13 @@ using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Interfaces;
 using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchools.Models;
+using SunDaySchoolsDAL.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using AutoMapper;
 
 namespace SunDaySchools.BLL.Manager.Implementations
 {
@@ -23,11 +24,15 @@ namespace SunDaySchools.BLL.Manager.Implementations
             private readonly IClassroomRepository _classroomRepository;
             private readonly IHttpContextAccessor _httpContextAccessor;
             private readonly IMapper _mapper;
-                             
-            public ClassroomService(IHttpContextAccessor httpContextAccessor, 
-                IClassroomRepository classroomRepository,IMapper mapper )
+            private readonly UserManager<ApplicationUser> _userManager;
+
+
+        public ClassroomService(IHttpContextAccessor httpContextAccessor, 
+                IClassroomRepository classroomRepository,IMapper mapper,
+                UserManager<ApplicationUser> userManager)
             {
-                _classroomRepository = classroomRepository;
+            _userManager = userManager;
+            _classroomRepository = classroomRepository;
             _httpContextAccessor = httpContextAccessor;
             _mapper = mapper;
             }
@@ -39,10 +44,12 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 throw new UnauthorizedAccessException("User is not authenticated.");
 
             var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
             if (string.IsNullOrEmpty(userIdClaim))
                 throw new UnauthorizedAccessException("UserId claim is missing.");
 
             var appUser = await _userManager.FindByIdAsync(userIdClaim);
+
             if (appUser == null)
                 throw new NotFoundException("User not found.");
 
@@ -64,13 +71,13 @@ namespace SunDaySchools.BLL.Manager.Implementations
             }
             else if (user.IsInRole("Servant"))
             {
-                if (appUser.ServantId == null)
+                if (appUser.ServantProfile.Id == null)
                     throw new ValidationException(new Dictionary<string, string[]>
                     {
                         ["Servant"] = new[] { "Current user is not linked to a servant record." }
                     });
 
-                classrooms = await _classroomRepository.GetByServantIdAsync(appUser.ServantId.Value);
+                classrooms = await _classroomRepository.GetByServantIdAsync(appUser.ServantProfile.Id);
             }
             else
             {

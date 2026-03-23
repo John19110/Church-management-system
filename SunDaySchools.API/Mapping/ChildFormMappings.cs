@@ -22,7 +22,6 @@ namespace SunDaySchools.API.Mapping
                 Notes = form.Notes,
                 BrothersNames = form.BrothersNames,
                 HaveBrothers = form.HaveBrothers,
-                ClassroomId = form.ClassroomId,
                 PhoneNumbers=form.PhoneNumbers
 
     };
