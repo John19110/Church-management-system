@@ -62,5 +62,67 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             return result;
         }
+
+
+        public async Task RejectAdmin(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user == null)
+                throw new NotFoundException($"User with id {userId} not found.");
+
+            if (user.IsApproved)
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["User"] = new[] { "Approved users cannot be rejected." }
+                });
+
+            var result = await _userManager.DeleteAsync(user);
+
+            if (!result.Succeeded)
+            {
+                var errors = result.Errors
+                    .GroupBy(e => e.Code)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.Select(e => e.Description).ToArray()
+                    );
+
+                throw new ValidationException(errors);
+            }
+
+        }
+
+
+        public async Task ApproveAdmin(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user == null)
+                throw new NotFoundException($"User with id {userId} not found.");
+
+            if (user.IsApproved)
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["User"] = new[] { "User is already approved." }
+                });
+
+            user.IsApproved = true;
+
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
+            {
+                var errors = result.Errors
+                    .GroupBy(e => e.Code)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.Select(e => e.Description).ToArray()
+                    );
+
+                throw new ValidationException(errors);
+            }
+        }
+
     }
 }

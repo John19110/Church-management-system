@@ -11,7 +11,10 @@ namespace SunDaySchools.BLL.Manager.Interfaces
 
         Task<List<PendingServantDTO>> GetPendingAdmins();
 
+        Task ApproveAdmin(string userId);
 
+
+        Task RejectAdmin(string userId);
 
     }
 }
