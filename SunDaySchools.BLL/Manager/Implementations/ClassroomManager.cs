@@ -21,7 +21,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
 {
    
 
-        public class ClassroomService : IClassroomManager
+        public class ClassroomManager : IClassroomManager
         {
             private readonly IClassroomRepository         _classroomRepository;
             private readonly IHttpContextAccessor         _httpContextAccessor;

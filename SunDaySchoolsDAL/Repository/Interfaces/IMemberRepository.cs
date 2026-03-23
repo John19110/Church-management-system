@@ -20,5 +20,7 @@ namespace SunDaySchools.DAL.Repository.Interfaces
         Task DeleteAsync(int id);
 
         Task<IEnumerable<Member>> GetSpecificClassroomAsync(int classroomId);
+
+        Task SaveAsync();
     }
 }

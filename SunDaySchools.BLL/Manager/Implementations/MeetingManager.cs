@@ -9,10 +9,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SunDaySchools.BLL.Manager.Interfaces;
+
 
 namespace SunDaySchools.BLL.Manager.Implementations
 {
-    public class MeetingManager
+    public class MeetingManager:IMeetingManager
     {
 
         private readonly IClassroomRepository _classroomRepository;

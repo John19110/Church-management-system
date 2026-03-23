@@ -78,7 +78,11 @@ namespace SunDaySchools.DAL.Repository.Implementations
                 .ToListAsync();
         }
 
-
+        public async Task<bool> IsServantAssignedAsync(int servantId, int classroomId)
+        {
+            return await _context.Classrooms
+                .AnyAsync(c => c.Id == classroomId && c.Servants.Any(s => s.Id == servantId));
+        }
         public async Task SaveAsync()
         {
             await _context.SaveChangesAsync();
