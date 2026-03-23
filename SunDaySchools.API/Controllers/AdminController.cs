@@ -24,13 +24,6 @@ namespace SunDaySchools.API.Controllers
             _filestorage = filestorage;
         }
 
-        // Assign classroom to servant
-        [HttpPut("assign-class/{ServantId}/{ClassroomId}")]
-        public ActionResult AssignClassToServant(int ServantId, int ClassroomId)
-        {
-            _adminManager.AssignClassToServant(ServantId, ClassroomId);
-            return Ok(new { message = "Class assigned successfully" });
-        }
 
         // Add servant
         [HttpPost("add-servant")]
@@ -46,14 +39,23 @@ namespace SunDaySchools.API.Controllers
                 throw new ValidationException(errors);
             }
 
-           await _adminManager.AddServant(servant);
+            await _adminManager.AddServant(servant);
 
-            return  StatusCode(201, new { message = "Created Successfully" });
+            return StatusCode(201, new { message = "Created Successfully" });
         }
 
-        // =========================
-        // NEW ENDPOINTS
-        // =========================
+
+
+        [HttpPost("add-meeting")]
+        public async Task<IActionResult> AddMeeting(MeetingAddDTO meeting)
+        {
+            await _adminManager.AddMeeting(meeting);
+            return Ok(new { message = "Meeting added successfully" });
+
+
+
+        }
+
 
         // Get pending servants
         [HttpGet("pending-servants")]
@@ -62,6 +64,19 @@ namespace SunDaySchools.API.Controllers
             var result = await _adminManager.GetPendingServants();
             return Ok(result);
         }
+
+        // Assign classroom to servant
+        [HttpPut("assign-class/{ServantId}/{ClassroomId}")]
+        public ActionResult AssignClassToServant(int ServantId, int ClassroomId)
+        {
+            _adminManager.AssignClassToServant(ServantId, ClassroomId);
+            return Ok(new { message = "Class assigned successfully" });
+        }
+
+       
+        // =========================3
+        // NEW ENDPOINTS
+        // =========================
 
         // Approve servant
         [HttpPut("approve-servant/{userId}")]
@@ -79,16 +94,6 @@ namespace SunDaySchools.API.Controllers
             return Ok(new { message = "Servant rejected successfully" });
         }
 
-
-        [HttpPost("add-meeting")]
-        public async Task<IActionResult> AddMeeting(MeetingAddDTO meeting)
-        {
-            await  _adminManager.AddMeeting(meeting);
-            return Ok(new { message = "Meeting added successfully" });
-
-
-
-        }
 
 
 

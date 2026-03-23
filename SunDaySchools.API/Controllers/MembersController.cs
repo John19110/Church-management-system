@@ -24,6 +24,26 @@ namespace SunDaySchools.API.Controllers
             _fileStorage = fileStorage;
         }
 
+
+        [HttpPost]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> Create([FromForm] MemberAddDTO memberDto)
+        {
+            if (memberDto == null)
+            {
+                var errors = new Dictionary<string, string[]>
+                {
+                    ["memberDto"] = new[] { "The request body cannot be empty." }
+                };
+                throw new ValidationException(errors);
+            }
+
+            await _memberManager.AddAsync(memberDto);
+            return StatusCode(201, new { message = "Created Successfully" });
+        }
+
+
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MemberReadDTO>>> GetAll()
         {
@@ -57,23 +77,7 @@ namespace SunDaySchools.API.Controllers
             throw new NotFoundException($"Member with id {id} not found.");
         }
 
-        [HttpPost]
-        [Consumes("multipart/form-data")]
-        public async Task<IActionResult> Create([FromForm] MemberAddDTO memberDto)
-        {
-            if (memberDto == null)
-            {
-                var errors = new Dictionary<string, string[]>
-                {
-                    ["memberDto"] = new[] { "The request body cannot be empty." }
-                };
-                throw new ValidationException(errors);
-            }
-
-            await _memberManager.AddAsync(memberDto);
-            return StatusCode(201, new { message = "Created Successfully" });
-        }
-
+    
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] MemberUpdateDTO dto)
         {
