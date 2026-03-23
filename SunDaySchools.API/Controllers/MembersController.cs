@@ -43,7 +43,6 @@ namespace SunDaySchools.API.Controllers
         }
 
 
-
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MemberReadDTO>>> GetAll()
         {
@@ -77,8 +76,8 @@ namespace SunDaySchools.API.Controllers
             throw new NotFoundException($"Member with id {id} not found.");
         }
 
-        [HttpGet("members/select")]
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpGet("select")]
+      //  [Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> GetMembersForSelection()
         {
             var result = await _memberManager.GetMembersForSelection();

@@ -40,8 +40,8 @@ namespace SunDaySchools.API.Controllers
             return Ok(servant);
         }
 
-        [HttpGet("servants/select")]
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpGet("select")]
+        //[Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> GetServantsForSelection()
         {
             var result = await _servantManager.GetServantsForSelection();
