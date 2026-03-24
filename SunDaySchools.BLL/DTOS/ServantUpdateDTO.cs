@@ -18,7 +18,6 @@ namespace SunDaySchools.BLL.DTOS
         public string? PhoneNumber { get; set; }
         public int? ClassroomId { get; set; }
 
-        public string ApplicationUserId { get; set; } = default!;
 
     }
 }
