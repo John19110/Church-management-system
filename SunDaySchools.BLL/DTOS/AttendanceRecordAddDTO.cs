@@ -4,7 +4,7 @@ namespace SunDaySchools.BLL.DTOS
 {
     public class AttendanceRecordAddDTO
     {
-        public int ChildId { get; set; }
+        public int MemberId { get; set; }
 
         public bool MadeHomeWork { get; set; } = false;
         public bool HasTools { get; set; } = false;

@@ -11,7 +11,7 @@ namespace SunDaySchools.BLL.DTOS.ClsssroomDtos
     public class ClassroomAddDTO
     {
         public string? Name { get; set; }
-        public string? AgeOfChildren { get; set; }
+        public string? AgeOfMembers { get; set; }
         public List<int>? ServantIds { get; set; }
         public List<int>? MemberIds { get; set; }
         public int? MeetingId { get; set; }

@@ -82,7 +82,7 @@ builder.Services.AddScoped<IClassroomRepository, ClassroomRepository>();
 builder.Services.AddScoped<IMemberManager, MemberManager>();
 builder.Services.AddScoped<IMemberRepository, MemberRepository>();
 
-builder.Services.AddScoped<IMeetingManager, MeetingManager();
+builder.Services.AddScoped<IMeetingManager, MeetingManager>();
 builder.Services.AddScoped<IMeetingRepository, MeetingRepository>();
 
 builder.Services.AddScoped<IServantManager, ServantManager>();
