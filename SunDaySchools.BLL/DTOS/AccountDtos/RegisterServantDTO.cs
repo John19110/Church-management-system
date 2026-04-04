@@ -18,5 +18,10 @@ namespace SunDaySchools.BLL.DTOS.AccountDtos
         public int ChurchId { get; set; }
 
         public int MeetingId { get; set; }
+
+
+        public DateOnly? BirthDate { get; set; }
+        public DateOnly? JoiningDate { get; set; }
+        public List<int>? classroomsIds { get; set; }
     }
 }

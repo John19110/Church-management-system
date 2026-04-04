@@ -15,7 +15,7 @@ namespace SunDaySchools.BLL.Manager.Interfaces
 
         Task<string> RegisterMeetingAdminNewChurch(RegisterMeetingAdminNewChurchDTO registerMeetingAdminDTO);
 
-        Task<string> RegisterMeetingAdminExistingChurch(RegisterMeetingAdminExistingChurch registerDTO);
+    //    Task<string> RegisterMeetingAdminExistingChurch(RegisterMeetingAdminExistingChurch registerDTO);
 
         Task<string> RegisterServant(RegisterServantDTO registerDto);
     }

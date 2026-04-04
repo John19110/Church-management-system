@@ -8,7 +8,7 @@ namespace SunDaySchools.BLL.DTOS.AccountDtos
 {
     public class LoginDTO
     {
-        public String Name { get; set; }
+        public String PhoneNumber { get; set; }
         public String Password { get; set; }
     }
 }
