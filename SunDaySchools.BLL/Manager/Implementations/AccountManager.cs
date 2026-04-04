@@ -190,7 +190,9 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     Name = dto.Name.Trim(),
                     PhoneNumber = phoneNumber,
                     ChurchId = church.Id,
-                    BirthDate = dto.BirthDate
+                    BirthDate = dto.BirthDate,
+                    JoiningDate = dto.BirthDate
+
                 };
 
                 // 🔥 Save Image
@@ -243,23 +245,33 @@ namespace SunDaySchools.BLL.Manager.Implementations
             if (existingMeeting != null)
                 throw new MeetingAlreadyExistsException();
 
-            // Create the church
-            var church = new Church
+            await _unitOfWork.BeginTransactionAsync();
+
+            try
+            {
+
+                // Create the church
+                var church = new Church
             {
                 Name = registerMeetingAdminDTO.ChurchName
             };
             await _churchRepo.AddAsync(church);
+            await _unitOfWork.SaveChangesAsync();
 
-            // Create the meeting
-            var meeting = new Meeting
+
+                // Create the meeting
+                var meeting = new Meeting
             {
                 Name = registerMeetingAdminDTO.MeetingName,
                 ChurchId = church.Id
             };
             await _meetingRepo.AddAsync(meeting);
+            await _unitOfWork.SaveChangesAsync();
 
-            // Create the user
-            var user = new ApplicationUser
+
+
+                // Create the user
+                var user = new ApplicationUser
             {
                 UserName = registerMeetingAdminDTO.Name,
                 PhoneNumber = registerMeetingAdminDTO.PhoneNumber,
@@ -305,9 +317,19 @@ namespace SunDaySchools.BLL.Manager.Implementations
             user.ServantProfile = servant;
 
             await _adminRepo.AddServantAsync(servant);
+            await _unitOfWork.SaveChangesAsync();
 
-            var claims = await BuildJwtClaims(user);
-            return GenerateToken(claims);
+                await _unitOfWork.CommitAsync();
+
+                var claims = await BuildJwtClaims(user);
+                return GenerateToken(claims);
+
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
         }
         //public async Task<string> RegisterMeetingAdminExistingChurch(RegisterMeetingAdminExistingChurch RegisterDTO)
         //{
@@ -412,8 +434,14 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     ["MeetingId"] = new[] { "The selected meeting does not belong to the selected church." }
                 });
 
-            // Create user
-            var user = new ApplicationUser
+            await _unitOfWork.BeginTransactionAsync();
+
+            try
+            {
+
+
+                // Create user
+                var user = new ApplicationUser
             {
                 UserName = registerDto.Name,
                 PhoneNumber = registerDto.PhoneNumber,
@@ -436,9 +464,11 @@ namespace SunDaySchools.BLL.Manager.Implementations
             }
 
             await _userManager.AddToRoleAsync(user, "Servant");
+            await _unitOfWork.SaveChangesAsync();
 
-            // Create servant
-            var servant = new Servant
+
+                // Create servant
+                var servant = new Servant
             {
                 ApplicationUserId = user.Id,
                 Name = registerDto.Name,
@@ -460,10 +490,21 @@ namespace SunDaySchools.BLL.Manager.Implementations
             user.ServantProfile = servant;
 
             await _adminRepo.AddServantAsync(servant);
+            await _unitOfWork.SaveChangesAsync();
 
-            var claims = await BuildJwtClaims(user);
+                await _unitOfWork.CommitAsync();
+
+                var claims = await BuildJwtClaims(user);
             return GenerateToken(claims);
+
         }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+
+}
         private async Task<List<Claim>> BuildJwtClaims(ApplicationUser user)
         {
             var claims = new List<Claim>
