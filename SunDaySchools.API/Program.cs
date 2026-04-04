@@ -89,7 +89,8 @@ builder.Services.AddScoped<IServantManager, ServantManager>();
 builder.Services.AddScoped<IServantRepository, ServantRepository>();
 
 builder.Services.AddScoped<ISuperAdminRepository, SuperAdminRepository>();
-builder.Services.AddScoped<ISuperAdminManager, SuperAdminManager>();
+
+builder.Services.AddScoped<IUnitOfWork,UnitOfWork>();
 
 
 

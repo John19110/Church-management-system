@@ -36,12 +36,12 @@ namespace SunDaySchools.API.Controllers
             return Ok(new { token });
         }
 
-        [HttpPost("register-meeting-admin-existing-church")]
-        public async Task<ActionResult> RegisterMeetingAdminExistingChurch([FromBody] RegisterMeetingAdminExistingChurch dto)
-        {
-            var token = await _accountManager.RegisterMeetingAdminExistingChurch(dto);
-            return Ok(new { token });
-        }
+        //[HttpPost("register-meeting-admin-existing-church")]
+        //public async Task<ActionResult> RegisterMeetingAdminExistingChurch([FromBody] RegisterMeetingAdminExistingChurch dto)
+        //{
+        //    var token = await _accountManager.RegisterMeetingAdminExistingChurch(dto);
+        //    return Ok(new { token });
+        //}
 
         [HttpPost("register-servant")]
         public async Task<ActionResult> RegisterServant([FromForm] RegisterServantDTO dto)
