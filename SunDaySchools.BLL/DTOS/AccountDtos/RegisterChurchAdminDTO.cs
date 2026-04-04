@@ -1,8 +1,12 @@
-﻿namespace SunDaySchools.BLL.DTOS.AccountDtos
+﻿using Microsoft.AspNetCore.Http;
+
+namespace SunDaySchools.BLL.DTOS.AccountDtos
 {
     public class RegisterChurchAdminDTO
     {
         public string Name { get; set; }
+
+        public IFormFile? Image { get; set; }
 
         public string PhoneNumber { get; set; }
 

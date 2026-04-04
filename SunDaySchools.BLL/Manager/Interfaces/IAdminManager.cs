@@ -9,8 +9,7 @@ namespace SunDaySchools.BLL.Manager.Interfaces
     {
         Task AssignClassToServant(int ServantId, int ClassroomId);
 
-        Task AddServant(AdminAddServantDTO servant);
-
+        Task AddServant(AdminAddServantDTO servantDto, string webRootPath);
         Task<List<PendingServantDTO>> GetPendingServants();
 
         Task ApproveServant(string userId);

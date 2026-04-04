@@ -29,6 +29,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
     private readonly IMeetingRepository _meetingRepository;
 
 
+
         public AdminManager(IAdminRepository adminRepository,IMapper mapper
             , UserManager<ApplicationUser> usermanager, IHttpContextAccessor httpContextAccessor
             ,IAccountManager accountManager,IMeetingRepository meetingRepository)
@@ -69,45 +70,33 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
         }
 
-        public async Task AddServant(AdminAddServantDTO servantDto)
+        // In Service (BLL)
+        public async Task AddServant(AdminAddServantDTO servantDto, string webRootPath)
         {
             var registerDTO = _mapper.Map<RegisterServantDTO>(servantDto.Account);
-
-            // 🔥 FIX: pass image
             registerDTO.Image = servantDto.Servant.Image;
 
-            // 🔐 Get ChurchId safely
+            // ChurchId logic
             var claim = _httpContextAccessor.HttpContext?.User?.FindFirst("ChurchId");
-
-            if (claim == null)
-                throw new UnauthorizedAccessException("ChurchId claim is missing");
-
-            if (!int.TryParse(claim.Value, out var churchId))
-                throw new UnauthorizedAccessException("Invalid ChurchId");
-
+            if (claim == null) throw new UnauthorizedAccessException("ChurchId claim is missing");
+            if (!int.TryParse(claim.Value, out var churchId)) throw new UnauthorizedAccessException("Invalid ChurchId");
             registerDTO.ChurchId = churchId;
 
-            // ✅ Register
-          var CreatedUserToken=  await _accountManager.RegisterServant(registerDTO);
-
+            // ✅ Pass webRootPath here
+            var createdUserToken = await _accountManager.RegisterServant(registerDTO, webRootPath);
 
             var handler = new JwtSecurityTokenHandler();
-            var jwtToken = handler.ReadJwtToken(CreatedUserToken);
+            var jwtToken = handler.ReadJwtToken(createdUserToken);
 
             // Extract userId
-            var userIdClaim = jwtToken.Claims
-                .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-
+            var userIdClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
             var userId = userIdClaim?.Value;
             var user = await _userManager.FindByIdAsync(userId);
 
             user.IsApproved = true;
-
             await _userManager.UpdateAsync(user);
 
-
-
-            // (Optional later) assign classrooms
+            // Optional: assign classrooms
         }
         public async Task<List<PendingServantDTO>> GetPendingServants()
         {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,6 +10,8 @@ namespace SunDaySchools.BLL.DTOS.AccountDtos
     public class RegisterMeetingAdminNewChurchDTO
     {
             public string Name { get; set; }
+
+            public IFormFile? Image { get; set; }
 
             public string PhoneNumber { get; set; }
 
