@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using SunDaySchools.BLL.DTOS.AccountDtos;
@@ -20,114 +21,187 @@ namespace SunDaySchools.BLL.Manager.Implementations
 {
     public class AccountManager : IAccountManager
     {
-        private readonly UserManager<ApplicationUser> _usermanager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IConfiguration _configuration;
         private readonly IServantRepository _servantRepo;
         private readonly IChurchRepository _churchRepo;
         private readonly IAdminRepository _adminRepo;
         private readonly IMeetingRepository _meetingRepo;
+        private readonly IUnitOfWork _unitOfWork;
 
 
         public AccountManager(UserManager<ApplicationUser>usermagaer, IConfiguration configuration,
             IServantRepository servantRepo, IChurchRepository churchRepo, IAdminRepository adminRepo,
-            IMeetingRepository meetingRepo)
+            IMeetingRepository meetingRepo, IUnitOfWork unitOfWork)
         {
 
             _churchRepo = churchRepo;
-            _usermanager = usermagaer;
+            _userManager = usermagaer;
             _configuration = configuration;
             _servantRepo = servantRepo;
             _adminRepo = adminRepo;
             _meetingRepo = meetingRepo;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<string> Login(LoginDTO loginDto)
         {
-            // Optional: Validate DTO (though controller should handle null)
             if (loginDto == null)
+            {
                 throw new ValidationException(new Dictionary<string, string[]>
                 {
                     ["loginDto"] = new[] { "Login data cannot be null." }
                 });
+            }
 
+            var errors = new Dictionary<string, string[]>();
 
-            var user = await _usermanager.FindByNameAsync(loginDto.Name);
-            if (user == null)
+            if (string.IsNullOrWhiteSpace(loginDto.PhoneNumber))
+                errors["PhoneNumber"] = new[] { "Phone number is required." };
+
+            if (string.IsNullOrWhiteSpace(loginDto.Password))
+                errors["Password"] = new[] { "Password is required." };
+
+            if (errors.Any())
+                throw new ValidationException(errors);
+
+            var phoneNumber = loginDto.PhoneNumber.Trim().Replace(" ", "");
+
+            var existingUser = await _userManager.Users
+                .FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber);
+
+            if (existingUser == null)
                 throw new InvalidCredentialsException();
 
-            if (!user.IsApproved)
+            if (!existingUser.IsApproved)
                 throw new AccountNotApprovedException();
-            var check = await _usermanager.CheckPasswordAsync(user, loginDto.Password);
+
+            var check = await _userManager.CheckPasswordAsync(existingUser, loginDto.Password);
             if (!check)
                 throw new InvalidCredentialsException();
 
-            var claims = await BuildJwtClaims(user);
+            var claims = await BuildJwtClaims(existingUser);
             return GenerateToken(claims);
         }
-
-        public async Task<string> RegisterChurchSuperAdmin(RegisterChurchAdminDTO registerChurchAdminDTO)
+        public async Task<string> RegisterChurchSuperAdmin(RegisterChurchAdminDTO dto)
         {
-            if (registerChurchAdminDTO == null)
+            if (dto == null)
+            {
                 throw new ValidationException(new Dictionary<string, string[]>
                 {
                     ["registerDto"] = new[] { "Registration data cannot be null." }
                 });
-
-            // Check if user already exists
-            var existingUser = await _usermanager.FindByNameAsync(registerChurchAdminDTO.Name);
-            if (existingUser != null)
-                throw new UserAlreadyExistsException();
-
-
-            // Create the church 
-            var church = new Church
-            {
-                Name = registerChurchAdminDTO.ChurchName
-            };
-
-             await _churchRepo.AddChurch(church);
-
-            // Creaet the user 
-            var user = new ApplicationUser
-            {
-                UserName = registerChurchAdminDTO.Name,
-                PhoneNumber = registerChurchAdminDTO.PhoneNumber,
-                IsApproved = true,
-                ChurchId = church.Id
-            }; 
-            
-            var result = await _usermanager.CreateAsync(user, registerChurchAdminDTO.Password);
-            if (!result.Succeeded)
-            {
-                // Convert Identity errors to a ValidationException
-                var errors = result.Errors
-                    .GroupBy(e => e.Code) // or use a custom field name
-                    .ToDictionary(
-                        g => g.Key,
-                        g => g.Select(e => e.Description).ToArray()
-                    );
-                throw new ValidationException(errors);
             }
 
-            await _usermanager.AddToRoleAsync(user, "SuperAdmin");
+            var errors = new Dictionary<string, string[]>();
 
+            if (string.IsNullOrWhiteSpace(dto.Name))
+                errors["Name"] = new[] { "Name is required." };
 
-            // Create the servant
-            var servant = new Servant
+            if (string.IsNullOrWhiteSpace(dto.ChurchName))
+                errors["ChurchName"] = new[] { "Church name is required." };
+
+            if (string.IsNullOrWhiteSpace(dto.PhoneNumber))
+                errors["PhoneNumber"] = new[] { "Phone number is required." };
+
+            if (string.IsNullOrWhiteSpace(dto.Password))
+                errors["Password"] = new[] { "Password is required." };
+
+            if (errors.Any())
+                throw new ValidationException(errors);
+
+            var phoneNumber = dto.PhoneNumber.Trim().Replace(" ", "");
+            var userName = phoneNumber;
+
+            var existingUser = await _userManager.Users
+                .FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber);
+
+            if (existingUser != null)
             {
-                ApplicationUserId = user.Id,
-                Name = registerChurchAdminDTO.Name,
-                PhoneNumber = registerChurchAdminDTO.PhoneNumber,
-                ChurchId = church.Id // 🔥 THIS LINE IS MISSING
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["PhoneNumber"] = new[] { "Phone number already exists." }
+                });
+            }
 
+            var existingChurch = await _churchRepo.GetByNameAsync(dto.ChurchName.Trim());
+            if (existingChurch != null)
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["ChurchName"] = new[] { "A church with this name already exists." }
+                });
+            }
 
-            };
-         await   _adminRepo.AddServantAsync(servant);
+            await _unitOfWork.BeginTransactionAsync();
 
-            var claims = await BuildJwtClaims(user);
-            return GenerateToken(claims);
+            try
+            {
+                var church = new Church
+                {
+                    Name = dto.ChurchName.Trim()
+                };
+
+                await _churchRepo.AddAsync(church);
+                await _unitOfWork.SaveChangesAsync();
+
+                var user = new ApplicationUser
+                {
+                    UserName = userName,
+                    PhoneNumber = phoneNumber,
+                    IsApproved = true,
+                    ChurchId = church.Id
+                };
+
+                var createUserResult = await _userManager.CreateAsync(user, dto.Password);
+                if (!createUserResult.Succeeded)
+                {
+                    throw new ValidationException(
+                        createUserResult.Errors
+                            .GroupBy(e => e.Code)
+                            .ToDictionary(
+                                g => g.Key,
+                                g => g.Select(e => e.Description).ToArray()
+                            )
+                    );
+                }
+
+                var addToRoleResult = await _userManager.AddToRoleAsync(user, "SuperAdmin");
+                if (!addToRoleResult.Succeeded)
+                {
+                    throw new ValidationException(
+                        addToRoleResult.Errors
+                            .GroupBy(e => e.Code)
+                            .ToDictionary(
+                                g => g.Key,
+                                g => g.Select(e => e.Description).ToArray()
+                            )
+                    );
+                }
+
+                var servant = new Servant
+                {
+                    ApplicationUserId = user.Id,
+                    Name = dto.Name.Trim(),
+                    PhoneNumber = phoneNumber,
+                    ChurchId = church.Id,
+                    BirthDate = dto.BirthDate
+                };
+
+                await _adminRepo.AddServantAsync(servant);
+                await _unitOfWork.SaveChangesAsync();
+
+                await _unitOfWork.CommitAsync();
+
+                var claims = await BuildJwtClaims(user);
+                return GenerateToken(claims);
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
         }
-
         public async Task<string> RegisterMeetingAdminNewChurch(RegisterMeetingAdminNewChurchDTO registerMeetingAdminDTO)
         {
             if (registerMeetingAdminDTO == null)
@@ -137,12 +211,12 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 });
 
             // Check if user already exists
-            var existingUser = await _usermanager.FindByNameAsync(registerMeetingAdminDTO.Name);
+            var existingUser = await _userManager.FindByNameAsync(registerMeetingAdminDTO.Name);
             if (existingUser != null)
                 throw new UserAlreadyExistsException();
 
             //Check if church already exists 
-            var existingChurch = await _churchRepo.GetChurchByName(registerMeetingAdminDTO.ChurchName);
+            var existingChurch = await _churchRepo.GetByNameAsync(registerMeetingAdminDTO.ChurchName);
             if (existingChurch != null)
                 throw new ChurchAlreadyExistsException();
 
@@ -156,7 +230,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 Name = registerMeetingAdminDTO.ChurchName
             };
 
-            await _churchRepo.AddChurch(church);
+            await _churchRepo.AddAsync(church);
 
 
 
@@ -179,7 +253,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 MeetingId = meeting.Id
             };
 
-            var result = await _usermanager.CreateAsync(user, registerMeetingAdminDTO.Password);
+            var result = await _userManager.CreateAsync(user, registerMeetingAdminDTO.Password);
             if (!result.Succeeded)
             {
                 // Convert Identity errors to a ValidationException
@@ -192,7 +266,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 throw new ValidationException(errors);
             }
 
-            await _usermanager.AddToRoleAsync(user, "Admin");
+            await _userManager.AddToRoleAsync(user, "Admin");
 
 
             // Create the servant
@@ -205,85 +279,89 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
 
             };
-          await  _adminRepo.AddServantAsync(servant);
+            user.ServantProfile = servant;
 
-            var claims = await BuildJwtClaims(user);
-            return GenerateToken(claims);
-        }
-
-        public async Task<string> RegisterMeetingAdminExistingChurch(RegisterMeetingAdminExistingChurch RegisterDTO)
-        {
-            if (RegisterDTO == null)
-                throw new ValidationException(new Dictionary<string, string[]>
-                {
-                    ["registerDto"] = new[] { "Registration data cannot be null." }
-                });
-
-            // Check if user already exists
-            var existingUser = await _usermanager.FindByNameAsync(RegisterDTO.Name);
-            if (existingUser != null)
-                throw new UserAlreadyExistsException();
-
-
-            //Check if church already exists 
-            var existingChurch = await _churchRepo.GetChurchById(RegisterDTO.ChurchId);
-            if (existingChurch == null)
-                throw new NotFoundException("Church not found");
-
-            var existingMeeting = await _meetingRepo.GetByIdAsync(RegisterDTO.MeetingId);
-            if (existingMeeting == null)
-                throw new NotFoundException("Meeting not found");
-
-
-            if (existingMeeting.ChurchId != RegisterDTO.ChurchId)
-                throw new ValidationException(new Dictionary<string, string[]>
-                {
-                    ["MeetingId"] = new[] { "The selected meeting does not belong to the selected church." }
-                });
-
-
-            var user = new ApplicationUser
-            {
-                UserName = RegisterDTO.Name,
-                PhoneNumber = RegisterDTO.PhoneNumber,
-                IsApproved = false,
-                ChurchId = RegisterDTO.ChurchId,
-                MeetingId = RegisterDTO.MeetingId
-            };
-
-            var result = await _usermanager.CreateAsync(user, RegisterDTO.Password);
-            if (!result.Succeeded)
-            {
-                // Convert Identity errors to a ValidationException
-                var errors = result.Errors
-                    .GroupBy(e => e.Code) // or use a custom field name
-                    .ToDictionary(
-                        g => g.Key,
-                        g => g.Select(e => e.Description).ToArray()
-                    );
-                throw new ValidationException(errors);
-            }
-
-            await _usermanager.AddToRoleAsync(user, "Admin");
-
-
-            //Create the servant
-           var servant = new Servant
-           {
-               ApplicationUserId = user.Id,
-               Name = RegisterDTO.Name,
-               PhoneNumber = RegisterDTO.PhoneNumber,
-               ChurchId = RegisterDTO.ChurchId, // 🔥 THIS LINE IS MISSING
-               MeetingId = RegisterDTO.MeetingId // 🔥 THIS LINE IS MISSING
-
-
-
-           };
             await _adminRepo.AddServantAsync(servant);
 
             var claims = await BuildJwtClaims(user);
             return GenerateToken(claims);
         }
+        //public async Task<string> RegisterMeetingAdminExistingChurch(RegisterMeetingAdminExistingChurch RegisterDTO)
+        //{
+        //    if (RegisterDTO == null)
+        //        throw new ValidationException(new Dictionary<string, string[]>
+        //        {
+        //            ["registerDto"] = new[] { "Registration data cannot be null." }
+        //        });
+
+        //    // Check if user already exists
+        //    var existingUser = await _userManager.FindByNameAsync(RegisterDTO.Name);
+        //    if (existingUser != null)
+        //        throw new UserAlreadyExistsException();
+
+
+        //    //Check if church already exists 
+        //    var existingChurch = await _churchRepo.GetByIdAsync(RegisterDTO.ChurchId);
+        //    if (existingChurch == null)
+        //        throw new NotFoundException("Church not found");
+
+        //    var existingMeeting = await _meetingRepo.GetByIdAsync(RegisterDTO.MeetingId);
+        //    if (existingMeeting == null)
+        //        throw new NotFoundException("Meeting not found");
+
+
+        //    if (existingMeeting.ChurchId != RegisterDTO.ChurchId)
+        //        throw new ValidationException(new Dictionary<string, string[]>
+        //        {
+        //            ["MeetingId"] = new[] { "The selected meeting does not belong to the selected church." }
+        //        });
+
+
+        //    var user = new ApplicationUser
+        //    {
+        //        UserName = RegisterDTO.Name,
+        //        PhoneNumber = RegisterDTO.PhoneNumber,
+        //        IsApproved = false,
+        //        ChurchId = RegisterDTO.ChurchId,
+        //        MeetingId = RegisterDTO.MeetingId
+        //    };
+
+        //    var result = await _userManager.CreateAsync(user, RegisterDTO.Password);
+        //    if (!result.Succeeded)
+        //    {
+        //        // Convert Identity errors to a ValidationException
+        //        var errors = result.Errors
+        //            .GroupBy(e => e.Code) // or use a custom field name
+        //            .ToDictionary(
+        //                g => g.Key,
+        //                g => g.Select(e => e.Description).ToArray()
+        //            );
+        //        throw new ValidationException(errors);
+        //    }
+
+        //    await _userManager.AddToRoleAsync(user, "Admin");
+
+
+        //    //Create the servant
+        //   var servant = new Servant
+        //   {
+        //       ApplicationUserId = user.Id,
+        //       Name = RegisterDTO.Name,
+        //       PhoneNumber = RegisterDTO.PhoneNumber,
+        //       ChurchId = RegisterDTO.ChurchId, // 🔥 THIS LINE IS MISSING
+        //       MeetingId = RegisterDTO.MeetingId // 🔥 THIS LINE IS MISSING
+
+
+
+        //   };
+        //    user.ServantProfile = servant;
+
+
+        //    await _adminRepo.AddServantAsync(servant);
+
+        //    var claims = await BuildJwtClaims(user);
+        //    return GenerateToken(claims);
+        //}
 
         public async Task<string> RegisterServant(RegisterServantDTO registerDto)
         {
@@ -294,11 +372,11 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 });
 
             // Check if user already exists
-            var existingUser = await _usermanager.FindByNameAsync(registerDto.Name);
+            var existingUser = await _userManager.FindByNameAsync(registerDto.Name);
             if (existingUser != null)
                 throw new UserAlreadyExistsException();
 
-            var church = await _churchRepo.GetChurchById(registerDto.ChurchId);
+            var church = await _churchRepo.GetByIdAsync(registerDto.ChurchId);
             if (church==null)
             {
                 throw new NotFoundException($"Church with id {registerDto.ChurchId} not found."); 
@@ -325,7 +403,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 IsApproved = false
             };
 
-            var result = await _usermanager.CreateAsync(user, registerDto.Password);
+            var result = await _userManager.CreateAsync(user, registerDto.Password);
             if (!result.Succeeded)
             {
                 // Convert Identity errors to a ValidationException
@@ -338,7 +416,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 throw new ValidationException(errors);
             }
 
-            await _usermanager.AddToRoleAsync(user, "Servant");
+            await _userManager.AddToRoleAsync(user, "Servant");
 
             var servant = new Servant
             {
@@ -349,7 +427,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             };
             string? fileName = null;
-
+            user.ServantProfile = servant;
             if (registerDto.Image != null)
             {
                 fileName = Guid.NewGuid().ToString() + Path.GetExtension(registerDto.Image.FileName);
@@ -386,7 +464,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 claims.Add(new Claim("MeetingId", user.MeetingId.Value.ToString()));
             }
 
-            var roles = await _usermanager.GetRolesAsync(user);
+            var roles = await _userManager.GetRolesAsync(user);
             foreach (var role in roles)
                 claims.Add(new Claim(ClaimTypes.Role, role));
 

@@ -20,14 +20,14 @@ namespace SunDaySchools.DAL.Repository.Implementations
 
         }
 
-        public async Task AddChurch(Church church)
+        public async Task AddAsync(Church church)
         {
  
             await _context.Churches.AddAsync(church);
             await _context.SaveChangesAsync();
         }
 
-        public async Task<Church?> GetChurchById(int id)
+        public async Task<Church?> GetByIdAsync(int id)
         {
             return await _context.Churches
                 .Include(c => c.Members)
@@ -35,7 +35,7 @@ namespace SunDaySchools.DAL.Repository.Implementations
                 .Include(c => c.Meetings)
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
-        public async Task<Church?> GetChurchByName(string churchName)
+        public async Task<Church?> GetByNameAsync(string churchName)
         { 
 
              return await _context.Churches
