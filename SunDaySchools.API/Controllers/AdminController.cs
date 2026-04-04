@@ -17,11 +17,15 @@ namespace SunDaySchools.API.Controllers
     {
         private readonly IAdminManager _adminManager;
         private readonly IFileStorage _filestorage;
+        private readonly IWebHostEnvironment _env;
 
-        public AdminController(IAdminManager adminmanager, IFileStorage filestorage)
+
+
+        public AdminController(IAdminManager adminmanager, IFileStorage filestorage, IWebHostEnvironment env)
         {
             _adminManager = adminmanager;
             _filestorage = filestorage;
+            _env = env;
         }
 
 
@@ -39,7 +43,7 @@ namespace SunDaySchools.API.Controllers
                 throw new ValidationException(errors);
             }
 
-            await _adminManager.AddServant(servant);
+            await _adminManager.AddServant(servant, _env.WebRootPath);
 
             return StatusCode(201, new { message = "Created Successfully" });
         }

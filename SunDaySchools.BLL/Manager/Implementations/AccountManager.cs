@@ -28,11 +28,12 @@ namespace SunDaySchools.BLL.Manager.Implementations
         private readonly IAdminRepository _adminRepo;
         private readonly IMeetingRepository _meetingRepo;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IFileManager _fileManager;
 
 
         public AccountManager(UserManager<ApplicationUser>usermagaer, IConfiguration configuration,
             IServantRepository servantRepo, IChurchRepository churchRepo, IAdminRepository adminRepo,
-            IMeetingRepository meetingRepo, IUnitOfWork unitOfWork)
+            IMeetingRepository meetingRepo, IUnitOfWork unitOfWork,IFileManager fileManager)
         {
 
             _churchRepo = churchRepo;
@@ -42,6 +43,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             _adminRepo = adminRepo;
             _meetingRepo = meetingRepo;
             _unitOfWork = unitOfWork;
+            _fileManager = fileManager;
         }
 
         public async Task<string> Login(LoginDTO loginDto)
@@ -83,7 +85,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             var claims = await BuildJwtClaims(existingUser);
             return GenerateToken(claims);
         }
-        public async Task<string> RegisterChurchSuperAdmin(RegisterChurchAdminDTO dto)
+        public async Task<string> RegisterChurchSuperAdmin(RegisterChurchAdminDTO dto, string webRootPath)
         {
             if (dto == null)
             {
@@ -137,6 +139,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             try
             {
+                // ✅ Create Church
                 var church = new Church
                 {
                     Name = dto.ChurchName.Trim()
@@ -145,6 +148,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 await _churchRepo.AddAsync(church);
                 await _unitOfWork.SaveChangesAsync();
 
+                // ✅ Create User
                 var user = new ApplicationUser
                 {
                     UserName = userName,
@@ -179,6 +183,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     );
                 }
 
+                // ✅ Create Servant
                 var servant = new Servant
                 {
                     ApplicationUserId = user.Id,
@@ -187,6 +192,19 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     ChurchId = church.Id,
                     BirthDate = dto.BirthDate
                 };
+
+                // 🔥 Save Image
+                var (fileName, url) = await _fileManager.SaveImageAsync(
+                    dto.Image,
+                    webRootPath,
+                    "images"
+                );
+
+                servant.ImageFileName = fileName;
+                servant.ImageUrl = url;
+
+                // ✅ Link User ↔ Servant
+                user.ServantProfile = servant;
 
                 await _adminRepo.AddServantAsync(servant);
                 await _unitOfWork.SaveChangesAsync();
@@ -202,7 +220,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 throw;
             }
         }
-        public async Task<string> RegisterMeetingAdminNewChurch(RegisterMeetingAdminNewChurchDTO registerMeetingAdminDTO)
+        public async Task<string> RegisterMeetingAdminNewChurch(RegisterMeetingAdminNewChurchDTO registerMeetingAdminDTO,string webRootPath)
         {
             if (registerMeetingAdminDTO == null)
                 throw new ValidationException(new Dictionary<string, string[]>
@@ -215,24 +233,22 @@ namespace SunDaySchools.BLL.Manager.Implementations
             if (existingUser != null)
                 throw new UserAlreadyExistsException();
 
-            //Check if church already exists 
+            // Check if church already exists 
             var existingChurch = await _churchRepo.GetByNameAsync(registerMeetingAdminDTO.ChurchName);
             if (existingChurch != null)
                 throw new ChurchAlreadyExistsException();
 
+            // Check if meeting already exists
             var existingMeeting = await _meetingRepo.GetByNameAsync(registerMeetingAdminDTO.MeetingName);
             if (existingMeeting != null)
                 throw new MeetingAlreadyExistsException();
 
-            // Create the church 
+            // Create the church
             var church = new Church
             {
                 Name = registerMeetingAdminDTO.ChurchName
             };
-
             await _churchRepo.AddAsync(church);
-
-
 
             // Create the meeting
             var meeting = new Meeting
@@ -240,10 +256,9 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 Name = registerMeetingAdminDTO.MeetingName,
                 ChurchId = church.Id
             };
+            await _meetingRepo.AddAsync(meeting);
 
-          await  _meetingRepo.AddAsync(meeting);
-
-            // Creaet the user 
+            // Create the user
             var user = new ApplicationUser
             {
                 UserName = registerMeetingAdminDTO.Name,
@@ -256,9 +271,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
             var result = await _userManager.CreateAsync(user, registerMeetingAdminDTO.Password);
             if (!result.Succeeded)
             {
-                // Convert Identity errors to a ValidationException
                 var errors = result.Errors
-                    .GroupBy(e => e.Code) // or use a custom field name
+                    .GroupBy(e => e.Code)
                     .ToDictionary(
                         g => g.Key,
                         g => g.Select(e => e.Description).ToArray()
@@ -268,17 +282,26 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             await _userManager.AddToRoleAsync(user, "Admin");
 
-
             // Create the servant
             var servant = new Servant
             {
                 ApplicationUserId = user.Id,
                 Name = registerMeetingAdminDTO.Name,
                 PhoneNumber = registerMeetingAdminDTO.PhoneNumber,
-                ChurchId = church.Id // 🔥 THIS LINE IS MISSING
-
-
+                ChurchId = church.Id
             };
+
+            // 🔥 Save Image
+            var (fileName, url) = await _fileManager.SaveImageAsync(
+                registerMeetingAdminDTO.Image,
+                webRootPath,
+                "images"
+            );
+
+            servant.ImageFileName = fileName;
+            servant.ImageUrl = url;
+
+            // Link User ↔ Servant
             user.ServantProfile = servant;
 
             await _adminRepo.AddServantAsync(servant);
@@ -362,8 +385,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
         //    var claims = await BuildJwtClaims(user);
         //    return GenerateToken(claims);
         //}
-
-        public async Task<string> RegisterServant(RegisterServantDTO registerDto)
+        public async Task<string> RegisterServant(RegisterServantDTO registerDto, string webRootPath)
         {
             if (registerDto == null)
                 throw new ValidationException(new Dictionary<string, string[]>
@@ -377,15 +399,12 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 throw new UserAlreadyExistsException();
 
             var church = await _churchRepo.GetByIdAsync(registerDto.ChurchId);
-            if (church==null)
-            {
-                throw new NotFoundException($"Church with id {registerDto.ChurchId} not found."); 
-            }
+            if (church == null)
+                throw new NotFoundException($"Church with id {registerDto.ChurchId} not found.");
 
             var existingMeeting = await _meetingRepo.GetByIdAsync(registerDto.MeetingId);
             if (existingMeeting == null)
                 throw new NotFoundException("Meeting not found");
-
 
             if (existingMeeting.ChurchId != registerDto.ChurchId)
                 throw new ValidationException(new Dictionary<string, string[]>
@@ -393,8 +412,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     ["MeetingId"] = new[] { "The selected meeting does not belong to the selected church." }
                 });
 
-
-
+            // Create user
             var user = new ApplicationUser
             {
                 UserName = registerDto.Name,
@@ -404,48 +422,44 @@ namespace SunDaySchools.BLL.Manager.Implementations
             };
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
+
             if (!result.Succeeded)
             {
-                // Convert Identity errors to a ValidationException
                 var errors = result.Errors
-                    .GroupBy(e => e.Code) // or use a custom field name
+                    .GroupBy(e => e.Code)
                     .ToDictionary(
                         g => g.Key,
                         g => g.Select(e => e.Description).ToArray()
                     );
+
                 throw new ValidationException(errors);
             }
 
             await _userManager.AddToRoleAsync(user, "Servant");
 
+            // Create servant
             var servant = new Servant
             {
                 ApplicationUserId = user.Id,
                 Name = registerDto.Name,
                 PhoneNumber = registerDto.PhoneNumber,
                 ChurchId = registerDto.ChurchId
-
             };
-            string? fileName = null;
-            user.ServantProfile = servant;
-            if (registerDto.Image != null)
-            {
-                fileName = Guid.NewGuid().ToString() + Path.GetExtension(registerDto.Image.FileName);
 
-                var folderPath = Path.Combine("wwwroot", "images");
-
-                // 🔥 FIX HERE
-                Directory.CreateDirectory(folderPath);
-
-                var filePath = Path.Combine(folderPath, fileName);
-
-                using var stream = new FileStream(filePath, FileMode.Create);
-                await registerDto.Image.CopyToAsync(stream);
-            }
+            // 🔥 Save Image using FileManager
+            var (fileName, url) = await _fileManager.SaveImageAsync(
+                registerDto.Image,
+                webRootPath,
+                "images"
+            );
 
             servant.ImageFileName = fileName;
-            servant.ImageUrl = fileName != null ? $"/images/{fileName}" : null;
-         await   _adminRepo.AddServantAsync(servant);
+            servant.ImageUrl = url;
+
+            // Link navigation property (important)
+            user.ServantProfile = servant;
+
+            await _adminRepo.AddServantAsync(servant);
 
             var claims = await BuildJwtClaims(user);
             return GenerateToken(claims);
@@ -470,7 +484,6 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             return claims;
         }
-
         private string GenerateToken(IList<Claim> claims)
         {
             // get secret key (string)

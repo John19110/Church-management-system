@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Hosting; // ✅ IMPORTANT
 using SunDaySchools.BLL.DTOS.AccountDtos;
 using SunDaySchools.BLL.Manager.Interfaces;
 
@@ -9,10 +10,13 @@ namespace SunDaySchools.API.Controllers
     public class AccountController : ControllerBase
     {
         private readonly IAccountManager _accountManager;
+        private readonly IWebHostEnvironment _env;
 
-        public AccountController(IAccountManager accountManager)
+        // ✅ Inject BOTH dependencies
+        public AccountController(IAccountManager accountManager, IWebHostEnvironment env)
         {
             _accountManager = accountManager;
+            _env = env;
         }
 
         [HttpPost("login")]
@@ -23,30 +27,23 @@ namespace SunDaySchools.API.Controllers
         }
 
         [HttpPost("register-church-superadmin")]
-        public async Task<ActionResult> RegisterChurchSuperAdmin([FromBody] RegisterChurchAdminDTO dto)
+        public async Task<ActionResult> RegisterChurchSuperAdmin([FromForm] RegisterChurchAdminDTO dto)
         {
-            var token = await _accountManager.RegisterChurchSuperAdmin(dto);
+            var token = await _accountManager.RegisterChurchSuperAdmin(dto, _env.WebRootPath);
             return Ok(new { token });
         }
 
         [HttpPost("register-meeting-admin-new-church")]
-        public async Task<ActionResult> RegisterMeetingAdminNewChurch([FromBody] RegisterMeetingAdminNewChurchDTO dto)
+        public async Task<ActionResult> RegisterMeetingAdminNewChurch([FromForm] RegisterMeetingAdminNewChurchDTO dto)
         {
-            var token = await _accountManager.RegisterMeetingAdminNewChurch(dto);
+            var token = await _accountManager.RegisterMeetingAdminNewChurch(dto, _env.WebRootPath);
             return Ok(new { token });
         }
-
-        //[HttpPost("register-meeting-admin-existing-church")]
-        //public async Task<ActionResult> RegisterMeetingAdminExistingChurch([FromBody] RegisterMeetingAdminExistingChurch dto)
-        //{
-        //    var token = await _accountManager.RegisterMeetingAdminExistingChurch(dto);
-        //    return Ok(new { token });
-        //}
 
         [HttpPost("register-servant")]
         public async Task<ActionResult> RegisterServant([FromForm] RegisterServantDTO dto)
         {
-            var token = await _accountManager.RegisterServant(dto);
+            var token = await _accountManager.RegisterServant(dto, _env.WebRootPath);
             return Ok(new { token });
         }
     }

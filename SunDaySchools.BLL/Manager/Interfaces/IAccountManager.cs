@@ -11,12 +11,11 @@ namespace SunDaySchools.BLL.Manager.Interfaces
     {
         Task<string> Login(LoginDTO loginDto);
 
-        Task<string> RegisterChurchSuperAdmin(RegisterChurchAdminDTO registerChurchAdminDTO);
+        Task<string> RegisterServant(RegisterServantDTO dto, string webRootPath);
+        Task<string> RegisterChurchSuperAdmin(RegisterChurchAdminDTO dto, string webRootPath);
+        Task<string> RegisterMeetingAdminNewChurch(RegisterMeetingAdminNewChurchDTO dto, string webRootPath);
 
-        Task<string> RegisterMeetingAdminNewChurch(RegisterMeetingAdminNewChurchDTO registerMeetingAdminDTO);
+        //    Task<string> RegisterMeetingAdminExistingChurch(RegisterMeetingAdminExistingChurch registerDTO);
 
-    //    Task<string> RegisterMeetingAdminExistingChurch(RegisterMeetingAdminExistingChurch registerDTO);
-
-        Task<string> RegisterServant(RegisterServantDTO registerDto);
     }
 }
