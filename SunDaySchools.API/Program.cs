@@ -79,6 +79,8 @@ builder.Services.AddScoped<IChurchRepository, ChurchRepository>();
 builder.Services.AddScoped<IClassroomManager, ClassroomManager>();
 builder.Services.AddScoped<IClassroomRepository, ClassroomRepository>();
 
+builder.Services.AddScoped<IFileManager, FileManager>();
+
 builder.Services.AddScoped<IMemberManager, MemberManager>();
 builder.Services.AddScoped<IMemberRepository, MemberRepository>();
 
@@ -91,6 +93,8 @@ builder.Services.AddScoped<IServantRepository, ServantRepository>();
 builder.Services.AddScoped<ISuperAdminRepository, SuperAdminRepository>();
 
 builder.Services.AddScoped<IUnitOfWork,UnitOfWork>();
+
+
 
 
 
