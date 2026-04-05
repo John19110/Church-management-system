@@ -12,14 +12,11 @@ namespace SunDaySchools.DAL.Models
         public int Id { get; set; }
         public string? Name { get; set; }
         public int ChurchId { get; set; }
-        public Church? Church { get; set; }
         public DateTime Weekly_appointment { get; set; }
+        public Church? Church { get; set; }
         public ICollection<Servant>? Servants { get; set; }
         public ICollection<Member>? Members { get; set; }
              
-
-
-
 
     }
 }
