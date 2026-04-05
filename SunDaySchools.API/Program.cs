@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Hosting.Server;
+﻿using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -132,11 +132,14 @@ builder.Services.AddDbContext<ProgramContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("cs"));
 });
 
-// Identity
-//this old implementation caused error in authentication
 
-//builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-//    .AddEntityFrameworkStores<ProgramContext>();
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.User.AllowedUserNameCharacters =
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+ " +
+        "ءآأؤإئابةتثجحخدذرزسشصضطظعغفقكلمنهوىي";
+});
+
 
 
 builder.Services

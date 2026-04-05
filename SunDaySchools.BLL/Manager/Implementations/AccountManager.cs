@@ -95,7 +95,13 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 });
             }
 
+          
+
             var errors = new Dictionary<string, string[]>();
+
+
+            if (dto.Password != dto.ConfirmPassword)
+                errors["Name"] = new[] { "Password and confirm doesnt match." };
 
             if (string.IsNullOrWhiteSpace(dto.Name))
                 errors["Name"] = new[] { "Name is required." };
@@ -230,6 +236,10 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     ["registerDto"] = new[] { "Registration data cannot be null." }
                 });
 
+                 if (registerMeetingAdminDTO.Password != registerMeetingAdminDTO.ConfirmPassword)
+                throw new PassordsMissMatchException();
+
+
             // Check if user already exists
             var existingUser = await _userManager.FindByNameAsync(registerMeetingAdminDTO.Name);
             if (existingUser != null)
@@ -261,10 +271,11 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
                 // Create the meeting
                 var meeting = new Meeting
-            {
-                Name = registerMeetingAdminDTO.MeetingName,
-                ChurchId = church.Id
-            };
+                {
+                    Name = registerMeetingAdminDTO.MeetingName,
+                    ChurchId = church.Id,
+                    Weekly_appointment = registerMeetingAdminDTO.Weekly_appointment
+                };
             await _meetingRepo.AddAsync(meeting);
             await _unitOfWork.SaveChangesAsync();
 

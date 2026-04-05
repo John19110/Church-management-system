@@ -23,10 +23,11 @@ namespace SunDaySchools.BLL.DTOS.AccountDtos
 
             public string MeetingName { get; set; }
 
+            public DateTime Weekly_appointment { get; set; }
 
         public DateOnly? BirthDate { get; set; }
         public DateOnly? JoiningDate { get; set; }
-        public List<int>? classroomsIds { get; set; }
+     //   public List<int>? classroomsIds { get; set; }
 
 
 

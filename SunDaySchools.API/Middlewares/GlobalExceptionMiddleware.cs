@@ -109,6 +109,14 @@ public class GlobalExceptionMiddleware
                 problemDetails.Detail = meetingAlreadyExists.Message;
                 break;
 
+            case PassordsMissMatchException passordsMissMatchException:
+                problemDetails.Title =" Passwords Miss match.";
+                problemDetails.Status = (int)HttpStatusCode.Conflict;
+                problemDetails.Type = "https://tools.ietf.org/html/rfc7231#section-6.5.8";
+                problemDetails.Detail = passordsMissMatchException.Message;
+                break;
+
+
             default:
                 if (_env.IsDevelopment())
                 {
