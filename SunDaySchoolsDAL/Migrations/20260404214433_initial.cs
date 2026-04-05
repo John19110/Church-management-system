@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace SunDaySchools.DAL.Migrations
 {
     /// <inheritdoc />
@@ -66,7 +68,8 @@ namespace SunDaySchools.DAL.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ChurchId = table.Column<int>(type: "int", nullable: false)
+                    ChurchId = table.Column<int>(type: "int", nullable: false),
+                    Weekly_appointment = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -298,6 +301,44 @@ namespace SunDaySchools.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Servants",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ImageFileName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    BirthDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    JoiningDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    classroomsIds = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ChurchId = table.Column<int>(type: "int", nullable: true),
+                    MeetingId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Servants", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Servants_AspNetUsers_ApplicationUserId",
+                        column: x => x.ApplicationUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Servants_Churches_ChurchId",
+                        column: x => x.ChurchId,
+                        principalTable: "Churches",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Servants_Meetings_MeetingId",
+                        column: x => x.MeetingId,
+                        principalTable: "Meetings",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Exams",
                 columns: table => new
                 {
@@ -347,7 +388,7 @@ namespace SunDaySchools.DAL.Migrations
                     JoiningDate = table.Column<DateOnly>(type: "date", nullable: false),
                     LastAttendanceDate = table.Column<DateOnly>(type: "date", nullable: false),
                     SpiritualDateOfBirth = table.Column<DateOnly>(type: "date", nullable: true),
-                    IsDisciplined = table.Column<bool>(type: "bit", nullable: false),
+                    IsDiscipline = table.Column<bool>(type: "bit", nullable: false),
                     TotalNumberOfDaysAttended = table.Column<int>(type: "int", nullable: false),
                     HaveBrothers = table.Column<bool>(type: "bit", nullable: true),
                     BrothersNames = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -378,47 +419,54 @@ namespace SunDaySchools.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Servants",
+                name: "AttendanceSessions",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ImageFileName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    BirthDate = table.Column<DateOnly>(type: "date", nullable: true),
-                    JoiningDate = table.Column<DateOnly>(type: "date", nullable: true),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    classroomsIds = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    SpiritualCurriculumid = table.Column<int>(type: "int", nullable: true),
-                    ChurchId = table.Column<int>(type: "int", nullable: true),
-                    MeetingId = table.Column<int>(type: "int", nullable: true)
+                    ClassroomId = table.Column<int>(type: "int", nullable: false),
+                    TakenByServantId = table.Column<int>(type: "int", nullable: true),
+                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateOnly>(type: "date", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Servants", x => x.Id);
+                    table.PrimaryKey("PK_AttendanceSessions", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Servants_AspNetUsers_ApplicationUserId",
-                        column: x => x.ApplicationUserId,
-                        principalTable: "AspNetUsers",
+                        name: "FK_AttendanceSessions_Classrooms_ClassroomId",
+                        column: x => x.ClassroomId,
+                        principalTable: "Classrooms",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Servants_Churches_ChurchId",
-                        column: x => x.ChurchId,
-                        principalTable: "Churches",
+                        name: "FK_AttendanceSessions_Servants_TakenByServantId",
+                        column: x => x.TakenByServantId,
+                        principalTable: "Servants",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ClassroomServant",
+                columns: table => new
+                {
+                    ClassroomsId = table.Column<int>(type: "int", nullable: false),
+                    ServantsId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ClassroomServant", x => new { x.ClassroomsId, x.ServantsId });
                     table.ForeignKey(
-                        name: "FK_Servants_Meetings_MeetingId",
-                        column: x => x.MeetingId,
-                        principalTable: "Meetings",
-                        principalColumn: "Id");
+                        name: "FK_ClassroomServant_Classrooms_ClassroomsId",
+                        column: x => x.ClassroomsId,
+                        principalTable: "Classrooms",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Servants_SpiritualCurriculums_SpiritualCurriculumid",
-                        column: x => x.SpiritualCurriculumid,
-                        principalTable: "SpiritualCurriculums",
-                        principalColumn: "id");
+                        name: "FK_ClassroomServant_Servants_ServantsId",
+                        column: x => x.ServantsId,
+                        principalTable: "Servants",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -485,83 +533,6 @@ namespace SunDaySchools.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "AttendanceSessions",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ClassroomId = table.Column<int>(type: "int", nullable: false),
-                    TakenByServantId = table.Column<int>(type: "int", nullable: true),
-                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    CreatedAt = table.Column<DateOnly>(type: "date", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AttendanceSessions", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_AttendanceSessions_Classrooms_ClassroomId",
-                        column: x => x.ClassroomId,
-                        principalTable: "Classrooms",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_AttendanceSessions_Servants_TakenByServantId",
-                        column: x => x.TakenByServantId,
-                        principalTable: "Servants",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ClassroomServant",
-                columns: table => new
-                {
-                    ClassroomsId = table.Column<int>(type: "int", nullable: false),
-                    ServantsId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ClassroomServant", x => new { x.ClassroomsId, x.ServantsId });
-                    table.ForeignKey(
-                        name: "FK_ClassroomServant_Classrooms_ClassroomsId",
-                        column: x => x.ClassroomsId,
-                        principalTable: "Classrooms",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ClassroomServant_Servants_ServantsId",
-                        column: x => x.ServantsId,
-                        principalTable: "Servants",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "PhoneCalls",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ServantId = table.Column<int>(type: "int", nullable: true),
-                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    MemberContactId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PhoneCalls", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_PhoneCalls_MemberContacts_MemberContactId",
-                        column: x => x.MemberContactId,
-                        principalTable: "MemberContacts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_PhoneCalls_Servants_ServantId",
-                        column: x => x.ServantId,
-                        principalTable: "Servants",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "AttendanceRecords",
                 columns: table => new
                 {
@@ -602,6 +573,43 @@ namespace SunDaySchools.DAL.Migrations
                         principalTable: "Members",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PhoneCalls",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ServantId = table.Column<int>(type: "int", nullable: true),
+                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    MemberContactId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PhoneCalls", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PhoneCalls_MemberContacts_MemberContactId",
+                        column: x => x.MemberContactId,
+                        principalTable: "MemberContacts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PhoneCalls_Servants_ServantId",
+                        column: x => x.ServantId,
+                        principalTable: "Servants",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.InsertData(
+                table: "Classrooms",
+                columns: new[] { "Id", "AgeOfMembers", "ChurchId", "MeetingId", "Name", "NumberOfDisplineMembers" },
+                values: new object[,]
+                {
+                    { 1, "حضانه و كيجي", null, null, "الوداعه", null },
+                    { 2, "اولي و تانيه", null, null, "السلام", null },
+                    { 3, "تالته ورابعه", null, null, "الأيمان", null },
+                    { 4, "خامسه و سادسه", null, null, "المحبه", null }
                 });
 
             migrationBuilder.CreateIndex(
@@ -786,11 +794,6 @@ namespace SunDaySchools.DAL.Migrations
                 column: "MeetingId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Servants_SpiritualCurriculumid",
-                table: "Servants",
-                column: "SpiritualCurriculumid");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_SpiritualCurriculums_ChurchId",
                 table: "SpiritualCurriculums",
                 column: "ChurchId");
@@ -842,6 +845,9 @@ namespace SunDaySchools.DAL.Migrations
                 name: "PhoneCalls");
 
             migrationBuilder.DropTable(
+                name: "SpiritualCurriculums");
+
+            migrationBuilder.DropTable(
                 name: "Tools");
 
             migrationBuilder.DropTable(
@@ -864,9 +870,6 @@ namespace SunDaySchools.DAL.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
-
-            migrationBuilder.DropTable(
-                name: "SpiritualCurriculums");
 
             migrationBuilder.DropTable(
                 name: "Classrooms");

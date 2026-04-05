@@ -16,7 +16,6 @@ namespace SunDaySchools.Models
         public int? NumberOfAvailableStudentBooks { get; set; }  
         public bool? TokeBefore { get; set; }
         public DateOnly? DateOfLastUse { get; set; }
-        public List<Servant>? ServentsTought { get; set; }
 
     }
 }

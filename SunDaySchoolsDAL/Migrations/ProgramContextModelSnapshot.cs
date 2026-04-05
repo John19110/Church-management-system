@@ -566,9 +566,6 @@ namespace SunDaySchools.DAL.Migrations
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("SpiritualCurriculumid")
-                        .HasColumnType("int");
-
                     b.Property<string>("classroomsIds")
                         .HasColumnType("nvarchar(max)");
 
@@ -580,8 +577,6 @@ namespace SunDaySchools.DAL.Migrations
                     b.HasIndex("ChurchId");
 
                     b.HasIndex("MeetingId");
-
-                    b.HasIndex("SpiritualCurriculumid");
 
                     b.ToTable("Servants");
                 });
@@ -1038,10 +1033,6 @@ namespace SunDaySchools.DAL.Migrations
                         .WithMany("Servants")
                         .HasForeignKey("MeetingId");
 
-                    b.HasOne("SunDaySchools.Models.SpiritualCurriculum", null)
-                        .WithMany("ServentsTought")
-                        .HasForeignKey("SpiritualCurriculumid");
-
                     b.Navigation("ApplicationUser");
 
                     b.Navigation("Chuch");
@@ -1156,11 +1147,6 @@ namespace SunDaySchools.DAL.Migrations
                     b.Navigation("ExamsResults");
 
                     b.Navigation("PhoneNumbers");
-                });
-
-            modelBuilder.Entity("SunDaySchools.Models.SpiritualCurriculum", b =>
-                {
-                    b.Navigation("ServentsTought");
                 });
 
             modelBuilder.Entity("SunDaySchoolsDAL.Models.ApplicationUser", b =>
