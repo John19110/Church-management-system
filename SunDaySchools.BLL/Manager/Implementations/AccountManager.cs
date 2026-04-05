@@ -426,6 +426,9 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     ["registerDto"] = new[] { "Registration data cannot be null." }
                 });
 
+            if (registerDto.Password != registerDto.ConfirmPassword)
+                throw new PassordsMissMatchException();
+
             // Check if user already exists
             var existingUser = await _userManager.FindByNameAsync(registerDto.Name);
             if (existingUser != null)
