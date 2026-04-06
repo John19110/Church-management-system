@@ -3,11 +3,122 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/routing/app_router.dart';
 import '../../../core/storage/token_storage.dart';
+import '../../../shared/widgets/common_widgets.dart';
+import '../../meetings/models/meeting_models.dart';
 import '../../meetings/providers/meeting_providers.dart';
 import '../providers/super_admin_providers.dart';
 
 class SuperAdminHomeScreen extends ConsumerWidget {
   const SuperAdminHomeScreen({super.key});
+
+  Future<void> _showAddMeetingDialog(BuildContext context, WidgetRef ref) async {
+    final formKey = GlobalKey<FormState>();
+    final nameController = TextEditingController();
+    final weeklyController = TextEditingController();
+    var isSubmitting = false;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Add Meeting'),
+              content: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormField(
+                      controller: nameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Meeting Name',
+                        hintText: 'Enter meeting name',
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Meeting name is required';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: weeklyController,
+                      decoration: const InputDecoration(
+                        labelText: 'Weekly Appointment',
+                        hintText: 'YYYY-MM-DDTHH:MM:SS',
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Weekly appointment is required';
+                        }
+                        if (DateTime.tryParse(value.trim()) == null) {
+                          return 'Enter a valid ISO date/time';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () async {
+                          if (!formKey.currentState!.validate()) return;
+                          setState(() => isSubmitting = true);
+                          try {
+                            await ref.read(superAdminRepositoryProvider).addMeeting(
+                                  MeetingAddDto(
+                                    name: nameController.text.trim(),
+                                    weeklyAppointment: DateTime.parse(
+                                      weeklyController.text.trim(),
+                                    ),
+                                  ),
+                                );
+                            ref.invalidate(visibleMeetingsProvider);
+                            if (context.mounted) {
+                              Navigator.of(dialogContext).pop();
+                              showSuccessSnackbar(
+                                context,
+                                'Meeting added successfully.',
+                              );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              showErrorSnackbar(context, e.toString());
+                            }
+                          } finally {
+                            if (context.mounted) {
+                              setState(() => isSubmitting = false);
+                            }
+                          }
+                        },
+                  child: isSubmitting
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Add'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+    nameController.dispose();
+    weeklyController.dispose();
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -18,6 +129,11 @@ class SuperAdminHomeScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Super Admin Home'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            tooltip: 'Add Meeting',
+            onPressed: () => _showAddMeetingDialog(context, ref),
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {

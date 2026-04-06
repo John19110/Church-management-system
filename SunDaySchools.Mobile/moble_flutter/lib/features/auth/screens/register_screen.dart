@@ -1,10 +1,14 @@
 import 'dart:io';
+import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/auth_models.dart';
 import '../providers/auth_providers.dart';
+import '../utils/auth_role_utils.dart';
+import '../../classrooms/providers/classroom_providers.dart';
+import '../../meetings/providers/meeting_providers.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../../core/l10n/app_localizations.dart';
@@ -72,9 +76,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
     try {
+      String? token;
       switch (_selectedType) {
         case _RegisterType.servant:
-          await ref.read(authRepositoryProvider).registerServant(
+          token = await ref.read(authRepositoryProvider).registerServant(
                 RegisterServantDto(
                   name: _nameController.text.trim(),
                   phoneNumber: _phoneController.text.trim(),
@@ -88,7 +93,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
               );
         case _RegisterType.churchAdmin:
-          await ref.read(authRepositoryProvider).registerChurchSuperAdmin(
+          token = await ref.read(authRepositoryProvider).registerChurchSuperAdmin(
                 RegisterChurchSuperAdminDto(
                   name: _nameController.text.trim(),
                   phoneNumber: _phoneController.text.trim(),
@@ -101,7 +106,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
               );
         case _RegisterType.meetingAdmin:
-          await ref.read(authRepositoryProvider).registerMeetingAdmin(
+          token = await ref.read(authRepositoryProvider).registerMeetingAdmin(
                 RegisterMeetingAdminDto(
                   name: _nameController.text.trim(),
                   phoneNumber: _phoneController.text.trim(),
@@ -119,7 +124,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
               );
       }
-      if (mounted) context.go('/dashboard');
+      final role =
+          token != null ? AuthRoleUtils.extractPrimaryRole(token) : null;
+      if (role == 'superadmin') {
+        await ref.read(meetingRepositoryProvider).getVisibleMeetings();
+      } else if (role == 'admin' || role == 'servant') {
+        await ref.read(classroomRepositoryProvider).getVisible();
+      } else {
+        developer.log(
+          'Unknown or missing role after register; skipping role-based fetch.',
+          name: 'RegisterScreen',
+          error: role,
+        );
+      }
+      if (mounted) context.go(AuthRoleUtils.routeForRole(role));
     } catch (e) {
       if (mounted) showErrorSnackbar(context, e.toString());
     } finally {
