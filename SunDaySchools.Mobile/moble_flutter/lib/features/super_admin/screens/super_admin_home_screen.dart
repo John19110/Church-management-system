@@ -22,7 +22,7 @@ class SuperAdminHomeScreen extends ConsumerWidget {
         context: context,
         builder: (dialogContext) {
           return StatefulBuilder(
-            builder: (context, setState) {
+            builder: (dialogBuilderContext, setState) {
               return AlertDialog(
                 title: const Text('Add Meeting'),
                 content: Form(
@@ -106,7 +106,7 @@ class SuperAdminHomeScreen extends ConsumerWidget {
                                 showErrorSnackbar(context, e.toString());
                               }
                             } finally {
-                              if (context.mounted) {
+                              if (dialogBuilderContext.mounted) {
                                 setState(() => isSubmitting = false);
                               }
                             }

@@ -24,7 +24,7 @@ class ClassroomsHomeScreen extends ConsumerWidget {
         context: context,
         builder: (dialogContext) {
           return StatefulBuilder(
-            builder: (context, setState) {
+            builder: (dialogBuilderContext, setState) {
               return AlertDialog(
                 title: const Text('Add Classroom'),
                 content: Form(
@@ -95,7 +95,7 @@ class ClassroomsHomeScreen extends ConsumerWidget {
                                 showErrorSnackbar(context, e.toString());
                               }
                             } finally {
-                              if (context.mounted) {
+                              if (dialogBuilderContext.mounted) {
                                 setState(() => isSubmitting = false);
                               }
                             }
