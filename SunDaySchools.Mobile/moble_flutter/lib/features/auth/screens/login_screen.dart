@@ -70,12 +70,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       final normalized = base64Url.normalize(payload);
       final decoded = utf8.decode(base64Url.decode(normalized));
       final claims = jsonDecode(decoded) as Map<String, dynamic>;
-      const roleKey =
-          'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
-      final roleClaim = claims[roleKey];
-      if (roleClaim is String) return roleClaim.toLowerCase();
-      if (roleClaim is List && roleClaim.isNotEmpty) {
-        return roleClaim.first.toString().toLowerCase();
+      const roleKeys = <String>[
+        'http://schemas.microsoft.com/ws/2008/06/identity/claims/role',
+        'role',
+        'roles',
+      ];
+
+      for (final key in roleKeys) {
+        final roleClaim = claims[key];
+        if (roleClaim is String && roleClaim.trim().isNotEmpty) {
+          return roleClaim.toLowerCase();
+        }
+        if (roleClaim is List && roleClaim.isNotEmpty) {
+          return roleClaim.first.toString().toLowerCase();
+        }
       }
       return null;
     } catch (_) {
