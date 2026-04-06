@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/storage/token_storage.dart';
-import '../../meetings/models/meeting_models.dart';
 import '../../meetings/providers/meeting_providers.dart';
 import '../providers/super_admin_providers.dart';
 
@@ -75,7 +74,10 @@ class SuperAdminHomeScreen extends ConsumerWidget {
                               'Servants: ${m.servantsCount} • Members: ${m.membersCount}',
                             ),
                             trailing: const Icon(Icons.chevron_right),
-                            onTap: () => _showMeetingDetails(context, m),
+                            onTap: () => context.push(
+                              '/meeting-detail',
+                              extra: m,
+                            ),
                           ),
                         ),
                       )
@@ -95,45 +97,4 @@ class SuperAdminHomeScreen extends ConsumerWidget {
       ),
     );
   }
-}
-
-void _showMeetingDetails(BuildContext context, MeetingReadDto meeting) {
-  final appointment = meeting.weeklyAppointment == null
-      ? '-'
-      : meeting.weeklyAppointment!.toLocal().toString();
-
-  showDialog<void>(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: Text(meeting.name ?? 'Meeting'),
-      content: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Weekly appointment: $appointment'),
-            const SizedBox(height: 12),
-            Text('Servants (${meeting.servantsCount})'),
-            const SizedBox(height: 6),
-            ..._buildNameList(meeting.servantNames),
-            const SizedBox(height: 12),
-            Text('Members (${meeting.membersCount})'),
-            const SizedBox(height: 6),
-            ..._buildNameList(meeting.memberNames),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Close'),
-        ),
-      ],
-    ),
-  );
-}
-
-List<Widget> _buildNameList(List<String> names) {
-  if (names.isEmpty) return const [Text('-')];
-  return names.map((name) => Text('• $name')).toList();
 }
