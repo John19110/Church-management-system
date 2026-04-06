@@ -16,6 +16,10 @@ import '../../features/servants/screens/servant_edit_screen.dart';
 import '../../features/attendance/screens/attendance_take_screen.dart';
 import '../../features/attendance/screens/attendance_view_screen.dart';
 import '../../features/super_admin/screens/super_admin_home_screen.dart';
+import '../../features/meetings/models/meeting_models.dart';
+import '../../features/meetings/screens/meeting_detail_screen.dart';
+import '../../features/classrooms/models/classroom_models.dart';
+import '../../features/classrooms/screens/classroom_detail_screen.dart';
 import '../../features/classrooms/screens/classrooms_home_screen.dart';
 import '../../core/storage/token_storage.dart';
 
@@ -45,6 +49,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/classrooms-home',
         builder: (_, __) => const ClassroomsHomeScreen(),
+      ),
+      GoRoute(
+        path: '/meeting-detail',
+        builder: (_, state) =>
+            MeetingDetailScreen(meeting: state.extra! as MeetingReadDto),
+      ),
+      GoRoute(
+        path: '/classroom-detail',
+        builder: (_, state) =>
+            ClassroomDetailScreen(classroom: state.extra! as ClassroomReadDto),
       ),
 
       // Children
