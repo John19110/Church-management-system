@@ -3,21 +3,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../models/attendance_models.dart';
 import '../providers/attendance_providers.dart';
-import '../../children/providers/children_providers.dart';
-import '../../children/models/child_models.dart';
+import '../../members/providers/members_providers.dart';
+import '../../members/models/member_models.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../../core/l10n/app_localizations.dart';
 
 /// State for a single attendance record row.
 class _RecordState {
-  final ChildReadDto child;
+  final MemberReadDto member;
   AttendanceStatus status;
   bool madeHomework;
   bool hasTools;
   String? note;
 
   _RecordState({
-    required this.child,
+    required this.member,
     this.status = AttendanceStatus.present,
     this.madeHomework = false,
     this.hasTools = false,
@@ -56,20 +56,20 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
     super.dispose();
   }
 
-  Future<void> _loadChildren() async {
+  Future<void> _loadMembers() async {
     setState(() => _loading = true);
     try {
       final classroomId = int.tryParse(_classroomController.text.trim());
-      List<ChildReadDto> children;
+      List<MemberReadDto> members;
       if (classroomId != null) {
-        children = await ref
-            .read(childrenRepositoryProvider)
+        members = await ref
+            .read(membersRepositoryProvider)
             .getByClassroom(classroomId);
       } else {
-        children = await ref.read(childrenRepositoryProvider).getAll();
+        members = await ref.read(membersRepositoryProvider).getAll();
       }
       setState(() {
-        _records = children.map((c) => _RecordState(child: c)).toList();
+        _records = members.map((m) => _RecordState(member: m)).toList();
       });
     } catch (e) {
       if (mounted) showErrorSnackbar(context, e.toString());
@@ -81,7 +81,7 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
   Future<void> _submit() async {
     final l10n = AppLocalizations.of(context);
     if (_records == null || _records!.isEmpty) {
-      showErrorSnackbar(context, l10n.loadChildrenFirst);
+      showErrorSnackbar(context, l10n.loadMembersFirst);
       return;
     }
     final classroomId = int.tryParse(_classroomController.text.trim());
@@ -96,7 +96,7 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
         notes: _notesController.text.trim().nullIfEmpty,
         records: _records!
             .map((r) => AttendanceRecordDto(
-                  memberId: r.child.id,
+                  memberId: r.member.id,
                   madeHomeWork: r.madeHomework,
                   hasTools: r.hasTools,
                   status: r.status.value,
@@ -155,7 +155,7 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(80, 48),
                   ),
-                  onPressed: _loading ? null : _loadChildren,
+                  onPressed: _loading ? null : _loadMembers,
                   child: _loading
                       ? const SizedBox(
                           width: 20,
@@ -184,7 +184,7 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
               child: Row(
                 children: [
                   Text(
-                    '${_records!.length} ${l10n.children.toLowerCase()}',
+                    '${_records!.length} ${l10n.members.toLowerCase()}',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                   const Spacer(),
@@ -216,8 +216,8 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
                             children: [
                               Expanded(
                                 child: Text(
-                                  record.child.fullName ??
-                                      'Child #${record.child.id}',
+                                  record.member.fullName ??
+                                      'Member #${record.member.id}',
                                   style: Theme.of(context)
                                       .textTheme
                                       .titleSmall

@@ -1,65 +1,65 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../providers/children_providers.dart';
+import '../providers/members_providers.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../../../core/l10n/app_localizations.dart';
 
-class ChildrenListScreen extends ConsumerWidget {
-  const ChildrenListScreen({super.key});
+class MembersListScreen extends ConsumerWidget {
+  const MembersListScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final childrenAsync = ref.watch(childrenListProvider);
+    final membersAsync = ref.watch(membersListProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.children)),
+      appBar: AppBar(title: Text(l10n.members)),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          await context.push('/children/add');
-          ref.invalidate(childrenListProvider);
+          await context.push('/members/add');
+          ref.invalidate(membersListProvider);
         },
         child: const Icon(Icons.add),
       ),
-      body: childrenAsync.when(
+      body: membersAsync.when(
         loading: () => const cw.LoadingWidget(),
         error: (e, _) => cw.AppErrorWidget(
           message: e.toString(),
-          onRetry: () => ref.invalidate(childrenListProvider),
+          onRetry: () => ref.invalidate(membersListProvider),
         ),
-        data: (children) {
-          if (children.isEmpty) {
+        data: (members) {
+          if (members.isEmpty) {
             return cw.EmptyWidget(
-              message: l10n.noChildren,
-              icon: Icons.child_care,
+              message: l10n.noMembers,
+              icon: Icons.group,
             );
           }
           return RefreshIndicator(
-            onRefresh: () async => ref.invalidate(childrenListProvider),
+            onRefresh: () async => ref.invalidate(membersListProvider),
             child: ListView.builder(
               // bottom: 88 = FAB height (56) + top margin (16) + bottom margin (16)
               padding: const EdgeInsets.only(top: 8, bottom: 88),
-              itemCount: children.length,
+              itemCount: members.length,
               itemBuilder: (context, index) {
-                final child = children[index];
+                final member = members[index];
                 return Card(
                   child: ListTile(
                     leading: CircleAvatar(
                       backgroundColor: const Color(0xFF4299E1),
                       child: Text(
-                        (child.fullName?.isNotEmpty == true)
-                            ? child.fullName![0].toUpperCase()
+                        (member.fullName?.isNotEmpty == true)
+                            ? member.fullName![0].toUpperCase()
                             : '?',
                         style: const TextStyle(color: Colors.white),
                       ),
                     ),
-                    title: Text(child.fullName ?? 'Unknown'),
-                    subtitle: Text(child.gender ?? ''),
+                    title: Text(member.fullName ?? 'Unknown'),
+                    subtitle: Text(member.gender ?? ''),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () async {
-                      await context.push('/children/${child.id}');
-                      ref.invalidate(childrenListProvider);
+                      await context.push('/members/${member.id}');
+                      ref.invalidate(membersListProvider);
                     },
                   ),
                 );

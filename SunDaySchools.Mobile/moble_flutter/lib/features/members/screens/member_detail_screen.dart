@@ -1,28 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../providers/children_providers.dart';
+import '../providers/members_providers.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../../../core/l10n/app_localizations.dart';
 
-class ChildDetailScreen extends ConsumerWidget {
+class MemberDetailScreen extends ConsumerWidget {
   final int id;
-  const ChildDetailScreen({super.key, required this.id});
+  const MemberDetailScreen({super.key, required this.id});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final childAsync = ref.watch(childDetailProvider(id));
+    final memberAsync = ref.watch(memberDetailProvider(id));
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.childDetails),
+        title: Text(l10n.memberDetails),
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () async {
-              await context.push('/children/$id/edit');
-              ref.invalidate(childDetailProvider(id));
+              await context.push('/members/$id/edit');
+              ref.invalidate(memberDetailProvider(id));
             },
           ),
           IconButton(
@@ -30,14 +30,14 @@ class ChildDetailScreen extends ConsumerWidget {
             onPressed: () async {
               final confirmed = await cw.showConfirmDialog(
                 context,
-                title: l10n.deleteChild,
-                content: l10n.confirmDeleteChild,
+                title: l10n.deleteMember,
+                content: l10n.confirmDeleteMember,
               );
               if (!confirmed) return;
               try {
-                await ref.read(childrenRepositoryProvider).delete(id);
+                await ref.read(membersRepositoryProvider).delete(id);
                 if (context.mounted) {
-                  cw.showSuccessSnackbar(context, l10n.childDeletedSuccessfully);
+                  cw.showSuccessSnackbar(context, l10n.memberDeletedSuccessfully);
                   context.pop();
                 }
               } catch (e) {
@@ -47,10 +47,10 @@ class ChildDetailScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: childAsync.when(
+      body: memberAsync.when(
         loading: () => const cw.LoadingWidget(),
         error: (e, _) => cw.AppErrorWidget(message: e.toString()),
-        data: (child) => SingleChildScrollView(
+        data: (member) => SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -60,8 +60,8 @@ class ChildDetailScreen extends ConsumerWidget {
                   radius: 48,
                   backgroundColor: const Color(0xFF4299E1),
                   child: Text(
-                    (child.fullName?.isNotEmpty == true)
-                        ? child.fullName![0].toUpperCase()
+                    (member.fullName?.isNotEmpty == true)
+                        ? member.fullName![0].toUpperCase()
                         : '?',
                     style: const TextStyle(fontSize: 36, color: Colors.white),
                   ),
@@ -70,7 +70,7 @@ class ChildDetailScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               Center(
                 child: Text(
-                  child.fullName ?? 'Unknown',
+                  member.fullName ?? 'Unknown',
                   style: Theme.of(context)
                       .textTheme
                       .headlineSmall
@@ -78,36 +78,36 @@ class ChildDetailScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              _InfoTile(label: l10n.gender, value: child.gender),
-              _InfoTile(label: l10n.address, value: child.address),
-              _InfoTile(label: l10n.dateOfBirth, value: child.dateOfBirth),
-              _InfoTile(label: l10n.joiningDate, value: child.joiningDate),
+              _InfoTile(label: l10n.gender, value: member.gender),
+              _InfoTile(label: l10n.address, value: member.address),
+              _InfoTile(label: l10n.dateOfBirth, value: member.dateOfBirth),
+              _InfoTile(label: l10n.joiningDate, value: member.joiningDate),
               _InfoTile(
                 label: 'Last Attendance',
-                value: child.lastAttendanceDate,
+                value: member.lastAttendanceDate,
               ),
               _InfoTile(
                 label: 'Days Attended',
-                value: child.totalNumberOfDaysAttended?.toString(),
+                value: member.totalNumberOfDaysAttended?.toString(),
               ),
               _InfoTile(
                   label: l10n.classroomId,
-                  value: child.classroomId?.toString()),
-              if (child.phoneNumbers != null &&
-                  child.phoneNumbers!.isNotEmpty) ...[
+                  value: member.classroomId?.toString()),
+              if (member.phoneNumbers != null &&
+                  member.phoneNumbers!.isNotEmpty) ...[
                 const SizedBox(height: 16),
                 Text(l10n.phoneNumbers,
                     style: Theme.of(context).textTheme.titleMedium),
-                ...child.phoneNumbers!.map((p) => Padding(
+                ...member.phoneNumbers!.map((p) => Padding(
                       padding: const EdgeInsets.only(left: 8, top: 4),
                       child: Text('${p.relation ?? ''}: ${p.phoneNumber ?? ''}'),
                     )),
               ],
-              if (child.notes != null && child.notes!.isNotEmpty) ...[
+              if (member.notes != null && member.notes!.isNotEmpty) ...[
                 const SizedBox(height: 16),
                 Text(l10n.notes,
                     style: Theme.of(context).textTheme.titleMedium),
-                ...child.notes!.map((n) => Padding(
+                ...member.notes!.map((n) => Padding(
                       padding: const EdgeInsets.only(left: 8, top: 4),
                       child: Text('• $n'),
                     )),
