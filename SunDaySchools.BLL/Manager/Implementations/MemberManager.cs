@@ -20,6 +20,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
     {
         private readonly IMemberRepository _memberRepository;
         private readonly IClassroomRepository _classroomRepository;
+        private readonly IServantRepository _servantRepository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -27,13 +28,14 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
         public MemberManager(IMemberRepository memberRepository, IMapper mapper,
             IHttpContextAccessor httpContextAccessor, UserManager<ApplicationUser> userManager,
-            IClassroomRepository classroomRepository)
+            IClassroomRepository classroomRepository, IServantRepository servantRepository)
         {
             _memberRepository = memberRepository;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
             _userManager = userManager;
             _classroomRepository = classroomRepository;
+            _servantRepository = servantRepository;
 
         }
 
@@ -72,10 +74,11 @@ namespace SunDaySchools.BLL.Manager.Implementations
             if (appUser == null)
                 throw new NotFoundException("User not found.");
 
-            if (appUser.ServantProfile == null)
+            var servant = await _servantRepository.GetByApplicationUserIdAsync(userIdClaim);
+            if (servant == null)
                 throw new UnauthorizedAccessException("Current user is not linked to a servant profile.");
 
-            var isAssigned = await _classroomRepository.IsServantAssignedAsync(appUser.ServantProfile.Id, classroomId);
+            var isAssigned = await _classroomRepository.IsServantAssignedAsync(servant.Id, classroomId);
 
             if (!isAssigned)
                 throw new UnauthorizedAccessException("This class is not assigned to you.");
