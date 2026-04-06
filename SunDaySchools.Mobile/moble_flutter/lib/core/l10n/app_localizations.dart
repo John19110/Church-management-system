@@ -116,6 +116,12 @@ class AppLocalizations {
   String get meetingName => _t('meetingName');
   String get enterMeetingName => _t('enterMeetingName');
   String get meetingNameRequired => _t('meetingNameRequired');
+  String get selectRegistrationType => _t('selectRegistrationType');
+  String get registerTypeServant => _t('registerTypeServant');
+  String get registerTypeChurchAdmin => _t('registerTypeChurchAdmin');
+  String get registerTypeMeetingAdmin => _t('registerTypeMeetingAdmin');
+  String get weeklyAppointment => _t('weeklyAppointment');
+  String get weeklyAppointmentRequired => _t('weeklyAppointmentRequired');
 
   // ── Attendance ────────────────────────────────────────────────────────────
   String get takeAttendance => _t('takeAttendance');
@@ -239,6 +245,12 @@ class AppLocalizations {
       'meetingName': 'Meeting Name',
       'enterMeetingName': 'Enter meeting name',
       'meetingNameRequired': 'Meeting name is required',
+      'selectRegistrationType': 'Select Registration Type',
+      'registerTypeServant': 'Servant',
+      'registerTypeChurchAdmin': 'Church Admin',
+      'registerTypeMeetingAdmin': 'Meeting Admin',
+      'weeklyAppointment': 'Weekly Appointment',
+      'weeklyAppointmentRequired': 'Weekly appointment is required',
       // Attendance
       'takeAttendance': 'Take Attendance',
       'viewAttendance': 'View Attendance',
@@ -359,6 +371,12 @@ class AppLocalizations {
       'meetingName': 'اسم الاجتماع',
       'enterMeetingName': 'أدخل اسم الاجتماع',
       'meetingNameRequired': 'اسم الاجتماع مطلوب',
+      'selectRegistrationType': 'اختر نوع التسجيل',
+      'registerTypeServant': 'خادم',
+      'registerTypeChurchAdmin': 'مشرف كنيسة',
+      'registerTypeMeetingAdmin': 'مشرف اجتماع',
+      'weeklyAppointment': 'الموعد الأسبوعي',
+      'weeklyAppointmentRequired': 'الموعد الأسبوعي مطلوب',
       // Attendance
       'takeAttendance': 'تسجيل الحضور',
       'viewAttendance': 'عرض الحضور',

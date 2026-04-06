@@ -1,11 +1,15 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/auth_models.dart';
 import '../providers/auth_providers.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../../core/l10n/app_localizations.dart';
+
+enum _RegisterType { servant, churchAdmin, meetingAdmin }
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -16,12 +20,28 @@ class RegisterScreen extends ConsumerStatefulWidget {
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
+
+  // Shared controllers
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+
+  // Servant-specific controllers
   final _churchIdController = TextEditingController();
   final _meetingIdController = TextEditingController();
+
+  // Church/Meeting admin controllers
+  final _churchNameController = TextEditingController();
+  final _meetingNameController = TextEditingController();
+  final _weeklyAppointmentController = TextEditingController();
+
+  // Optional controllers (shared across all types)
+  final _birthController = TextEditingController();
+  final _joiningController = TextEditingController();
+
+  File? _image;
+  _RegisterType _selectedType = _RegisterType.servant;
   bool _loading = false;
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
@@ -34,29 +54,104 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     _confirmPasswordController.dispose();
     _churchIdController.dispose();
     _meetingIdController.dispose();
+    _churchNameController.dispose();
+    _meetingNameController.dispose();
+    _weeklyAppointmentController.dispose();
+    _birthController.dispose();
+    _joiningController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) setState(() => _image = File(picked.path));
   }
 
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
     try {
-      await ref.read(authRepositoryProvider).registerServant(
-            RegisterServantDto(
-              name: _nameController.text.trim(),
-              phoneNumber: _phoneController.text.trim(),
-              password: _passwordController.text,
-              confirmPassword: _confirmPasswordController.text,
-              churchId: int.parse(_churchIdController.text.trim()),
-              meetingId: int.parse(_meetingIdController.text.trim()),
-            ),
-          );
+      switch (_selectedType) {
+        case _RegisterType.servant:
+          await ref.read(authRepositoryProvider).registerServant(
+                RegisterServantDto(
+                  name: _nameController.text.trim(),
+                  phoneNumber: _phoneController.text.trim(),
+                  password: _passwordController.text,
+                  confirmPassword: _confirmPasswordController.text,
+                  churchId: int.parse(_churchIdController.text.trim()),
+                  meetingId: int.parse(_meetingIdController.text.trim()),
+                  birthDate: _birthController.text.trim().nullIfEmpty,
+                  joiningDate: _joiningController.text.trim().nullIfEmpty,
+                ),
+              );
+        case _RegisterType.churchAdmin:
+          await ref.read(authRepositoryProvider).registerChurchSuperAdmin(
+                RegisterChurchSuperAdminDto(
+                  name: _nameController.text.trim(),
+                  phoneNumber: _phoneController.text.trim(),
+                  password: _passwordController.text,
+                  confirmPassword: _confirmPasswordController.text,
+                  churchName: _churchNameController.text.trim(),
+                  birthDate: _birthController.text.trim().nullIfEmpty,
+                  joiningDate: _joiningController.text.trim().nullIfEmpty,
+                  image: _image,
+                ),
+              );
+        case _RegisterType.meetingAdmin:
+          await ref.read(authRepositoryProvider).registerMeetingAdmin(
+                RegisterMeetingAdminDto(
+                  name: _nameController.text.trim(),
+                  phoneNumber: _phoneController.text.trim(),
+                  password: _passwordController.text,
+                  confirmPassword: _confirmPasswordController.text,
+                  churchName: _churchNameController.text.trim(),
+                  meetingName: _meetingNameController.text.trim(),
+                  weeklyAppointment: DateTime.tryParse(
+                        _weeklyAppointmentController.text.trim(),
+                      ) ??
+                      DateTime.now(),
+                  birthDate: _birthController.text.trim().nullIfEmpty,
+                  joiningDate: _joiningController.text.trim().nullIfEmpty,
+                  image: _image,
+                ),
+              );
+      }
       if (mounted) context.go('/dashboard');
     } catch (e) {
       if (mounted) showErrorSnackbar(context, e.toString());
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  Widget _buildImagePicker(AppLocalizations l10n) {
+    return GestureDetector(
+      onTap: _pickImage,
+      child: Center(
+        child: CircleAvatar(
+          radius: 48,
+          backgroundColor: const Color(0xFFED8936),
+          backgroundImage: _image != null ? FileImage(_image!) : null,
+          child: _image == null
+              ? Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.camera_alt, size: 28, color: Colors.white),
+                    const SizedBox(height: 4),
+                    Text(
+                      l10n.tapToSelectImage,
+                      style:
+                          const TextStyle(color: Colors.white, fontSize: 10),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                )
+              : null,
+        ),
+      ),
+    );
   }
 
   @override
@@ -72,6 +167,41 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                // Registration type selector
+                Text(
+                  l10n.selectRegistrationType,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<_RegisterType>(
+                  value: _selectedType,
+                  decoration: const InputDecoration(),
+                  items: [
+                    DropdownMenuItem(
+                      value: _RegisterType.servant,
+                      child: Text(l10n.registerTypeServant),
+                    ),
+                    DropdownMenuItem(
+                      value: _RegisterType.churchAdmin,
+                      child: Text(l10n.registerTypeChurchAdmin),
+                    ),
+                    DropdownMenuItem(
+                      value: _RegisterType.meetingAdmin,
+                      child: Text(l10n.registerTypeMeetingAdmin),
+                    ),
+                  ],
+                  onChanged: (v) {
+                    if (v != null) {
+                      setState(() {
+                        _selectedType = v;
+                        _image = null;
+                      });
+                    }
+                  },
+                ),
+                const SizedBox(height: 24),
+
+                // Shared fields
                 AppTextField(
                   controller: _nameController,
                   label: l10n.fullName,
@@ -98,7 +228,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       (v == null || v.length < 6) ? l10n.passwordTooShort : null,
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                      _obscurePassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
                     ),
                     onPressed: () =>
                         setState(() => _obscurePassword = !_obscurePassword),
@@ -112,40 +244,107 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   obscureText: _obscureConfirm,
                   validator: (v) {
                     if (v == null || v.isEmpty) return l10n.pleaseConfirmPassword;
-                    if (v != _passwordController.text) return l10n.passwordsDoNotMatch;
+                    if (v != _passwordController.text) {
+                      return l10n.passwordsDoNotMatch;
+                    }
                     return null;
                   },
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscureConfirm ? Icons.visibility : Icons.visibility_off,
+                      _obscureConfirm
+                          ? Icons.visibility
+                          : Icons.visibility_off,
                     ),
                     onPressed: () =>
                         setState(() => _obscureConfirm = !_obscureConfirm),
                   ),
                 ),
                 const SizedBox(height: 16),
-                AppTextField(
-                  controller: _churchIdController,
-                  label: l10n.churchId,
-                  hint: l10n.enterChurchId,
-                  keyboardType: TextInputType.number,
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) return l10n.churchIdRequired;
-                    if (int.tryParse(v.trim()) == null) return l10n.churchIdRequired;
-                    return null;
-                  },
+
+                // Type-specific fields
+                if (_selectedType == _RegisterType.servant) ...[
+                  AppTextField(
+                    controller: _churchIdController,
+                    label: l10n.churchId,
+                    hint: l10n.enterChurchId,
+                    keyboardType: TextInputType.number,
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) {
+                        return l10n.churchIdRequired;
+                      }
+                      if (int.tryParse(v.trim()) == null) {
+                        return l10n.churchIdRequired;
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  AppTextField(
+                    controller: _meetingIdController,
+                    label: l10n.meetingId,
+                    hint: l10n.enterMeetingId,
+                    keyboardType: TextInputType.number,
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) {
+                        return l10n.meetingIdRequired;
+                      }
+                      if (int.tryParse(v.trim()) == null) {
+                        return l10n.meetingIdRequired;
+                      }
+                      return null;
+                    },
+                  ),
+                ] else if (_selectedType == _RegisterType.churchAdmin) ...[
+                  AppTextField(
+                    controller: _churchNameController,
+                    label: l10n.churchName,
+                    hint: l10n.enterChurchName,
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? l10n.churchNameRequired
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildImagePicker(l10n),
+                ] else if (_selectedType == _RegisterType.meetingAdmin) ...[
+                  AppTextField(
+                    controller: _churchNameController,
+                    label: l10n.churchName,
+                    hint: l10n.enterChurchName,
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? l10n.churchNameRequired
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+                  AppTextField(
+                    controller: _meetingNameController,
+                    label: l10n.meetingName,
+                    hint: l10n.enterMeetingName,
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? l10n.meetingNameRequired
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+                  AppDateField(
+                    controller: _weeklyAppointmentController,
+                    label: l10n.weeklyAppointment,
+                    validator: (v) => (v == null || v.isEmpty)
+                        ? l10n.weeklyAppointmentRequired
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildImagePicker(l10n),
+                ],
+
+                // Optional fields (shared)
+                const SizedBox(height: 16),
+                AppDateField(
+                  controller: _birthController,
+                  label: l10n.birthDate,
                 ),
                 const SizedBox(height: 16),
-                AppTextField(
-                  controller: _meetingIdController,
-                  label: l10n.meetingId,
-                  hint: l10n.enterMeetingId,
-                  keyboardType: TextInputType.number,
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) return l10n.meetingIdRequired;
-                    if (int.tryParse(v.trim()) == null) return l10n.meetingIdRequired;
-                    return null;
-                  },
+                AppDateField(
+                  controller: _joiningController,
+                  label: l10n.joiningDate,
                 ),
                 const SizedBox(height: 24),
                 _loading
@@ -166,4 +365,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       ),
     );
   }
+}
+
+extension _StringExt on String {
+  String? get nullIfEmpty => isEmpty ? null : this;
 }

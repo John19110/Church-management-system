@@ -123,7 +123,8 @@ class _ChildEditScreenState extends ConsumerState<ChildEditScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.editChild)),
-      body: childAsync.when(
+      body: SafeArea(
+        child: childAsync.when(
         loading: () => const LoadingWidget(),
         error: (e, _) => AppErrorWidget(message: e.toString()),
         data: (child) {
@@ -223,6 +224,7 @@ class _ChildEditScreenState extends ConsumerState<ChildEditScreen> {
             ),
           );
         },
+      ),
       ),
     );
   }
