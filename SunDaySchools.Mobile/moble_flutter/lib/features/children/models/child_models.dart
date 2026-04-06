@@ -16,6 +16,8 @@ class ChildContactDto {
 }
 
 class ChildReadDto {
+  /// Note: the API's MemberReadDTO does not currently include an Id field.
+  /// This will be 0 when the backend does not return it.
   final int id;
   final String? fullName;
   final String? imageFileName;
@@ -26,7 +28,7 @@ class ChildReadDto {
   final String? joiningDate;
   final String? lastAttendanceDate;
   final String? spiritualDateOfBirth;
-  final bool? isDisciplineChild;
+  final bool? isDiscipline;
   final int? totalNumberOfDaysAttended;
   final List<ChildContactDto>? phoneNumbers;
   final bool? haveBrothers;
@@ -45,7 +47,7 @@ class ChildReadDto {
     this.joiningDate,
     this.lastAttendanceDate,
     this.spiritualDateOfBirth,
-    this.isDisciplineChild,
+    this.isDiscipline,
     this.totalNumberOfDaysAttended,
     this.phoneNumbers,
     this.haveBrothers,
@@ -55,7 +57,7 @@ class ChildReadDto {
   });
 
   factory ChildReadDto.fromJson(Map<String, dynamic> json) => ChildReadDto(
-        id: json['id'] as int,
+        id: json['id'] as int? ?? 0,
         fullName: json['fullName'] as String?,
         imageFileName: json['imageFileName'] as String?,
         imageUrl: json['imageUrl'] as String?,
@@ -65,7 +67,7 @@ class ChildReadDto {
         joiningDate: json['joiningDate'] as String?,
         lastAttendanceDate: json['lastAttendanceDate'] as String?,
         spiritualDateOfBirth: json['spiritualDateOfBirth'] as String?,
-        isDisciplineChild: json['isDisciplineChild'] as bool?,
+        isDiscipline: json['isDiscipline'] as bool?,
         totalNumberOfDaysAttended: json['totalNumberOfDaysAttended'] as int?,
         phoneNumbers: (json['phoneNumbers'] as List<dynamic>?)
             ?.map((e) => ChildContactDto.fromJson(e as Map<String, dynamic>))
@@ -91,7 +93,6 @@ class ChildAddDto {
   final List<String>? notes;
   final List<String>? brothersNames;
   final bool? haveBrothers;
-  final int? classroomId;
   final List<ChildContactDto>? phoneNumbers;
 
   const ChildAddDto({
@@ -106,7 +107,6 @@ class ChildAddDto {
     this.notes,
     this.brothersNames,
     this.haveBrothers,
-    this.classroomId,
     this.phoneNumbers,
   });
 
@@ -123,7 +123,6 @@ class ChildAddDto {
         if (notes != null) 'notes': notes,
         if (brothersNames != null) 'brothersNames': brothersNames,
         if (haveBrothers != null) 'haveBrothers': haveBrothers,
-        if (classroomId != null) 'classroomId': classroomId,
         if (phoneNumbers != null)
           'phoneNumbers': phoneNumbers!.map((e) => e.toJson()).toList(),
       };
@@ -132,8 +131,9 @@ class ChildAddDto {
 class ChildUpdateDto extends ChildAddDto {
   final int id;
   final String? lastAttendanceDate;
-  final bool? isDisciplineChild;
+  final bool? isDiscipline;
   final int? totalNumberOfDaysAttended;
+  final int? classroomId;
 
   const ChildUpdateDto({
     required this.id,
@@ -148,11 +148,11 @@ class ChildUpdateDto extends ChildAddDto {
     super.notes,
     super.brothersNames,
     super.haveBrothers,
-    super.classroomId,
     super.phoneNumbers,
     this.lastAttendanceDate,
-    this.isDisciplineChild,
+    this.isDiscipline,
     this.totalNumberOfDaysAttended,
+    this.classroomId,
   });
 
   @override
@@ -160,8 +160,9 @@ class ChildUpdateDto extends ChildAddDto {
         'id': id,
         ...super.toJson(),
         if (lastAttendanceDate != null) 'lastAttendanceDate': lastAttendanceDate,
-        if (isDisciplineChild != null) 'isDisciplineChild': isDisciplineChild,
+        if (isDiscipline != null) 'isDiscipline': isDiscipline,
         if (totalNumberOfDaysAttended != null)
           'totalNumberOfDaysAttended': totalNumberOfDaysAttended,
+        if (classroomId != null) 'classroomId': classroomId,
       };
 }

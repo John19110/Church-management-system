@@ -97,14 +97,25 @@ class AppLocalizations {
   String get editServant => _t('editServant');
   String get servantDetails => _t('servantDetails');
   String get birthDate => _t('birthDate');
-  String get applicationUserId => _t('applicationUserId');
-  String get userIdHint => _t('userIdHint');
-  String get userIdRequired => _t('userIdRequired');
   String get deleteServant => _t('deleteServant');
   String get confirmDeleteServant => _t('confirmDeleteServant');
   String get servantAddedSuccessfully => _t('servantAddedSuccessfully');
   String get servantUpdatedSuccessfully => _t('servantUpdatedSuccessfully');
   String get servantDeletedSuccessfully => _t('servantDeletedSuccessfully');
+
+  // ── Registration ──────────────────────────────────────────────────────────
+  String get churchId => _t('churchId');
+  String get enterChurchId => _t('enterChurchId');
+  String get churchIdRequired => _t('churchIdRequired');
+  String get meetingId => _t('meetingId');
+  String get enterMeetingId => _t('enterMeetingId');
+  String get meetingIdRequired => _t('meetingIdRequired');
+  String get churchName => _t('churchName');
+  String get enterChurchName => _t('enterChurchName');
+  String get churchNameRequired => _t('churchNameRequired');
+  String get meetingName => _t('meetingName');
+  String get enterMeetingName => _t('enterMeetingName');
+  String get meetingNameRequired => _t('meetingNameRequired');
 
   // ── Attendance ────────────────────────────────────────────────────────────
   String get takeAttendance => _t('takeAttendance');
@@ -210,14 +221,24 @@ class AppLocalizations {
       'editServant': 'Edit Servant',
       'servantDetails': 'Servant Details',
       'birthDate': 'Birth Date',
-      'applicationUserId': 'Application User ID',
-      'userIdHint': 'Required — user UUID from auth system',
-      'userIdRequired': 'User ID is required',
       'deleteServant': 'Delete Servant',
       'confirmDeleteServant': 'Are you sure you want to delete this servant?',
       'servantAddedSuccessfully': 'Servant added successfully',
       'servantUpdatedSuccessfully': 'Servant updated successfully',
       'servantDeletedSuccessfully': 'Servant deleted',
+      // Registration
+      'churchId': 'Church ID',
+      'enterChurchId': 'Enter your church ID',
+      'churchIdRequired': 'Church ID is required',
+      'meetingId': 'Meeting ID',
+      'enterMeetingId': 'Enter your meeting ID',
+      'meetingIdRequired': 'Meeting ID is required',
+      'churchName': 'Church Name',
+      'enterChurchName': 'Enter church name',
+      'churchNameRequired': 'Church name is required',
+      'meetingName': 'Meeting Name',
+      'enterMeetingName': 'Enter meeting name',
+      'meetingNameRequired': 'Meeting name is required',
       // Attendance
       'takeAttendance': 'Take Attendance',
       'viewAttendance': 'View Attendance',
@@ -320,14 +341,24 @@ class AppLocalizations {
       'editServant': 'تعديل خادم',
       'servantDetails': 'تفاصيل الخادم',
       'birthDate': 'تاريخ الميلاد',
-      'applicationUserId': 'معرف مستخدم التطبيق',
-      'userIdHint': 'مطلوب — معرف UUID من نظام المصادقة',
-      'userIdRequired': 'معرف المستخدم مطلوب',
       'deleteServant': 'حذف خادم',
       'confirmDeleteServant': 'هل أنت متأكد من حذف هذا الخادم؟',
       'servantAddedSuccessfully': 'تمت إضافة الخادم بنجاح',
       'servantUpdatedSuccessfully': 'تم تحديث الخادم بنجاح',
       'servantDeletedSuccessfully': 'تم حذف الخادم',
+      // Registration
+      'churchId': 'معرف الكنيسة',
+      'enterChurchId': 'أدخل معرف كنيستك',
+      'churchIdRequired': 'معرف الكنيسة مطلوب',
+      'meetingId': 'معرف الاجتماع',
+      'enterMeetingId': 'أدخل معرف الاجتماع',
+      'meetingIdRequired': 'معرف الاجتماع مطلوب',
+      'churchName': 'اسم الكنيسة',
+      'enterChurchName': 'أدخل اسم الكنيسة',
+      'churchNameRequired': 'اسم الكنيسة مطلوب',
+      'meetingName': 'اسم الاجتماع',
+      'enterMeetingName': 'أدخل اسم الاجتماع',
+      'meetingNameRequired': 'اسم الاجتماع مطلوب',
       // Attendance
       'takeAttendance': 'تسجيل الحضور',
       'viewAttendance': 'عرض الحضور',

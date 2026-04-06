@@ -7,14 +7,32 @@ class AppConstants {
       : 'http://localhost:5000';
 
   // Auth endpoints
-  static const String loginEndpoint = '/Api/Account/Login';
-  static const String registerEndpoint = '/Api/Account/Register';
+  static const String loginEndpoint = '/api/Account/login';
+  static const String registerServantEndpoint = '/api/Account/register-servant';
+  static const String registerChurchSuperAdminEndpoint =
+      '/api/Account/register-church-superadmin';
+  static const String registerMeetingAdminEndpoint =
+      '/api/Account/register-meeting-admin-new-church';
 
-  // Children endpoints
-  static const String childrenEndpoint = '/api/Children';
+  // Members (children) endpoints
+  static const String membersEndpoint = '/api/Members';
+  // POST /api/classrooms/{classroomId}/members
+  static const String classroomMembersBasePath = '/api/classrooms';
 
   // Servant endpoints
-  static const String servantEndpoint = '/api/servant';
+  static const String servantEndpoint = '/api/Servant';
+
+  // Admin endpoints
+  static const String adminEndpoint = '/Api/Admin';
+
+  // Classroom endpoints
+  static const String classroomEndpoint = '/api/Classroom';
+
+  // Meeting endpoints
+  static const String meetingEndpoint = '/api/Meetings';
+
+  // SuperAdmin endpoints
+  static const String superAdminEndpoint = '/api/SuperAdmin';
 
   // AttendanceSession endpoints
   static const String attendanceEndpoint = '/api/AttendanceSession';

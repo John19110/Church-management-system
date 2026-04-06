@@ -21,10 +21,8 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _userIdController = TextEditingController();
   final _joiningController = TextEditingController();
   final _birthController = TextEditingController();
-  final _classroomController = TextEditingController();
   File? _image;
   bool _loading = false;
   bool _initialized = false;
@@ -33,10 +31,8 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen> {
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
-    _userIdController.dispose();
     _joiningController.dispose();
     _birthController.dispose();
-    _classroomController.dispose();
     super.dispose();
   }
 
@@ -47,7 +43,6 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen> {
     _phoneController.text = servant.phoneNumber ?? '';
     _joiningController.text = servant.joiningDate ?? '';
     _birthController.text = servant.birthDate ?? '';
-    _classroomController.text = servant.classroomId?.toString() ?? '';
   }
 
   Future<void> _pickImage() async {
@@ -63,12 +58,10 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen> {
     try {
       await ref.read(servantsRepositoryProvider).update(
             widget.id,
-            name: _nameController.text.trim(),
-            applicationUserId: _userIdController.text.trim(),
+            name: _nameController.text.trim().nullIfEmpty,
             phoneNumber: _phoneController.text.trim().nullIfEmpty,
             joiningDate: _joiningController.text.trim().nullIfEmpty,
             birthDate: _birthController.text.trim().nullIfEmpty,
-            classroomId: int.tryParse(_classroomController.text.trim()),
             image: _image,
           );
       if (mounted) {
@@ -131,25 +124,11 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen> {
                   keyboardType: TextInputType.phone,
                 ),
                 const SizedBox(height: 12),
-                AppTextField(
-                  controller: _userIdController,
-                  label: l10n.applicationUserId,
-                  hint: l10n.userIdHint,
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? l10n.userIdRequired : null,
-                ),
-                const SizedBox(height: 12),
                 AppDateField(
                     controller: _joiningController, label: l10n.joiningDate),
                 const SizedBox(height: 12),
                 AppDateField(
                     controller: _birthController, label: l10n.birthDate),
-                const SizedBox(height: 12),
-                AppTextField(
-                  controller: _classroomController,
-                  label: l10n.classroomId,
-                  keyboardType: TextInputType.number,
-                ),
                 const SizedBox(height: 24),
                 _loading
                     ? const Center(child: CircularProgressIndicator())
