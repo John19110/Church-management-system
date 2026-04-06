@@ -1,4 +1,5 @@
 ﻿using SunDaySchools.BLL.DTOS;
+using SunDaySchools.BLL.DTOS.AccountDtos;
 using SunDaySchools.Models;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,7 @@ namespace SunDaySchools.BLL.Manager.Interfaces
     {
         Task<IEnumerable<ServantReadDTO>> GetAllAsync();
 
+        Task AddAsync(AdminAddServantDTO servantDto, string webRootPath);
         Task<ServantReadDTO?> GetByIdAsync(int id);
 
         Task<List<SelectOptionDTO>> GetServantsForSelection();

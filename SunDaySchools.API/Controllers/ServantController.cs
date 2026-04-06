@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using SunDaySchools.API.Mapping;
 using SunDaySchools.API.Requests;
 using SunDaySchools.API.Services.Interfaces;
+using SunDaySchools.BLL.DTOS.AccountDtos;
 using SunDaySchools.BLL.Exceptions;
+using SunDaySchools.BLL.Manager.Implementations;
 using SunDaySchools.BLL.Manager.Interfaces;
 using System.Security.Claims;
 
@@ -15,11 +17,33 @@ namespace SunDaySchools.API.Controllers
     {
         private readonly IServantManager _servantManager;
         private readonly IFileStorage _fileStorage;
+        private readonly IWebHostEnvironment _env;
 
-        public ServantController(IServantManager servantManager, IFileStorage fileStorage)
+
+        public ServantController(IServantManager servantManager, IFileStorage fileStorage, IWebHostEnvironment env)
         {
             _servantManager = servantManager;
             _fileStorage = fileStorage;
+            _env = env;
+        }
+
+        // Add servant
+        [HttpPost]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> Create([FromForm(Name = "")] AdminAddServantDTO servant)
+        {
+            if (servant == null)
+            {
+                var errors = new Dictionary<string, string[]>
+                {
+                    ["servant"] = new[] { "The request body cannot be empty." }
+                };
+                throw new ValidationException(errors);
+            }
+
+            await _servantManager.AddAsync(servant, _env.WebRootPath);
+
+            return StatusCode(201, new { message = "Created Successfully" });
         }
 
         [HttpGet]
