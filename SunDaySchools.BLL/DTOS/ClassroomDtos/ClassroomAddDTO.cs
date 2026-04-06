@@ -16,6 +16,9 @@ namespace SunDaySchools.BLL.DTOS.ClsssroomDtos
         public List<int>? MemberIds { get; set; }
         public int? MeetingId { get; set; }
 
+        public int? LeaderServantId { get; set; }  // Nullable if a meeting may not have a leader yet
+
+
 
 
     }
