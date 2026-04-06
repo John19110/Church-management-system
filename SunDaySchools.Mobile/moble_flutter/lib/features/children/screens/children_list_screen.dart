@@ -38,7 +38,7 @@ class ChildrenListScreen extends ConsumerWidget {
           return RefreshIndicator(
             onRefresh: () async => ref.invalidate(childrenListProvider),
             child: ListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              padding: const EdgeInsets.only(top: 8, bottom: 88),
               itemCount: children.length,
               itemBuilder: (context, index) {
                 final child = children[index];
