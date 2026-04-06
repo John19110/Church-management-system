@@ -29,6 +29,8 @@ class ClassroomReadDto {
       ClassroomReadDto(
         name: json['name'] as String?,
         ageOfMembers: json['ageOfMembers'] as String?,
+        // The key 'numberOfDisplineMembers' matches the backend's Classroom model
+        // which contains this spelling (typo preserved from the C# entity).
         numberOfDisciplineMembers:
             json['numberOfDisplineMembers'] as int?,
         totalMembersCount: json['totalMembersCount'] as int?,

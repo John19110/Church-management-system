@@ -49,6 +49,8 @@ class ServantsRepository {
         'Account.ConfirmPassword': confirmPassword,
         if (birthDate != null) 'Account.BirthDate': birthDate,
         if (joiningDate != null) 'Account.JoiningDate': joiningDate,
+        // AdminAddServantDTO wraps two sub-DTOs: Account and Servant.
+        // Both receive dates/classrooms so the backend can populate each one.
         if (joiningDate != null) 'Servant.JoiningDate': joiningDate,
         if (birthDate != null) 'Servant.BirthDate': birthDate,
         if (image != null)

@@ -17,7 +17,8 @@ class PendingUserDto {
 }
 
 class AdminAddServantDto {
-  // Account fields (RegisterServamtinAddAdmin)
+  // Account fields (mirrors the backend's RegisterServamtinAddAdmin DTO —
+  // the backend class name contains a typo that is preserved intentionally).
   final String accountName;
   final String phoneNumber;
   final String password;
