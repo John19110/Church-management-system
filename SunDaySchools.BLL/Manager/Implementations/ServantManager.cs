@@ -1,12 +1,17 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using SunDaySchools.BLL.DTOS;
+using SunDaySchools.BLL.DTOS.AccountDtos;
 using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Interfaces;
 using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchools.Models;
-using Microsoft.EntityFrameworkCore;
+using SunDaySchoolsDAL.Models;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace SunDaySchools.BLL.Manager.Implementations
@@ -15,16 +20,52 @@ namespace SunDaySchools.BLL.Manager.Implementations
     {
         private readonly IServantRepository _servantRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IAccountManager _accountManager;
+        private readonly UserManager<ApplicationUser> _userManager;
+
+
 
         private readonly IMapper _mapper;
 
-        public ServantManager(IServantRepository servantRepository, IMapper mapper, IHttpContextAccessor httpContextAccessor)
+        public ServantManager(IServantRepository servantRepository, 
+            IMapper mapper, IHttpContextAccessor httpContextAccessor, IAccountManager accountManager,
+           UserManager<ApplicationUser> usermanager)
         {
             _servantRepository = servantRepository;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
-
+            _accountManager = accountManager;
+            _userManager = usermanager;
         }
+
+        public async Task AddAsync(AdminAddServantDTO servantDto, string webRootPath)
+        {
+            var registerDTO = _mapper.Map<RegisterServantDTO>(servantDto.Account);
+            registerDTO.Image = servantDto.Servant.Image;
+
+            // ChurchId logic
+            var claim = _httpContextAccessor.HttpContext?.User?.FindFirst("ChurchId");
+            if (claim == null) throw new UnauthorizedAccessException("ChurchId claim is missing");
+            if (!int.TryParse(claim.Value, out var churchId)) throw new UnauthorizedAccessException("Invalid ChurchId");
+            registerDTO.ChurchId = churchId;
+
+            // ✅ Pass webRootPath here
+            var createdUserToken = await _accountManager.RegisterServant(registerDTO, webRootPath);
+
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(createdUserToken);
+
+            // Extract userId
+            var userIdClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+            var userId = userIdClaim?.Value;
+            var user = await _userManager.FindByIdAsync(userId);
+
+            user.IsApproved = true;
+            await _userManager.UpdateAsync(user);
+
+            // Optional: assign classrooms
+        }
+
 
         public async Task<IEnumerable<ServantReadDTO>> GetAllAsync()
         {

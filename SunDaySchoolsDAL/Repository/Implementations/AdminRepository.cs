@@ -32,10 +32,10 @@ namespace SunDaySchools.DAL.Repository.Implementations
             await _context.SaveChangesAsync();
         }
 
-        public async Task AddServantAsync(Servant servant)
-        {
-            await _context.Servants.AddAsync(servant);
-            await _context.SaveChangesAsync();
-        }
+        //public async Task AddServantAsync(Servant servant)
+        //{
+        //    await _context.Servants.AddAsync(servant);
+        //    await _context.SaveChangesAsync();
+        //}
     }
 }
