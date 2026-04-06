@@ -59,6 +59,7 @@ class MeetingReadDto {
               (item['fullName'] ??
                       item['name'] ??
                       item['Name'] ??
+                      // Backend Member entity can serialize first-name as Name1.
                       item['Name1'] ??
                       '')
                   .toString()
