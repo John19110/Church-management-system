@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import '../../../core/api/dio_client.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../features/classrooms/models/classroom_models.dart';
+import '../models/meeting_models.dart';
 
 class MeetingRepository {
   final Dio _dio;
@@ -20,10 +21,14 @@ class MeetingRepository {
     });
   }
 
-  /// GET /api/Meetings/visible — triggers visible meetings retrieval
-  Future<void> getVisibleMeetings() async {
+  /// GET /api/Meetings/visible — returns visible meetings
+  Future<List<MeetingReadDto>> getVisibleMeetings() async {
     return apiCall(() async {
-      await _dio.get('${AppConstants.meetingEndpoint}/visible');
+      final response = await _dio.get('${AppConstants.meetingEndpoint}/visible');
+      final list = response.data as List<dynamic>;
+      return list
+          .map((e) => MeetingReadDto.fromJson(e as Map<String, dynamic>))
+          .toList();
     });
   }
 }

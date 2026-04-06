@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
+import '../../features/auth/utils/auth_role_utils.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
 import '../../features/children/screens/children_list_screen.dart';
 import '../../features/children/screens/child_detail_screen.dart';
@@ -14,6 +15,8 @@ import '../../features/servants/screens/servant_add_screen.dart';
 import '../../features/servants/screens/servant_edit_screen.dart';
 import '../../features/attendance/screens/attendance_take_screen.dart';
 import '../../features/attendance/screens/attendance_view_screen.dart';
+import '../../features/super_admin/screens/super_admin_home_screen.dart';
+import '../../features/classrooms/screens/classrooms_home_screen.dart';
 import '../../core/storage/token_storage.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -24,13 +27,25 @@ final routerProvider = Provider<GoRouter>((ref) {
       final onAuthPage = state.matchedLocation == '/login' ||
           state.matchedLocation == '/register';
       if (!hasToken && !onAuthPage) return '/login';
-      if (hasToken && onAuthPage) return '/dashboard';
+      if (hasToken && onAuthPage) {
+        final token = await TokenStorage.getToken();
+        final role = token != null ? AuthRoleUtils.extractPrimaryRole(token) : null;
+        return AuthRoleUtils.routeForRole(role);
+      }
       return null;
     },
     routes: [
       GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
       GoRoute(path: '/register', builder: (_, __) => const RegisterScreen()),
       GoRoute(path: '/dashboard', builder: (_, __) => const DashboardScreen()),
+      GoRoute(
+        path: '/super-admin-home',
+        builder: (_, __) => const SuperAdminHomeScreen(),
+      ),
+      GoRoute(
+        path: '/classrooms-home',
+        builder: (_, __) => const ClassroomsHomeScreen(),
+      ),
 
       // Children
       GoRoute(path: '/children', builder: (_, __) => const ChildrenListScreen()),
