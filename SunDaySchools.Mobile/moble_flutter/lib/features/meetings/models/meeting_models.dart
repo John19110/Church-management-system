@@ -1,3 +1,6 @@
+export '../../../features/classrooms/models/classroom_models.dart'
+    show SelectOptionDto;
+
 class MeetingAddDto {
   final String? name;
   final DateTime weeklyAppointment;
@@ -35,7 +38,3 @@ class MeetingReadDto {
         servantsCount: (json['servants'] as List<dynamic>?)?.length ?? 0,
       );
 }
-
-// SelectOptionDto is shared — re-exported for convenience.
-export '../../../features/classrooms/models/classroom_models.dart'
-    show SelectOptionDto;
