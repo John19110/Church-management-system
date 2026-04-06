@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../models/child_models.dart';
-import '../providers/children_providers.dart';
+import '../models/member_models.dart';
+import '../providers/members_providers.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../../core/l10n/app_localizations.dart';
 
-class ChildAddScreen extends ConsumerStatefulWidget {
-  const ChildAddScreen({super.key});
+class MemberAddScreen extends ConsumerStatefulWidget {
+  const MemberAddScreen({super.key});
 
   @override
-  ConsumerState<ChildAddScreen> createState() => _ChildAddScreenState();
+  ConsumerState<MemberAddScreen> createState() => _MemberAddScreenState();
 }
 
-class _ChildAddScreenState extends ConsumerState<ChildAddScreen> {
+class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
   final _formKey = GlobalKey<FormState>();
   final _name1Controller = TextEditingController();
   final _name2Controller = TextEditingController();
@@ -67,15 +67,15 @@ class _ChildAddScreenState extends ConsumerState<ChildAddScreen> {
     try {
       final phones = List.generate(
         _phoneRelation.length,
-        (i) => ChildContactDto(
+        (i) => MemberContactDto(
           relation: _phoneRelation[i].text.trim(),
           phoneNumber: _phoneNumber[i].text.trim(),
         ),
       );
       final classroomId = int.tryParse(_classroomController.text.trim()) ?? 0;
-      await ref.read(childrenRepositoryProvider).create(
+      await ref.read(membersRepositoryProvider).create(
             classroomId,
-            ChildAddDto(
+            MemberAddDto(
               name1: _name1Controller.text.trim().nullIfEmpty,
               name2: _name2Controller.text.trim().nullIfEmpty,
               name3: _name3Controller.text.trim().nullIfEmpty,
@@ -87,7 +87,7 @@ class _ChildAddScreenState extends ConsumerState<ChildAddScreen> {
             ),
           );
       if (mounted) {
-        showSuccessSnackbar(context, l10n.childAddedSuccessfully);
+        showSuccessSnackbar(context, l10n.memberAddedSuccessfully);
         context.pop();
       }
     } catch (e) {
@@ -101,7 +101,7 @@ class _ChildAddScreenState extends ConsumerState<ChildAddScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.addChild)),
+      appBar: AppBar(title: Text(l10n.addMember)),
       body: SafeArea(
         child: Form(
         key: _formKey,
@@ -198,7 +198,7 @@ class _ChildAddScreenState extends ConsumerState<ChildAddScreen> {
                 ? const Center(child: CircularProgressIndicator())
                 : ElevatedButton(
                     onPressed: _submit,
-                    child: Text(l10n.addChild),
+                    child: Text(l10n.addMember),
                   ),
           ],
         ),

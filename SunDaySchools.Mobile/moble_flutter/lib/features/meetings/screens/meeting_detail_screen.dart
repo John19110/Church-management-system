@@ -49,7 +49,7 @@ class MeetingDetailScreen extends StatelessWidget {
           ..._buildNameList(meeting.memberNames),
           const SizedBox(height: 24),
           ElevatedButton.icon(
-            onPressed: () => context.push(AppRoutes.children),
+            onPressed: () => context.push(AppRoutes.members),
             icon: const Icon(Icons.group_add),
             label: const Text('Add/Update/Remove Members'),
           ),
