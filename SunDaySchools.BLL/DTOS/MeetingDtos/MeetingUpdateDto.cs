@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 
 namespace SunDaySchools.BLL.DTOS.MeetingDtos
 {
-    internal class MeetingUpdateDto
+    public class MeetingUpdateDto
     {
+        public int? LeaderServantId { get; set; }  // Nullable if a meeting may not have a leader yet
+
     }
 }

@@ -18,6 +18,9 @@ namespace SunDaySchools.BLL.DTOS
         public ICollection<Servant>? Servants { get; set; }
         public ICollection<AttendanceSession>? AttendanceHistory { get; set; }
 
+        public int? LeaderServantId { get; set; }  // Nullable if a meeting may not have a leader yet
+
+
 
 
     }

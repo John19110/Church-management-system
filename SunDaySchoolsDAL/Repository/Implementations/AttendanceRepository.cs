@@ -15,13 +15,13 @@ namespace SunDaySchools.DAL.Repository.Implementations
             _context = context;
         }
 
-        public async Task EditAttendance(AttendanceSession session)
+        public async Task Edit(AttendanceSession session)
         {
             _context.AttendanceSessions.Update(session);
             await _context.SaveChangesAsync();
         }
 
-        public async Task TakeAttendance(AttendanceSession session)
+        public async Task Take(AttendanceSession session)
         {
             foreach (var record in session.Records)
             {
@@ -46,7 +46,7 @@ namespace SunDaySchools.DAL.Repository.Implementations
             await _context.AttendanceSessions.AddAsync(session);
             await _context.SaveChangesAsync();
         }
-        public async Task<AttendanceSession> GetAttendance(int  SessionId)
+        public async Task<AttendanceSession> Get(int  SessionId)
         {
              return  _context.AttendanceSessions.Include(c=>c.Records)
                 .FirstOrDefault(c => c.Id == SessionId);

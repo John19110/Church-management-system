@@ -34,7 +34,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             var entity = _mapper.Map<AttendanceSession>(session);
 
             // ✅ Actually save
-            await _attendanceRepository.TakeAttendance(entity);
+            await _attendanceRepository.Take(entity);
         }
 
         // ✅ Make it async
@@ -44,7 +44,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             if (sessionDto.Id <= 0) throw new ArgumentException("Session must have a valid Id to edit.", nameof(sessionDto));
 
             // Load the existing entity from database WITH records
-            var existingSession = await _attendanceRepository.GetAttendance(sessionDto.Id);
+            var existingSession = await _attendanceRepository.Get(sessionDto.Id);
             if (existingSession == null)
                 throw new InvalidOperationException($"Attendance session with Id {sessionDto.Id} not found.");
 
@@ -61,7 +61,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             await UpdateAttendanceRecords(existingSession, sessionDto.Records);
 
             // Save changes
-            await _attendanceRepository.EditAttendance(existingSession);
+            await _attendanceRepository.Edit(existingSession);
         }
 
         private async Task UpdateAttendanceRecords(AttendanceSession existingSession, List<AttendanceRecordUpdateDTO> recordDtos)
@@ -119,7 +119,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
         // ✅ Make it async
         public async Task<AttendanceSessionReadDTO?> GetAttendanceAsync(int sessionId)
         {
-            var result = await _attendanceRepository.GetAttendance(sessionId);
+            var result = await _attendanceRepository.Get(sessionId);
 
             if (result == null) return null;
 

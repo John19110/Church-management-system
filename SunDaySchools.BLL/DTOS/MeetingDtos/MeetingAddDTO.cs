@@ -10,5 +10,8 @@ namespace SunDaySchools.BLL.DTOS.Meeting
     {
         public string? Name { get; set; }
         public DateTime Weekly_appointment { get; set; }
+
+        public int? LeaderServantId { get; set; }  // Nullable if a meeting may not have a leader yet
+
     }
 }

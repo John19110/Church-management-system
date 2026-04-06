@@ -9,9 +9,9 @@ namespace SunDaySchools.DAL.Repository.Interfaces
 {
     public interface IAttendanceRepository
     {
-        Task  TakeAttendance(AttendanceSession session);
-        Task  EditAttendance(AttendanceSession session);
-        Task<AttendanceSession> GetAttendance(int SessionId);
+        Task  Take(AttendanceSession session);
+        Task  Edit(AttendanceSession session);
+        Task<AttendanceSession> Get(int SessionId);
 
     }
 }

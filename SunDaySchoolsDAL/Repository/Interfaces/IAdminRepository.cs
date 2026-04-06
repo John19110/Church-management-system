@@ -7,7 +7,6 @@ namespace SunDaySchools.DAL.Repository.Interfaces
     {
         Task<(Servant? servant, Classroom? classroom)> AssignClassToServantAsync(int servantId, int classroomId);
 
-        // AddServantAsync(Servant servant);
 
         Task SaveAsync();
     }
