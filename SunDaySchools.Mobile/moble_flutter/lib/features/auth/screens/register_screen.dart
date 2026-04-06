@@ -108,8 +108,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   confirmPassword: _confirmPasswordController.text,
                   churchName: _churchNameController.text.trim(),
                   meetingName: _meetingNameController.text.trim(),
-                  weeklyAppointment:
-                      DateTime.parse(_weeklyAppointmentController.text.trim()),
+                  weeklyAppointment: DateTime.tryParse(
+                        _weeklyAppointmentController.text.trim(),
+                      ) ??
+                      DateTime.now(),
                   birthDate: _birthController.text.trim().nullIfEmpty,
                   joiningDate: _joiningController.text.trim().nullIfEmpty,
                   image: _image,
