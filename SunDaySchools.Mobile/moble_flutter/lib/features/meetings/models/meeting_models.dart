@@ -18,12 +18,16 @@ class MeetingReadDto {
   final DateTime? weeklyAppointment;
   final int membersCount;
   final int servantsCount;
+  final List<String> memberNames;
+  final List<String> servantNames;
 
   const MeetingReadDto({
     this.name,
     this.weeklyAppointment,
     required this.membersCount,
     required this.servantsCount,
+    this.memberNames = const [],
+    this.servantNames = const [],
   });
 
   factory MeetingReadDto.fromJson(Map<String, dynamic> json) => MeetingReadDto(
@@ -31,10 +35,36 @@ class MeetingReadDto {
         weeklyAppointment: DateTime.tryParse(
           // Backend currently uses `Weekly_appointment`; keep camelCase fallback
           // for compatibility with potential serializer naming changes.
-          (json['weekly_appointment'] ?? json['weeklyAppointment'] ?? '')
+          (json['weekly_appointment'] ??
+                  json['Weekly_appointment'] ??
+                  json['weeklyAppointment'] ??
+                  '')
               .toString(),
         ),
-        membersCount: (json['members'] as List<dynamic>?)?.length ?? 0,
-        servantsCount: (json['servants'] as List<dynamic>?)?.length ?? 0,
+        membersCount: _asList(json['members']).length,
+        servantsCount: _asList(json['servants']).length,
+        memberNames: _extractDisplayNames(_asList(json['members'])),
+        servantNames: _extractDisplayNames(_asList(json['servants'])),
       );
+
+  static List<dynamic> _asList(dynamic value) {
+    return value is List ? value : <dynamic>[];
+  }
+
+  static List<String> _extractDisplayNames(List<dynamic> items) {
+    return items
+        .map((e) => e is Map<String, dynamic> ? e : <String, dynamic>{})
+        .map(
+          (item) =>
+              (item['fullName'] ??
+                      item['name'] ??
+                      item['Name'] ??
+                      item['Name1'] ??
+                      '')
+                  .toString()
+                  .trim(),
+        )
+        .where((name) => name.isNotEmpty)
+        .toList();
+  }
 }
