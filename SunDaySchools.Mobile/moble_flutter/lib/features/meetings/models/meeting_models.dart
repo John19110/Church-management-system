@@ -26,6 +26,8 @@ class MeetingReadDto {
   factory MeetingReadDto.fromJson(Map<String, dynamic> json) => MeetingReadDto(
         name: json['name'] as String?,
         weeklyAppointment: DateTime.tryParse(
+          // Backend currently uses `Weekly_appointment`; keep camelCase fallback
+          // for compatibility with potential serializer naming changes.
           (json['weekly_appointment'] ?? json['weeklyAppointment'] ?? '')
               .toString(),
         ),

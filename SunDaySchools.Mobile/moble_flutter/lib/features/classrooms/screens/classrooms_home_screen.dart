@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:developer' as developer;
 import '../../../core/storage/token_storage.dart';
 import '../../admin/providers/admin_providers.dart';
 import '../../auth/providers/auth_providers.dart';
@@ -39,7 +40,14 @@ class ClassroomsHomeScreen extends ConsumerWidget {
             ref.invalidate(pendingServantsProvider);
             try {
               await ref.read(pendingServantsProvider.future);
-            } catch (_) {}
+            } catch (e, s) {
+              developer.log(
+                'Failed refreshing pending servants',
+                name: 'ClassroomsHomeScreen',
+                error: e,
+                stackTrace: s,
+              );
+            }
           }
         },
         child: ListView(

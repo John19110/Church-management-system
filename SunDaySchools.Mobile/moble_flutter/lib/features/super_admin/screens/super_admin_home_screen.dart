@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/storage/token_storage.dart';
 import '../../meetings/providers/meeting_providers.dart';
-import '../../super_admin/providers/super_admin_providers.dart';
+import '../providers/super_admin_providers.dart';
 
 class SuperAdminHomeScreen extends ConsumerWidget {
   const SuperAdminHomeScreen({super.key});
