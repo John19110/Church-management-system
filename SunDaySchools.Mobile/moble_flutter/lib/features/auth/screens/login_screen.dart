@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'dart:convert';
 import 'dart:developer' as developer;
 import '../models/auth_models.dart';
 import '../providers/auth_providers.dart';
+import '../utils/auth_role_utils.dart';
 import '../../classrooms/providers/classroom_providers.dart';
 import '../../meetings/providers/meeting_providers.dart';
 import '../../../shared/widgets/app_form_fields.dart';
@@ -19,12 +19,6 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  static const List<String> _roleClaimKeys = <String>[
-    'http://schemas.microsoft.com/ws/2008/06/identity/claims/role',
-    'role',
-    'roles',
-  ];
-
   final _formKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -48,7 +42,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               password: _passwordController.text,
             ),
           );
-      final role = _extractPrimaryRole(token);
+      final role = AuthRoleUtils.extractPrimaryRole(token);
       if (role == 'superadmin') {
         await ref.read(meetingRepositoryProvider).getVisibleMeetings();
       } else if (role == 'admin' || role == 'servant') {
@@ -60,34 +54,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           error: role,
         );
       }
-      if (mounted) context.go('/dashboard');
+      if (mounted) context.go(AuthRoleUtils.routeForRole(role));
     } catch (e) {
       if (mounted) showErrorSnackbar(context, e.toString());
     } finally {
       if (mounted) setState(() => _loading = false);
-    }
-  }
-
-  String? _extractPrimaryRole(String token) {
-    final parts = token.split('.');
-    if (parts.length < 2) return null;
-    try {
-      final payload = parts[1];
-      final normalized = base64Url.normalize(payload);
-      final decoded = utf8.decode(base64Url.decode(normalized));
-      final claims = jsonDecode(decoded) as Map<String, dynamic>;
-      for (final key in _roleClaimKeys) {
-        final roleClaim = claims[key];
-        if (roleClaim is String && roleClaim.trim().isNotEmpty) {
-          return roleClaim.trim().toLowerCase();
-        }
-        if (roleClaim is List && roleClaim.isNotEmpty) {
-          return roleClaim.first.toString().trim().toLowerCase();
-        }
-      }
-      return null;
-    } catch (_) {
-      return null;
     }
   }
 
