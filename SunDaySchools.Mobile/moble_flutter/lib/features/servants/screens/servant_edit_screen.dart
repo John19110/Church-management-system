@@ -82,7 +82,8 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.editServant)),
-      body: servantAsync.when(
+      body: SafeArea(
+        child: servantAsync.when(
         loading: () => const LoadingWidget(),
         error: (e, _) => AppErrorWidget(message: e.toString()),
         data: (servant) {
@@ -140,6 +141,7 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen> {
             ),
           );
         },
+      ),
       ),
     );
   }
