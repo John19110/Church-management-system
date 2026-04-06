@@ -5,10 +5,10 @@ import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
 import '../../features/auth/utils/auth_role_utils.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
-import '../../features/children/screens/children_list_screen.dart';
-import '../../features/children/screens/child_detail_screen.dart';
-import '../../features/children/screens/child_add_screen.dart';
-import '../../features/children/screens/child_edit_screen.dart';
+import '../../features/members/screens/members_list_screen.dart';
+import '../../features/members/screens/member_detail_screen.dart';
+import '../../features/members/screens/member_add_screen.dart';
+import '../../features/members/screens/member_edit_screen.dart';
 import '../../features/servants/screens/servants_list_screen.dart';
 import '../../features/servants/screens/servant_detail_screen.dart';
 import '../../features/servants/screens/servant_add_screen.dart';
@@ -31,7 +31,7 @@ class AppRoutes {
   static const classroomsHome = '/classrooms-home';
   static const meetingDetail = '/meeting-detail';
   static const classroomDetail = '/classroom-detail';
-  static const children = '/children';
+  static const members = '/members';
   static const servants = '/servants';
 }
 
@@ -83,21 +83,21 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
-      // Children
-      GoRoute(path: AppRoutes.children, builder: (_, __) => const ChildrenListScreen()),
+      // Members
+      GoRoute(path: AppRoutes.members, builder: (_, __) => const MembersListScreen()),
       GoRoute(
-        path: '/children/add',
-        builder: (_, __) => const ChildAddScreen(),
+        path: '/members/add',
+        builder: (_, __) => const MemberAddScreen(),
       ),
       GoRoute(
-        path: '/children/:id',
-        builder: (_, state) => ChildDetailScreen(
+        path: '/members/:id',
+        builder: (_, state) => MemberDetailScreen(
           id: int.parse(state.pathParameters['id']!),
         ),
       ),
       GoRoute(
-        path: '/children/:id/edit',
-        builder: (_, state) => ChildEditScreen(
+        path: '/members/:id/edit',
+        builder: (_, state) => MemberEditScreen(
           id: int.parse(state.pathParameters['id']!),
         ),
       ),

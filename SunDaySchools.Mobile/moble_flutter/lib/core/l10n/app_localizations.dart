@@ -52,7 +52,7 @@ class AppLocalizations {
   String get welcome => _t('welcome');
   String get sundaySchoolManagement => _t('sundaySchoolManagement');
   String get quickAccess => _t('quickAccess');
-  String get children => _t('children');
+  String get members => _t('members');
   String get attendance => _t('attendance');
   String get servants => _t('servants');
   String get logout => _t('logout');
@@ -60,10 +60,10 @@ class AppLocalizations {
   String get managementSystem => _t('managementSystem');
 
   // ── Children ──────────────────────────────────────────────────────────────
-  String get noChildren => _t('noChildren');
-  String get addChild => _t('addChild');
-  String get editChild => _t('editChild');
-  String get childDetails => _t('childDetails');
+  String get noMembers => _t('noMembers');
+  String get addMember => _t('addMember');
+  String get editMember => _t('editMember');
+  String get memberDetails => _t('memberDetails');
   String get search => _t('search');
   String get firstName => _t('firstName');
   String get middleName => _t('middleName');
@@ -82,11 +82,11 @@ class AppLocalizations {
   String get save => _t('save');
   String get delete => _t('delete');
   String get cancel => _t('cancel');
-  String get deleteChild => _t('deleteChild');
-  String get confirmDeleteChild => _t('confirmDeleteChild');
-  String get childAddedSuccessfully => _t('childAddedSuccessfully');
-  String get childUpdatedSuccessfully => _t('childUpdatedSuccessfully');
-  String get childDeletedSuccessfully => _t('childDeletedSuccessfully');
+  String get deleteMember => _t('deleteMember');
+  String get confirmDeleteMember => _t('confirmDeleteMember');
+  String get memberAddedSuccessfully => _t('memberAddedSuccessfully');
+  String get memberUpdatedSuccessfully => _t('memberUpdatedSuccessfully');
+  String get memberDeletedSuccessfully => _t('memberDeletedSuccessfully');
   String get firstNameRequired => _t('firstNameRequired');
   String get dobRequired => _t('dobRequired');
   String get joiningDateRequired => _t('joiningDateRequired');
@@ -141,7 +141,7 @@ class AppLocalizations {
   String get markAllPresent => _t('markAllPresent');
   String get enterClassroomAndLoad => _t('enterClassroomAndLoad');
   String get attendanceSaved => _t('attendanceSaved');
-  String get loadChildrenFirst => _t('loadChildrenFirst');
+  String get loadMembersFirst => _t('loadMembersFirst');
   String get enterClassroomId => _t('enterClassroomId');
   String get sessionInfo => _t('sessionInfo');
   String get date => _t('date');
@@ -184,17 +184,17 @@ class AppLocalizations {
       'welcome': 'Welcome!',
       'sundaySchoolManagement': 'Sunday School Management',
       'quickAccess': 'Quick Access',
-      'children': 'Children',
+      'members': 'Members',
       'attendance': 'Attendance',
       'servants': 'Servants',
       'logout': 'Logout',
       'sundaySchool': 'Sunday School',
       'managementSystem': 'Management System',
       // Children
-      'noChildren': 'No children yet. Tap + to add one.',
-      'addChild': 'Add Child',
-      'editChild': 'Edit Child',
-      'childDetails': 'Child Details',
+      'noMembers': 'No members yet. Tap + to add one.',
+      'addMember': 'Add Member',
+      'editMember': 'Edit Member',
+      'memberDetails': 'Member Details',
       'search': 'Search',
       'firstName': 'First Name',
       'middleName': 'Middle Name',
@@ -213,11 +213,11 @@ class AppLocalizations {
       'save': 'Save Changes',
       'delete': 'Delete',
       'cancel': 'Cancel',
-      'deleteChild': 'Delete Child',
-      'confirmDeleteChild': 'Are you sure you want to delete this child?',
-      'childAddedSuccessfully': 'Child added successfully',
-      'childUpdatedSuccessfully': 'Child updated successfully',
-      'childDeletedSuccessfully': 'Child deleted successfully',
+      'deleteMember': 'Delete Member',
+      'confirmDeleteMember': 'Are you sure you want to delete this member?',
+      'memberAddedSuccessfully': 'Member added successfully',
+      'memberUpdatedSuccessfully': 'Member updated successfully',
+      'memberDeletedSuccessfully': 'Member deleted successfully',
       'firstNameRequired': 'First name is required',
       'dobRequired': 'Date of birth is required',
       'joiningDateRequired': 'Joining date is required',
@@ -270,7 +270,7 @@ class AppLocalizations {
       'enterClassroomAndLoad':
           'Enter a classroom ID and tap Load\nto see children.',
       'attendanceSaved': 'Attendance saved!',
-      'loadChildrenFirst': 'Load children first',
+      'loadMembersFirst': 'Load members first',
       'enterClassroomId': 'Enter a classroom ID',
       'sessionInfo': 'Session Info',
       'date': 'Date',
@@ -310,17 +310,17 @@ class AppLocalizations {
       'welcome': 'مرحباً!',
       'sundaySchoolManagement': 'إدارة مدرسة الأحد',
       'quickAccess': 'الوصول السريع',
-      'children': 'الأطفال',
+      'members': 'الأعضاء',
       'attendance': 'الحضور',
       'servants': 'الخدام',
       'logout': 'تسجيل الخروج',
       'sundaySchool': 'مدرسة الأحد',
       'managementSystem': 'نظام الإدارة',
       // Children
-      'noChildren': 'لا يوجد أطفال بعد. اضغط + للإضافة.',
-      'addChild': 'إضافة طفل',
-      'editChild': 'تعديل طفل',
-      'childDetails': 'تفاصيل الطفل',
+      'noMembers': 'لا يوجد أعضاء بعد. اضغط + للإضافة.',
+      'addMember': 'إضافة عضو',
+      'editMember': 'تعديل عضو',
+      'memberDetails': 'تفاصيل العضو',
       'search': 'بحث',
       'firstName': 'الاسم الأول',
       'middleName': 'الاسم الأوسط',
@@ -339,11 +339,11 @@ class AppLocalizations {
       'save': 'حفظ التغييرات',
       'delete': 'حذف',
       'cancel': 'إلغاء',
-      'deleteChild': 'حذف طفل',
-      'confirmDeleteChild': 'هل أنت متأكد من حذف هذا الطفل؟',
-      'childAddedSuccessfully': 'تمت إضافة الطفل بنجاح',
-      'childUpdatedSuccessfully': 'تم تحديث الطفل بنجاح',
-      'childDeletedSuccessfully': 'تم حذف الطفل بنجاح',
+      'deleteMember': 'حذف عضو',
+      'confirmDeleteMember': 'هل أنت متأكد من حذف هذا العضو؟',
+      'memberAddedSuccessfully': 'تمت إضافة العضو بنجاح',
+      'memberUpdatedSuccessfully': 'تم تحديث العضو بنجاح',
+      'memberDeletedSuccessfully': 'تم حذف العضو بنجاح',
       'firstNameRequired': 'الاسم الأول مطلوب',
       'dobRequired': 'تاريخ الميلاد مطلوب',
       'joiningDateRequired': 'تاريخ الانضمام مطلوب',
@@ -393,9 +393,9 @@ class AppLocalizations {
       'sessionId': 'الجلسة',
       'load': 'تحميل',
       'markAllPresent': 'تحديد الكل حاضر',
-      'enterClassroomAndLoad': 'أدخل معرف الفصل واضغط تحميل\nلعرض الأطفال.',
+      'enterClassroomAndLoad': 'أدخل معرف الفصل واضغط تحميل\nلعرض الأعضاء.',
       'attendanceSaved': 'تم حفظ الحضور!',
-      'loadChildrenFirst': 'قم بتحميل الأطفال أولاً',
+      'loadMembersFirst': 'قم بتحميل الأعضاء أولاً',
       'enterClassroomId': 'أدخل معرف الفصل',
       'sessionInfo': 'معلومات الجلسة',
       'date': 'التاريخ',

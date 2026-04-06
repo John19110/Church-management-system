@@ -3,41 +3,41 @@ import 'package:dio/dio.dart';
 import '../../../core/api/dio_client.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../features/classrooms/models/classroom_models.dart';
-import '../models/child_models.dart';
+import '../models/member_models.dart';
 
-class ChildrenRepository {
+class MembersRepository {
   final Dio _dio;
 
-  ChildrenRepository(this._dio);
+  MembersRepository(this._dio);
 
-  Future<List<ChildReadDto>> getAll() async {
+  Future<List<MemberReadDto>> getAll() async {
     return apiCall(() async {
       final response = await _dio.get(AppConstants.membersEndpoint);
       final list = response.data as List<dynamic>;
-      return list.map((e) => ChildReadDto.fromJson(e as Map<String, dynamic>)).toList();
+      return list.map((e) => MemberReadDto.fromJson(e as Map<String, dynamic>)).toList();
     });
   }
 
-  Future<List<ChildReadDto>> getByClassroom(int classroomId) async {
+  Future<List<MemberReadDto>> getByClassroom(int classroomId) async {
     return apiCall(() async {
       final response = await _dio.get(
         '${AppConstants.membersEndpoint}/classroom/$classroomId',
       );
       final list = response.data as List<dynamic>;
-      return list.map((e) => ChildReadDto.fromJson(e as Map<String, dynamic>)).toList();
+      return list.map((e) => MemberReadDto.fromJson(e as Map<String, dynamic>)).toList();
     });
   }
 
-  Future<ChildReadDto> getById(int id) async {
+  Future<MemberReadDto> getById(int id) async {
     return apiCall(() async {
       final response = await _dio.get('${AppConstants.membersEndpoint}/$id');
-      return ChildReadDto.fromJson(response.data as Map<String, dynamic>);
+      return MemberReadDto.fromJson(response.data as Map<String, dynamic>);
     });
   }
 
   /// Create member: POST /api/classrooms/{classroomId}/members (multipart/form-data)
   /// [classroomId] is passed as a URL path parameter.
-  Future<void> create(int classroomId, ChildAddDto dto, {File? image}) async {
+  Future<void> create(int classroomId, MemberAddDto dto, {File? image}) async {
     return apiCall(() async {
       final map = <String, dynamic>{
         if (dto.name1 != null) 'Name1': dto.name1,
@@ -80,7 +80,7 @@ class ChildrenRepository {
   }
 
   /// Update member: PUT /api/Members/{id} (JSON body)
-  Future<void> update(int id, ChildUpdateDto dto) async {
+  Future<void> update(int id, MemberUpdateDto dto) async {
     return apiCall(() async {
       await _dio.put('${AppConstants.membersEndpoint}/$id', data: dto.toJson());
     });

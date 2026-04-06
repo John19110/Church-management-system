@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../models/child_models.dart';
-import '../providers/children_providers.dart';
+import '../models/member_models.dart';
+import '../providers/members_providers.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../../core/l10n/app_localizations.dart';
 
 const _kValidGenders = ['Male', 'Female'];
 
-class ChildEditScreen extends ConsumerStatefulWidget {
+class MemberEditScreen extends ConsumerStatefulWidget {
   final int id;
-  const ChildEditScreen({super.key, required this.id});
+  const MemberEditScreen({super.key, required this.id});
 
   @override
-  ConsumerState<ChildEditScreen> createState() => _ChildEditScreenState();
+  ConsumerState<MemberEditScreen> createState() => _MemberEditScreenState();
 }
 
-class _ChildEditScreenState extends ConsumerState<ChildEditScreen> {
+class _MemberEditScreenState extends ConsumerState<MemberEditScreen> {
   final _formKey = GlobalKey<FormState>();
   final _name1Controller = TextEditingController();
   final _name2Controller = TextEditingController();
@@ -47,17 +47,17 @@ class _ChildEditScreenState extends ConsumerState<ChildEditScreen> {
     super.dispose();
   }
 
-  void _initFromChild(ChildReadDto child) {
+  void _initFromMember(MemberReadDto member) {
     if (_initialized) return;
     _initialized = true;
-    _name1Controller.text = child.fullName ?? '';
-    _addressController.text = child.address ?? '';
-    _dobController.text = child.dateOfBirth ?? '';
-    _joiningController.text = child.joiningDate ?? '';
-    _classroomController.text = child.classroomId?.toString() ?? '';
-    _gender = _kValidGenders.contains(child.gender) ? child.gender : null;
-    if (child.phoneNumbers != null) {
-      for (final p in child.phoneNumbers!) {
+    _name1Controller.text = member.fullName ?? '';
+    _addressController.text = member.address ?? '';
+    _dobController.text = member.dateOfBirth ?? '';
+    _joiningController.text = member.joiningDate ?? '';
+    _classroomController.text = member.classroomId?.toString() ?? '';
+    _gender = _kValidGenders.contains(member.gender) ? member.gender : null;
+    if (member.phoneNumbers != null) {
+      for (final p in member.phoneNumbers!) {
         _phoneRelation.add(TextEditingController(text: p.relation ?? ''));
         _phoneNumber.add(TextEditingController(text: p.phoneNumber ?? ''));
       }
@@ -87,14 +87,14 @@ class _ChildEditScreenState extends ConsumerState<ChildEditScreen> {
     try {
       final phones = List.generate(
         _phoneRelation.length,
-        (i) => ChildContactDto(
+        (i) => MemberContactDto(
           relation: _phoneRelation[i].text.trim(),
           phoneNumber: _phoneNumber[i].text.trim(),
         ),
       );
-      await ref.read(childrenRepositoryProvider).update(
+      await ref.read(membersRepositoryProvider).update(
             widget.id,
-            ChildUpdateDto(
+            MemberUpdateDto(
               id: widget.id,
               name1: _name1Controller.text.trim().nullIfEmpty,
               gender: _gender,
@@ -106,7 +106,7 @@ class _ChildEditScreenState extends ConsumerState<ChildEditScreen> {
             ),
           );
       if (mounted) {
-        showSuccessSnackbar(context, l10n.childUpdatedSuccessfully);
+        showSuccessSnackbar(context, l10n.memberUpdatedSuccessfully);
         context.pop();
       }
     } catch (e) {
@@ -119,16 +119,16 @@ class _ChildEditScreenState extends ConsumerState<ChildEditScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final childAsync = ref.watch(childDetailProvider(widget.id));
+    final memberAsync = ref.watch(memberDetailProvider(widget.id));
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.editChild)),
+      appBar: AppBar(title: Text(l10n.editMember)),
       body: SafeArea(
-        child: childAsync.when(
+        child: memberAsync.when(
         loading: () => const LoadingWidget(),
         error: (e, _) => AppErrorWidget(message: e.toString()),
-        data: (child) {
-          _initFromChild(child);
+        data: (member) {
+          _initFromMember(member);
           return Form(
             key: _formKey,
             child: ListView(

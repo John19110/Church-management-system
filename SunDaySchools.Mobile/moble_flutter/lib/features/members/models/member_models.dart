@@ -1,10 +1,10 @@
-class ChildContactDto {
+class MemberContactDto {
   final String? relation;
   final String? phoneNumber;
 
-  const ChildContactDto({this.relation, this.phoneNumber});
+  const MemberContactDto({this.relation, this.phoneNumber});
 
-  factory ChildContactDto.fromJson(Map<String, dynamic> json) => ChildContactDto(
+  factory MemberContactDto.fromJson(Map<String, dynamic> json) => MemberContactDto(
         relation: json['relation'] as String?,
         phoneNumber: json['phoneNumber'] as String?,
       );
@@ -15,7 +15,7 @@ class ChildContactDto {
       };
 }
 
-class ChildReadDto {
+class MemberReadDto {
   /// Note: the API's MemberReadDTO does not currently include an Id field.
   /// This will be 0 when the backend does not return it.
   final int id;
@@ -30,13 +30,13 @@ class ChildReadDto {
   final String? spiritualDateOfBirth;
   final bool? isDiscipline;
   final int? totalNumberOfDaysAttended;
-  final List<ChildContactDto>? phoneNumbers;
+  final List<MemberContactDto>? phoneNumbers;
   final bool? haveBrothers;
   final List<String>? brothersNames;
   final int? classroomId;
   final List<String>? notes;
 
-  const ChildReadDto({
+  const MemberReadDto({
     required this.id,
     this.fullName,
     this.imageFileName,
@@ -56,7 +56,7 @@ class ChildReadDto {
     this.notes,
   });
 
-  factory ChildReadDto.fromJson(Map<String, dynamic> json) => ChildReadDto(
+  factory MemberReadDto.fromJson(Map<String, dynamic> json) => MemberReadDto(
         id: json['id'] as int? ?? 0,
         fullName: json['fullName'] as String?,
         imageFileName: json['imageFileName'] as String?,
@@ -70,7 +70,7 @@ class ChildReadDto {
         isDiscipline: json['isDiscipline'] as bool?,
         totalNumberOfDaysAttended: json['totalNumberOfDaysAttended'] as int?,
         phoneNumbers: (json['phoneNumbers'] as List<dynamic>?)
-            ?.map((e) => ChildContactDto.fromJson(e as Map<String, dynamic>))
+            ?.map((e) => MemberContactDto.fromJson(e as Map<String, dynamic>))
             .toList(),
         haveBrothers: json['haveBrothers'] as bool?,
         brothersNames: (json['brothersNames'] as List<dynamic>?)
@@ -81,7 +81,7 @@ class ChildReadDto {
       );
 }
 
-class ChildAddDto {
+class MemberAddDto {
   final String? name1;
   final String? name2;
   final String? name3;
@@ -93,9 +93,9 @@ class ChildAddDto {
   final List<String>? notes;
   final List<String>? brothersNames;
   final bool? haveBrothers;
-  final List<ChildContactDto>? phoneNumbers;
+  final List<MemberContactDto>? phoneNumbers;
 
-  const ChildAddDto({
+  const MemberAddDto({
     this.name1,
     this.name2,
     this.name3,
@@ -128,14 +128,14 @@ class ChildAddDto {
       };
 }
 
-class ChildUpdateDto extends ChildAddDto {
+class MemberUpdateDto extends MemberAddDto {
   final int id;
   final String? lastAttendanceDate;
   final bool? isDiscipline;
   final int? totalNumberOfDaysAttended;
   final int? classroomId;
 
-  const ChildUpdateDto({
+  const MemberUpdateDto({
     required this.id,
     super.name1,
     super.name2,
