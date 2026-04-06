@@ -16,14 +16,14 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _loading = false;
   bool _obscurePassword = true;
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _phoneController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -34,7 +34,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       await ref.read(authRepositoryProvider).login(
             LoginDto(
-              name: _nameController.text.trim(),
+              phoneNumber: _phoneController.text.trim(),
               password: _passwordController.text,
             ),
           );
@@ -80,11 +80,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   const SizedBox(height: 40),
                   AppTextField(
-                    controller: _nameController,
-                    label: l10n.name,
-                    hint: l10n.enterName,
+                    controller: _phoneController,
+                    label: l10n.phoneNumber,
+                    hint: l10n.enterPhoneNumber,
+                    keyboardType: TextInputType.phone,
                     validator: (v) =>
-                        (v == null || v.trim().isEmpty) ? l10n.nameRequired : null,
+                        (v == null || v.trim().isEmpty) ? l10n.phoneRequired : null,
                   ),
                   const SizedBox(height: 16),
                   AppTextField(

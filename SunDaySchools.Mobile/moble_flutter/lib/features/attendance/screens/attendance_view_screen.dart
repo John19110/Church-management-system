@@ -50,7 +50,7 @@ class AttendanceViewScreen extends ConsumerWidget {
                       _statusIcon(record.status),
                       color: _statusColor(record.status),
                     ),
-                    title: Text('Child #${record.childId}'),
+                    title: Text('Member #${record.memberId}'),
                     subtitle: Text(
                       _statusLabel(
                           AttendanceStatus.fromValue(record.status), l10n),

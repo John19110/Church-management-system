@@ -20,6 +20,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _churchIdController = TextEditingController();
+  final _meetingIdController = TextEditingController();
   bool _loading = false;
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
@@ -30,19 +32,24 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     _phoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _churchIdController.dispose();
+    _meetingIdController.dispose();
     super.dispose();
   }
 
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
+    final l10n = AppLocalizations.of(context);
     try {
-      await ref.read(authRepositoryProvider).register(
-            RegisterDto(
+      await ref.read(authRepositoryProvider).registerServant(
+            RegisterServantDto(
               name: _nameController.text.trim(),
               phoneNumber: _phoneController.text.trim(),
               password: _passwordController.text,
               confirmPassword: _confirmPasswordController.text,
+              churchId: int.parse(_churchIdController.text.trim()),
+              meetingId: int.parse(_meetingIdController.text.trim()),
             ),
           );
       if (mounted) context.go('/dashboard');
@@ -116,6 +123,30 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     onPressed: () =>
                         setState(() => _obscureConfirm = !_obscureConfirm),
                   ),
+                ),
+                const SizedBox(height: 16),
+                AppTextField(
+                  controller: _churchIdController,
+                  label: l10n.churchId,
+                  hint: l10n.enterChurchId,
+                  keyboardType: TextInputType.number,
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return l10n.churchIdRequired;
+                    if (int.tryParse(v.trim()) == null) return l10n.churchIdRequired;
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                AppTextField(
+                  controller: _meetingIdController,
+                  label: l10n.meetingId,
+                  hint: l10n.enterMeetingId,
+                  keyboardType: TextInputType.number,
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return l10n.meetingIdRequired;
+                    if (int.tryParse(v.trim()) == null) return l10n.meetingIdRequired;
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 24),
                 _loading

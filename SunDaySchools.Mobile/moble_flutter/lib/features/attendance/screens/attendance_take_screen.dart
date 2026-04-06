@@ -96,7 +96,7 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
         notes: _notesController.text.trim().nullIfEmpty,
         records: _records!
             .map((r) => AttendanceRecordDto(
-                  childId: r.child.id,
+                  memberId: r.child.id,
                   madeHomeWork: r.madeHomework,
                   hasTools: r.hasTools,
                   status: r.status.value,
