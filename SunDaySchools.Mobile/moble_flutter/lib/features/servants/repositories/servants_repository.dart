@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import '../../../core/api/dio_client.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../features/classrooms/models/classroom_models.dart';
 import '../models/servant_models.dart';
 
 class ServantsRepository {
@@ -27,38 +28,53 @@ class ServantsRepository {
     });
   }
 
+  /// Create servant via admin endpoint:
+  /// POST /Api/Admin/add-servant (multipart/form-data)
+  /// The form includes both Account and Servant sub-object fields.
   Future<void> create({
     required String name,
-    required String applicationUserId,
-    String? phoneNumber,
+    required String phoneNumber,
+    required String password,
+    required String confirmPassword,
     String? joiningDate,
     String? birthDate,
-    int? classroomId,
+    List<int>? classroomsIds,
     File? image,
   }) async {
     return apiCall(() async {
       final map = <String, dynamic>{
-        'Name': name,
-        'ApplicationUserId': applicationUserId,
-        if (phoneNumber != null) 'PhoneNumber': phoneNumber,
-        if (joiningDate != null) 'JoiningDate': joiningDate,
-        if (birthDate != null) 'BirthDate': birthDate,
-        if (classroomId != null) 'ClassroomId': classroomId.toString(),
+        'Account.Name': name,
+        'Account.PhoneNumber': phoneNumber,
+        'Account.Password': password,
+        'Account.ConfirmPassword': confirmPassword,
+        if (birthDate != null) 'Account.BirthDate': birthDate,
+        if (joiningDate != null) 'Account.JoiningDate': joiningDate,
+        // AdminAddServantDTO wraps two sub-DTOs: Account and Servant.
+        // Both receive dates/classrooms so the backend can populate each one.
+        if (joiningDate != null) 'Servant.JoiningDate': joiningDate,
+        if (birthDate != null) 'Servant.BirthDate': birthDate,
         if (image != null)
-          'Image': await MultipartFile.fromFile(image.path,
+          'Servant.Image': await MultipartFile.fromFile(image.path,
               filename: image.path.split('/').last),
       };
+      if (classroomsIds != null) {
+        for (var i = 0; i < classroomsIds.length; i++) {
+          map['Account.classroomsIds[$i]'] = classroomsIds[i].toString();
+          map['Servant.classroomsIds[$i]'] = classroomsIds[i].toString();
+        }
+      }
       await _dio.post(
-        AppConstants.servantEndpoint,
+        '${AppConstants.adminEndpoint}/add-servant',
         data: FormData.fromMap(map),
       );
     });
   }
 
+  /// Update servant: PUT /api/Servant/{id} (multipart/form-data)
+  /// Matches ServantFormRequest: Name, JoiningDate, BirthDate, PhoneNumber, Image
   Future<void> update(
     int id, {
-    required String name,
-    required String applicationUserId,
+    String? name,
     String? phoneNumber,
     String? joiningDate,
     String? birthDate,
@@ -67,12 +83,10 @@ class ServantsRepository {
   }) async {
     return apiCall(() async {
       final map = <String, dynamic>{
-        'Name': name,
-        'ApplicationUserId': applicationUserId,
+        if (name != null) 'Name': name,
         if (phoneNumber != null) 'PhoneNumber': phoneNumber,
         if (joiningDate != null) 'JoiningDate': joiningDate,
         if (birthDate != null) 'BirthDate': birthDate,
-        if (classroomId != null) 'ClassroomId': classroomId.toString(),
         if (image != null)
           'Image': await MultipartFile.fromFile(image.path,
               filename: image.path.split('/').last),
@@ -87,6 +101,18 @@ class ServantsRepository {
   Future<void> delete(int id) async {
     return apiCall(() async {
       await _dio.delete('${AppConstants.servantEndpoint}/$id');
+    });
+  }
+
+  /// GET /api/Servant/select — get servants for selection dropdown
+  Future<List<SelectOptionDto>> getForSelection() async {
+    return apiCall(() async {
+      final response =
+          await _dio.get('${AppConstants.servantEndpoint}/select');
+      final list = response.data as List<dynamic>;
+      return list
+          .map((e) => SelectOptionDto.fromJson(e as Map<String, dynamic>))
+          .toList();
     });
   }
 }

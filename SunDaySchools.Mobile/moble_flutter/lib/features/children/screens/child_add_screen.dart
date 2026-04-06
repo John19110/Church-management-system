@@ -72,7 +72,9 @@ class _ChildAddScreenState extends ConsumerState<ChildAddScreen> {
           phoneNumber: _phoneNumber[i].text.trim(),
         ),
       );
+      final classroomId = int.tryParse(_classroomController.text.trim()) ?? 0;
       await ref.read(childrenRepositoryProvider).create(
+            classroomId,
             ChildAddDto(
               name1: _name1Controller.text.trim().nullIfEmpty,
               name2: _name2Controller.text.trim().nullIfEmpty,
@@ -81,7 +83,6 @@ class _ChildAddScreenState extends ConsumerState<ChildAddScreen> {
               address: _addressController.text.trim().nullIfEmpty,
               dateOfBirth: _dobController.text.trim().nullIfEmpty,
               joiningDate: _joiningController.text.trim().nullIfEmpty,
-              classroomId: int.tryParse(_classroomController.text.trim()),
               phoneNumbers: phones.isEmpty ? null : phones,
             ),
           );
