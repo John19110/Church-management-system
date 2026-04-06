@@ -137,7 +137,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           error: role,
         );
       }
-      if (mounted) context.go(AuthRoleUtils.routeForRole(role));
+      if (mounted) {
+        context.go(
+          role == null ? '/dashboard' : AuthRoleUtils.routeForRole(role),
+        );
+      }
     } catch (e) {
       if (mounted) showErrorSnackbar(context, e.toString());
     } finally {

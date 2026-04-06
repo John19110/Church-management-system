@@ -17,107 +17,118 @@ class SuperAdminHomeScreen extends ConsumerWidget {
     final weeklyController = TextEditingController();
     var isSubmitting = false;
 
-    await showDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: const Text('Add Meeting'),
-              content: Form(
-                key: formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextFormField(
-                      controller: nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Meeting Name',
-                        hintText: 'Enter meeting name',
-                      ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Meeting name is required';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: weeklyController,
-                      decoration: const InputDecoration(
-                        labelText: 'Weekly Appointment',
-                        hintText: 'YYYY-MM-DDTHH:MM:SS',
-                      ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Weekly appointment is required';
-                        }
-                        if (DateTime.tryParse(value.trim()) == null) {
-                          return 'Enter a valid ISO date/time';
-                        }
-                        return null;
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: isSubmitting
-                      ? null
-                      : () => Navigator.of(dialogContext).pop(),
-                  child: const Text('Cancel'),
-                ),
-                ElevatedButton(
-                  onPressed: isSubmitting
-                      ? null
-                      : () async {
-                          if (!formKey.currentState!.validate()) return;
-                          setState(() => isSubmitting = true);
-                          try {
-                            await ref.read(superAdminRepositoryProvider).addMeeting(
-                                  MeetingAddDto(
-                                    name: nameController.text.trim(),
-                                    weeklyAppointment: DateTime.parse(
-                                      weeklyController.text.trim(),
-                                    ),
-                                  ),
-                                );
-                            ref.invalidate(visibleMeetingsProvider);
-                            if (context.mounted) {
-                              Navigator.of(dialogContext).pop();
-                              showSuccessSnackbar(
-                                context,
-                                'Meeting added successfully.',
-                              );
-                            }
-                          } catch (e) {
-                            if (context.mounted) {
-                              showErrorSnackbar(context, e.toString());
-                            }
-                          } finally {
-                            if (context.mounted) {
-                              setState(() => isSubmitting = false);
-                            }
+    try {
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) {
+          return StatefulBuilder(
+            builder: (context, setState) {
+              return AlertDialog(
+                title: const Text('Add Meeting'),
+                content: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextFormField(
+                        controller: nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Meeting Name',
+                          hintText: 'Enter meeting name',
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Meeting name is required';
                           }
+                          return null;
                         },
-                  child: isSubmitting
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('Add'),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: weeklyController,
+                        decoration: const InputDecoration(
+                          labelText: 'Weekly Appointment',
+                          hintText: 'YYYY-MM-DDTHH:MM:SS',
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Weekly appointment is required';
+                          }
+                          if (DateTime.tryParse(value.trim()) == null) {
+                            return 'Enter a valid ISO date/time';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            );
-          },
-        );
-      },
-    );
-    nameController.dispose();
-    weeklyController.dispose();
+                actions: [
+                  TextButton(
+                    onPressed: isSubmitting
+                        ? null
+                        : () => Navigator.of(dialogContext).pop(),
+                    child: const Text('Cancel'),
+                  ),
+                  ElevatedButton(
+                    onPressed: isSubmitting
+                        ? null
+                        : () async {
+                            if (!formKey.currentState!.validate()) return;
+                            setState(() => isSubmitting = true);
+                          try {
+                              final weekly = DateTime.tryParse(
+                                weeklyController.text.trim(),
+                              );
+                              if (weekly == null) {
+                                throw const FormatException(
+                                  'Invalid weekly appointment format.',
+                                );
+                              }
+                              await ref
+                                  .read(superAdminRepositoryProvider)
+                                  .addMeeting(
+                                    MeetingAddDto(
+                                      name: nameController.text.trim(),
+                                      weeklyAppointment: weekly,
+                                    ),
+                                  );
+                              ref.invalidate(visibleMeetingsProvider);
+                              if (context.mounted) {
+                                Navigator.of(dialogContext).pop();
+                                showSuccessSnackbar(
+                                  context,
+                                  'Meeting added successfully.',
+                                );
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                showErrorSnackbar(context, e.toString());
+                              }
+                            } finally {
+                              if (context.mounted) {
+                                setState(() => isSubmitting = false);
+                              }
+                            }
+                          },
+                    child: isSubmitting
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Add'),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      );
+    } finally {
+      nameController.dispose();
+      weeklyController.dispose();
+    }
   }
 
   @override
