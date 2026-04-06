@@ -19,6 +19,12 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
+  static const List<String> _roleClaimKeys = <String>[
+    'http://schemas.microsoft.com/ws/2008/06/identity/claims/role',
+    'role',
+    'roles',
+  ];
+
   final _formKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -70,12 +76,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       final normalized = base64Url.normalize(payload);
       final decoded = utf8.decode(base64Url.decode(normalized));
       final claims = jsonDecode(decoded) as Map<String, dynamic>;
-      const roleKey =
-          'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
-      final roleClaim = claims[roleKey];
-      if (roleClaim is String) return roleClaim.toLowerCase();
-      if (roleClaim is List && roleClaim.isNotEmpty) {
-        return roleClaim.first.toString().toLowerCase();
+      for (final key in _roleClaimKeys) {
+        final roleClaim = claims[key];
+        if (roleClaim is String && roleClaim.trim().isNotEmpty) {
+          return roleClaim.trim().toLowerCase();
+        }
+        if (roleClaim is List && roleClaim.isNotEmpty) {
+          return roleClaim.first.toString().trim().toLowerCase();
+        }
       }
       return null;
     } catch (_) {
