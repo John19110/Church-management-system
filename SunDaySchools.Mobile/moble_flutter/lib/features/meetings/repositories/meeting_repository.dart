@@ -19,4 +19,11 @@ class MeetingRepository {
           .toList();
     });
   }
+
+  /// GET /api/Meetings/visible — returns visible meetings
+  Future<void> getVisibleMeetings() async {
+    return apiCall(() async {
+      await _dio.get('${AppConstants.meetingEndpoint}/visible');
+    });
+  }
 }
