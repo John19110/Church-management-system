@@ -38,6 +38,7 @@ class ChildrenListScreen extends ConsumerWidget {
           return RefreshIndicator(
             onRefresh: () async => ref.invalidate(childrenListProvider),
             child: ListView.builder(
+              // bottom: 88 = FAB height (56) + top margin (16) + bottom margin (16)
               padding: const EdgeInsets.only(top: 8, bottom: 88),
               itemCount: children.length,
               itemBuilder: (context, index) {
