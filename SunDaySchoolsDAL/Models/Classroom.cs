@@ -14,6 +14,10 @@ namespace SunDaySchools.Models
         public ICollection<AttendanceSession>? AttendanceHistory { get; set; }
 
 
+        public int? LeaderServantId { get; set; }  // Nullable if a meeting may not have a leader yet
+        public Servant? LeaderServant { get; set; }
+
+
 
     }
 }

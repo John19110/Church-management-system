@@ -5,6 +5,7 @@ using SunDaySchools.DAL.Models;
 using SunDaySchools.Models;
 using SunDaySchoolsDAL.Models;
 using System.Reflection;
+using System.Reflection.Emit;
 
 namespace SunDaySchoolsDAL.DBcontext
 {
@@ -99,6 +100,8 @@ namespace SunDaySchoolsDAL.DBcontext
                 }
             }
 
+
+
             // Automatically index ChurchId for performance
             foreach (var entityType in builder.Model.GetEntityTypes())
             {
@@ -108,8 +111,36 @@ namespace SunDaySchoolsDAL.DBcontext
                         .HasIndex("ChurchId");
                 }
             }
+
+            base.OnModelCreating(builder);
+
+            // Church → Pastor relationship
+            builder.Entity<Church>()
+                .HasOne(c => c.Pastor)         // navigation property
+                .WithMany()                     // the Pastor doesn't have a collection of Churches
+                .HasForeignKey(c => c.PastorId) // foreign key
+                .OnDelete(DeleteBehavior.Restrict); // optional, prevents cascade delete
+
+
+
+            builder.Entity<Meeting>()
+                .HasOne(m => m.LeaderServant)    // Meeting has one LeaderServant
+                .WithMany()                       // Servant doesn’t have a collection of meetings as leader
+                .HasForeignKey(m => m.LeaderServantId)
+                .OnDelete(DeleteBehavior.Restrict);
+            // Prevent cascading delete
+
+
+            // Classroom → LeaderServant (optional)
+            builder.Entity<Classroom>()
+                .HasOne(c => c.LeaderServant)   // Classroom has one LeaderServant
+                .WithMany()                     // Servant doesn't have a collection of classrooms they lead
+                .HasForeignKey(c => c.LeaderServantId)
+                .OnDelete(DeleteBehavior.Restrict);  // 
+
         }
 
+        
         private void ApplyChurchId()
         {
             var churchIdFromContext = _httpContextAccessor.HttpContext?.Items["ChurchId"] as int?;

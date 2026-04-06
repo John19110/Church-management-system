@@ -23,5 +23,18 @@ namespace SunDaySchools.API.Controllers
             var result = await _meetingManager.GetMeetingsForSelection();
             return Ok(result);
         }
+
+        [HttpGet("visible")]
+        //[Authorize(Roles = "Admin,SuperAdmin")]
+        public async Task<IActionResult> GetvisibleMeetings()
+        {
+            var result = await _meetingManager.GetVisibleMeetings();
+            return Ok(result);
+        }
+
+
+
+
+
     }
 }
