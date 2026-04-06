@@ -101,7 +101,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
         }
 
 
-        public async Task AddClassroom(ClassroomAddDTO dto)
+        public async Task AddAsync(ClassroomAddDTO dto)
         {
             var user = _httpContextAccessor.HttpContext?.User;
             if (user == null)

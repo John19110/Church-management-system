@@ -34,9 +34,9 @@ namespace SunDaySchools.API.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> AddClassroom(ClassroomAddDTO classroom)
+        public async Task<IActionResult> Create(ClassroomAddDTO classroom)
         {
-            await _classroomManager.AddClassroom(classroom);
+            await _classroomManager.AddAsync(classroom);
             return Ok();
         }
 

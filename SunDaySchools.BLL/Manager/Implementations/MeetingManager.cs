@@ -90,7 +90,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                         ["Church"] = new[] { "Pasotr is not assigned to a Church." }
                     });
 
-                meetings = await _meetingRepository.GetByChurchIdAsync(appUser.MeetingId.Value);
+                meetings = await _meetingRepository.GetByChurchIdAsync(appUser.ChurchId.Value);
             } 
            
          
