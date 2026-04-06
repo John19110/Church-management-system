@@ -116,9 +116,9 @@ class DashboardScreen extends ConsumerWidget {
                 children: [
                   _DashboardCard(
                     icon: Icons.child_care,
-                    label: l10n.children,
+                    label: l10n.members,
                     color: const Color(0xFF4299E1),
-                    onTap: () => context.go('/children'),
+                    onTap: () => context.go('/members'),
                   ),
                   _DashboardCard(
                     icon: Icons.fact_check,
