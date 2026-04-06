@@ -40,7 +40,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
-    final l10n = AppLocalizations.of(context);
     try {
       await ref.read(authRepositoryProvider).registerServant(
             RegisterServantDto(
