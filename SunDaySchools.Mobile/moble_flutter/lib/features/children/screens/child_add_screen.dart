@@ -102,7 +102,8 @@ class _ChildAddScreenState extends ConsumerState<ChildAddScreen> {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(l10n.addChild)),
-      body: Form(
+      body: SafeArea(
+        child: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(16),
@@ -201,6 +202,7 @@ class _ChildAddScreenState extends ConsumerState<ChildAddScreen> {
                   ),
           ],
         ),
+      ),
       ),
     );
   }

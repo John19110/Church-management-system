@@ -75,7 +75,8 @@ class _ServantAddScreenState extends ConsumerState<ServantAddScreen> {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(l10n.addServant)),
-      body: Form(
+      body: SafeArea(
+        child: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(16),
@@ -158,6 +159,7 @@ class _ServantAddScreenState extends ConsumerState<ServantAddScreen> {
                   ),
           ],
         ),
+      ),
       ),
     );
   }
