@@ -17,12 +17,16 @@ class ClassroomReadDto {
   final String? ageOfMembers;
   final int? numberOfDisciplineMembers;
   final int? totalMembersCount;
+  final List<String> memberNames;
+  final List<String> servantNames;
 
   const ClassroomReadDto({
     this.name,
     this.ageOfMembers,
     this.numberOfDisciplineMembers,
     this.totalMembersCount,
+    this.memberNames = const [],
+    this.servantNames = const [],
   });
 
   factory ClassroomReadDto.fromJson(Map<String, dynamic> json) =>
@@ -34,7 +38,31 @@ class ClassroomReadDto {
         numberOfDisciplineMembers:
             json['numberOfDisplineMembers'] as int?,
         totalMembersCount: json['totalMembersCount'] as int?,
+        memberNames: _extractDisplayNames(_asList(json['members'])),
+        servantNames: _extractDisplayNames(_asList(json['servants'])),
       );
+
+  static List<dynamic> _asList(dynamic value) {
+    return value is List ? value : <dynamic>[];
+  }
+
+  static List<String> _extractDisplayNames(List<dynamic> items) {
+    return items
+        .map((e) => e is Map<String, dynamic> ? e : <String, dynamic>{})
+        .map(
+          (item) =>
+              (item['fullName'] ??
+                      item['name'] ??
+                      item['Name'] ??
+                      // Backend Member entity can serialize first-name as Name1.
+                      item['Name1'] ??
+                      '')
+                  .toString()
+                  .trim(),
+        )
+        .where((name) => name.isNotEmpty)
+        .toList();
+  }
 }
 
 class ClassroomAddDto {

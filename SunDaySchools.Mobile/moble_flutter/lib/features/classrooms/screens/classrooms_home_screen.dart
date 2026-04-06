@@ -5,6 +5,7 @@ import 'dart:developer' as developer;
 import '../../../core/storage/token_storage.dart';
 import '../../admin/providers/admin_providers.dart';
 import '../../auth/providers/auth_providers.dart';
+import '../models/classroom_models.dart';
 import '../providers/classroom_providers.dart';
 
 class ClassroomsHomeScreen extends ConsumerWidget {
@@ -92,6 +93,8 @@ class ClassroomsHomeScreen extends ConsumerWidget {
                             subtitle: Text(
                               'Age: ${c.ageOfMembers ?? '-'} • Members: ${c.totalMembersCount ?? 0}',
                             ),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () => _showClassroomDetails(context, c),
                           ),
                         ),
                       )
@@ -111,4 +114,41 @@ class ClassroomsHomeScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+void _showClassroomDetails(BuildContext context, ClassroomReadDto classroom) {
+  showDialog<void>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(classroom.name ?? 'Classroom'),
+      content: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Age: ${classroom.ageOfMembers ?? '-'}'),
+            const SizedBox(height: 12),
+            Text('Servants (${classroom.servantNames.length})'),
+            const SizedBox(height: 6),
+            ..._buildNameList(classroom.servantNames),
+            const SizedBox(height: 12),
+            Text('Members (${classroom.memberNames.length})'),
+            const SizedBox(height: 6),
+            ..._buildNameList(classroom.memberNames),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Close'),
+        ),
+      ],
+    ),
+  );
+}
+
+List<Widget> _buildNameList(List<String> names) {
+  if (names.isEmpty) return const [Text('-')];
+  return names.map((name) => Text('• $name')).toList();
 }
