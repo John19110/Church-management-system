@@ -84,6 +84,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   meetingId: int.parse(_meetingIdController.text.trim()),
                   birthDate: _birthController.text.trim().nullIfEmpty,
                   joiningDate: _joiningController.text.trim().nullIfEmpty,
+                  image: _image,
                 ),
               );
         case _RegisterType.churchAdmin:
@@ -263,6 +264,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
                 // Type-specific fields
                 if (_selectedType == _RegisterType.servant) ...[
+                  _buildImagePicker(l10n),
+                  const SizedBox(height: 16),
                   AppTextField(
                     controller: _churchIdController,
                     label: l10n.churchId,
