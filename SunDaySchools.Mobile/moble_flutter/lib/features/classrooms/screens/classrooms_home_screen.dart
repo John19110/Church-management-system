@@ -19,102 +19,105 @@ class ClassroomsHomeScreen extends ConsumerWidget {
     final ageController = TextEditingController();
     var isSubmitting = false;
 
-    await showDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: const Text('Add Classroom'),
-              content: Form(
-                key: formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextFormField(
-                      controller: nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Classroom Name',
-                        hintText: 'Enter classroom name',
-                      ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Classroom name is required';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: ageController,
-                      decoration: const InputDecoration(
-                        labelText: 'Age of Members',
-                        hintText: 'Enter age range',
-                      ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Age of members is required';
-                        }
-                        return null;
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: isSubmitting
-                      ? null
-                      : () => Navigator.of(dialogContext).pop(),
-                  child: const Text('Cancel'),
-                ),
-                ElevatedButton(
-                  onPressed: isSubmitting
-                      ? null
-                      : () async {
-                          if (!formKey.currentState!.validate()) return;
-                          setState(() => isSubmitting = true);
-                          try {
-                            await ref.read(classroomRepositoryProvider).add(
-                                  ClassroomAddDto(
-                                    name: nameController.text.trim(),
-                                    ageOfMembers: ageController.text.trim(),
-                                  ),
-                                );
-                            ref.invalidate(visibleClassroomsProvider);
-                            if (context.mounted) {
-                              Navigator.of(dialogContext).pop();
-                              showSuccessSnackbar(
-                                context,
-                                'Classroom added successfully.',
-                              );
-                            }
-                          } catch (e) {
-                            if (context.mounted) {
-                              showErrorSnackbar(context, e.toString());
-                            }
-                          } finally {
-                            if (context.mounted) {
-                              setState(() => isSubmitting = false);
-                            }
+    try {
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) {
+          return StatefulBuilder(
+            builder: (context, setState) {
+              return AlertDialog(
+                title: const Text('Add Classroom'),
+                content: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextFormField(
+                        controller: nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Classroom Name',
+                          hintText: 'Enter classroom name',
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Classroom name is required';
                           }
+                          return null;
                         },
-                  child: isSubmitting
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('Add'),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: ageController,
+                        decoration: const InputDecoration(
+                          labelText: 'Age of Members',
+                          hintText: 'Enter age range',
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Age of members is required';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            );
-          },
-        );
-      },
-    );
-    nameController.dispose();
-    ageController.dispose();
+                actions: [
+                  TextButton(
+                    onPressed: isSubmitting
+                        ? null
+                        : () => Navigator.of(dialogContext).pop(),
+                    child: const Text('Cancel'),
+                  ),
+                  ElevatedButton(
+                    onPressed: isSubmitting
+                        ? null
+                        : () async {
+                            if (!formKey.currentState!.validate()) return;
+                            setState(() => isSubmitting = true);
+                            try {
+                              await ref.read(classroomRepositoryProvider).add(
+                                    ClassroomAddDto(
+                                      name: nameController.text.trim(),
+                                      ageOfMembers: ageController.text.trim(),
+                                    ),
+                                  );
+                              ref.invalidate(visibleClassroomsProvider);
+                              if (context.mounted) {
+                                Navigator.of(dialogContext).pop();
+                                showSuccessSnackbar(
+                                  context,
+                                  'Classroom added successfully.',
+                                );
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                showErrorSnackbar(context, e.toString());
+                              }
+                            } finally {
+                              if (context.mounted) {
+                                setState(() => isSubmitting = false);
+                              }
+                            }
+                          },
+                    child: isSubmitting
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Add'),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      );
+    } finally {
+      nameController.dispose();
+      ageController.dispose();
+    }
   }
 
   @override
