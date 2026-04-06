@@ -17,6 +17,11 @@ namespace SunDaySchools.DAL.Repository.Implementations
             _context = context;
         }
 
+        public async Task AddAsync(Servant servant)
+        {
+            await _context.Servants.AddAsync(servant);
+            await _context.SaveChangesAsync();
+        }
         public async Task<IEnumerable<Servant>> GetAllAsync()
         {
             return await _context.Servants

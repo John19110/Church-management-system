@@ -214,7 +214,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 // ✅ Link User ↔ Servant
                 user.ServantProfile = servant;
 
-                await _adminRepo.AddServantAsync(servant);
+                await _servantRepo.AddAsync(servant);
                 await _unitOfWork.SaveChangesAsync();
 
                 await _unitOfWork.CommitAsync();
@@ -327,7 +327,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             // Link User ↔ Servant
             user.ServantProfile = servant;
 
-            await _adminRepo.AddServantAsync(servant);
+            await _servantRepo.AddAsync(servant);
             await _unitOfWork.SaveChangesAsync();
 
                 await _unitOfWork.CommitAsync();
@@ -503,7 +503,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             // Link navigation property (important)
             user.ServantProfile = servant;
 
-            await _adminRepo.AddServantAsync(servant);
+            await _servantRepo.AddAsync(servant);
             await _unitOfWork.SaveChangesAsync();
 
                 await _unitOfWork.CommitAsync();

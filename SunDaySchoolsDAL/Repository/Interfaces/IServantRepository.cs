@@ -16,6 +16,8 @@ namespace SunDaySchools.DAL.Repository.Interfaces
         Task<IEnumerable<Classroom>> GetByServantIdAsync(int servantId);
 
 
+        Task AddAsync(Servant servant);
+
 
         Task UpdateAsync(Servant servant);
 
