@@ -79,10 +79,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       for (final key in roleKeys) {
         final roleClaim = claims[key];
         if (roleClaim is String && roleClaim.trim().isNotEmpty) {
-          return roleClaim.toLowerCase();
+          return roleClaim.trim().toLowerCase();
         }
         if (roleClaim is List && roleClaim.isNotEmpty) {
-          return roleClaim.first.toString().toLowerCase();
+          return roleClaim.first.toString().trim().toLowerCase();
         }
       }
       return null;
