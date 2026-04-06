@@ -29,24 +29,24 @@ namespace SunDaySchools.API.Controllers
         }
 
 
-        // Add servant
-        [HttpPost("add-servant")]
-        [Consumes("multipart/form-data")]
-        public async Task<IActionResult> AddServant([FromForm(Name = "")] AdminAddServantDTO servant)
-        {
-            if (servant == null)
-            {
-                var errors = new Dictionary<string, string[]>
-                {
-                    ["servant"] = new[] { "The request body cannot be empty." }
-                };
-                throw new ValidationException(errors);
-            }
+        //// Add servant
+        //[HttpPost("add-servant")]
+        //[Consumes("multipart/form-data")]
+        //public async Task<IActionResult> AddServant([FromForm(Name = "")] AdminAddServantDTO servant)
+        //{
+        //    if (servant == null)
+        //    {
+        //        var errors = new Dictionary<string, string[]>
+        //        {
+        //            ["servant"] = new[] { "The request body cannot be empty." }
+        //        };
+        //        throw new ValidationException(errors);
+        //    }
 
-            await _adminManager.AddServant(servant, _env.WebRootPath);
+        //    await _adminManager.AddServant(servant, _env.WebRootPath);
 
-            return StatusCode(201, new { message = "Created Successfully" });
-        }
+        //    return StatusCode(201, new { message = "Created Successfully" });
+        //}
 
 
 
