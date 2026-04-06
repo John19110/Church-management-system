@@ -6,10 +6,119 @@ import '../../../core/routing/app_router.dart';
 import '../../../core/storage/token_storage.dart';
 import '../../admin/providers/admin_providers.dart';
 import '../../auth/providers/auth_providers.dart';
+import '../../../shared/widgets/common_widgets.dart';
+import '../models/classroom_models.dart';
 import '../providers/classroom_providers.dart';
 
 class ClassroomsHomeScreen extends ConsumerWidget {
   const ClassroomsHomeScreen({super.key});
+
+  Future<void> _showAddClassroomDialog(BuildContext context, WidgetRef ref) async {
+    final formKey = GlobalKey<FormState>();
+    final nameController = TextEditingController();
+    final ageController = TextEditingController();
+    var isSubmitting = false;
+
+    try {
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) {
+          return StatefulBuilder(
+            builder: (context, setState) {
+              return AlertDialog(
+                title: const Text('Add Classroom'),
+                content: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextFormField(
+                        controller: nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Classroom Name',
+                          hintText: 'Enter classroom name',
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Classroom name is required';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: ageController,
+                        decoration: const InputDecoration(
+                          labelText: 'Age of Members',
+                          hintText: 'Enter age range',
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Age of members is required';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: isSubmitting
+                        ? null
+                        : () => Navigator.of(dialogContext).pop(),
+                    child: const Text('Cancel'),
+                  ),
+                  ElevatedButton(
+                    onPressed: isSubmitting
+                        ? null
+                        : () async {
+                            if (!formKey.currentState!.validate()) return;
+                            setState(() => isSubmitting = true);
+                            try {
+                              await ref.read(classroomRepositoryProvider).add(
+                                    ClassroomAddDto(
+                                      name: nameController.text.trim(),
+                                      ageOfMembers: ageController.text.trim(),
+                                    ),
+                                  );
+                              ref.invalidate(visibleClassroomsProvider);
+                              if (context.mounted) {
+                                Navigator.of(dialogContext).pop();
+                                showSuccessSnackbar(
+                                  context,
+                                  'Classroom added successfully.',
+                                );
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                showErrorSnackbar(context, e.toString());
+                              }
+                            } finally {
+                              if (context.mounted) {
+                                setState(() => isSubmitting = false);
+                              }
+                            }
+                          },
+                    child: isSubmitting
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Add'),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      );
+    } finally {
+      nameController.dispose();
+      ageController.dispose();
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -24,6 +133,12 @@ class ClassroomsHomeScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Classrooms Home'),
         actions: [
+          if (canViewPendingServants)
+            IconButton(
+              icon: const Icon(Icons.add),
+              tooltip: 'Add Classroom',
+              onPressed: () => _showAddClassroomDialog(context, ref),
+            ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
