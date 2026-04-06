@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/routing/app_router.dart';
 import '../../../core/storage/token_storage.dart';
 import '../../meetings/providers/meeting_providers.dart';
 import '../providers/super_admin_providers.dart';
@@ -75,7 +76,7 @@ class SuperAdminHomeScreen extends ConsumerWidget {
                             ),
                             trailing: const Icon(Icons.chevron_right),
                             onTap: () => context.push(
-                              '/meeting-detail',
+                              AppRoutes.meetingDetail,
                               extra: m,
                             ),
                           ),
