@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SunDaySchools.DAL.Models;
 using SunDaySchools.DAL.Repository.Interfaces;
+using SunDaySchools.Models;
 using SunDaySchoolsDAL.DBcontext;
 
 namespace SunDaySchools.DAL.Repository.Implementations
@@ -42,6 +43,13 @@ namespace SunDaySchools.DAL.Repository.Implementations
         {
             await _context.Meetings.AddAsync(meeting);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<Meeting>> GetByChurchIdAsync(int churchid)
+        {
+            return await _context.Meetings
+                .Where(c => c.ChurchId == churchid)
+                .ToListAsync();
         }
 
         public async Task UpdateAsync(Meeting meeting)

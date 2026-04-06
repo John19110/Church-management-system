@@ -11,6 +11,10 @@ public class Church
     public ICollection<Meeting> Meetings { get; set; } = new List<Meeting>();
 
 
+    public int? PastorId { get; set; }  // Nullable if a meeting may not have a leader yet
+    public Servant? Pastor { get; set; }
+
+
 
 
 }

@@ -3,6 +3,7 @@ using SunDaySchools.BLL.DTOS;
 using SunDaySchools.BLL.DTOS.AccountDtos;
 using SunDaySchools.BLL.DTOS.ClsssroomDtos;
 using SunDaySchools.BLL.DTOS.Meeting;
+using SunDaySchools.BLL.DTOS.MeetingDtos;
 using SunDaySchools.DAL.Models;
 using SunDaySchools.Models;
 using System;
@@ -86,6 +87,9 @@ namespace SunDaySchools.BLL.AutoMapper
                 .ForMember(d => d.TakenByServant, o => o.Ignore())
                 .ForMember(d => d.CreatedAt, o => o.Ignore())
                 .ForMember(d => d.Records, o => o.MapFrom(s => s.Records));
+
+
+            CreateMap<Meeting, MeetingReadDTO>();
         }
     }
 }
