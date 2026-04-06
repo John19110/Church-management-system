@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:convert';
+import 'dart:developer' as developer;
 import '../models/auth_models.dart';
 import '../providers/auth_providers.dart';
 import '../../classrooms/providers/classroom_providers.dart';
@@ -46,6 +47,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         await ref.read(meetingRepositoryProvider).getVisibleMeetings();
       } else if (role == 'admin' || role == 'servant') {
         await ref.read(classroomRepositoryProvider).getVisible();
+      } else {
+        developer.log(
+          'Unknown or missing role after login; skipping role-based fetch.',
+          name: 'LoginScreen',
+          error: role,
+        );
       }
       if (mounted) context.go('/dashboard');
     } catch (e) {
@@ -67,8 +74,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
       final roleClaim = claims[roleKey];
       if (roleClaim is String) return roleClaim.toLowerCase();
-      if (roleClaim is List && roleClaim.isNotEmpty && roleClaim.first is String) {
-        return (roleClaim.first as String).toLowerCase();
+      if (roleClaim is List && roleClaim.isNotEmpty) {
+        return roleClaim.first.toString().toLowerCase();
       }
       return null;
     } catch (_) {
