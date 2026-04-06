@@ -74,6 +74,13 @@ public class GlobalExceptionMiddleware
                 problemDetails.Detail = invalidCredentials.Message;
                 break;
 
+            case UnauthorizedAccessException unauthorized:
+                problemDetails.Title = "Unauthorized.";
+                problemDetails.Status = (int)HttpStatusCode.Unauthorized;
+                problemDetails.Type = "https://tools.ietf.org/html/rfc7235#section-3.1";
+                problemDetails.Detail = unauthorized.Message;
+                break;
+
             case AccountNotApprovedException accountNotApproved:
                 problemDetails.Title = "Account not approved.";
                 problemDetails.Status = (int)HttpStatusCode.Forbidden;
