@@ -19,21 +19,23 @@ class _ServantAddScreenState extends ConsumerState<ServantAddScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _userIdController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _joiningController = TextEditingController();
   final _birthController = TextEditingController();
-  final _classroomController = TextEditingController();
   File? _image;
   bool _loading = false;
+  bool _obscurePassword = true;
+  bool _obscureConfirm = true;
 
   @override
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
-    _userIdController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
     _joiningController.dispose();
     _birthController.dispose();
-    _classroomController.dispose();
     super.dispose();
   }
 
@@ -50,11 +52,11 @@ class _ServantAddScreenState extends ConsumerState<ServantAddScreen> {
     try {
       await ref.read(servantsRepositoryProvider).create(
             name: _nameController.text.trim(),
-            applicationUserId: _userIdController.text.trim(),
-            phoneNumber: _phoneController.text.trim().nullIfEmpty,
+            phoneNumber: _phoneController.text.trim(),
+            password: _passwordController.text,
+            confirmPassword: _confirmPasswordController.text,
             joiningDate: _joiningController.text.trim().nullIfEmpty,
             birthDate: _birthController.text.trim().nullIfEmpty,
-            classroomId: int.tryParse(_classroomController.text.trim()),
             image: _image,
           );
       if (mounted) {
@@ -105,25 +107,48 @@ class _ServantAddScreenState extends ConsumerState<ServantAddScreen> {
               controller: _phoneController,
               label: l10n.phoneNumber,
               keyboardType: TextInputType.phone,
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? l10n.phoneRequired : null,
             ),
             const SizedBox(height: 12),
             AppTextField(
-              controller: _userIdController,
-              label: l10n.applicationUserId,
-              hint: l10n.userIdHint,
+              controller: _passwordController,
+              label: l10n.password,
+              obscureText: _obscurePassword,
               validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? l10n.userIdRequired : null,
+                  (v == null || v.length < 6) ? l10n.passwordTooShort : null,
+              suffixIcon: IconButton(
+                icon: Icon(_obscurePassword
+                    ? Icons.visibility
+                    : Icons.visibility_off),
+                onPressed: () =>
+                    setState(() => _obscurePassword = !_obscurePassword),
+              ),
+            ),
+            const SizedBox(height: 12),
+            AppTextField(
+              controller: _confirmPasswordController,
+              label: l10n.confirmPassword,
+              obscureText: _obscureConfirm,
+              validator: (v) {
+                if (v == null || v.isEmpty) return l10n.pleaseConfirmPassword;
+                if (v != _passwordController.text) {
+                  return l10n.passwordsDoNotMatch;
+                }
+                return null;
+              },
+              suffixIcon: IconButton(
+                icon: Icon(_obscureConfirm
+                    ? Icons.visibility
+                    : Icons.visibility_off),
+                onPressed: () =>
+                    setState(() => _obscureConfirm = !_obscureConfirm),
+              ),
             ),
             const SizedBox(height: 12),
             AppDateField(controller: _joiningController, label: l10n.joiningDate),
             const SizedBox(height: 12),
             AppDateField(controller: _birthController, label: l10n.birthDate),
-            const SizedBox(height: 12),
-            AppTextField(
-              controller: _classroomController,
-              label: l10n.classroomId,
-              keyboardType: TextInputType.number,
-            ),
             const SizedBox(height: 24),
             _loading
                 ? const Center(child: CircularProgressIndicator())

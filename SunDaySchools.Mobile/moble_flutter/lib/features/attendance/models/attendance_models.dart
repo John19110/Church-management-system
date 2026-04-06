@@ -25,9 +25,13 @@ enum AttendanceStatus {
   }
 }
 
+/// Unified attendance record DTO used for reading and local state.
+/// - [memberId] corresponds to ChildId in read responses and MemberId in
+///   add/update requests (the backend uses different field names).
+/// - [id] is populated when reading an existing record (for updates).
 class AttendanceRecordDto {
   final int? id;
-  final int childId;
+  final int memberId;
   final bool madeHomeWork;
   final bool hasTools;
   final int status;
@@ -35,7 +39,7 @@ class AttendanceRecordDto {
 
   const AttendanceRecordDto({
     this.id,
-    required this.childId,
+    required this.memberId,
     required this.madeHomeWork,
     required this.hasTools,
     required this.status,
@@ -45,16 +49,27 @@ class AttendanceRecordDto {
   factory AttendanceRecordDto.fromJson(Map<String, dynamic> json) =>
       AttendanceRecordDto(
         id: json['id'] as int?,
-        childId: json['childId'] as int,
+        // Read DTO returns 'childId'; Add/Update DTOs use 'memberId'.
+        memberId: (json['memberId'] ?? json['childId']) as int? ?? 0,
         madeHomeWork: json['madeHomeWork'] as bool? ?? false,
         hasTools: json['hasTools'] as bool? ?? false,
         status: json['status'] as int? ?? 2,
         note: json['note'] as String?,
       );
 
-  Map<String, dynamic> toJson() => {
+  /// JSON for creating a new attendance record (AttendanceRecordAddDTO).
+  Map<String, dynamic> toAddJson() => {
+        'memberId': memberId,
+        'madeHomeWork': madeHomeWork,
+        'hasTools': hasTools,
+        'status': status,
+        if (note != null) 'note': note,
+      };
+
+  /// JSON for updating an existing attendance record (AttendanceRecordUpdateDTO).
+  Map<String, dynamic> toUpdateJson() => {
         if (id != null) 'id': id,
-        'childId': childId,
+        'memberId': memberId,
         'madeHomeWork': madeHomeWork,
         'hasTools': hasTools,
         'status': status,
@@ -79,28 +94,34 @@ class AttendanceSessionAddDto {
         'classroomId': classroomId,
         if (takenByServantId != null) 'takenByServantId': takenByServantId,
         if (notes != null) 'notes': notes,
-        'records': records.map((r) => r.toJson()).toList(),
+        'records': records.map((r) => r.toAddJson()).toList(),
       };
 }
 
-class AttendanceSessionUpdateDto extends AttendanceSessionAddDto {
+class AttendanceSessionUpdateDto {
   final int id;
+  final int classroomId;
+  final int? takenByServantId;
+  final String? notes;
   final String? createdAt;
+  final List<AttendanceRecordDto> records;
 
   const AttendanceSessionUpdateDto({
     required this.id,
-    required super.classroomId,
-    super.takenByServantId,
-    super.notes,
-    required super.records,
+    required this.classroomId,
+    this.takenByServantId,
+    this.notes,
     this.createdAt,
+    required this.records,
   });
 
-  @override
   Map<String, dynamic> toJson() => {
         'id': id,
-        ...super.toJson(),
+        'classroomId': classroomId,
+        if (takenByServantId != null) 'takenByServantId': takenByServantId,
+        if (notes != null) 'notes': notes,
         if (createdAt != null) 'createdAt': createdAt,
+        'records': records.map((r) => r.toUpdateJson()).toList(),
       };
 }
 

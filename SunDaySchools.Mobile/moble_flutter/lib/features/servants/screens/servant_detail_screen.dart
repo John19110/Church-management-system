@@ -87,9 +87,13 @@ class ServantDetailScreen extends ConsumerWidget {
               _InfoTile(label: l10n.phone, value: servant.phoneNumber),
               _InfoTile(label: l10n.birthDate, value: servant.birthDate),
               _InfoTile(label: l10n.joiningDate, value: servant.joiningDate),
-              _InfoTile(
+              if (servant.classrooms.isNotEmpty)
+                _InfoTile(
                   label: l10n.classroomId,
-                  value: servant.classroomId?.toString()),
+                  value: servant.classrooms
+                      .map((c) => c.name ?? c.id.toString())
+                      .join(', '),
+                ),
             ],
           ),
         ),
