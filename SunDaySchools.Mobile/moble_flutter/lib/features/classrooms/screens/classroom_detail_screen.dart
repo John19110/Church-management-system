@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/routing/app_router.dart';
 import '../models/classroom_models.dart';
 
 class ClassroomDetailScreen extends StatelessWidget {
@@ -44,13 +45,13 @@ class ClassroomDetailScreen extends StatelessWidget {
           ..._buildNameList(classroom.memberNames),
           const SizedBox(height: 24),
           ElevatedButton.icon(
-            onPressed: () => context.push('/children'),
+            onPressed: () => context.push(AppRoutes.children),
             icon: const Icon(Icons.group_add),
             label: const Text('Add/Update/Remove Members'),
           ),
           const SizedBox(height: 12),
           OutlinedButton.icon(
-            onPressed: () => context.push('/servants'),
+            onPressed: () => context.push(AppRoutes.servants),
             icon: const Icon(Icons.person_add_alt_1),
             label: const Text('Manage Servants'),
           ),

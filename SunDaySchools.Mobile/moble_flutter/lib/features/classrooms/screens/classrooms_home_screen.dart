@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:developer' as developer;
+import '../../../core/routing/app_router.dart';
 import '../../../core/storage/token_storage.dart';
 import '../../admin/providers/admin_providers.dart';
 import '../../auth/providers/auth_providers.dart';
@@ -94,7 +95,7 @@ class ClassroomsHomeScreen extends ConsumerWidget {
                             ),
                             trailing: const Icon(Icons.chevron_right),
                             onTap: () => context.push(
-                              '/classroom-detail',
+                              AppRoutes.classroomDetail,
                               extra: c,
                             ),
                           ),
