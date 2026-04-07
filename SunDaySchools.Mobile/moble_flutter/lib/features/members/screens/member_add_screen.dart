@@ -82,7 +82,7 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
           phoneNumber: _phoneNumber[i].text.trim(),
         ),
       );
-      final classroomId = int.tryParse(_classroomController.text.trim()) ?? 0;
+      final classroomId = widget.classroomId ?? int.tryParse(_classroomController.text.trim()) ?? 0;
       await ref.read(membersRepositoryProvider).create(
             classroomId,
             MemberAddDto(
