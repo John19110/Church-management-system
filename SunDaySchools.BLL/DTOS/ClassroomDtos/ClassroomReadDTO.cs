@@ -10,6 +10,7 @@ namespace SunDaySchools.BLL.DTOS
 {
     public class ClassroomReadDTO
     {
+        public int Id { get; set; }
         public string? Name { get; set; }
         public string? AgeOfMembers { get; set; }
         public ICollection<Member>? Members { get; set; }

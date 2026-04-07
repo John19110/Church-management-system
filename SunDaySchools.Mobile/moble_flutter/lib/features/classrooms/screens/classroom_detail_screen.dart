@@ -45,6 +45,12 @@ class ClassroomDetailScreen extends StatelessWidget {
           ..._buildNameList(classroom.memberNames),
           const SizedBox(height: 24),
           ElevatedButton.icon(
+            onPressed: () => context.push('/members/add', extra: classroom.id),
+            icon: const Icon(Icons.person_add),
+            label: const Text('Add Member'),
+          ),
+          const SizedBox(height: 12),
+          ElevatedButton.icon(
             onPressed: () => context.push(AppRoutes.members),
             icon: const Icon(Icons.group_add),
             label: const Text('Add/Update/Remove Members'),
