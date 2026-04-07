@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/l10n/app_localizations.dart';
 import '../../../core/routing/app_router.dart';
 import '../models/classroom_models.dart';
 
@@ -10,6 +11,7 @@ class ClassroomDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(classroom.name ?? 'Classroom Details')),
       body: ListView(
@@ -44,6 +46,12 @@ class ClassroomDetailScreen extends StatelessWidget {
           const SizedBox(height: 8),
           ..._buildNameList(classroom.memberNames),
           const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () => context.push('/members/add', extra: classroom.id),
+            icon: const Icon(Icons.person_add),
+            label: Text(l10n.addMember),
+          ),
+          const SizedBox(height: 12),
           ElevatedButton.icon(
             onPressed: () => context.push(AppRoutes.members),
             icon: const Icon(Icons.group_add),
