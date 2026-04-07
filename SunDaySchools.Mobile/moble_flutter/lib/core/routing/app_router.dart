@@ -87,7 +87,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: AppRoutes.members, builder: (_, __) => const MembersListScreen()),
       GoRoute(
         path: '/members/add',
-        builder: (_, __) => const MemberAddScreen(),
+        builder: (_, state) {
+          final classroomId = state.extra is int ? state.extra as int : null;
+          return MemberAddScreen(classroomId: classroomId);
+        },
       ),
       GoRoute(
         path: '/members/:id',

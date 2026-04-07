@@ -13,6 +13,7 @@ class SelectOptionDto {
 }
 
 class ClassroomReadDto {
+  final int? id;
   final String? name;
   final String? ageOfMembers;
   final int? numberOfDisciplineMembers;
@@ -21,6 +22,7 @@ class ClassroomReadDto {
   final List<String> servantNames;
 
   const ClassroomReadDto({
+    this.id,
     this.name,
     this.ageOfMembers,
     this.numberOfDisciplineMembers,
@@ -31,6 +33,7 @@ class ClassroomReadDto {
 
   factory ClassroomReadDto.fromJson(Map<String, dynamic> json) =>
       ClassroomReadDto(
+        id: json['id'] as int?,
         name: json['name'] as String?,
         ageOfMembers: json['ageOfMembers'] as String?,
         // The key 'numberOfDisplineMembers' matches the backend's Classroom model
