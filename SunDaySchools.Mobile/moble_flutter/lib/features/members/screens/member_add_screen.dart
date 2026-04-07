@@ -8,7 +8,9 @@ import '../../../shared/widgets/common_widgets.dart';
 import '../../../core/l10n/app_localizations.dart';
 
 class MemberAddScreen extends ConsumerStatefulWidget {
-  const MemberAddScreen({super.key});
+  final int? classroomId;
+
+  const MemberAddScreen({super.key, this.classroomId});
 
   @override
   ConsumerState<MemberAddScreen> createState() => _MemberAddScreenState();
@@ -25,6 +27,14 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
   final _classroomController = TextEditingController();
   String? _gender;
   bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.classroomId != null) {
+      _classroomController.text = widget.classroomId.toString();
+    }
+  }
 
   // Phone number pairs: relation[i] and phoneNumber[i] correspond to the same contact
   final List<TextEditingController> _phoneRelation = [];
@@ -72,7 +82,7 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
           phoneNumber: _phoneNumber[i].text.trim(),
         ),
       );
-      final classroomId = int.tryParse(_classroomController.text.trim()) ?? 0;
+      final classroomId = widget.classroomId ?? int.tryParse(_classroomController.text.trim()) ?? 0;
       await ref.read(membersRepositoryProvider).create(
             classroomId,
             MemberAddDto(
@@ -152,6 +162,7 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
               controller: _classroomController,
               label: l10n.classroomId,
               keyboardType: TextInputType.number,
+              enabled: widget.classroomId == null,
             ),
             const SizedBox(height: 16),
             Row(
