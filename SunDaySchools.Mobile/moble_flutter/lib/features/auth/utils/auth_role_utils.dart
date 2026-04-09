@@ -32,7 +32,8 @@ class AuthRoleUtils {
 
   static String routeForRole(String? role) {
     if (role == 'superadmin') return '/super-admin-home';
-    if (role == 'admin' || role == 'servant') return '/classrooms-home';
+    if (role == 'admin') return '/admin-home';
+    if (role == 'servant') return '/servant-home';
     return '/dashboard';
   }
 }
