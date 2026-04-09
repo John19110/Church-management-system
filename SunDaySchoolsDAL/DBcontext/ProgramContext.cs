@@ -26,6 +26,9 @@ namespace SunDaySchoolsDAL.DBcontext
         public DbSet<PhoneCall> PhoneCalls { get; set; }
         public DbSet<Servant> Servants { get; set; }
         public DbSet<Classroom> Classrooms { get; set; }
+                                       
+        public DbSet<ClassroomServant> ClassroomServants { get; set; }
+
         public DbSet<AttendanceSession> AttendanceSessions { get; set; }
         public DbSet<AttendanceRecord> AttendanceRecords { get; set; }
         public DbSet<Exam> Exams { get; set; }
@@ -48,13 +51,22 @@ namespace SunDaySchoolsDAL.DBcontext
                 .HasForeignKey(c => c.ClassroomId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            //Classroom seed data
-            //builder.Entity<Classroom>().HasData(
-            //   new Classroom { Id = 1, Name = "الوداعه", AgeOfMembers = "حضانه و كيجي" },
-            //   new Classroom { Id = 2, Name = "السلام", AgeOfMembers = "اولي و تانيه" },
-            //   new Classroom { Id = 3, Name = "الأيمان", AgeOfMembers = "تالته ورابعه" },
-            //   new Classroom { Id = 4, Name = "المحبه", AgeOfMembers = "خامسه و سادسه" }
-            //);
+
+
+            builder.Entity<ClassroomServant>()
+    .HasKey(cs => new { cs.ServantId, cs.ClassroomId });
+
+            builder.Entity<ClassroomServant>()
+                .HasOne(cs => cs.Servant)
+                .WithMany(s => s.ClassroomServants)
+                .HasForeignKey(cs => cs.ServantId);
+
+            builder.Entity<ClassroomServant>()
+                .HasOne(cs => cs.Classroom)
+                .WithMany(c => c.ClassroomServants)
+                .HasForeignKey(cs => cs.ClassroomId);
+
+
 
             // Prevent duplicate attendance records
             builder.Entity<AttendanceRecord>()
