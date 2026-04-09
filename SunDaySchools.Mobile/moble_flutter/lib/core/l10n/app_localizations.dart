@@ -75,6 +75,10 @@ class AppLocalizations {
   String get address => _t('address');
   String get dateOfBirth => _t('dateOfBirth');
   String get joiningDate => _t('joiningDate');
+  String get spiritualDateOfBirth => _t('spiritualDateOfBirth');
+  String get haveBrothers => _t('haveBrothers');
+  String get brothersNames => _t('brothersNames');
+  String get brother => _t('brother');
   String get classroomId => _t('classroomId');
   String get phoneNumbers => _t('phoneNumbers');
   String get relation => _t('relation');
@@ -90,6 +94,7 @@ class AppLocalizations {
   String get firstNameRequired => _t('firstNameRequired');
   String get dobRequired => _t('dobRequired');
   String get joiningDateRequired => _t('joiningDateRequired');
+  String get classroomIdRequired => _t('classroomIdRequired');
 
   // ── Servants ──────────────────────────────────────────────────────────────
   String get noServants => _t('noServants');
@@ -206,6 +211,10 @@ class AppLocalizations {
       'address': 'Address',
       'dateOfBirth': 'Date of Birth',
       'joiningDate': 'Joining Date',
+      'spiritualDateOfBirth': 'Spiritual Date of Birth',
+      'haveBrothers': 'Have Brothers',
+      'brothersNames': 'Brothers Names',
+      'brother': 'Brother',
       'classroomId': 'Classroom ID',
       'phoneNumbers': 'Phone Numbers',
       'relation': 'Relation',
@@ -221,6 +230,7 @@ class AppLocalizations {
       'firstNameRequired': 'First name is required',
       'dobRequired': 'Date of birth is required',
       'joiningDateRequired': 'Joining date is required',
+      'classroomIdRequired': 'Classroom ID is required',
       // Servants
       'noServants': 'No servants yet. Tap + to add one.',
       'addServant': 'Add Servant',
@@ -332,6 +342,10 @@ class AppLocalizations {
       'address': 'العنوان',
       'dateOfBirth': 'تاريخ الميلاد',
       'joiningDate': 'تاريخ الانضمام',
+      'spiritualDateOfBirth': 'تاريخ الميلاد الروحي',
+      'haveBrothers': 'لديه إخوة',
+      'brothersNames': 'أسماء الإخوة',
+      'brother': 'أخ',
       'classroomId': 'معرف الفصل',
       'phoneNumbers': 'أرقام الهاتف',
       'relation': 'صلة القرابة',
@@ -347,6 +361,7 @@ class AppLocalizations {
       'firstNameRequired': 'الاسم الأول مطلوب',
       'dobRequired': 'تاريخ الميلاد مطلوب',
       'joiningDateRequired': 'تاريخ الانضمام مطلوب',
+      'classroomIdRequired': 'معرف الفصل مطلوب',
       // Servants
       'noServants': 'لا يوجد خدام بعد. اضغط + للإضافة.',
       'addServant': 'إضافة خادم',

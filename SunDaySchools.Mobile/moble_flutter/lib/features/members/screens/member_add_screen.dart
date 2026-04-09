@@ -233,7 +233,7 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
               const SizedBox(height: 12),
               AppDateField(
                 controller: _spiritualDobController,
-                label: 'Spiritual Date of Birth',
+                label: l10n.spiritualDateOfBirth,
               ),
               const SizedBox(height: 12),
               AppTextField(
@@ -245,7 +245,7 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
                   if (widget.classroomId != null) return null;
                   final parsed = int.tryParse((v ?? '').trim());
                   if (parsed == null || parsed <= 0) {
-                    return 'Classroom ID is required';
+                    return l10n.classroomIdRequired;
                   }
                   return null;
                 },
@@ -322,7 +322,7 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
               }),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Have Brothers'),
+                title: Text(l10n.haveBrothers),
                 value: _haveBrothers,
                 onChanged: (value) => setState(() => _haveBrothers = value),
               ),
@@ -330,7 +330,10 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Brothers Names', style: Theme.of(context).textTheme.titleSmall),
+                    Text(
+                      l10n.brothersNames,
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
                     IconButton(
                       icon: const Icon(Icons.add_circle, color: Color(0xFF2B6CB0)),
                       onPressed: _addBrotherNameRow,
@@ -346,7 +349,7 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
                         Expanded(
                           child: AppTextField(
                             controller: _brotherNameControllers[i],
-                            label: 'Brother ${i + 1}',
+                            label: '${l10n.brother} ${i + 1}',
                           ),
                         ),
                         IconButton(
