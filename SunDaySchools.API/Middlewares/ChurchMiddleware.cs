@@ -1,4 +1,4 @@
-public class ChurchMiddleware
+﻿public class ChurchMiddleware
 {
     private readonly RequestDelegate _next;
 
@@ -9,11 +9,27 @@ public class ChurchMiddleware
 
     public async Task Invoke(HttpContext context)
     {
-        var host = context.Request.Host.Host;
-        var subdomain = host.Split('.')[0];
+         var churchClaim = context.User.FindFirst("ChurchId")?.Value;
 
-        context.Items["ChurchId"] = subdomain;
+      //  var churchIdHeader = context.Request.Headers["ChurchId"].FirstOrDefault();
+
+              if (int.TryParse(churchClaim, out var churchId))
+        {
+            context.Items["ChurchId"] = churchId; 
+        }
 
         await _next(context);
     }
 }
+
+
+
+
+//    public async Task Invoke(HttpContext context)
+//    {
+//        // 🔹 Read from JWT claims (NOT headers)
+//      
+
+//        await _next(context);
+//    }
+//}

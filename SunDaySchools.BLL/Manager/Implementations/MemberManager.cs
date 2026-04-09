@@ -80,8 +80,14 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             var isAssigned = await _classroomRepository.IsServantAssignedAsync(servant.Id, classroomId);
 
-            if (!isAssigned)
+            if (!isAssigned && user.IsInRole("Servant"))
                 throw new UnauthorizedAccessException("This class is not assigned to you.");
+
+
+            foreach (var claim in _httpContextAccessor.HttpContext.User.Claims)
+            {
+                Console.WriteLine($"{claim.Type} = {claim.Value}");
+            }
 
             string? fileName = null;
 

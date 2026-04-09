@@ -3,8 +3,6 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
-
 namespace SunDaySchools.DAL.Migrations
 {
     /// <inheritdoc />
@@ -25,19 +23,6 @@ namespace SunDaySchools.DAL.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetRoles", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Churches",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Churches", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -62,22 +47,48 @@ namespace SunDaySchools.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Meetings",
+                name: "AspNetUserClaims",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ChurchId = table.Column<int>(type: "int", nullable: false),
-                    Weekly_appointment = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Meetings", x => x.Id);
+                    table.PrimaryKey("PK_AspNetUserClaims", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUserLogins",
+                columns: table => new
+                {
+                    LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ProviderKey = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ProviderDisplayName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserLogins", x => new { x.LoginProvider, x.ProviderKey });
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUserRoles",
+                columns: table => new
+                {
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    RoleId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserRoles", x => new { x.UserId, x.RoleId });
                     table.ForeignKey(
-                        name: "FK_Meetings_Churches_ChurchId",
-                        column: x => x.ChurchId,
-                        principalTable: "Churches",
+                        name: "FK_AspNetUserRoles_AspNetRoles_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "AspNetRoles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -109,16 +120,77 @@ namespace SunDaySchools.DAL.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUserTokens",
+                columns: table => new
+                {
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Value = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserTokens", x => new { x.UserId, x.LoginProvider, x.Name });
                     table.ForeignKey(
-                        name: "FK_AspNetUsers_Churches_ChurchId",
-                        column: x => x.ChurchId,
-                        principalTable: "Churches",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_AspNetUsers_Meetings_MeetingId",
-                        column: x => x.MeetingId,
-                        principalTable: "Meetings",
-                        principalColumn: "Id");
+                        name: "FK_AspNetUserTokens_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AttendanceRecords",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    AttendanceSessionId = table.Column<int>(type: "int", nullable: false),
+                    MemberId = table.Column<int>(type: "int", nullable: false),
+                    MadeHomeWork = table.Column<bool>(type: "bit", nullable: false),
+                    HasTools = table.Column<bool>(type: "bit", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    Note = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ChurchId = table.Column<int>(type: "int", nullable: true),
+                    MeetingId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AttendanceRecords", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AttendanceSessions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ClassroomId = table.Column<int>(type: "int", nullable: false),
+                    TakenByServantId = table.Column<int>(type: "int", nullable: true),
+                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateOnly>(type: "date", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AttendanceSessions", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Churches",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PastorId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Churches", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -130,6 +202,7 @@ namespace SunDaySchools.DAL.Migrations
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     AgeOfMembers = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     NumberOfDisplineMembers = table.Column<int>(type: "int", nullable: true),
+                    LeaderServantId = table.Column<int>(type: "int", nullable: true),
                     ChurchId = table.Column<int>(type: "int", nullable: true),
                     MeetingId = table.Column<int>(type: "int", nullable: true)
                 },
@@ -141,8 +214,181 @@ namespace SunDaySchools.DAL.Migrations
                         column: x => x.ChurchId,
                         principalTable: "Churches",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ClassroomServant",
+                columns: table => new
+                {
+                    ClassroomsId = table.Column<int>(type: "int", nullable: false),
+                    ServantsId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ClassroomServant", x => new { x.ClassroomsId, x.ServantsId });
                     table.ForeignKey(
-                        name: "FK_Classrooms_Meetings_MeetingId",
+                        name: "FK_ClassroomServant_Classrooms_ClassroomsId",
+                        column: x => x.ClassroomsId,
+                        principalTable: "Classrooms",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ExamResults",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ExamId = table.Column<int>(type: "int", nullable: false),
+                    MemberId = table.Column<int>(type: "int", nullable: false),
+                    Score = table.Column<int>(type: "int", nullable: false),
+                    IsAbsent = table.Column<bool>(type: "bit", nullable: false),
+                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ChurchId = table.Column<int>(type: "int", nullable: true),
+                    MeetingId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ExamResults", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ExamResults_Churches_ChurchId",
+                        column: x => x.ChurchId,
+                        principalTable: "Churches",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Exams",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ClassroomId = table.Column<int>(type: "int", nullable: true),
+                    ExamDate = table.Column<DateOnly>(type: "date", nullable: false),
+                    MaxScore = table.Column<int>(type: "int", nullable: false),
+                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ChurchId = table.Column<int>(type: "int", nullable: true),
+                    MeetingId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Exams", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Exams_Churches_ChurchId",
+                        column: x => x.ChurchId,
+                        principalTable: "Churches",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Exams_Classrooms_ClassroomId",
+                        column: x => x.ClassroomId,
+                        principalTable: "Classrooms",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Meetings",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ChurchId = table.Column<int>(type: "int", nullable: false),
+                    Weekly_appointment = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    LeaderServantId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Meetings", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Meetings_Churches_ChurchId",
+                        column: x => x.ChurchId,
+                        principalTable: "Churches",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Members",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ImageFileName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Name1 = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Name2 = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Name3 = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Gender = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Address = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DateOfBirth = table.Column<DateOnly>(type: "date", nullable: false),
+                    JoiningDate = table.Column<DateOnly>(type: "date", nullable: false),
+                    LastAttendanceDate = table.Column<DateOnly>(type: "date", nullable: false),
+                    SpiritualDateOfBirth = table.Column<DateOnly>(type: "date", nullable: true),
+                    IsDiscipline = table.Column<bool>(type: "bit", nullable: false),
+                    TotalNumberOfDaysAttended = table.Column<int>(type: "int", nullable: false),
+                    HaveBrothers = table.Column<bool>(type: "bit", nullable: true),
+                    BrothersNames = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ClassroomId = table.Column<int>(type: "int", nullable: true),
+                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ChurchId = table.Column<int>(type: "int", nullable: true),
+                    MeetingId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Members", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Members_Churches_ChurchId",
+                        column: x => x.ChurchId,
+                        principalTable: "Churches",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Members_Classrooms_ClassroomId",
+                        column: x => x.ClassroomId,
+                        principalTable: "Classrooms",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Members_Meetings_MeetingId",
+                        column: x => x.MeetingId,
+                        principalTable: "Meetings",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Servants",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ImageFileName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    BirthDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    JoiningDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    classroomsIds = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ChurchId = table.Column<int>(type: "int", nullable: true),
+                    MeetingId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Servants", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Servants_AspNetUsers_ApplicationUserId",
+                        column: x => x.ApplicationUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Servants_Churches_ChurchId",
+                        column: x => x.ChurchId,
+                        principalTable: "Churches",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Servants_Meetings_MeetingId",
                         column: x => x.MeetingId,
                         principalTable: "Meetings",
                         principalColumn: "Id");
@@ -216,302 +462,6 @@ namespace SunDaySchools.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "AspNetUserClaims",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AspNetUserClaims", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_AspNetUserClaims_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AspNetUserLogins",
-                columns: table => new
-                {
-                    LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ProviderKey = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ProviderDisplayName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AspNetUserLogins", x => new { x.LoginProvider, x.ProviderKey });
-                    table.ForeignKey(
-                        name: "FK_AspNetUserLogins_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AspNetUserRoles",
-                columns: table => new
-                {
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    RoleId = table.Column<string>(type: "nvarchar(450)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AspNetUserRoles", x => new { x.UserId, x.RoleId });
-                    table.ForeignKey(
-                        name: "FK_AspNetUserRoles_AspNetRoles_RoleId",
-                        column: x => x.RoleId,
-                        principalTable: "AspNetRoles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_AspNetUserRoles_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AspNetUserTokens",
-                columns: table => new
-                {
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Value = table.Column<string>(type: "nvarchar(max)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AspNetUserTokens", x => new { x.UserId, x.LoginProvider, x.Name });
-                    table.ForeignKey(
-                        name: "FK_AspNetUserTokens_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Servants",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ImageFileName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    BirthDate = table.Column<DateOnly>(type: "date", nullable: true),
-                    JoiningDate = table.Column<DateOnly>(type: "date", nullable: true),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    classroomsIds = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ChurchId = table.Column<int>(type: "int", nullable: true),
-                    MeetingId = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Servants", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Servants_AspNetUsers_ApplicationUserId",
-                        column: x => x.ApplicationUserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Servants_Churches_ChurchId",
-                        column: x => x.ChurchId,
-                        principalTable: "Churches",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Servants_Meetings_MeetingId",
-                        column: x => x.MeetingId,
-                        principalTable: "Meetings",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Exams",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ClassroomId = table.Column<int>(type: "int", nullable: true),
-                    ExamDate = table.Column<DateOnly>(type: "date", nullable: false),
-                    MaxScore = table.Column<int>(type: "int", nullable: false),
-                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ChurchId = table.Column<int>(type: "int", nullable: true),
-                    MeetingId = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Exams", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Exams_Churches_ChurchId",
-                        column: x => x.ChurchId,
-                        principalTable: "Churches",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Exams_Classrooms_ClassroomId",
-                        column: x => x.ClassroomId,
-                        principalTable: "Classrooms",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Exams_Meetings_MeetingId",
-                        column: x => x.MeetingId,
-                        principalTable: "Meetings",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Members",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ImageFileName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Name1 = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Name2 = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Name3 = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Gender = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Address = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    DateOfBirth = table.Column<DateOnly>(type: "date", nullable: false),
-                    JoiningDate = table.Column<DateOnly>(type: "date", nullable: false),
-                    LastAttendanceDate = table.Column<DateOnly>(type: "date", nullable: false),
-                    SpiritualDateOfBirth = table.Column<DateOnly>(type: "date", nullable: true),
-                    IsDiscipline = table.Column<bool>(type: "bit", nullable: false),
-                    TotalNumberOfDaysAttended = table.Column<int>(type: "int", nullable: false),
-                    HaveBrothers = table.Column<bool>(type: "bit", nullable: true),
-                    BrothersNames = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ClassroomId = table.Column<int>(type: "int", nullable: true),
-                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ChurchId = table.Column<int>(type: "int", nullable: true),
-                    MeetingId = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Members", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Members_Churches_ChurchId",
-                        column: x => x.ChurchId,
-                        principalTable: "Churches",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Members_Classrooms_ClassroomId",
-                        column: x => x.ClassroomId,
-                        principalTable: "Classrooms",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Members_Meetings_MeetingId",
-                        column: x => x.MeetingId,
-                        principalTable: "Meetings",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AttendanceSessions",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ClassroomId = table.Column<int>(type: "int", nullable: false),
-                    TakenByServantId = table.Column<int>(type: "int", nullable: true),
-                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    CreatedAt = table.Column<DateOnly>(type: "date", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AttendanceSessions", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_AttendanceSessions_Classrooms_ClassroomId",
-                        column: x => x.ClassroomId,
-                        principalTable: "Classrooms",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_AttendanceSessions_Servants_TakenByServantId",
-                        column: x => x.TakenByServantId,
-                        principalTable: "Servants",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ClassroomServant",
-                columns: table => new
-                {
-                    ClassroomsId = table.Column<int>(type: "int", nullable: false),
-                    ServantsId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ClassroomServant", x => new { x.ClassroomsId, x.ServantsId });
-                    table.ForeignKey(
-                        name: "FK_ClassroomServant_Classrooms_ClassroomsId",
-                        column: x => x.ClassroomsId,
-                        principalTable: "Classrooms",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ClassroomServant_Servants_ServantsId",
-                        column: x => x.ServantsId,
-                        principalTable: "Servants",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ExamResults",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ExamId = table.Column<int>(type: "int", nullable: false),
-                    MemberId = table.Column<int>(type: "int", nullable: false),
-                    Score = table.Column<int>(type: "int", nullable: false),
-                    IsAbsent = table.Column<bool>(type: "bit", nullable: false),
-                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ChurchId = table.Column<int>(type: "int", nullable: true),
-                    MeetingId = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ExamResults", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_ExamResults_Churches_ChurchId",
-                        column: x => x.ChurchId,
-                        principalTable: "Churches",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_ExamResults_Exams_ExamId",
-                        column: x => x.ExamId,
-                        principalTable: "Exams",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ExamResults_Meetings_MeetingId",
-                        column: x => x.MeetingId,
-                        principalTable: "Meetings",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_ExamResults_Members_MemberId",
-                        column: x => x.MemberId,
-                        principalTable: "Members",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "MemberContacts",
                 columns: table => new
                 {
@@ -526,49 +476,6 @@ namespace SunDaySchools.DAL.Migrations
                     table.PrimaryKey("PK_MemberContacts", x => x.Id);
                     table.ForeignKey(
                         name: "FK_MemberContacts_Members_MemberId",
-                        column: x => x.MemberId,
-                        principalTable: "Members",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AttendanceRecords",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    AttendanceSessionId = table.Column<int>(type: "int", nullable: false),
-                    MemberId = table.Column<int>(type: "int", nullable: false),
-                    MadeHomeWork = table.Column<bool>(type: "bit", nullable: false),
-                    HasTools = table.Column<bool>(type: "bit", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false),
-                    Note = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ChurchId = table.Column<int>(type: "int", nullable: true),
-                    MeetingId = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AttendanceRecords", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_AttendanceRecords_AttendanceSessions_AttendanceSessionId",
-                        column: x => x.AttendanceSessionId,
-                        principalTable: "AttendanceSessions",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_AttendanceRecords_Churches_ChurchId",
-                        column: x => x.ChurchId,
-                        principalTable: "Churches",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_AttendanceRecords_Meetings_MeetingId",
-                        column: x => x.MeetingId,
-                        principalTable: "Meetings",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_AttendanceRecords_Members_MemberId",
                         column: x => x.MemberId,
                         principalTable: "Members",
                         principalColumn: "Id",
@@ -599,17 +506,6 @@ namespace SunDaySchools.DAL.Migrations
                         column: x => x.ServantId,
                         principalTable: "Servants",
                         principalColumn: "Id");
-                });
-
-            migrationBuilder.InsertData(
-                table: "Classrooms",
-                columns: new[] { "Id", "AgeOfMembers", "ChurchId", "MeetingId", "Name", "NumberOfDisplineMembers" },
-                values: new object[,]
-                {
-                    { 1, "حضانه و كيجي", null, null, "الوداعه", null },
-                    { 2, "اولي و تانيه", null, null, "السلام", null },
-                    { 3, "تالته ورابعه", null, null, "الأيمان", null },
-                    { 4, "خامسه و سادسه", null, null, "المحبه", null }
                 });
 
             migrationBuilder.CreateIndex(
@@ -693,9 +589,19 @@ namespace SunDaySchools.DAL.Migrations
                 column: "TakenByServantId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Churches_PastorId",
+                table: "Churches",
+                column: "PastorId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Classrooms_ChurchId",
                 table: "Classrooms",
                 column: "ChurchId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Classrooms_LeaderServantId",
+                table: "Classrooms",
+                column: "LeaderServantId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Classrooms_MeetingId",
@@ -746,6 +652,11 @@ namespace SunDaySchools.DAL.Migrations
                 name: "IX_Meetings_ChurchId",
                 table: "Meetings",
                 column: "ChurchId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Meetings_LeaderServantId",
+                table: "Meetings",
+                column: "LeaderServantId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MemberContacts_MemberId",
@@ -812,11 +723,179 @@ namespace SunDaySchools.DAL.Migrations
                 name: "IX_Tools_MeetingId",
                 table: "Tools",
                 column: "MeetingId");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_AspNetUserClaims_AspNetUsers_UserId",
+                table: "AspNetUserClaims",
+                column: "UserId",
+                principalTable: "AspNetUsers",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_AspNetUserLogins_AspNetUsers_UserId",
+                table: "AspNetUserLogins",
+                column: "UserId",
+                principalTable: "AspNetUsers",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_AspNetUserRoles_AspNetUsers_UserId",
+                table: "AspNetUserRoles",
+                column: "UserId",
+                principalTable: "AspNetUsers",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_AspNetUsers_Churches_ChurchId",
+                table: "AspNetUsers",
+                column: "ChurchId",
+                principalTable: "Churches",
+                principalColumn: "Id");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_AspNetUsers_Meetings_MeetingId",
+                table: "AspNetUsers",
+                column: "MeetingId",
+                principalTable: "Meetings",
+                principalColumn: "Id");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_AttendanceRecords_AttendanceSessions_AttendanceSessionId",
+                table: "AttendanceRecords",
+                column: "AttendanceSessionId",
+                principalTable: "AttendanceSessions",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_AttendanceRecords_Churches_ChurchId",
+                table: "AttendanceRecords",
+                column: "ChurchId",
+                principalTable: "Churches",
+                principalColumn: "Id");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_AttendanceRecords_Meetings_MeetingId",
+                table: "AttendanceRecords",
+                column: "MeetingId",
+                principalTable: "Meetings",
+                principalColumn: "Id");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_AttendanceRecords_Members_MemberId",
+                table: "AttendanceRecords",
+                column: "MemberId",
+                principalTable: "Members",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_AttendanceSessions_Classrooms_ClassroomId",
+                table: "AttendanceSessions",
+                column: "ClassroomId",
+                principalTable: "Classrooms",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_AttendanceSessions_Servants_TakenByServantId",
+                table: "AttendanceSessions",
+                column: "TakenByServantId",
+                principalTable: "Servants",
+                principalColumn: "Id");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Churches_Servants_PastorId",
+                table: "Churches",
+                column: "PastorId",
+                principalTable: "Servants",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Restrict);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Classrooms_Meetings_MeetingId",
+                table: "Classrooms",
+                column: "MeetingId",
+                principalTable: "Meetings",
+                principalColumn: "Id");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Classrooms_Servants_LeaderServantId",
+                table: "Classrooms",
+                column: "LeaderServantId",
+                principalTable: "Servants",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Restrict);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_ClassroomServant_Servants_ServantsId",
+                table: "ClassroomServant",
+                column: "ServantsId",
+                principalTable: "Servants",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_ExamResults_Exams_ExamId",
+                table: "ExamResults",
+                column: "ExamId",
+                principalTable: "Exams",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_ExamResults_Meetings_MeetingId",
+                table: "ExamResults",
+                column: "MeetingId",
+                principalTable: "Meetings",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Restrict);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_ExamResults_Members_MemberId",
+                table: "ExamResults",
+                column: "MemberId",
+                principalTable: "Members",
+                principalColumn: "Id");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Exams_Meetings_MeetingId",
+                table: "Exams",
+                column: "MeetingId",
+                principalTable: "Meetings",
+                principalColumn: "Id");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Meetings_Servants_LeaderServantId",
+                table: "Meetings",
+                column: "LeaderServantId",
+                principalTable: "Servants",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Restrict);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_Servants_AspNetUsers_ApplicationUserId",
+                table: "Servants");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Meetings_Churches_ChurchId",
+                table: "Meetings");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Servants_Churches_ChurchId",
+                table: "Servants");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Servants_Meetings_MeetingId",
+                table: "Servants");
+
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
@@ -863,22 +942,22 @@ namespace SunDaySchools.DAL.Migrations
                 name: "MemberContacts");
 
             migrationBuilder.DropTable(
-                name: "Servants");
-
-            migrationBuilder.DropTable(
                 name: "Members");
-
-            migrationBuilder.DropTable(
-                name: "AspNetUsers");
 
             migrationBuilder.DropTable(
                 name: "Classrooms");
 
             migrationBuilder.DropTable(
-                name: "Meetings");
+                name: "AspNetUsers");
 
             migrationBuilder.DropTable(
                 name: "Churches");
+
+            migrationBuilder.DropTable(
+                name: "Meetings");
+
+            migrationBuilder.DropTable(
+                name: "Servants");
         }
     }
 }

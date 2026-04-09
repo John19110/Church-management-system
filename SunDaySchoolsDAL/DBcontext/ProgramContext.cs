@@ -49,12 +49,12 @@ namespace SunDaySchoolsDAL.DBcontext
                 .OnDelete(DeleteBehavior.Restrict);
 
             //Classroom seed data
-            builder.Entity<Classroom>().HasData(
-               new Classroom { Id = 1, Name = "الوداعه", AgeOfMembers = "حضانه و كيجي" },
-               new Classroom { Id = 2, Name = "السلام", AgeOfMembers = "اولي و تانيه" },
-               new Classroom { Id = 3, Name = "الأيمان", AgeOfMembers = "تالته ورابعه" },
-               new Classroom { Id = 4, Name = "المحبه", AgeOfMembers = "خامسه و سادسه" }
-            );
+            //builder.Entity<Classroom>().HasData(
+            //   new Classroom { Id = 1, Name = "الوداعه", AgeOfMembers = "حضانه و كيجي" },
+            //   new Classroom { Id = 2, Name = "السلام", AgeOfMembers = "اولي و تانيه" },
+            //   new Classroom { Id = 3, Name = "الأيمان", AgeOfMembers = "تالته ورابعه" },
+            //   new Classroom { Id = 4, Name = "المحبه", AgeOfMembers = "خامسه و سادسه" }
+            //);
 
             // Prevent duplicate attendance records
             builder.Entity<AttendanceRecord>()
@@ -112,7 +112,6 @@ namespace SunDaySchoolsDAL.DBcontext
                 }
             }
 
-            base.OnModelCreating(builder);
 
             // Church → Pastor relationship
             builder.Entity<Church>()
@@ -143,10 +142,14 @@ namespace SunDaySchoolsDAL.DBcontext
         
         private void ApplyChurchId()
         {
+            if (_httpContextAccessor.HttpContext == null)
+                return; // skip for non-HTTP scenarios
             var churchIdFromContext = _httpContextAccessor.HttpContext?.Items["ChurchId"] as int?;
 
             foreach (var entry in ChangeTracker.Entries<ChurchEntity>())
             {
+
+             
                 if (entry.State == EntityState.Added || entry.State == EntityState.Modified)
                 {
                     if (entry.Entity.ChurchId != null && entry.Entity.ChurchId != 0)
@@ -207,15 +210,7 @@ namespace SunDaySchoolsDAL.DBcontext
                 }
             }
         }
-        // Global filter for all ChurchEntity tables (Meetings)
-
-        private void SetMeetingFilter<TEntity>(ModelBuilder modelBuilder)
-            where TEntity : ChurchEntity
-        {
-            modelBuilder.Entity<TEntity>()
-                .HasQueryFilter(e => !CurrentMeetingId.HasValue || e.MeetingId == CurrentMeetingId);
-        }
-
+        
         private int? CurrentMeetingId
         {
             get

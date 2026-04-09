@@ -1,4 +1,4 @@
-public class MeetingMiddleware
+﻿public class MeetingMiddleware
 {
     private readonly RequestDelegate _next;
 
@@ -9,12 +9,19 @@ public class MeetingMiddleware
 
     public async Task Invoke(HttpContext context)
     {
-        var meetingId = context.Request.Headers["MeetingId"];
+      //  var meetingIdHeader = context.Request.Headers["MeetingId"].FirstOrDefault();
+        var meetingClaim = context.User.FindFirst("MeetingId")?.Value;
 
-        if (!string.IsNullOrEmpty(meetingId))
+
+
+        if (int.TryParse(meetingClaim, out var meetingId))
         {
-            context.Items["MeetingId"] = int.Parse(meetingId);
+            context.Items["MeetingId"] = meetingId;
         }
+        //if (int.TryParse(meetingIdHeader, out var meetingId))
+        //{
+        //    context.Items["MeetingId"] = meetingId; // ✅ int
+        //}
 
         await _next(context);
     }
