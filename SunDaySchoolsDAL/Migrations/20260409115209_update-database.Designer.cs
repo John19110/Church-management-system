@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SunDaySchoolsDAL.DBcontext;
 
@@ -11,9 +12,11 @@ using SunDaySchoolsDAL.DBcontext;
 namespace SunDaySchools.DAL.Migrations
 {
     [DbContext(typeof(ProgramContext))]
-    partial class ProgramContextModelSnapshot : ModelSnapshot
+    [Migration("20260409115209_update-database")]
+    partial class updatedatabase
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -46,27 +49,17 @@ namespace SunDaySchools.DAL.Migrations
 
             modelBuilder.Entity("ClassroomServant", b =>
                 {
-                    b.Property<int>("ServantId")
+                    b.Property<int>("ClassroomsId")
                         .HasColumnType("int");
 
-                    b.Property<int>("ClassroomId")
+                    b.Property<int>("ServantsId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("ChurchId")
-                        .HasColumnType("int");
+                    b.HasKey("ClassroomsId", "ServantsId");
 
-                    b.Property<int?>("MeetingId")
-                        .HasColumnType("int");
+                    b.HasIndex("ServantsId");
 
-                    b.HasKey("ServantId", "ClassroomId");
-
-                    b.HasIndex("ChurchId");
-
-                    b.HasIndex("ClassroomId");
-
-                    b.HasIndex("MeetingId");
-
-                    b.ToTable("ClassroomServants");
+                    b.ToTable("ClassroomServant");
                 });
 
             modelBuilder.Entity("MemberContact", b =>
@@ -799,33 +792,17 @@ namespace SunDaySchools.DAL.Migrations
 
             modelBuilder.Entity("ClassroomServant", b =>
                 {
-                    b.HasOne("Church", "Chuch")
+                    b.HasOne("SunDaySchools.Models.Classroom", null)
                         .WithMany()
-                        .HasForeignKey("ChurchId");
-
-                    b.HasOne("SunDaySchools.Models.Classroom", "Classroom")
-                        .WithMany("ClassroomServants")
-                        .HasForeignKey("ClassroomId")
+                        .HasForeignKey("ClassroomsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SunDaySchools.DAL.Models.Meeting", "Meeting")
+                    b.HasOne("SunDaySchools.Models.Servant", null)
                         .WithMany()
-                        .HasForeignKey("MeetingId");
-
-                    b.HasOne("SunDaySchools.Models.Servant", "Servant")
-                        .WithMany("ClassroomServants")
-                        .HasForeignKey("ServantId")
+                        .HasForeignKey("ServantsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Chuch");
-
-                    b.Navigation("Classroom");
-
-                    b.Navigation("Meeting");
-
-                    b.Navigation("Servant");
                 });
 
             modelBuilder.Entity("MemberContact", b =>
@@ -1173,8 +1150,6 @@ namespace SunDaySchools.DAL.Migrations
                 {
                     b.Navigation("AttendanceHistory");
 
-                    b.Navigation("ClassroomServants");
-
                     b.Navigation("Members");
                 });
 
@@ -1185,11 +1160,6 @@ namespace SunDaySchools.DAL.Migrations
                     b.Navigation("ExamsResults");
 
                     b.Navigation("PhoneNumbers");
-                });
-
-            modelBuilder.Entity("SunDaySchools.Models.Servant", b =>
-                {
-                    b.Navigation("ClassroomServants");
                 });
 
             modelBuilder.Entity("SunDaySchoolsDAL.Models.ApplicationUser", b =>

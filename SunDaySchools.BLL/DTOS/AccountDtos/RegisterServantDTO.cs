@@ -22,6 +22,6 @@ namespace SunDaySchools.BLL.DTOS.AccountDtos
 
         public DateOnly? BirthDate { get; set; }
         public DateOnly? JoiningDate { get; set; }
-        public List<int>? classroomsIds { get; set; }
+       // public List<int>? classroomsIds { get; set; }
     }
 }

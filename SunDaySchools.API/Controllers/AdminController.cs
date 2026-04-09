@@ -60,15 +60,24 @@ namespace SunDaySchools.API.Controllers
             return Ok(result);
         }
 
-        // Assign classroom to servant
-        [HttpPut("assign-class/{ServantId}/{ClassroomId}")]
-        public ActionResult AssignClassToServant(int ServantId, int ClassroomId)
-        {
-            _adminManager.AssignClassToServant(ServantId, ClassroomId);
-            return Ok(new { message = "Class assigned successfully" });
+        [HttpPut("assign-class/{servantId}/{classroomId}")]
+        public async Task<ActionResult> AssignClassToServant(int servantId, int classroomId)
+        { 
+            try
+            {
+                await _adminManager.AssignClassToServant(servantId, classroomId);
+                return Ok(new { message = "Class assigned successfully" });
+            }
+            catch (NotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
-       
         // =========================3
         // NEW ENDPOINTS
         // =========================

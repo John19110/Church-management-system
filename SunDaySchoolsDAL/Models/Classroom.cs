@@ -10,8 +10,9 @@ namespace SunDaySchools.Models
         public ICollection<Member>? Members { get; set; }
         public int? NumberOfDisplineMembers { get; set; }
         public int? TotalMembersCount => Members?.Count ?? 0;
-        public ICollection<Servant>? Servants { get; set; }
+        //public ICollection<Servant>? Servants { get; set; }
         public ICollection<AttendanceSession>? AttendanceHistory { get; set; }
+        public ICollection<ClassroomServant> ClassroomServants { get; set; } = new List<ClassroomServant>();
 
 
         public int? LeaderServantId { get; set; }  // Nullable if a meeting may not have a leader yet

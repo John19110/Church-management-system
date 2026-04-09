@@ -3,15 +3,16 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SunDaySchools.BLL.DTOS.AccountDtos;
+using SunDaySchools.BLL.DTOS.Meeting;
 using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Interfaces;
 using SunDaySchools.DAL.Models;
 using SunDaySchools.DAL.Repository.Implementations;
 using SunDaySchools.DAL.Repository.Interfaces;
+using SunDaySchools.Models;
 using SunDaySchoolsDAL.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using SunDaySchools.BLL.DTOS.Meeting;
 
 
 
@@ -42,32 +43,30 @@ namespace SunDaySchools.BLL.Manager.Implementations
             _meetingRepository = meetingRepository;
         }
 
-        public async Task AssignClassToServant(int ServantId, int ClassroomId)
+        public async Task AssignClassToServant(int servantId, int classroomId)
         {
-            var (servant, classroom) = await _adminRepository.AssignClassToServantAsync(ServantId, ClassroomId);
+            var (servant, classroom) = await _adminRepository.GetServantAndClassroomAsync(servantId, classroomId);
 
             if (servant is null)
-                throw new NotFoundException($"Servant with id : {ServantId} not found");
+                throw new NotFoundException($"Servant with id {servantId} not found");
 
             if (classroom is null)
-                throw new NotFoundException($"Classroom with id : {ClassroomId} not found");
+                throw new NotFoundException($"Classroom with id {classroomId} not found");
 
+            var exists = await _adminRepository.ClassroomServantExistsAsync(servantId, classroomId);
 
-            if (servant.Classrooms.Contains(classroom))
-            {
+            if (exists)
                 throw new Exception("Servant is already assigned to this class");
-            }
 
-
-            servant.Classrooms.Add( classroom);
-
-            if (!classroom.Servants.Any(s => s.Id == servant.Id))
+            var relation = new ClassroomServant
             {
-                classroom.Servants.Add(servant);
-            }
+                ServantId = servantId,
+                ClassroomId = classroomId
+            };
 
-          await  _adminRepository.SaveAsync();
+            await _adminRepository.AddClassroomServantAsync(relation);
 
+            await _adminRepository.SaveAsync();
         }
 
         // In Service (BLL)

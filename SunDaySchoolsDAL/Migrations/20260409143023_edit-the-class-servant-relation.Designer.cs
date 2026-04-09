@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SunDaySchoolsDAL.DBcontext;
 
@@ -11,9 +12,11 @@ using SunDaySchoolsDAL.DBcontext;
 namespace SunDaySchools.DAL.Migrations
 {
     [DbContext(typeof(ProgramContext))]
-    partial class ProgramContextModelSnapshot : ModelSnapshot
+    [Migration("20260409143023_edit-the-class-servant-relation")]
+    partial class edittheclassservantrelation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -66,7 +69,7 @@ namespace SunDaySchools.DAL.Migrations
 
                     b.HasIndex("MeetingId");
 
-                    b.ToTable("ClassroomServants");
+                    b.ToTable("ClassroomServant");
                 });
 
             modelBuilder.Entity("MemberContact", b =>

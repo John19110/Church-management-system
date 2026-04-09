@@ -151,9 +151,9 @@ namespace SunDaySchools.BLL.Manager.Implementations
             {
                 throw new UnauthorizedAccessException("Only Admin or SuperAdmin can add classrooms.");
             }
-
-            model.Servants = new List<Servant>();
-            model.Members = new List<Member>();
+            // edit here 
+            //model.Servants = new List<Servant>();
+            //model.Members = new List<Member>();
 
             if (dto.ServantIds != null && dto.ServantIds.Any())
             {
@@ -172,8 +172,9 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     });
                 }
 
-                foreach (var servant in servants)
-                    model.Servants.Add(servant);
+                // edit here 
+                //foreach (var servant in servants)
+                  //  model.Servants.Add(servant);
             }
 
             if (dto.MemberIds != null && dto.MemberIds.Any())

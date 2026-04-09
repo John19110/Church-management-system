@@ -18,17 +18,19 @@ namespace SunDaySchools.DAL.Repository.Implementations
 
         public async Task<IQueryable<Classroom>> GetAllAsync()
         {
-            // IQueryable is built synchronously; no async operation needed here.
-            return await Task.FromResult(_context.Classrooms
-                .Include(c => c.Servants)
-                .Include(c => c.Members)
-                .Include(c => c.AttendanceHistory));
+            return await Task.FromResult(
+                _context.Classrooms
+                    .Include(c => c.ClassroomServants)
+                        .ThenInclude(cs => cs.Servant)
+                    .Include(c => c.Members)
+                    .Include(c => c.AttendanceHistory)
+            );
         }
 
         public async Task<Classroom?> GetByIdAsync(int id)
         {
             return await _context.Classrooms
-                .Include(c => c.Servants)
+                //.Include(c => c.Servants)
                 .Include(c => c.Members)
                 .Include(c => c.AttendanceHistory)
                 .FirstOrDefaultAsync(s => s.Id == id);
@@ -59,8 +61,12 @@ namespace SunDaySchools.DAL.Repository.Implementations
 
         public async Task<List<Classroom>> GetByServantIdAsync(int? servantId)
         {
-            return await _context.Classrooms
-                .Where(c => c.Servants.Any(s => s.Id == servantId))
+            if (!servantId.HasValue)
+                return new List<Classroom>();
+
+            return await _context.ClassroomServants
+                .Where(cs => cs.ServantId == servantId.Value)
+                .Select(cs => cs.Classroom)
                 .ToListAsync();
         }
 
@@ -80,8 +86,8 @@ namespace SunDaySchools.DAL.Repository.Implementations
 
         public async Task<bool> IsServantAssignedAsync(int servantId, int classroomId)
         {
-            return await _context.Classrooms
-                .AnyAsync(c => c.Id == classroomId && c.Servants.Any(s => s.Id == servantId));
+            return await _context.Set<ClassroomServant>()
+                .AnyAsync(cs => cs.ServantId == servantId && cs.ClassroomId == classroomId);
         }
         public async Task SaveAsync()
         {
