@@ -84,13 +84,17 @@ namespace SunDaySchools.BLL.Manager.Implementations
             }
             else if (user.IsInRole("Servant"))
             {
-                if (appUser.ServantProfile.Id == null)
+                var servant = await _servantRepo.GetByApplicationUserIdAsync(userIdClaim);
+
+                if (servant == null)
                     throw new ValidationException(new Dictionary<string, string[]>
                     {
                         ["Servant"] = new[] { "Current user is not linked to a servant record." }
                     });
 
-                classrooms = await _classroomRepository.GetByServantIdAsync(appUser.ServantProfile.Id);
+                classrooms = await _classroomRepository.GetByServantIdAsync(servant.Id); 
+                
+
             }
             else
             {

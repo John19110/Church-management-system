@@ -25,7 +25,7 @@ namespace SunDaySchools.API.Controllers
         }
 
 
-       [HttpPost("/api/classrooms/{classroomId}/members")]
+[HttpPost("/api/classrooms/{classroomId}/members")]
 [Consumes("multipart/form-data")]
 public async Task<IActionResult> Create(int classroomId, [FromForm] MemberAddDTO memberDto)
 {

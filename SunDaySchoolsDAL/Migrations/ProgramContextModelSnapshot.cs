@@ -441,32 +441,6 @@ namespace SunDaySchools.DAL.Migrations
                     b.HasIndex("MeetingId");
 
                     b.ToTable("Classrooms");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            AgeOfMembers = "حضانه و كيجي",
-                            Name = "الوداعه"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            AgeOfMembers = "اولي و تانيه",
-                            Name = "السلام"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            AgeOfMembers = "تالته ورابعه",
-                            Name = "الأيمان"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            AgeOfMembers = "خامسه و سادسه",
-                            Name = "المحبه"
-                        });
                 });
 
             modelBuilder.Entity("SunDaySchools.Models.Member", b =>

@@ -199,6 +199,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     BirthDate = dto.BirthDate,
                     JoiningDate = dto.BirthDate
 
+
                 };
 
                 // 🔥 Save Image
@@ -292,7 +293,12 @@ namespace SunDaySchools.BLL.Manager.Implementations
             };
 
             var result = await _userManager.CreateAsync(user, registerMeetingAdminDTO.Password);
-            if (!result.Succeeded)
+
+
+
+                //user = await _userManager.FindByIdAsync(user.Id);
+
+                if (!result.Succeeded)
             {
                 var errors = result.Errors
                     .GroupBy(e => e.Code)
@@ -311,7 +317,11 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 ApplicationUserId = user.Id,
                 Name = registerMeetingAdminDTO.Name,
                 PhoneNumber = registerMeetingAdminDTO.PhoneNumber,
-                ChurchId = church.Id
+                BirthDate = registerMeetingAdminDTO.BirthDate,
+                JoiningDate = registerMeetingAdminDTO.BirthDate,
+                ChurchId = church.Id,
+                MeetingId = meeting.Id
+
             };
 
             // 🔥 Save Image
@@ -342,82 +352,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 throw;
             }
         }
-        //public async Task<string> RegisterMeetingAdminExistingChurch(RegisterMeetingAdminExistingChurch RegisterDTO)
-        //{
-        //    if (RegisterDTO == null)
-        //        throw new ValidationException(new Dictionary<string, string[]>
-        //        {
-        //            ["registerDto"] = new[] { "Registration data cannot be null." }
-        //        });
-
-        //    // Check if user already exists
-        //    var existingUser = await _userManager.FindByNameAsync(RegisterDTO.Name);
-        //    if (existingUser != null)
-        //        throw new UserAlreadyExistsException();
-
-
-        //    //Check if church already exists 
-        //    var existingChurch = await _churchRepo.GetByIdAsync(RegisterDTO.ChurchId);
-        //    if (existingChurch == null)
-        //        throw new NotFoundException("Church not found");
-
-        //    var existingMeeting = await _meetingRepo.GetByIdAsync(RegisterDTO.MeetingId);
-        //    if (existingMeeting == null)
-        //        throw new NotFoundException("Meeting not found");
-
-
-        //    if (existingMeeting.ChurchId != RegisterDTO.ChurchId)
-        //        throw new ValidationException(new Dictionary<string, string[]>
-        //        {
-        //            ["MeetingId"] = new[] { "The selected meeting does not belong to the selected church." }
-        //        });
-
-
-        //    var user = new ApplicationUser
-        //    {
-        //        UserName = RegisterDTO.Name,
-        //        PhoneNumber = RegisterDTO.PhoneNumber,
-        //        IsApproved = false,
-        //        ChurchId = RegisterDTO.ChurchId,
-        //        MeetingId = RegisterDTO.MeetingId
-        //    };
-
-        //    var result = await _userManager.CreateAsync(user, RegisterDTO.Password);
-        //    if (!result.Succeeded)
-        //    {
-        //        // Convert Identity errors to a ValidationException
-        //        var errors = result.Errors
-        //            .GroupBy(e => e.Code) // or use a custom field name
-        //            .ToDictionary(
-        //                g => g.Key,
-        //                g => g.Select(e => e.Description).ToArray()
-        //            );
-        //        throw new ValidationException(errors);
-        //    }
-
-        //    await _userManager.AddToRoleAsync(user, "Admin");
-
-
-        //    //Create the servant
-        //   var servant = new Servant
-        //   {
-        //       ApplicationUserId = user.Id,
-        //       Name = RegisterDTO.Name,
-        //       PhoneNumber = RegisterDTO.PhoneNumber,
-        //       ChurchId = RegisterDTO.ChurchId, // 🔥 THIS LINE IS MISSING
-        //       MeetingId = RegisterDTO.MeetingId // 🔥 THIS LINE IS MISSING
-
-
-
-        //   };
-        //    user.ServantProfile = servant;
-
-
-        //    await _adminRepo.AddServantAsync(servant);
-
-        //    var claims = await BuildJwtClaims(user);
-        //    return GenerateToken(claims);
-        //}
+    
         public async Task<string> RegisterServant(RegisterServantDTO registerDto, string webRootPath)
         {
             if (registerDto == null)
@@ -459,9 +394,11 @@ namespace SunDaySchools.BLL.Manager.Implementations
             {
                 UserName = registerDto.Name,
                 PhoneNumber = registerDto.PhoneNumber,
+                IsApproved = false,
                 ChurchId = registerDto.ChurchId,
-                IsApproved = false
-            };
+                MeetingId= registerDto.MeetingId
+
+                };
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
 
@@ -483,12 +420,16 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
                 // Create servant
                 var servant = new Servant
-            {
-                ApplicationUserId = user.Id,
-                Name = registerDto.Name,
-                PhoneNumber = registerDto.PhoneNumber,
-                ChurchId = registerDto.ChurchId
-            };
+                {
+                    ApplicationUserId = user.Id,
+                    Name = registerDto.Name,
+                    PhoneNumber = registerDto.PhoneNumber,
+                    BirthDate = registerDto.BirthDate,
+                    JoiningDate = registerDto.BirthDate,
+                    ChurchId = registerDto.ChurchId,
+                    MeetingId = registerDto.MeetingId
+
+                };
 
             // 🔥 Save Image using FileManager
             var (fileName, url) = await _fileManager.SaveImageAsync(
@@ -522,11 +463,11 @@ namespace SunDaySchools.BLL.Manager.Implementations
         private async Task<List<Claim>> BuildJwtClaims(ApplicationUser user)
         {
             var claims = new List<Claim>
-    {
-        new Claim(ClaimTypes.NameIdentifier, user.Id),
-        new Claim(ClaimTypes.Name, user.UserName ?? ""),
-        new Claim("ChurchId", user.ChurchId.ToString())
-    };
+                        {
+                            new Claim(ClaimTypes.NameIdentifier, user.Id),
+                            new Claim(ClaimTypes.Name, user.UserName ?? ""),
+                            new Claim("ChurchId", user.ChurchId.ToString())
+                        };
 
             if (user.MeetingId.HasValue)
             {
