@@ -85,24 +85,46 @@ class EmptyWidget extends StatelessWidget {
 
 /// Shows a snackbar with an error message.
 void showErrorSnackbar(BuildContext context, String message) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(message),
-      backgroundColor: Colors.red,
-      behavior: SnackBarBehavior.floating,
-    ),
+  _showAppSnackbar(
+    context,
+    message: message,
+    backgroundColor: Theme.of(context).colorScheme.error,
+    icon: Icons.error_outline,
   );
 }
 
 /// Shows a snackbar with a success message.
 void showSuccessSnackbar(BuildContext context, String message) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(message),
-      backgroundColor: Colors.green,
-      behavior: SnackBarBehavior.floating,
-    ),
+  _showAppSnackbar(
+    context,
+    message: message,
+    backgroundColor: Colors.green.shade600,
+    icon: Icons.check_circle_outline,
   );
+}
+
+void _showAppSnackbar(
+  BuildContext context, {
+  required String message,
+  required Color backgroundColor,
+  required IconData icon,
+}) {
+  ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(icon, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: backgroundColor,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
 }
 
 /// Shows a confirmation dialog. Returns true if confirmed.

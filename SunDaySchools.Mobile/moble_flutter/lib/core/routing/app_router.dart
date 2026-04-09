@@ -40,14 +40,26 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: AppRoutes.login,
     redirect: (context, state) async {
       final hasToken = await TokenStorage.hasToken();
+      final token = hasToken ? await TokenStorage.getToken() : null;
+      final role =
+          token != null ? AuthRoleUtils.extractPrimaryRole(token) : null;
       final onAuthPage = state.matchedLocation == AppRoutes.login ||
           state.matchedLocation == AppRoutes.register;
       if (!hasToken && !onAuthPage) return AppRoutes.login;
       if (hasToken && onAuthPage) {
-        final token = await TokenStorage.getToken();
-        final role = token != null ? AuthRoleUtils.extractPrimaryRole(token) : null;
         return AuthRoleUtils.routeForRole(role);
       }
+
+      if (state.matchedLocation == AppRoutes.superAdminHome &&
+          role != 'superadmin') {
+        return AuthRoleUtils.routeForRole(role);
+      }
+
+      if (state.matchedLocation == AppRoutes.classroomsHome &&
+          role == 'superadmin') {
+        return AppRoutes.superAdminHome;
+      }
+
       return null;
     },
     routes: [

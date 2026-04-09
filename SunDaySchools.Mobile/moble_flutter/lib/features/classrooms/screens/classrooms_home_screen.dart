@@ -169,20 +169,20 @@ class ClassroomsHomeScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.pending_actions),
-                title: const Text('Pending Servants'),
-                subtitle: !canViewPendingServants
-                    ? const Text('Available for Admin only')
-                    : pendingServantsAsync!.when(
-                        data: (list) => Text('${list.length} pending'),
-                        loading: () => const Text('Loading...'),
-                        error: (e, _) => Text('Failed: $e'),
-                      ),
+            if (canViewPendingServants) ...[
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.pending_actions),
+                  title: const Text('Pending Servants'),
+                  subtitle: pendingServantsAsync!.when(
+                    data: (list) => Text('${list.length} pending'),
+                    loading: () => const Text('Loading...'),
+                    error: (e, _) => Text('Failed: $e'),
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
+            ],
             const Text(
               'Visible Classrooms',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),

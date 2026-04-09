@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/member_models.dart';
 import '../providers/members_providers.dart';
 import '../../../shared/widgets/app_form_fields.dart';
@@ -24,8 +26,11 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
   final _addressController = TextEditingController();
   final _dobController = TextEditingController();
   final _joiningController = TextEditingController();
+  final _spiritualDobController = TextEditingController();
   final _classroomController = TextEditingController();
   String? _gender;
+  bool _haveBrothers = false;
+  File? _image;
   bool _loading = false;
 
   @override
@@ -39,6 +44,8 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
   // Phone number pairs: relation[i] and phoneNumber[i] correspond to the same contact
   final List<TextEditingController> _phoneRelation = [];
   final List<TextEditingController> _phoneNumber = [];
+  final List<TextEditingController> _notesControllers = [];
+  final List<TextEditingController> _brotherNameControllers = [];
 
   @override
   void dispose() {
@@ -48,10 +55,21 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
     _addressController.dispose();
     _dobController.dispose();
     _joiningController.dispose();
+    _spiritualDobController.dispose();
     _classroomController.dispose();
     for (final c in _phoneRelation) c.dispose();
     for (final c in _phoneNumber) c.dispose();
+    for (final c in _notesControllers) c.dispose();
+    for (final c in _brotherNameControllers) c.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      setState(() => _image = File(picked.path));
+    }
   }
 
   void _addPhoneRow() {
@@ -70,6 +88,28 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
     });
   }
 
+  void _addNoteRow() {
+    setState(() => _notesControllers.add(TextEditingController()));
+  }
+
+  void _removeNoteRow(int index) {
+    setState(() {
+      _notesControllers[index].dispose();
+      _notesControllers.removeAt(index);
+    });
+  }
+
+  void _addBrotherNameRow() {
+    setState(() => _brotherNameControllers.add(TextEditingController()));
+  }
+
+  void _removeBrotherNameRow(int index) {
+    setState(() {
+      _brotherNameControllers[index].dispose();
+      _brotherNameControllers.removeAt(index);
+    });
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
@@ -82,7 +122,18 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
           phoneNumber: _phoneNumber[i].text.trim(),
         ),
       );
-      final classroomId = widget.classroomId ?? int.tryParse(_classroomController.text.trim()) ?? 0;
+
+      final notes = _notesControllers
+          .map((c) => c.text.trim())
+          .where((n) => n.isNotEmpty)
+          .toList();
+      final brotherNames = _brotherNameControllers
+          .map((c) => c.text.trim())
+          .where((n) => n.isNotEmpty)
+          .toList();
+
+      final classroomId =
+          widget.classroomId ?? int.tryParse(_classroomController.text.trim()) ?? 0;
       await ref.read(membersRepositoryProvider).create(
             classroomId,
             MemberAddDto(
@@ -93,8 +144,15 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
               address: _addressController.text.trim().nullIfEmpty,
               dateOfBirth: _dobController.text.trim().nullIfEmpty,
               joiningDate: _joiningController.text.trim().nullIfEmpty,
+              spiritualDateOfBirth: _spiritualDobController.text.trim().nullIfEmpty,
+              notes: notes.isEmpty ? null : notes,
+              haveBrothers: _haveBrothers,
+              brothersNames: _haveBrothers && brotherNames.isNotEmpty
+                  ? brotherNames
+                  : null,
               phoneNumbers: phones.isEmpty ? null : phones,
             ),
+            image: _image,
           );
       if (mounted) {
         showSuccessSnackbar(context, l10n.memberAddedSuccessfully);
@@ -114,106 +172,202 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
       appBar: AppBar(title: Text(l10n.addMember)),
       body: SafeArea(
         child: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            AppTextField(
-              controller: _name1Controller,
-              label: l10n.firstName,
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? l10n.firstNameRequired : null,
-            ),
-            const SizedBox(height: 12),
-            AppTextField(controller: _name2Controller, label: l10n.middleName),
-            const SizedBox(height: 12),
-            AppTextField(controller: _name3Controller, label: l10n.lastName),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              value: _gender,
-              decoration: InputDecoration(labelText: l10n.gender),
-              items: [
-                DropdownMenuItem(value: 'Male', child: Text(l10n.male)),
-                DropdownMenuItem(value: 'Female', child: Text(l10n.female)),
-              ],
-              onChanged: (v) => setState(() => _gender = v),
-            ),
-            const SizedBox(height: 12),
-            AppTextField(
-              controller: _addressController,
-              label: l10n.address,
-            ),
-            const SizedBox(height: 12),
-            AppDateField(
-              controller: _dobController,
-              label: l10n.dateOfBirth,
-              validator: (v) =>
-                  (v == null || v.isEmpty) ? l10n.dobRequired : null,
-            ),
-            const SizedBox(height: 12),
-            AppDateField(
-              controller: _joiningController,
-              label: l10n.joiningDate,
-              validator: (v) =>
-                  (v == null || v.isEmpty) ? l10n.joiningDateRequired : null,
-            ),
-            const SizedBox(height: 12),
-            AppTextField(
-              controller: _classroomController,
-              label: l10n.classroomId,
-              keyboardType: TextInputType.number,
-              enabled: widget.classroomId == null,
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(l10n.phoneNumbers,
-                    style: Theme.of(context).textTheme.titleSmall),
-                IconButton(
-                  icon: const Icon(Icons.add_circle, color: Color(0xFF2B6CB0)),
-                  onPressed: _addPhoneRow,
+          key: _formKey,
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              GestureDetector(
+                onTap: _pickImage,
+                child: Center(
+                  child: CircleAvatar(
+                    radius: 48,
+                    backgroundColor: const Color(0xFF2B6CB0),
+                    backgroundImage: _image != null ? FileImage(_image!) : null,
+                    child: _image == null
+                        ? const Icon(Icons.camera_alt, color: Colors.white, size: 32)
+                        : null,
+                  ),
                 ),
-              ],
-            ),
-            ..._phoneRelation.asMap().entries.map((entry) {
-              final i = entry.key;
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
+              ),
+              const SizedBox(height: 8),
+              Center(child: Text(l10n.tapToSelectImage)),
+              const SizedBox(height: 16),
+              AppTextField(
+                controller: _name1Controller,
+                label: l10n.firstName,
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? l10n.firstNameRequired : null,
+              ),
+              const SizedBox(height: 12),
+              AppTextField(controller: _name2Controller, label: l10n.middleName),
+              const SizedBox(height: 12),
+              AppTextField(controller: _name3Controller, label: l10n.lastName),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: _gender,
+                decoration: InputDecoration(labelText: l10n.gender),
+                items: [
+                  DropdownMenuItem(value: 'Male', child: Text(l10n.male)),
+                  DropdownMenuItem(value: 'Female', child: Text(l10n.female)),
+                ],
+                onChanged: (v) => setState(() => _gender = v),
+              ),
+              const SizedBox(height: 12),
+              AppTextField(
+                controller: _addressController,
+                label: l10n.address,
+              ),
+              const SizedBox(height: 12),
+              AppDateField(
+                controller: _dobController,
+                label: l10n.dateOfBirth,
+                validator: (v) => (v == null || v.isEmpty) ? l10n.dobRequired : null,
+              ),
+              const SizedBox(height: 12),
+              AppDateField(
+                controller: _joiningController,
+                label: l10n.joiningDate,
+                validator: (v) =>
+                    (v == null || v.isEmpty) ? l10n.joiningDateRequired : null,
+              ),
+              const SizedBox(height: 12),
+              AppDateField(
+                controller: _spiritualDobController,
+                label: 'Spiritual Date of Birth',
+              ),
+              const SizedBox(height: 12),
+              AppTextField(
+                controller: _classroomController,
+                label: l10n.classroomId,
+                keyboardType: TextInputType.number,
+                enabled: widget.classroomId == null,
+                validator: (v) {
+                  if (widget.classroomId != null) return null;
+                  final parsed = int.tryParse((v ?? '').trim());
+                  if (parsed == null || parsed <= 0) {
+                    return 'Classroom ID is required';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(l10n.phoneNumbers, style: Theme.of(context).textTheme.titleSmall),
+                  IconButton(
+                    icon: const Icon(Icons.add_circle, color: Color(0xFF2B6CB0)),
+                    onPressed: _addPhoneRow,
+                  ),
+                ],
+              ),
+              ..._phoneRelation.asMap().entries.map((entry) {
+                final i = entry.key;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: AppTextField(
+                          controller: _phoneRelation[i],
+                          label: l10n.relation,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: AppTextField(
+                          controller: _phoneNumber[i],
+                          label: l10n.phone,
+                          keyboardType: TextInputType.phone,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.remove_circle, color: Colors.red),
+                        onPressed: () => _removePhoneRow(i),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(l10n.notes, style: Theme.of(context).textTheme.titleSmall),
+                  IconButton(
+                    icon: const Icon(Icons.add_circle, color: Color(0xFF2B6CB0)),
+                    onPressed: _addNoteRow,
+                  ),
+                ],
+              ),
+              ..._notesControllers.asMap().entries.map((entry) {
+                final i = entry.key;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: AppTextField(
+                          controller: _notesControllers[i],
+                          label: '${l10n.notes} ${i + 1}',
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.remove_circle, color: Colors.red),
+                        onPressed: () => _removeNoteRow(i),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Have Brothers'),
+                value: _haveBrothers,
+                onChanged: (value) => setState(() => _haveBrothers = value),
+              ),
+              if (_haveBrothers) ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(
-                      child: AppTextField(
-                        controller: _phoneRelation[i],
-                        label: l10n.relation,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: AppTextField(
-                        controller: _phoneNumber[i],
-                        label: l10n.phone,
-                        keyboardType: TextInputType.phone,
-                      ),
-                    ),
+                    Text('Brothers Names', style: Theme.of(context).textTheme.titleSmall),
                     IconButton(
-                      icon: const Icon(Icons.remove_circle, color: Colors.red),
-                      onPressed: () => _removePhoneRow(i),
+                      icon: const Icon(Icons.add_circle, color: Color(0xFF2B6CB0)),
+                      onPressed: _addBrotherNameRow,
                     ),
                   ],
                 ),
-              );
-            }),
-            const SizedBox(height: 24),
-            _loading
-                ? const Center(child: CircularProgressIndicator())
-                : ElevatedButton(
-                    onPressed: _submit,
-                    child: Text(l10n.addMember),
-                  ),
-          ],
+                ..._brotherNameControllers.asMap().entries.map((entry) {
+                  final i = entry.key;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: AppTextField(
+                            controller: _brotherNameControllers[i],
+                            label: 'Brother ${i + 1}',
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.remove_circle, color: Colors.red),
+                          onPressed: () => _removeBrotherNameRow(i),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+              ],
+              const SizedBox(height: 24),
+              _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : ElevatedButton(
+                      onPressed: _submit,
+                      child: Text(l10n.addMember),
+                    ),
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
