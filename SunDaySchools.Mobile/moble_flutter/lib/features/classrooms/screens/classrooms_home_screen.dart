@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'dart:developer' as developer;
 import '../../../core/routing/app_router.dart';
 import '../../../core/storage/token_storage.dart';
-import '../../admin/providers/admin_providers.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../models/classroom_models.dart';
@@ -125,15 +123,13 @@ class ClassroomsHomeScreen extends ConsumerWidget {
     final roleAsync = ref.watch(currentUserRoleProvider);
     final classroomsAsync = ref.watch(visibleClassroomsProvider);
     final role = roleAsync.valueOrNull;
-    final canViewPendingServants = role == 'admin';
-    final pendingServantsAsync =
-        canViewPendingServants ? ref.watch(pendingServantsProvider) : null;
+    final canAddClassroom = role == 'admin';
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Classrooms Home'),
         actions: [
-          if (canViewPendingServants)
+          if (canAddClassroom)
             IconButton(
               icon: const Icon(Icons.add),
               tooltip: 'Add Classroom',
@@ -152,37 +148,10 @@ class ClassroomsHomeScreen extends ConsumerWidget {
         onRefresh: () async {
           ref.invalidate(visibleClassroomsProvider);
           await ref.read(visibleClassroomsProvider.future);
-          if (canViewPendingServants) {
-            ref.invalidate(pendingServantsProvider);
-            try {
-              await ref.read(pendingServantsProvider.future);
-            } catch (e, s) {
-              developer.log(
-                'Failed refreshing pending servants',
-                name: 'ClassroomsHomeScreen',
-                error: e,
-                stackTrace: s,
-              );
-            }
-          }
         },
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.pending_actions),
-                title: const Text('Pending Servants'),
-                subtitle: !canViewPendingServants
-                    ? const Text('Available for Admin only')
-                    : pendingServantsAsync!.when(
-                        data: (list) => Text('${list.length} pending'),
-                        loading: () => const Text('Loading...'),
-                        error: (e, _) => Text('Failed: $e'),
-                      ),
-              ),
-            ),
-            const SizedBox(height: 16),
             const Text(
               'Visible Classrooms',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),

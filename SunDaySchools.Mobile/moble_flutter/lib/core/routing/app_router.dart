@@ -16,11 +16,15 @@ import '../../features/servants/screens/servant_edit_screen.dart';
 import '../../features/attendance/screens/attendance_take_screen.dart';
 import '../../features/attendance/screens/attendance_view_screen.dart';
 import '../../features/super_admin/screens/super_admin_home_screen.dart';
+import '../../features/super_admin/screens/super_admin_pending_admins_screen.dart';
 import '../../features/meetings/models/meeting_models.dart';
 import '../../features/meetings/screens/meeting_detail_screen.dart';
 import '../../features/classrooms/models/classroom_models.dart';
 import '../../features/classrooms/screens/classroom_detail_screen.dart';
 import '../../features/classrooms/screens/classrooms_home_screen.dart';
+import '../../features/admin/screens/admin_home_screen.dart';
+import '../../features/admin/screens/admin_pending_servants_screen.dart';
+import '../../features/servants/screens/servant_home_screen.dart';
 import '../../core/storage/token_storage.dart';
 
 class AppRoutes {
@@ -28,7 +32,11 @@ class AppRoutes {
   static const register = '/register';
   static const dashboard = '/dashboard';
   static const superAdminHome = '/super-admin-home';
+  static const adminHome = '/admin-home';
+  static const servantHome = '/servant-home';
   static const classroomsHome = '/classrooms-home';
+  static const pendingAdmins = '/super-admin/pending-admins';
+  static const pendingServants = '/admin/pending-servants';
   static const meetingDetail = '/meeting-detail';
   static const classroomDetail = '/classroom-detail';
   static const members = '/members';
@@ -59,8 +67,25 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, __) => const SuperAdminHomeScreen(),
       ),
       GoRoute(
+        path: AppRoutes.adminHome,
+        builder: (_, __) => const AdminHomeScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.servantHome,
+        builder: (_, __) => const ServantHomeScreen(),
+      ),
+      // Kept for backwards compatibility (older deep links)
+      GoRoute(
         path: AppRoutes.classroomsHome,
         builder: (_, __) => const ClassroomsHomeScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.pendingAdmins,
+        builder: (_, __) => const SuperAdminPendingAdminsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.pendingServants,
+        builder: (_, __) => const AdminPendingServantsScreen(),
       ),
       GoRoute(
         path: AppRoutes.meetingDetail,

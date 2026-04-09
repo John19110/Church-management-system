@@ -173,6 +173,8 @@ class SuperAdminHomeScreen extends ConsumerWidget {
                   loading: () => const Text('Loading...'),
                   error: (e, _) => Text('Error: $e'),
                 ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push(AppRoutes.pendingAdmins),
               ),
             ),
             const SizedBox(height: 16),
