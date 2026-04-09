@@ -5,6 +5,7 @@ import 'dart:developer' as developer;
 import '../../../core/routing/app_router.dart';
 import '../../../core/storage/token_storage.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../admin/models/admin_models.dart';
 import '../../admin/providers/admin_providers.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../../shared/widgets/common_widgets.dart';
@@ -134,7 +135,7 @@ class ClassroomsHomeScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Classrooms'),
+        title: Text(l10n.visibleClassrooms),
         actions: [
           if (isAdmin)
             IconButton(
@@ -264,7 +265,7 @@ class ClassroomsHomeScreen extends ConsumerWidget {
 }
 
 class _PendingServantsCard extends StatelessWidget {
-  final AsyncValue<dynamic>? pendingServantsAsync;
+  final AsyncValue<List<PendingUserDto>>? pendingServantsAsync;
 
   const _PendingServantsCard({required this.pendingServantsAsync});
 

@@ -101,7 +101,7 @@ class MemberDetailScreen extends ConsumerWidget {
                 const SizedBox(height: 8),
                 _InfoTile(
                   label: l10n.haveBrothers,
-                  value: member.haveBrothers == true ? '✓' : null,
+                  value: '✓',
                 ),
               ],
               if (member.phoneNumbers != null &&
