@@ -83,6 +83,10 @@ class MemberDetailScreen extends ConsumerWidget {
               _InfoTile(label: l10n.dateOfBirth, value: member.dateOfBirth),
               _InfoTile(label: l10n.joiningDate, value: member.joiningDate),
               _InfoTile(
+                label: l10n.spiritualDateOfBirth,
+                value: member.spiritualDateOfBirth,
+              ),
+              _InfoTile(
                 label: 'Last Attendance',
                 value: member.lastAttendanceDate,
               ),
@@ -93,6 +97,13 @@ class MemberDetailScreen extends ConsumerWidget {
               _InfoTile(
                   label: l10n.classroomId,
                   value: member.classroomId?.toString()),
+              if (member.haveBrothers == true) ...[
+                const SizedBox(height: 8),
+                _InfoTile(
+                  label: l10n.haveBrothers,
+                  value: '✓',
+                ),
+              ],
               if (member.phoneNumbers != null &&
                   member.phoneNumbers!.isNotEmpty) ...[
                 const SizedBox(height: 16),
@@ -101,6 +112,16 @@ class MemberDetailScreen extends ConsumerWidget {
                 ...member.phoneNumbers!.map((p) => Padding(
                       padding: const EdgeInsets.only(left: 8, top: 4),
                       child: Text('${p.relation ?? ''}: ${p.phoneNumber ?? ''}'),
+                    )),
+              ],
+              if (member.brothersNames != null &&
+                  member.brothersNames!.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Text(l10n.brothersNames,
+                    style: Theme.of(context).textTheme.titleMedium),
+                ...member.brothersNames!.map((b) => Padding(
+                      padding: const EdgeInsets.only(left: 8, top: 4),
+                      child: Text('• $b'),
                     )),
               ],
               if (member.notes != null && member.notes!.isNotEmpty) ...[

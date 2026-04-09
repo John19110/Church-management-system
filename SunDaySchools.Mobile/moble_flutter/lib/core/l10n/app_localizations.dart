@@ -126,6 +126,21 @@ class AppLocalizations {
   // ── Attendance ────────────────────────────────────────────────────────────
   String get takeAttendance => _t('takeAttendance');
   String get viewAttendance => _t('viewAttendance');
+  String get spiritualDateOfBirth => _t('spiritualDateOfBirth');
+  String get haveBrothers => _t('haveBrothers');
+  String get brothersNames => _t('brothersNames');
+  String get brotherName => _t('brotherName');
+  String get addNote => _t('addNote');
+  String get addBrother => _t('addBrother');
+  String get note => _t('note');
+  String get pendingServants => _t('pendingServants');
+  String get pendingAdmins => _t('pendingAdmins');
+  String get visibleClassrooms => _t('visibleClassrooms');
+  String get visibleMeetings => _t('visibleMeetings');
+  String get noClassrooms => _t('noClassrooms');
+  String get noMeetings => _t('noMeetings');
+  String get approve => _t('approve');
+
   String get notes => _t('notes');
   String get sessionNotes => _t('sessionNotes');
   String get present => _t('present');
@@ -221,6 +236,20 @@ class AppLocalizations {
       'firstNameRequired': 'First name is required',
       'dobRequired': 'Date of birth is required',
       'joiningDateRequired': 'Joining date is required',
+      'spiritualDateOfBirth': 'Spiritual Date of Birth',
+      'haveBrothers': 'Has Brothers / Sisters',
+      'brothersNames': 'Brothers / Sisters Names',
+      'brotherName': 'Brother / Sister Name',
+      'addNote': 'Add Note',
+      'addBrother': 'Add Brother / Sister',
+      'note': 'Note',
+      'pendingServants': 'Pending Servants',
+      'pendingAdmins': 'Pending Admins',
+      'visibleClassrooms': 'Visible Classrooms',
+      'visibleMeetings': 'Visible Meetings',
+      'noClassrooms': 'No visible classrooms found.',
+      'noMeetings': 'No visible meetings found.',
+      'approve': 'Approve',
       // Servants
       'noServants': 'No servants yet. Tap + to add one.',
       'addServant': 'Add Servant',
@@ -347,6 +376,20 @@ class AppLocalizations {
       'firstNameRequired': 'الاسم الأول مطلوب',
       'dobRequired': 'تاريخ الميلاد مطلوب',
       'joiningDateRequired': 'تاريخ الانضمام مطلوب',
+      'spiritualDateOfBirth': 'تاريخ الميلاد الروحي',
+      'haveBrothers': 'لديه إخوة / أخوات',
+      'brothersNames': 'أسماء الإخوة / الأخوات',
+      'brotherName': 'اسم الأخ / الأخت',
+      'addNote': 'إضافة ملاحظة',
+      'addBrother': 'إضافة أخ / أخت',
+      'note': 'ملاحظة',
+      'pendingServants': 'الخدام المعلقون',
+      'pendingAdmins': 'المشرفون المعلقون',
+      'visibleClassrooms': 'الفصول المرئية',
+      'visibleMeetings': 'الاجتماعات المرئية',
+      'noClassrooms': 'لا توجد فصول مرئية.',
+      'noMeetings': 'لا توجد اجتماعات مرئية.',
+      'approve': 'موافقة',
       // Servants
       'noServants': 'لا يوجد خدام بعد. اضغط + للإضافة.',
       'addServant': 'إضافة خادم',
