@@ -349,7 +349,7 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
                         Expanded(
                           child: AppTextField(
                             controller: _brotherNameControllers[i],
-                            label: '${l10n.brother} ${i + 1}',
+                            label: '${l10n.brotherName} ${i + 1}',
                           ),
                         ),
                         IconButton(

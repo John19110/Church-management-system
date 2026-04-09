@@ -78,7 +78,7 @@ class AppLocalizations {
   String get spiritualDateOfBirth => _t('spiritualDateOfBirth');
   String get haveBrothers => _t('haveBrothers');
   String get brothersNames => _t('brothersNames');
-  String get brother => _t('brother');
+  String get brotherName => _t('brotherName');
   String get classroomId => _t('classroomId');
   String get phoneNumbers => _t('phoneNumbers');
   String get relation => _t('relation');
@@ -214,7 +214,7 @@ class AppLocalizations {
       'spiritualDateOfBirth': 'Spiritual Date of Birth',
       'haveBrothers': 'Have Brothers',
       'brothersNames': 'Brothers Names',
-      'brother': 'Brother',
+      'brotherName': 'Brother',
       'classroomId': 'Classroom ID',
       'phoneNumbers': 'Phone Numbers',
       'relation': 'Relation',
@@ -345,7 +345,7 @@ class AppLocalizations {
       'spiritualDateOfBirth': 'تاريخ الميلاد الروحي',
       'haveBrothers': 'لديه إخوة',
       'brothersNames': 'أسماء الإخوة',
-      'brother': 'أخ',
+      'brotherName': 'أخ',
       'classroomId': 'معرف الفصل',
       'phoneNumbers': 'أرقام الهاتف',
       'relation': 'صلة القرابة',
