@@ -31,7 +31,7 @@ class ServantHomeScreen extends ConsumerWidget {
       body: roleAsync.isLoading
           ? const Center(child: CircularProgressIndicator())
           : (role == 'servant'
-              ? const ClassroomsHomeScreen()
+              ? const ClassroomsHomeScreen(showAppBar: false)
               : Center(
                   child: Padding(
                     padding: const EdgeInsets.all(16),

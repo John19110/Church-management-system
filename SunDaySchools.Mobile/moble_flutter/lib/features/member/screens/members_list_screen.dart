@@ -70,7 +70,7 @@ class MembersListScreen extends ConsumerWidget {
                       subtitle: Text(member.gender ?? ''),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () async {
-                        await context.push('/members/${member.id}');
+                        await context.push('/member/${member.id}');
                         ref.invalidate(membersListProvider);
                       },
                     ),

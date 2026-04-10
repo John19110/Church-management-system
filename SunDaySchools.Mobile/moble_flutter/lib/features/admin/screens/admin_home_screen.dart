@@ -41,7 +41,7 @@ class AdminHomeScreen extends ConsumerWidget {
             : (role == 'admin'
                 ? const TabBarView(
                     children: [
-                      ClassroomsHomeScreen(),
+                      ClassroomsHomeScreen(showAppBar: false),
                       _PendingServantsRouteShim(),
                     ],
                   )
