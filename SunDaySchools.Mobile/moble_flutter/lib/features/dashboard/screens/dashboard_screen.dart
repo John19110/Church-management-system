@@ -119,7 +119,7 @@ class DashboardScreen extends ConsumerWidget {
                     icon: Icons.child_care,
                     label: l10n.members,
                     color: const Color(0xFF4299E1),
-                    onTap: () => context.go('/members'),
+                    onTap: () => context.go(AppRoutes.member),
                   ),
                   _DashboardCard(
                     icon: Icons.fact_check,
