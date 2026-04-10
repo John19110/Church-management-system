@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
+using SunDaySchools.BLL.Configuration;
 using SunDaySchools.BLL.DTOS;
 using SunDaySchools.BLL.DTOS.Meeting;
 using SunDaySchools.BLL.DTOS.MeetingDtos;
@@ -29,12 +31,14 @@ namespace SunDaySchools.BLL.Manager.Implementations
         private readonly IMapper _mapper;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IMeetingRepository _meetingRepository;
+        private readonly ServantProfileOptions _servantProfileOptions;
 
 
         public MeetingManager(IHttpContextAccessor httpContextAccessor,
                 IClassroomRepository classroomRepository, IMapper mapper,
                 UserManager<ApplicationUser> userManager, IMemberRepository memberRepository
-                , IServantRepository servantRepository, IMeetingRepository meetingRepository)
+                , IServantRepository servantRepository, IMeetingRepository meetingRepository,
+                IOptions<ServantProfileOptions> servantProfileOptions)
         {
             _userManager = userManager;
             _classroomRepository = classroomRepository;
@@ -43,7 +47,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             _servantRepo = servantRepository;
             _memberRepo = memberRepository;
             _meetingRepository = meetingRepository;
-
+            _servantProfileOptions = servantProfileOptions.Value;
 
         }
 
@@ -102,12 +106,17 @@ namespace SunDaySchools.BLL.Manager.Implementations
             }
             else if (user.IsInRole("Servant"))
             {
-                var servant = await _servantRepo.GetByApplicationUserIdAsync(userIdClaim);
+                var servant = await _servantRepo.EnsureServantProfileAsync(
+                    appUser,
+                    _servantProfileOptions.AutoCreateMissingProfile);
 
                 if (servant == null)
-                    throw new ServantProfileMissingException(
-                        "Your account has the Servant role but is not linked to a Servants table row. " +
-                        "Link AspNetUsers.Id to Servants.ApplicationUserId (one row per servant user), or complete servant registration.");
+                {
+                    var detail = _servantProfileOptions.AutoCreateMissingProfile
+                        ? ServantProfileMessages.MissingAfterAutoCreateAttempt()
+                        : ServantProfileMessages.MissingProfileManual();
+                    throw new ServantProfileMissingException(detail);
+                }
 
                 if (servant.MeetingId == null)
                     meetings = new List<Meeting>();
