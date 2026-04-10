@@ -11,7 +11,12 @@ import '../models/classroom_models.dart';
 import '../providers/classroom_providers.dart';
 
 class ClassroomsHomeScreen extends ConsumerWidget {
-  const ClassroomsHomeScreen({super.key});
+  /// When false, no [AppBar] is shown so this screen can be embedded under a
+  /// parent [Scaffold] (e.g. Servant/Admin home) without a duplicate top bar.
+  /// Add-classroom for admins uses a FAB in that case.
+  final bool showAppBar;
+
+  const ClassroomsHomeScreen({super.key, this.showAppBar = true});
 
   Future<void> _showAddClassroomDialog(BuildContext context, WidgetRef ref) async {
     final formKey = GlobalKey<FormState>();
@@ -136,31 +141,45 @@ class ClassroomsHomeScreen extends ConsumerWidget {
         context.go(homeRoute);
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Classrooms Home'),
-          actions: [
-            if (canAddClassroom)
-              IconButton(
-                icon: const Icon(Icons.add),
-                tooltip: 'Add Classroom',
+        appBar: showAppBar
+            ? AppBar(
+                title: const Text('Classrooms Home'),
+                actions: [
+                  if (canAddClassroom)
+                    IconButton(
+                      icon: const Icon(Icons.add),
+                      tooltip: 'Add Classroom',
+                      onPressed: () => _showAddClassroomDialog(context, ref),
+                    ),
+                  IconButton(
+                    icon: const Icon(Icons.logout),
+                    onPressed: () async {
+                      await TokenStorage.deleteToken();
+                      if (context.mounted) context.go('/login');
+                    },
+                  ),
+                ],
+              )
+            : null,
+        floatingActionButton: !showAppBar && canAddClassroom
+            ? FloatingActionButton(
                 onPressed: () => _showAddClassroomDialog(context, ref),
-              ),
-            IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: () async {
-                await TokenStorage.deleteToken();
-                if (context.mounted) context.go('/login');
-              },
-            ),
-          ],
-        ),
+                tooltip: 'Add Classroom',
+                child: const Icon(Icons.add),
+              )
+            : null,
         body: RefreshIndicator(
           onRefresh: () async {
             ref.invalidate(visibleClassroomsProvider);
             await ref.read(visibleClassroomsProvider.future);
           },
           child: ListView(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.fromLTRB(
+              16,
+              16,
+              16,
+              !showAppBar && canAddClassroom ? 88 : 16,
+            ),
             children: [
               const Text(
                 'Visible Classrooms',

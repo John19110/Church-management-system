@@ -21,7 +21,7 @@ class MemberDetailScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () async {
-              await context.push('/members/$id/edit');
+              await context.push('/member/$id/edit');
               ref.invalidate(memberDetailProvider(id));
             },
           ),
