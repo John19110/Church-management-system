@@ -276,6 +276,21 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
                   },
                 ),
               ),
+              SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: _submitting
+                        ? const Center(child: CircularProgressIndicator())
+                        : ElevatedButton(
+                            onPressed: _submit,
+                            child: Text(l10n.submit),
+                          ),
+                  ),
+                ),
+              ),
             ] else
               Expanded(
                 child: Center(
@@ -287,20 +302,6 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
                 ),
               ),
           ],
-        ),
-        bottomSheet: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: SizedBox(
-              width: double.infinity,
-              child: _submitting
-                  ? const Center(child: CircularProgressIndicator())
-                  : ElevatedButton(
-                      onPressed: _submit,
-                      child: Text(l10n.submit),
-                    ),
-            ),
-          ),
         ),
         bottomNavigationBar: AppSectionBottomNavigationBar(
           currentIndex: 3,
