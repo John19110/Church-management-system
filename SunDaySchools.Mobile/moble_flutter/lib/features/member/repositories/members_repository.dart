@@ -10,6 +10,16 @@ class MembersRepository {
 
   MembersRepository(this._dio);
 
+  void _requireMemberId(int id) {
+    if (id <= 0) {
+      throw ArgumentError.value(
+        id,
+        'id',
+        'Member id must be a positive integer',
+      );
+    }
+  }
+
   Future<List<MemberReadDto>> getAll() async {
     return apiCall(() async {
       final response = await _dio.get(AppConstants.membersEndpoint);
@@ -29,6 +39,7 @@ class MembersRepository {
   }
 
   Future<MemberReadDto> getById(int id) async {
+    _requireMemberId(id);
     return apiCall(() async {
       final response = await _dio.get('${AppConstants.membersEndpoint}/$id');
       return MemberReadDto.fromJson(response.data as Map<String, dynamic>);
@@ -81,12 +92,14 @@ class MembersRepository {
 
   /// Update member: PUT /api/Members/{id} (JSON body)
   Future<void> update(int id, MemberUpdateDto dto) async {
+    _requireMemberId(id);
     return apiCall(() async {
       await _dio.put('${AppConstants.membersEndpoint}/$id', data: dto.toJson());
     });
   }
 
   Future<void> delete(int id) async {
+    _requireMemberId(id);
     return apiCall(() async {
       await _dio.delete('${AppConstants.membersEndpoint}/$id');
     });

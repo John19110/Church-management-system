@@ -75,6 +75,9 @@ namespace SunDaySchools.API.Controllers
         [HttpGet("{id:int}")]
         public async Task<ActionResult<MemberReadDTO>> GetById(int id)
         {
+            if (id <= 0)
+                return BadRequest("Member id must be a positive integer.");
+
             var member = await _memberManager.GetByIdAsync(id);
 
             if (member != null)
@@ -87,6 +90,9 @@ namespace SunDaySchools.API.Controllers
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] MemberUpdateDTO dto)
         {
+            if (id <= 0)
+                return BadRequest("Member id must be a positive integer.");
+
             if (dto == null)
             {
                 var errors = new Dictionary<string, string[]>
@@ -112,6 +118,9 @@ namespace SunDaySchools.API.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteById(int id)
         {
+            if (id <= 0)
+                return BadRequest("Member id must be a positive integer.");
+
             await _memberManager.DeleteAsync(id);
             return NoContent();
         }

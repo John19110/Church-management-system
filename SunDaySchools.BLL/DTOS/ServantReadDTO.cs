@@ -10,6 +10,8 @@ namespace SunDaySchools.BLL.DTOS
 {
     public class ServantReadDTO
     {
+        public int Id { get; set; }
+
         public string? ImageFileName { get; set; }   // e.g. "c3c2... .jpg"
         public string? ImageUrl { get; set; }
         public string? Name { get; set; }

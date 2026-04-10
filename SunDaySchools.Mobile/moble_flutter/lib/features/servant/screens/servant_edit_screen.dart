@@ -84,6 +84,18 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    if (widget.id <= 0) {
+      return Scaffold(
+        appBar: AppBar(title: Text(l10n.editServant)),
+        body: AppErrorWidget(
+          message: 'Invalid servant id.',
+          onRetry: () {
+            if (context.mounted) context.pop();
+          },
+        ),
+      );
+    }
+
     final servantAsync = ref.watch(servantDetailProvider(widget.id));
 
     return Scaffold(

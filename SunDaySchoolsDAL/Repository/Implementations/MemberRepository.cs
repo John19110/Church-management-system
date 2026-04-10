@@ -26,6 +26,9 @@ namespace SunDaySchools.DAL.Repository.Implementations
 
         public async Task<Member?> GetByIdAsync(int id)
         {
+            if (id <= 0)
+                return null;
+
             return await _context.Members
                 .Include(c => c.PhoneNumbers)
                 .FirstOrDefaultAsync(c => c.Id == id);
@@ -53,6 +56,9 @@ namespace SunDaySchools.DAL.Repository.Implementations
 
         public async Task DeleteAsync(int id)
         {
+            if (id <= 0)
+                return;
+
             var member = await _context.Members.FindAsync(id);
 
             if (member != null)

@@ -8,7 +8,7 @@ class AppConstants {
   ///   `adb reverse tcp:5000 tcp:5000` and set host to `127.0.0.1`.
   /// - **iOS Simulator:** `localhost` is the Mac host.
   static String baseUrl = Platform.isAndroid
-      ? 'http://10.0.2.2:5000'
+      ? 'http://127.0.0.1:5000'
       : 'http://localhost:5000';
 
   // Auth endpoints

@@ -56,6 +56,9 @@ namespace SunDaySchools.API.Controllers
         [HttpGet("{id:int}")]
         public async Task<ActionResult> GetById(int id)
         {
+            if (id <= 0)
+                return BadRequest("Servant id must be a positive integer.");
+
             var servant = await _servantManager.GetByIdAsync(id);
 
             if (servant == null)
@@ -76,6 +79,9 @@ namespace SunDaySchools.API.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Update(int id, [FromForm] ServantFormRequest form, CancellationToken ct)
         {
+            if (id <= 0)
+                return BadRequest("Servant id must be a positive integer.");
+
             if (!ModelState.IsValid)
                 return ValidationProblem(ModelState);
 
@@ -98,6 +104,9 @@ namespace SunDaySchools.API.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteById(int id)
         {
+            if (id <= 0)
+                return BadRequest("Servant id must be a positive integer.");
+
             await _servantManager.DeleteAsync(id);
             return NoContent();
         }

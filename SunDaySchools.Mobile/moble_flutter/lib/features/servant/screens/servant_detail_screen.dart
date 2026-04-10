@@ -12,6 +12,19 @@ class ServantDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    if (id <= 0) {
+      return Scaffold(
+        appBar: AppBar(title: Text(l10n.servantDetails)),
+        body: cw.AppErrorWidget(
+          message:
+              'Invalid servant id. Open this screen from the list after the API returns real ids.',
+          onRetry: () {
+            if (context.mounted) context.pop();
+          },
+        ),
+      );
+    }
+
     final servantAsync = ref.watch(servantDetailProvider(id));
 
     return Scaffold(

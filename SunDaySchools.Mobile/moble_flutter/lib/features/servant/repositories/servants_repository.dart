@@ -10,6 +10,16 @@ class ServantsRepository {
 
   ServantsRepository(this._dio);
 
+  void _requireServantId(int id) {
+    if (id <= 0) {
+      throw ArgumentError.value(
+        id,
+        'id',
+        'Servant id must be a positive integer',
+      );
+    }
+  }
+
   Future<List<ServantReadDto>> getAll() async {
     return apiCall(() async {
       final response = await _dio.get(AppConstants.servantEndpoint);
@@ -21,6 +31,7 @@ class ServantsRepository {
   }
 
   Future<ServantReadDto> getById(int id) async {
+    _requireServantId(id);
     return apiCall(() async {
       final response =
           await _dio.get('${AppConstants.servantEndpoint}/$id');
@@ -81,6 +92,7 @@ class ServantsRepository {
     int? classroomId,
     File? image,
   }) async {
+    _requireServantId(id);
     return apiCall(() async {
       final map = <String, dynamic>{
         if (name != null) 'Name': name,
@@ -100,6 +112,7 @@ class ServantsRepository {
   }
 
   Future<void> delete(int id) async {
+    _requireServantId(id);
     return apiCall(() async {
       await _dio.delete('${AppConstants.servantEndpoint}/$id');
     });

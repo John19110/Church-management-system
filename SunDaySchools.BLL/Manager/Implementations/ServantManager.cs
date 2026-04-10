@@ -85,6 +85,9 @@ namespace SunDaySchools.BLL.Manager.Implementations
         }
         public async Task<ServantReadDTO?> GetByIdAsync(int id)
         {
+            if (id <= 0)
+                return null;
+
             var servant = await _servantRepository.GetByIdAsync(id);
             if (servant == null)
                 return null;

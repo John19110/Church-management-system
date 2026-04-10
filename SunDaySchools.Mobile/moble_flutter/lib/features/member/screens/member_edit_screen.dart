@@ -213,6 +213,18 @@ class _MemberEditScreenState extends ConsumerState<MemberEditScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    if (widget.id <= 0) {
+      return Scaffold(
+        appBar: AppBar(title: Text(l10n.editMember)),
+        body: AppErrorWidget(
+          message: 'Invalid member id.',
+          onRetry: () {
+            if (context.mounted) context.pop();
+          },
+        ),
+      );
+    }
+
     final memberAsync = ref.watch(memberDetailProvider(widget.id));
 
     return Scaffold(
