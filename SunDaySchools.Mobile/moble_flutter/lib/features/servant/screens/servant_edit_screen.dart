@@ -23,6 +23,7 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen> {
   final _phoneController = TextEditingController();
   final _joiningController = TextEditingController();
   final _birthController = TextEditingController();
+  final _classroomController = TextEditingController();
   File? _image;
   bool _loading = false;
   bool _initialized = false;
@@ -33,6 +34,7 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen> {
     _phoneController.dispose();
     _joiningController.dispose();
     _birthController.dispose();
+    _classroomController.dispose();
     super.dispose();
   }
 
@@ -43,6 +45,9 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen> {
     _phoneController.text = servant.phoneNumber ?? '';
     _joiningController.text = servant.joiningDate ?? '';
     _birthController.text = servant.birthDate ?? '';
+    _classroomController.text = servant.classrooms.isNotEmpty
+        ? servant.classrooms.first.id.toString()
+        : '';
   }
 
   Future<void> _pickImage() async {
@@ -62,6 +67,7 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen> {
             phoneNumber: _phoneController.text.trim().nullIfEmpty,
             joiningDate: _joiningController.text.trim().nullIfEmpty,
             birthDate: _birthController.text.trim().nullIfEmpty,
+            classroomId: int.tryParse(_classroomController.text.trim()),
             image: _image,
           );
       if (mounted) {
@@ -130,6 +136,12 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen> {
                 const SizedBox(height: 12),
                 AppDateField(
                     controller: _birthController, label: l10n.birthDate),
+                const SizedBox(height: 12),
+                AppTextField(
+                  controller: _classroomController,
+                  label: l10n.classroomId,
+                  keyboardType: TextInputType.number,
+                ),
                 const SizedBox(height: 24),
                 _loading
                     ? const Center(child: CircularProgressIndicator())

@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -74,6 +73,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
+    final l10n = AppLocalizations.of(context);
+    DateTime? parsedWeekly;
+    if (_selectedType == _RegisterType.meetingAdmin) {
+      parsedWeekly = DateTime.tryParse(_weeklyAppointmentController.text.trim());
+      if (parsedWeekly == null) {
+        showErrorSnackbar(context, l10n.invalidWeeklyAppointment);
+        return;
+      }
+    }
     setState(() => _loading = true);
     try {
       String? token;
@@ -119,10 +127,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               confirmPassword: _confirmPasswordController.text,
               churchName: _churchNameController.text.trim(),
               meetingName: _meetingNameController.text.trim(),
-              weeklyAppointment: DateTime.tryParse(
-                _weeklyAppointmentController.text.trim(),
-              ) ??
-                  DateTime.now(),
+              weeklyAppointment: parsedWeekly!,
               birthDate: _birthController.text.trim().nullIfEmpty,
               joiningDate: _joiningController.text.trim().nullIfEmpty,
               image: _image,
@@ -132,7 +137,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       }
 
       final role =
-      token != null ? AuthRoleUtils.extractPrimaryRole(token) : null;
+          token != null ? AuthRoleUtils.extractPrimaryRole(token) : null;
 
       if (role == 'superadmin') {
         await ref.read(meetingRepositoryProvider).getVisibleMeetings();
@@ -258,7 +263,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   hint: l10n.enterPassword,
                   obscureText: _obscurePassword,
                   validator: (v) =>
-                  (v == null || v.length < 6) ? l10n.passwordTooShort : null,
+                      (v == null || v.length < 6) ? l10n.passwordTooShort : null,
+                  suffixIcon: IconButton(
+                    icon: Icon(_obscurePassword
+                        ? Icons.visibility
+                        : Icons.visibility_off),
+                    onPressed: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
+                  ),
                 ),
 
                 const SizedBox(height: 16),
@@ -268,8 +280,35 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   label: l10n.confirmPassword,
                   hint: l10n.enterConfirmPassword,
                   obscureText: _obscureConfirm,
+                  validator: (v) {
+                    if (v == null || v.isEmpty) {
+                      return l10n.pleaseConfirmPassword;
+                    }
+                    if (v != _passwordController.text) {
+                      return l10n.passwordsDoNotMatch;
+                    }
+                    return null;
+                  },
+                  suffixIcon: IconButton(
+                    icon: Icon(_obscureConfirm
+                        ? Icons.visibility
+                        : Icons.visibility_off),
+                    onPressed: () =>
+                        setState(() => _obscureConfirm = !_obscureConfirm),
+                  ),
                 ),
 
+                const SizedBox(height: 16),
+
+                AppDateField(
+                  controller: _birthController,
+                  label: l10n.birthDate,
+                ),
+                const SizedBox(height: 16),
+                AppDateField(
+                  controller: _joiningController,
+                  label: l10n.joiningDate,
+                ),
                 const SizedBox(height: 16),
 
                 if (_selectedType == _RegisterType.servant) ...[
@@ -277,12 +316,81 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     controller: _churchIdController,
                     label: l10n.churchId,
                     hint: l10n.enterChurchId,
+                    keyboardType: TextInputType.number,
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) {
+                        return l10n.churchIdRequired;
+                      }
+                      if (int.tryParse(v.trim()) == null) {
+                        return l10n.required;
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 16),
                   AppTextField(
                     controller: _meetingIdController,
                     label: l10n.meetingId,
                     hint: l10n.enterMeetingId,
+                    keyboardType: TextInputType.number,
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) {
+                        return l10n.meetingIdRequired;
+                      }
+                      if (int.tryParse(v.trim()) == null) {
+                        return l10n.required;
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+
+                if (_selectedType == _RegisterType.churchAdmin) ...[
+                  AppTextField(
+                    controller: _churchNameController,
+                    label: l10n.churchName,
+                    hint: l10n.enterChurchName,
+                    validator: (v) =>
+                        (v == null || v.trim().isEmpty)
+                            ? l10n.churchNameRequired
+                            : null,
+                  ),
+                ],
+
+                if (_selectedType == _RegisterType.meetingAdmin) ...[
+                  AppTextField(
+                    controller: _churchNameController,
+                    label: l10n.churchName,
+                    hint: l10n.enterChurchName,
+                    validator: (v) =>
+                        (v == null || v.trim().isEmpty)
+                            ? l10n.churchNameRequired
+                            : null,
+                  ),
+                  const SizedBox(height: 16),
+                  AppTextField(
+                    controller: _meetingNameController,
+                    label: l10n.meetingName,
+                    hint: l10n.enterMeetingName,
+                    validator: (v) =>
+                        (v == null || v.trim().isEmpty)
+                            ? l10n.meetingNameRequired
+                            : null,
+                  ),
+                  const SizedBox(height: 16),
+                  AppTextField(
+                    controller: _weeklyAppointmentController,
+                    label: l10n.weeklyAppointment,
+                    hint: l10n.weeklyAppointmentHint,
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) {
+                        return l10n.weeklyAppointmentRequired;
+                      }
+                      if (DateTime.tryParse(v.trim()) == null) {
+                        return l10n.invalidWeeklyAppointment;
+                      }
+                      return null;
+                    },
                   ),
                 ],
 
