@@ -22,9 +22,7 @@ import '../../features/meeting/screens/meeting_detail_screen.dart';
 import '../../features/classroom/models/classroom_models.dart';
 import '../../features/classroom/screens/classroom_detail_screen.dart';
 import '../../features/classroom/screens/classrooms_home_screen.dart';
-import '../../features/admin/screens/admin_home_screen.dart';
 import '../../features/admin/screens/admin_pending_servants_screen.dart';
-import '../../features/servant/screens/servant_home_screen.dart';
 import '../../core/storage/token_storage.dart';
 
 class AppRoutes {
@@ -39,7 +37,7 @@ class AppRoutes {
   static const pendingServants = '/admin/pending-servants';
   static const meetingDetail = '/meeting-detail';
   static const classroomDetail = '/classroom-detail';
-  static const member = '/member';
+  static const member = '/members';
   static const servants = '/servants';
   static const attendanceTake = '/attendance/take';
 }
@@ -69,11 +67,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.adminHome,
-        builder: (_, __) => const AdminHomeScreen(),
+        builder: (_, __) => const ClassroomsHomeScreen(),
       ),
       GoRoute(
         path: AppRoutes.servantHome,
-        builder: (_, __) => const ServantHomeScreen(),
+        builder: (_, __) => const ClassroomsHomeScreen(),
       ),
       // Kept for backwards compatibility (older deep links)
       GoRoute(
@@ -111,6 +109,8 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Members
       GoRoute(path: AppRoutes.member, builder: (_, __) => const MembersListScreen()),
+      // Legacy path kept for backwards compatibility.
+      GoRoute(path: '/member', builder: (_, __) => const MembersListScreen()),
       GoRoute(
         path: '/members/add',
         builder: (_, state) {
@@ -118,6 +118,19 @@ final routerProvider = Provider<GoRouter>((ref) {
           return MemberAddScreen(classroomId: classroomId);
         },
       ),
+      GoRoute(
+        path: '/members/:id',
+        builder: (_, state) => MemberDetailScreen(
+          id: int.parse(state.pathParameters['id']!),
+        ),
+      ),
+      GoRoute(
+        path: '/members/:id/edit',
+        builder: (_, state) => MemberEditScreen(
+          id: int.parse(state.pathParameters['id']!),
+        ),
+      ),
+      // Legacy paths kept for backwards compatibility.
       GoRoute(
         path: '/member/:id',
         builder: (_, state) => MemberDetailScreen(
