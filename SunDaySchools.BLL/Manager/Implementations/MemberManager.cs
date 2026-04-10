@@ -1,12 +1,12 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
+using SunDaySchools.BLL.Configuration;
 using SunDaySchools.BLL.DTOS;
 using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Interfaces;
 using SunDaySchools.DAL.Repository.Interfaces;
-using Microsoft.AspNetCore.Identity;
-using SunDaySchools.Models;
-using System.Security.Claims;
 using SunDaySchools.Models;
 using SunDaySchoolsDAL.Models;
 using System;
@@ -24,11 +24,13 @@ namespace SunDaySchools.BLL.Manager.Implementations
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ServantProfileOptions _servantProfileOptions;
 
 
         public MemberManager(IMemberRepository memberRepository, IMapper mapper,
             IHttpContextAccessor httpContextAccessor, UserManager<ApplicationUser> userManager,
-            IClassroomRepository classroomRepository, IServantRepository servantRepository)
+            IClassroomRepository classroomRepository, IServantRepository servantRepository,
+            IOptions<ServantProfileOptions> servantProfileOptions)
         {
             _memberRepository = memberRepository;
             _mapper = mapper;
@@ -36,6 +38,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             _userManager = userManager;
             _classroomRepository = classroomRepository;
             _servantRepository = servantRepository;
+            _servantProfileOptions = servantProfileOptions.Value;
 
         }
 
@@ -75,9 +78,16 @@ namespace SunDaySchools.BLL.Manager.Implementations
             if (appUser == null)
                 throw new NotFoundException("User not found.");
 
-            var servant = await _servantRepository.GetByApplicationUserIdAsync(userIdClaim);
+            var servant = await _servantRepository.EnsureServantProfileAsync(
+                appUser,
+                _servantProfileOptions.AutoCreateMissingProfile);
             if (servant == null)
-                throw new UnauthorizedAccessException("Current user is not linked to a servant profile.");
+            {
+                var detail = _servantProfileOptions.AutoCreateMissingProfile
+                    ? ServantProfileMessages.MissingAfterAutoCreateAttempt()
+                    : ServantProfileMessages.MissingProfileManual();
+                throw new ServantProfileMissingException(detail);
+            }
 
             var isAssigned = await _classroomRepository.IsServantAssignedAsync(servant.Id, classroomId);
 
