@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../../core/storage/token_storage.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/routing/app_router.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../../../core/providers/locale_provider.dart';
 
@@ -124,7 +125,7 @@ class DashboardScreen extends ConsumerWidget {
                     icon: Icons.fact_check,
                     label: l10n.attendance,
                     color: const Color(0xFF48BB78),
-                    onTap: () => context.go('/attendance/take'),
+                    onTap: () => context.go(AppRoutes.attendanceTake),
                   ),
                   _DashboardCard(
                     icon: Icons.people,
