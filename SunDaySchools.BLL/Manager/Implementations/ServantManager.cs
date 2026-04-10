@@ -11,7 +11,6 @@ using SunDaySchools.Models;
 using SunDaySchoolsDAL.Models;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace SunDaySchools.BLL.Manager.Implementations
@@ -55,9 +54,10 @@ namespace SunDaySchools.BLL.Manager.Implementations
             var handler = new JwtSecurityTokenHandler();
             var jwtToken = handler.ReadJwtToken(createdUserToken);
 
-            // Extract userId
-            var userIdClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-            var userId = userIdClaim?.Value;
+            var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                throw new InvalidOperationException("Issued token is missing sub (user id) claim.");
+
             var user = await _userManager.FindByIdAsync(userId);
 
             user.IsApproved = true;

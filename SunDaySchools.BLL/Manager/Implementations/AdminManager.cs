@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.JsonWebTokens;
 using SunDaySchools.BLL.DTOS.AccountDtos;
 using SunDaySchools.BLL.DTOS.Meeting;
 using SunDaySchools.BLL.Exceptions;
@@ -12,7 +13,6 @@ using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchools.Models;
 using SunDaySchoolsDAL.Models;
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 
 
 
@@ -87,9 +87,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
         //    var handler = new JwtSecurityTokenHandler();
         //    var jwtToken = handler.ReadJwtToken(createdUserToken);
 
-        //    // Extract userId
-        //    var userIdClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-        //    var userId = userIdClaim?.Value;
+        //    // Raw JWT carries user id as "sub"
+        //    var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub)?.Value;
         //    var user = await _userManager.FindByIdAsync(userId);
 
         //    user.IsApproved = true;

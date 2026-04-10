@@ -81,6 +81,13 @@ public class GlobalExceptionMiddleware
                 problemDetails.Detail = unauthorized.Message;
                 break;
 
+            case ServantProfileMissingException servantProfileMissing:
+                problemDetails.Title = "Servant profile required.";
+                problemDetails.Status = (int)HttpStatusCode.Forbidden;
+                problemDetails.Type = "https://tools.ietf.org/html/rfc7231#section-6.5.3";
+                problemDetails.Detail = servantProfileMissing.Message;
+                break;
+
             case AccountNotApprovedException accountNotApproved:
                 problemDetails.Title = "Account not approved.";
                 problemDetails.Status = (int)HttpStatusCode.Forbidden;

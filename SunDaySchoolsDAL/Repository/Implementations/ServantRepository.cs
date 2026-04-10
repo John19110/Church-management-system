@@ -2,6 +2,7 @@
 using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchools.Models;
 using SunDaySchoolsDAL.DBcontext;
+using SunDaySchoolsDAL.Models;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -61,13 +62,26 @@ namespace SunDaySchools.DAL.Repository.Implementations
                 .Select(cs => cs.Classroom)
                 .ToListAsync();
         }
+        /// <summary>
+        /// Resolves the servant for an ASP.NET Identity user id. Loads via <see cref="ApplicationUser.ServantProfile"/>
+        /// so the relationship matches the configured one-to-one FK (<see cref="Servant.ApplicationUserId"/>).
+        /// </summary>
         public async Task<Servant?> GetByApplicationUserIdAsync(string applicationUserId)
         {
-            return await _context.Servants
-                .Include(s => s.ClassroomServants)         // include join entities
-                .ThenInclude(cs => cs.Classroom)          // include the classrooms
-                .Include(s => s.ApplicationUser)          // include related user
-                .FirstOrDefaultAsync(s => s.ApplicationUserId == applicationUserId);
+            if (string.IsNullOrWhiteSpace(applicationUserId))
+                return null;
+
+            // Prefer navigation from ApplicationUser — same row as Servants.ApplicationUserId, but avoids claim/FK mismatch issues.
+            var user = await _context.Users
+                .Include(u => u.ServantProfile)
+                    .ThenInclude(s => s!.ClassroomServants)
+                    .ThenInclude(cs => cs.Classroom)
+                .Include(u => u.ServantProfile!)
+                    .ThenInclude(s => s.ApplicationUser)
+                .AsSplitQuery()
+                .FirstOrDefaultAsync(u => u.Id == applicationUserId);
+
+            return user?.ServantProfile;
         }
 
         public async Task UpdateAsync(Servant servant)

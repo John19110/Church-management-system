@@ -464,7 +464,9 @@ namespace SunDaySchools.BLL.Manager.Implementations
         {
             var claims = new List<Claim>
                         {
-                            new Claim(ClaimTypes.NameIdentifier, user.Id),
+                            // User id: use RFC 7519 "sub" only. JwtBearer maps it to NameIdentifier on ClaimsPrincipal,
+                            // so UserManager.GetUserId still works on API requests.
+                            new Claim(JwtRegisteredClaimNames.Sub, user.Id),
                             new Claim(ClaimTypes.Name, user.UserName ?? ""),
                             new Claim("ChurchId", user.ChurchId.ToString())
                         };

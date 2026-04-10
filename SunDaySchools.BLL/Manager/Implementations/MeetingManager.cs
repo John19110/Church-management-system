@@ -13,7 +13,6 @@ using SunDaySchoolsDAL.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -67,10 +66,11 @@ namespace SunDaySchools.BLL.Manager.Implementations
             if (user == null)
                 throw new UnauthorizedAccessException("User is not authenticated.");
 
-            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userIdClaim = _userManager.GetUserId(user);
 
             if (string.IsNullOrEmpty(userIdClaim))
-                throw new UnauthorizedAccessException("UserId claim is missing.");
+                throw new UnauthorizedAccessException(
+                    "User identifier could not be resolved from the token.");
 
             var appUser = await _userManager.FindByIdAsync(userIdClaim);
 

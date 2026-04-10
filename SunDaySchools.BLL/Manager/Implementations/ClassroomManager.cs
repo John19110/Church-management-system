@@ -56,10 +56,12 @@ namespace SunDaySchools.BLL.Manager.Implementations
             if (user == null)
                 throw new UnauthorizedAccessException("User is not authenticated.");
 
-            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            // Resolves user id from principal (JwtBearer maps JWT "sub" to what Identity expects).
+            var userIdClaim = _userManager.GetUserId(user);
 
             if (string.IsNullOrEmpty(userIdClaim))
-                throw new UnauthorizedAccessException("UserId claim is missing.");
+                throw new UnauthorizedAccessException(
+                    "User identifier could not be resolved from the token. Ensure the JWT includes a 'sub' claim.");
 
             var appUser = await _userManager.FindByIdAsync(userIdClaim);
 
@@ -87,10 +89,9 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 var servant = await _servantRepo.GetByApplicationUserIdAsync(userIdClaim);
 
                 if (servant == null)
-                    throw new ValidationException(new Dictionary<string, string[]>
-                    {
-                        ["Servant"] = new[] { "Current user is not linked to a servant record." }
-                    });
+                    throw new ServantProfileMissingException(
+                        "Your account has the Servant role but is not linked to a Servants table row. " +
+                        "Link AspNetUsers.Id to Servants.ApplicationUserId (one row per servant user), or complete servant registration.");
 
                 classrooms = await _classroomRepository.GetByServantIdAsync(servant.Id); 
                 
