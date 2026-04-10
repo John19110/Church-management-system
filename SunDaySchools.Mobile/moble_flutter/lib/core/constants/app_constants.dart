@@ -1,9 +1,14 @@
 import 'dart:io';
 
 class AppConstants {
-  // When using USB + adb reverse the phone should call localhost
+  /// Base URL for the ASP.NET API (no trailing slash).
+  ///
+  /// - **Android emulator (AVD):** `10.0.2.2` is the host machine’s loopback.
+  /// - **Android physical device:** use your PC’s LAN IP, or run
+  ///   `adb reverse tcp:5000 tcp:5000` and set host to `127.0.0.1`.
+  /// - **iOS Simulator:** `localhost` is the Mac host.
   static String baseUrl = Platform.isAndroid
-      ? 'http://127.0.0.1:5000'
+      ? 'http://10.0.2.2:5000'
       : 'http://localhost:5000';
 
   // Auth endpoints
@@ -16,8 +21,8 @@ class AppConstants {
 
   // Members (children) endpoints
   static const String membersEndpoint = '/api/Member';
-  // POST /api/classrooms/{classroomId}/members
-  static const String classroomMembersBasePath = '/api/classroom';
+  // POST /api/classrooms/{classroomId}/members (matches MemberController absolute route)
+  static const String classroomMembersBasePath = '/api/classrooms';
 
   // Servant endpoints
   static const String servantEndpoint = '/api/Servant';

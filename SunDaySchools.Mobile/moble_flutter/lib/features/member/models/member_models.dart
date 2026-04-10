@@ -16,8 +16,7 @@ class MemberContactDto {
 }
 
 class MemberReadDto {
-  /// Note: the API's MemberReadDTO does not currently include an Id field.
-  /// This will be 0 when the backend does not return it.
+  /// Member primary key from API (`id` in JSON). If missing, list/detail navigation breaks.
   final int id;
   final String? fullName;
   final String? imageFileName;

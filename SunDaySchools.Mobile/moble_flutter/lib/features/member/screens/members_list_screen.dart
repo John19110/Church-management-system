@@ -70,6 +70,16 @@ class MembersListScreen extends ConsumerWidget {
                       subtitle: Text(member.gender ?? ''),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () async {
+                        if (member.id <= 0) {
+                          if (context.mounted) {
+                            cw.showErrorSnackbar(
+                              context,
+                              'Member id is missing from the server response. '
+                              'The API must include an `id` field on each member.',
+                            );
+                          }
+                          return;
+                        }
                         await context.push('/member/${member.id}');
                         ref.invalidate(membersListProvider);
                       },
