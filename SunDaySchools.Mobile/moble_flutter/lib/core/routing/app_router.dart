@@ -5,26 +5,26 @@ import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
 import '../../features/auth/utils/auth_role_utils.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
-import '../../features/members/screens/members_list_screen.dart';
-import '../../features/members/screens/member_detail_screen.dart';
-import '../../features/members/screens/member_add_screen.dart';
-import '../../features/members/screens/member_edit_screen.dart';
-import '../../features/servants/screens/servants_list_screen.dart';
-import '../../features/servants/screens/servant_detail_screen.dart';
-import '../../features/servants/screens/servant_add_screen.dart';
-import '../../features/servants/screens/servant_edit_screen.dart';
+import '../../features/member/screens/members_list_screen.dart';
+import '../../features/member/screens/member_detail_screen.dart';
+import '../../features/member/screens/member_add_screen.dart';
+import '../../features/member/screens/member_edit_screen.dart';
+import '../../features/servant/screens/servants_list_screen.dart';
+import '../../features/servant/screens/servant_detail_screen.dart';
+import '../../features/servant/screens/servant_add_screen.dart';
+import '../../features/servant/screens/servant_edit_screen.dart';
 import '../../features/attendance/screens/attendance_take_screen.dart';
 import '../../features/attendance/screens/attendance_view_screen.dart';
 import '../../features/super_admin/screens/super_admin_home_screen.dart';
 import '../../features/super_admin/screens/super_admin_pending_admins_screen.dart';
-import '../../features/meetings/models/meeting_models.dart';
-import '../../features/meetings/screens/meeting_detail_screen.dart';
-import '../../features/classrooms/models/classroom_models.dart';
-import '../../features/classrooms/screens/classroom_detail_screen.dart';
-import '../../features/classrooms/screens/classrooms_home_screen.dart';
+import '../../features/meeting/models/meeting_models.dart';
+import '../../features/meeting/screens/meeting_detail_screen.dart';
+import '../../features/classroom/models/classroom_models.dart';
+import '../../features/classroom/screens/classroom_detail_screen.dart';
+import '../../features/classroom/screens/classrooms_home_screen.dart';
 import '../../features/admin/screens/admin_home_screen.dart';
 import '../../features/admin/screens/admin_pending_servants_screen.dart';
-import '../../features/servants/screens/servant_home_screen.dart';
+import '../../features/servant/screens/servant_home_screen.dart';
 import '../../core/storage/token_storage.dart';
 
 class AppRoutes {
@@ -39,7 +39,7 @@ class AppRoutes {
   static const pendingServants = '/admin/pending-servants';
   static const meetingDetail = '/meeting-detail';
   static const classroomDetail = '/classroom-detail';
-  static const members = '/members';
+  static const member = '/member';
   static const servants = '/servants';
 }
 
@@ -109,7 +109,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
 
       // Members
-      GoRoute(path: AppRoutes.members, builder: (_, __) => const MembersListScreen()),
+      GoRoute(path: AppRoutes.member, builder: (_, __) => const MembersListScreen()),
       GoRoute(
         path: '/members/add',
         builder: (_, state) {
@@ -118,13 +118,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(
-        path: '/members/:id',
+        path: '/member/:id',
         builder: (_, state) => MemberDetailScreen(
           id: int.parse(state.pathParameters['id']!),
         ),
       ),
       GoRoute(
-        path: '/members/:id/edit',
+        path: '/member/:id/edit',
         builder: (_, state) => MemberEditScreen(
           id: int.parse(state.pathParameters['id']!),
         ),

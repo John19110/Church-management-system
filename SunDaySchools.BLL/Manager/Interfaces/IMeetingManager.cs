@@ -1,4 +1,5 @@
 ﻿using SunDaySchools.BLL.DTOS;
+using SunDaySchools.BLL.DTOS.Meeting;
 using SunDaySchools.BLL.DTOS.MeetingDtos;
 using System;
 using System.Collections.Generic;
@@ -10,7 +11,10 @@ namespace SunDaySchools.BLL.Manager.Interfaces
 {
     public interface IMeetingManager
     {
-       Task<List<SelectOptionDTO>> GetMeetingsForSelection();
+
+        Task AddMeeting(MeetingAddDTO meeting);
+
+        Task<List<SelectOptionDTO>> GetMeetingsForSelection();
         Task<List<MeetingReadDTO>> GetVisibleMeetings();
 
 

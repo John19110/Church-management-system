@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../../core/routing/app_router.dart';
 import '../../../core/storage/token_storage.dart';
 import '../../../shared/widgets/common_widgets.dart';
-import '../../meetings/models/meeting_models.dart';
-import '../../meetings/providers/meeting_providers.dart';
+import '../../meeting/models/meeting_models.dart';
+import '../../meeting/providers/meeting_providers.dart';
 import '../providers/super_admin_providers.dart';
 
 class SuperAdminHomeScreen extends ConsumerWidget {

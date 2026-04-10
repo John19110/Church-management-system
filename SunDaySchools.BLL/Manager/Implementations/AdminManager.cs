@@ -185,20 +185,6 @@ namespace SunDaySchools.BLL.Manager.Implementations
             }
         }
 
-        public async Task AddMeeting(MeetingAddDTO meeting)
-        {
-            var model=_mapper.Map<Meeting>(meeting);
-
-            var claim = _httpContextAccessor.HttpContext?.User?.FindFirst("ChurchId");
-
-            if (claim == null)
-                throw new UnauthorizedAccessException("ChurchId claim is missing");
-
-            var churchId = int.Parse(claim.Value);
-
-            model.ChurchId = churchId;
-            _meetingRepository.AddAsync(model);
-        }
 
     }
        }

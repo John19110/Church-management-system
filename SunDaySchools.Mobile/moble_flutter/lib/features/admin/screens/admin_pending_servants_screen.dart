@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../shared/widgets/common_widgets.dart' as cw;
-import '../../classrooms/providers/classroom_providers.dart';
+import '../../classroom/providers/classroom_providers.dart';
 import '../providers/admin_providers.dart';
 
 class AdminPendingServantsScreen extends ConsumerWidget {

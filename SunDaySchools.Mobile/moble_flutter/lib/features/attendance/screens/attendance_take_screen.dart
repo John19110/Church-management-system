@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../models/attendance_models.dart';
 import '../providers/attendance_providers.dart';
-import '../../members/providers/members_providers.dart';
-import '../../members/models/member_models.dart';
+import '../../member/providers/members_providers.dart';
+import '../../member/models/member_models.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../../core/l10n/app_localizations.dart';
 

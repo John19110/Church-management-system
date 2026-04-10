@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SunDaySchools.BLL.DTOS.Meeting;
+using SunDaySchools.BLL.Manager.Implementations;
 using SunDaySchools.BLL.Manager.Interfaces;
 
 namespace SunDaySchools.API.Controllers
@@ -14,6 +16,16 @@ namespace SunDaySchools.API.Controllers
         public MeetingsController(IMeetingManager meetingManager)
         {
             _meetingManager = meetingManager;
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create(MeetingAddDTO meeting)
+        {
+            await _meetingManager.AddMeeting(meeting);
+            return Ok(new { message = "Meeting added successfully" });
+
+
+
         }
 
         [HttpGet("select")]

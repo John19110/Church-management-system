@@ -16,6 +16,5 @@ namespace SunDaySchools.BLL.Manager.Interfaces
         Task RejectServant(string userId);
 
 
-        Task AddMeeting(MeetingAddDTO meeting);
     }
 }

@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/routing/app_router.dart';
 import '../../../core/storage/token_storage.dart';
-import '../../classrooms/screens/classrooms_home_screen.dart';
+import '../../classroom/screens/classrooms_home_screen.dart';
 import '../../auth/providers/auth_providers.dart';
 
 class ServantHomeScreen extends ConsumerWidget {
