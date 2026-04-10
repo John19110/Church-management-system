@@ -161,68 +161,115 @@ class SuperAdminHomeScreen extends ConsumerWidget {
           await ref.read(visibleMeetingsProvider.future);
           await ref.read(pendingAdminsProvider.future);
         },
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.admin_panel_settings),
-                title: const Text('Pending Admins'),
-                subtitle: pendingAdminsAsync.when(
-                  data: (list) => Text('${list.length} pending'),
-                  loading: () => const Text('Loading...'),
-                  error: (e, _) => Text('Error: $e'),
+        child: meetingsAsync.when(
+          data: (meetings) {
+            return ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.admin_panel_settings),
+                    title: const Text('Pending Admins'),
+                    subtitle: pendingAdminsAsync.when(
+                      data: (list) => Text('${list.length} pending'),
+                      loading: () => const Text('Loading...'),
+                      error: (e, _) => Text('Error: $e'),
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => context.push(AppRoutes.pendingAdmins),
+                  ),
                 ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.push(AppRoutes.pendingAdmins),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Visible Meetings',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            meetingsAsync.when(
-              data: (meetings) {
-                if (meetings.isEmpty) {
-                  return const Card(
+                const SizedBox(height: 16),
+                const Text(
+                  'Visible Meetings',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                if (meetings.isEmpty)
+                  const Card(
                     child: Padding(
                       padding: EdgeInsets.all(16),
                       child: Text('No visible meetings found.'),
                     ),
-                  );
-                }
-                return Column(
-                  children: meetings
-                      .map(
-                        (m) => Card(
-                          child: ListTile(
-                            leading: const Icon(Icons.groups),
-                            title: Text(m.name ?? '-'),
-                            subtitle: Text(
-                              'Servants: ${m.servantsCount} • Members: ${m.membersCount}',
-                            ),
-                            trailing: const Icon(Icons.chevron_right),
-                            onTap: () => context.push(
-                              AppRoutes.meetingDetail,
-                              extra: m,
-                            ),
-                          ),
+                  )
+                else
+                  ...meetings.map(
+                    (m) => Card(
+                      child: ListTile(
+                        leading: const Icon(Icons.groups),
+                        title: Text(m.name ?? '-'),
+                        subtitle: Text(
+                          'Servants: ${m.servantsCount} • Members: ${m.membersCount}',
                         ),
-                      )
-                      .toList(),
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Card(
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => context.push(
+                          AppRoutes.meetingDetail,
+                          extra: m,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+          loading: () => ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.admin_panel_settings),
+                  title: const Text('Pending Admins'),
+                  subtitle: pendingAdminsAsync.when(
+                    data: (list) => Text('${list.length} pending'),
+                    loading: () => const Text('Loading...'),
+                    error: (e, _) => Text('Error: $e'),
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push(AppRoutes.pendingAdmins),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Visible Meetings',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 32),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+            ],
+          ),
+          error: (e, _) => ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.admin_panel_settings),
+                  title: const Text('Pending Admins'),
+                  subtitle: pendingAdminsAsync.when(
+                    data: (list) => Text('${list.length} pending'),
+                    loading: () => const Text('Loading...'),
+                    error: (err, _) => Text('Error: $err'),
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push(AppRoutes.pendingAdmins),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Visible Meetings',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Text('Failed to load visible meetings: $e'),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

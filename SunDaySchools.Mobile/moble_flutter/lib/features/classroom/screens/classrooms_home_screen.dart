@@ -174,59 +174,88 @@ class ClassroomsHomeScreen extends ConsumerWidget {
             ref.invalidate(visibleClassroomsProvider);
             await ref.read(visibleClassroomsProvider.future);
           },
-          child: ListView(
-            padding: EdgeInsets.fromLTRB(
-              16,
-              16,
-              16,
-              !showAppBar && canAddClassroom ? 88 : 16,
-            ),
-            children: [
-              const Text(
-                'Visible Classrooms',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              classroomsAsync.when(
-                data: (classrooms) {
-                  if (classrooms.isEmpty) {
-                    return const Card(
+          child: classroomsAsync.when(
+            data: (classrooms) {
+              return ListView(
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  16,
+                  16,
+                  !showAppBar && canAddClassroom ? 88 : 16,
+                ),
+                children: [
+                  const Text(
+                    'Visible Classrooms',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  if (classrooms.isEmpty)
+                    const Card(
                       child: Padding(
                         padding: EdgeInsets.all(16),
                         child: Text('No visible classrooms found.'),
                       ),
-                    );
-                  }
-                  return Column(
-                    children: classrooms
-                        .map(
-                          (c) => Card(
-                            child: ListTile(
-                              leading: const Icon(Icons.class_),
-                              title: Text(c.name ?? '-'),
-                              subtitle: Text(
-                                'Age: ${c.ageOfMembers ?? '-'} • Members: ${c.totalMembersCount ?? 0}',
-                              ),
-                              trailing: const Icon(Icons.chevron_right),
-                              onTap: () => context.push(
-                                AppRoutes.classroomDetail,
-                                extra: c,
-                              ),
-                            ),
+                    )
+                  else
+                    ...classrooms.map(
+                      (c) => Card(
+                        child: ListTile(
+                          leading: const Icon(Icons.class_),
+                          title: Text(c.name ?? '-'),
+                          subtitle: Text(
+                            'Age: ${c.ageOfMembers ?? '-'} • Members: ${c.totalMembersCount ?? 0}',
                           ),
-                        )
-                        .toList(),
-                  );
-                },
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Card(
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () => context.push(
+                            AppRoutes.classroomDetail,
+                            extra: c,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+            loading: () => ListView(
+              padding: EdgeInsets.fromLTRB(
+                16,
+                16,
+                16,
+                !showAppBar && canAddClassroom ? 88 : 16,
+              ),
+              children: const [
+                Text(
+                  'Visible Classrooms',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 8),
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 32),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+              ],
+            ),
+            error: (e, _) => ListView(
+              padding: EdgeInsets.fromLTRB(
+                16,
+                16,
+                16,
+                !showAppBar && canAddClassroom ? 88 : 16,
+              ),
+              children: [
+                const Text(
+                  'Visible Classrooms',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Card(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Text('Failed to load visible classrooms: $e'),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
         bottomNavigationBar: AppSectionBottomNavigationBar(

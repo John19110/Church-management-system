@@ -79,22 +79,48 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             List<Meeting> meetings;
 
-            if (!user.IsInRole("SuperAdmin"))
-            {
-                throw new UnauthorizedAccessException("User is not authenticated.");
-            }
-            else
+            if (user.IsInRole("SuperAdmin"))
             {
                 if (appUser.ChurchId == null)
                     throw new ValidationException(new Dictionary<string, string[]>
                     {
-                        ["Church"] = new[] { "Pasotr is not assigned to a Church." }
+                        ["Church"] = new[] { "Pastor is not assigned to a church." }
                     });
 
                 meetings = await _meetingRepository.GetByChurchIdAsync(appUser.ChurchId.Value);
-            } 
-           
-         
+            }
+            else if (user.IsInRole("Admin"))
+            {
+                if (appUser.MeetingId == null)
+                    throw new ValidationException(new Dictionary<string, string[]>
+                    {
+                        ["Meeting"] = new[] { "Admin is not assigned to a meeting." }
+                    });
+
+                var meeting = await _meetingRepository.GetByIdAsync(appUser.MeetingId.Value);
+                meetings = meeting != null ? new List<Meeting> { meeting } : new List<Meeting>();
+            }
+            else if (user.IsInRole("Servant"))
+            {
+                var servant = await _servantRepo.GetByApplicationUserIdAsync(userIdClaim);
+
+                if (servant == null)
+                    throw new ServantProfileMissingException(
+                        "Your account has the Servant role but is not linked to a Servants table row. " +
+                        "Link AspNetUsers.Id to Servants.ApplicationUserId (one row per servant user), or complete servant registration.");
+
+                if (servant.MeetingId == null)
+                    meetings = new List<Meeting>();
+                else
+                {
+                    var meeting = await _meetingRepository.GetByIdAsync(servant.MeetingId.Value);
+                    meetings = meeting != null ? new List<Meeting> { meeting } : new List<Meeting>();
+                }
+            }
+            else
+            {
+                throw new UnauthorizedAccessException("User role is not allowed.");
+            }
 
             return _mapper.Map<List<MeetingReadDTO>>(meetings);
 

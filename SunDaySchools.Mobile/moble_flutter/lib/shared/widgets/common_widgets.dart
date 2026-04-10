@@ -90,14 +90,18 @@ class EmptyWidget extends StatelessWidget {
   }
 }
 
+/// Floating snackbars sit in the overlay; add bottom inset so they clear the
+/// system safe area and typical [BottomNavigationBar] height.
 EdgeInsets _snackBarMargin(BuildContext context) {
-  final bottom = MediaQuery.of(context).padding.bottom;
-  return EdgeInsets.fromLTRB(16, 0, 16, 16 + bottom);
+  final padding = MediaQuery.paddingOf(context);
+  final bottom = padding.bottom + kBottomNavigationBarHeight + 12;
+  return EdgeInsets.fromLTRB(16, 0, 16, bottom);
 }
 
 /// Shows a snackbar with an error message.
 void showErrorSnackbar(BuildContext context, String message) {
   final messenger = ScaffoldMessenger.of(context);
+  final width = MediaQuery.sizeOf(context).width;
   messenger.clearSnackBars();
   messenger.showSnackBar(
     SnackBar(
@@ -105,6 +109,7 @@ void showErrorSnackbar(BuildContext context, String message) {
       backgroundColor: Colors.red,
       behavior: SnackBarBehavior.floating,
       margin: _snackBarMargin(context),
+      width: width - 32,
     ),
   );
 }
@@ -112,6 +117,7 @@ void showErrorSnackbar(BuildContext context, String message) {
 /// Shows a snackbar with a success message.
 void showSuccessSnackbar(BuildContext context, String message) {
   final messenger = ScaffoldMessenger.of(context);
+  final width = MediaQuery.sizeOf(context).width;
   messenger.clearSnackBars();
   messenger.showSnackBar(
     SnackBar(
@@ -119,6 +125,7 @@ void showSuccessSnackbar(BuildContext context, String message) {
       backgroundColor: Colors.green,
       behavior: SnackBarBehavior.floating,
       margin: _snackBarMargin(context),
+      width: width - 32,
     ),
   );
 }
