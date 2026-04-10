@@ -16,6 +16,6 @@ namespace SunDaySchools.BLL.DTOS
         public DateOnly? BirthDate { get; set; }
         public DateOnly? JoiningDate { get; set; }
         public string? PhoneNumber { get; set; }
-        public List<Classroom>? Classrooms { get; set; } = new();
+        public List<ClassroomReadDTO>? Classrooms { get; set; } = new();
     }
 }
