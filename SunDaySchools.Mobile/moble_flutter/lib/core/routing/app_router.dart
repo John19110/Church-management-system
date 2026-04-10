@@ -41,6 +41,7 @@ class AppRoutes {
   static const classroomDetail = '/classroom-detail';
   static const member = '/member';
   static const servants = '/servants';
+  static const attendanceTake = '/attendance/take';
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -148,7 +149,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Attendance
       GoRoute(
-        path: '/attendance/take',
+        path: AppRoutes.attendanceTake,
         builder: (_, state) {
           final classroomId = state.uri.queryParameters['classroomId'] != null
               ? int.tryParse(state.uri.queryParameters['classroomId']!)
