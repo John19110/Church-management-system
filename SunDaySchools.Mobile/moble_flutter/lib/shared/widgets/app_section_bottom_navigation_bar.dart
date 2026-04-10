@@ -30,7 +30,7 @@ class AppSectionBottomNavigationBar extends StatelessWidget {
             context.go(AppRoutes.servants);
             break;
           case 3:
-            context.go('/attendance/take');
+            context.go(AppRoutes.attendanceTake);
             break;
         }
       },

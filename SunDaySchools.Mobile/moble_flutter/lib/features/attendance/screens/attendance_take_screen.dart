@@ -288,11 +288,11 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
               ),
           ],
         ),
-        bottomNavigationBar: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
+        bottomSheet: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: SizedBox(
+              width: double.infinity,
               child: _submitting
                   ? const Center(child: CircularProgressIndicator())
                   : ElevatedButton(
@@ -300,11 +300,11 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
                       child: Text(l10n.submit),
                     ),
             ),
-            AppSectionBottomNavigationBar(
-              currentIndex: 3,
-              homeRoute: homeRoute,
-            ),
-          ],
+          ),
+        ),
+        bottomNavigationBar: AppSectionBottomNavigationBar(
+          currentIndex: 3,
+          homeRoute: homeRoute,
         ),
       ),
     );
