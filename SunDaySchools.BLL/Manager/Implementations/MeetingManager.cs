@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using SunDaySchools.BLL.DTOS;
+using SunDaySchools.BLL.DTOS.Meeting;
 using SunDaySchools.BLL.DTOS.MeetingDtos;
 using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Interfaces;
@@ -98,6 +99,22 @@ namespace SunDaySchools.BLL.Manager.Implementations
             return _mapper.Map<List<MeetingReadDTO>>(meetings);
 
         }
+
+        public async Task AddMeeting(MeetingAddDTO meeting)
+        {
+            var model = _mapper.Map<Meeting>(meeting);
+
+            var claim = _httpContextAccessor.HttpContext?.User?.FindFirst("ChurchId");
+
+            if (claim == null)
+                throw new UnauthorizedAccessException("ChurchId claim is missing");
+
+            var churchId = int.Parse(claim.Value);
+
+            model.ChurchId = churchId;
+            await  _meetingRepository.AddAsync(model);
+        }
+
 
     }
 }

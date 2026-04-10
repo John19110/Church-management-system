@@ -1,31 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/l10n/app_localizations.dart';
 import '../../../core/routing/app_router.dart';
-import '../models/classroom_models.dart';
+import '../models/meeting_models.dart';
 
-class ClassroomDetailScreen extends StatelessWidget {
-  final ClassroomReadDto classroom;
+class MeetingDetailScreen extends StatelessWidget {
+  final MeetingReadDto meeting;
 
-  const ClassroomDetailScreen({super.key, required this.classroom});
+  const MeetingDetailScreen({super.key, required this.meeting});
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final appointment = meeting.weeklyAppointment == null
+        ? '-'
+        : meeting.weeklyAppointment!.toLocal().toString();
+
     return Scaffold(
-      appBar: AppBar(title: Text(classroom.name ?? 'Classroom Details')),
+      appBar: AppBar(title: Text(meeting.name ?? 'Meeting Details')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _InfoTile(label: 'Name', value: classroom.name ?? '-'),
-          _InfoTile(label: 'Age', value: classroom.ageOfMembers ?? '-'),
+          _InfoTile(label: 'Name', value: meeting.name ?? '-'),
+          _InfoTile(label: 'Weekly appointment', value: appointment),
           _InfoTile(
-            label: 'Members count',
-            value: (classroom.totalMembersCount ?? 0).toString(),
+            label: 'Servants count',
+            value: meeting.servantsCount.toString(),
           ),
           _InfoTile(
-            label: 'Discipline members',
-            value: (classroom.numberOfDisciplineMembers ?? 0).toString(),
+            label: 'Members count',
+            value: meeting.membersCount.toString(),
           ),
           const SizedBox(height: 16),
           Text(
@@ -35,7 +37,7 @@ class ClassroomDetailScreen extends StatelessWidget {
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
-          ..._buildNameList(classroom.servantNames),
+          ..._buildNameList(meeting.servantNames),
           const SizedBox(height: 16),
           Text(
             'Members',
@@ -44,16 +46,10 @@ class ClassroomDetailScreen extends StatelessWidget {
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
-          ..._buildNameList(classroom.memberNames),
+          ..._buildNameList(meeting.memberNames),
           const SizedBox(height: 24),
           ElevatedButton.icon(
-            onPressed: () => context.push('/members/add', extra: classroom.id),
-            icon: const Icon(Icons.person_add),
-            label: Text(l10n.addMember),
-          ),
-          const SizedBox(height: 12),
-          ElevatedButton.icon(
-            onPressed: () => context.push(AppRoutes.members),
+            onPressed: () => context.push(AppRoutes.member),
             icon: const Icon(Icons.group_add),
             label: const Text('Add/Update/Remove Members'),
           ),

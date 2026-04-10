@@ -13,34 +13,34 @@ namespace SunDaySchools.API.Controllers
     [Route("api/[controller]")]
     [ApiController]
     // [Authorize(Roles = "Servant")]
-    public class MembersController : ControllerBase
+    public class MemberController : ControllerBase
     {
         private readonly IMemberManager _memberManager;
         private readonly IFileStorage _fileStorage;
 
-        public MembersController(IMemberManager memberManager, IFileStorage fileStorage)
+        public MemberController(IMemberManager memberManager, IFileStorage fileStorage)
         {
             _memberManager = memberManager;
             _fileStorage = fileStorage;
         }
 
 
-[HttpPost("/api/classrooms/{classroomId}/members")]
-[Consumes("multipart/form-data")]
-public async Task<IActionResult> Create(int classroomId, [FromForm] MemberAddDTO memberDto)
-{
-    if (memberDto == null)
-    {
-        var errors = new Dictionary<string, string[]>
+        [HttpPost("/api/classrooms/{classroomId}/members")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> Create(int classroomId, [FromForm] MemberAddDTO memberDto)
         {
-            ["memberDto"] = new[] { "The request body cannot be empty." }
-        };
-        throw new ValidationException(errors);
-    }
+            if (memberDto == null)
+            {
+                var errors = new Dictionary<string, string[]>
+                {
+                    ["memberDto"] = new[] { "The request body cannot be empty." }
+                };
+                throw new ValidationException(errors);
+            }
 
-    await _memberManager.AddAsync(memberDto, classroomId);
-    return StatusCode(201, new { message = "Created Successfully" });
-}
+            await _memberManager.AddAsync(memberDto, classroomId);
+            return StatusCode(201, new { message = "Created Successfully" });
+        }
 
 
         [HttpGet] 

@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import '../../../core/api/dio_client.dart';
 import '../../../core/constants/app_constants.dart';
-import '../../../features/classrooms/models/classroom_models.dart';
+import '../../../features/classroom/models/classroom_models.dart';
 import '../models/member_models.dart';
 
 class MembersRepository {

@@ -15,9 +15,9 @@ class AppConstants {
       '/api/Account/register-meeting-admin-new-church';
 
   // Members (children) endpoints
-  static const String membersEndpoint = '/api/Members';
+  static const String membersEndpoint = '/api/Member';
   // POST /api/classrooms/{classroomId}/members
-  static const String classroomMembersBasePath = '/api/classrooms';
+  static const String classroomMembersBasePath = '/api/classroom';
 
   // Servant endpoints
   static const String servantEndpoint = '/api/Servant';
@@ -29,7 +29,7 @@ class AppConstants {
   static const String classroomEndpoint = '/api/Classroom';
 
   // Meeting endpoints
-  static const String meetingEndpoint = '/api/Meetings';
+  static const String meetingEndpoint = '/api/Meeting';
 
   // SuperAdmin endpoints
   static const String superAdminEndpoint = '/api/SuperAdmin';

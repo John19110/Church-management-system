@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/providers/auth_providers.dart';
-import '../../../features/classrooms/models/classroom_models.dart';
+import '../../../features/classroom/models/classroom_models.dart';
 import '../models/meeting_models.dart';
 import '../repositories/meeting_repository.dart';
 

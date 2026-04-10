@@ -1,4 +1,4 @@
-export '../../../features/classrooms/models/classroom_models.dart'
+export '../../../features/classroom/models/classroom_models.dart'
     show SelectOptionDto;
 
 class MeetingAddDto {

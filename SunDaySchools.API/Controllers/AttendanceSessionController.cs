@@ -2,8 +2,7 @@
 using SunDaySchools.BLL.DTOS;
 using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Interfaces;
-using System;
-using System.Threading.Tasks;
+
 
 namespace SunDaySchools.API.Controllers
 {
