@@ -10,6 +10,9 @@ namespace SunDaySchools.BLL.DTOS
 {
     public class MemberReadDTO
     {
+        /// <summary>Primary key; required for GET/PUT/DELETE /api/Member/{id} from clients.</summary>
+        public int Id { get; set; }
+
         public string? FullName { get; set; }
         public string? ImageFileName { get; set; }
         public string? ImageUrl { get; set; }

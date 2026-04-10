@@ -43,11 +43,20 @@ namespace SunDaySchools.API.Controllers
         }
 
 
-        [HttpGet] 
+        [HttpGet]
         public async Task<ActionResult<IEnumerable<MemberReadDTO>>> GetAll()
         {
             var members = await _memberManager.GetAllAsync();
             return Ok(members);
+        }
+
+        /// <summary>Literal segment must be registered before <c>{id}</c> so <c>/api/Member/select</c> is not bound as an integer route.</summary>
+        // [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpGet("select")]
+        public async Task<IActionResult> GetMembersForSelection()
+        {
+            var result = await _memberManager.GetMembersForSelection();
+            return Ok(result);
         }
 
         [HttpGet("classroom/{classroomId}")]
@@ -63,7 +72,7 @@ namespace SunDaySchools.API.Controllers
             throw new NotFoundException($"Classroom {classroomId} not found or there are no members in it.");
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:int}")]
         public async Task<ActionResult<MemberReadDTO>> GetById(int id)
         {
             var member = await _memberManager.GetByIdAsync(id);
@@ -75,15 +84,7 @@ namespace SunDaySchools.API.Controllers
 
             throw new NotFoundException($"Member with id {id} not found.");
         }
-
-        [HttpGet("select")]
-      //  [Authorize(Roles = "Admin,SuperAdmin")]
-        public async Task<IActionResult> GetMembersForSelection()
-        {
-            var result = await _memberManager.GetMembersForSelection();
-            return Ok(result);
-        }
-        [HttpPut("{id}")]
+        [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] MemberUpdateDTO dto)
         {
             if (dto == null)
@@ -108,7 +109,7 @@ namespace SunDaySchools.API.Controllers
             return NoContent();
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteById(int id)
         {
             await _memberManager.DeleteAsync(id);
