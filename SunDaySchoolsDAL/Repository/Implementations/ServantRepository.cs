@@ -32,10 +32,15 @@ namespace SunDaySchools.DAL.Repository.Implementations
         }
 
         public async Task<Servant?> GetByIdAsync(int id)
-        {// edit here
+        {
+            if (id <= 0)
+                return null;
+
+            // Include classrooms via join entity — do not ThenInclude Servant (same root type),
+            // or EF throws NavigationBaseIncludeIgnored / invalid include graph.
             return await _context.Servants
                 .Include(s => s.ClassroomServants)
-                .ThenInclude(cs=>cs.Servant)
+                .ThenInclude(cs => cs.Classroom)
                 .Include(s => s.ApplicationUser)
                 .FirstOrDefaultAsync(s => s.Id == id);
         }
@@ -72,6 +77,9 @@ namespace SunDaySchools.DAL.Repository.Implementations
 
         public async Task DeleteAsync(int id)
         {
+            if (id <= 0)
+                return;
+
             var servant = await _context.Servants.FindAsync(id);
 
             if (servant != null)

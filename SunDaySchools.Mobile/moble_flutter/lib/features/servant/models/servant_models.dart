@@ -18,8 +18,7 @@ class ClassroomSummaryDto {
 }
 
 class ServantReadDto {
-  /// Note: the API's ServantReadDTO does not currently include an Id field.
-  /// This will be 0 when the backend does not return it.
+  /// Primary key from API (`id` in JSON).
   final int id;
   final String? imageFileName;
   final String? imageUrl;

@@ -12,6 +12,19 @@ class MemberDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    if (id <= 0) {
+      return Scaffold(
+        appBar: AppBar(title: Text(l10n.memberDetails)),
+        body: cw.AppErrorWidget(
+          message:
+              'Invalid member id. Open this screen from the list after the API returns real ids.',
+          onRetry: () {
+            if (context.mounted) context.pop();
+          },
+        ),
+      );
+    }
+
     final memberAsync = ref.watch(memberDetailProvider(id));
 
     return Scaffold(

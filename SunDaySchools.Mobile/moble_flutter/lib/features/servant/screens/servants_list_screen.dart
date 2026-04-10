@@ -74,6 +74,16 @@ class ServantsListScreen extends ConsumerWidget {
                       subtitle: Text(servant.phoneNumber ?? ''),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () async {
+                        if (servant.id <= 0) {
+                          if (context.mounted) {
+                            cw.showErrorSnackbar(
+                              context,
+                              'Servant id is missing from the server response. '
+                              'The API must include an `id` field on each servant.',
+                            );
+                          }
+                          return;
+                        }
                         await context.push('/servants/${servant.id}');
                         ref.invalidate(servantsListProvider);
                       },
