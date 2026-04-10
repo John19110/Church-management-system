@@ -141,6 +141,7 @@ class ClassroomsHomeScreen extends ConsumerWidget {
         context.go(homeRoute);
       },
       child: Scaffold(
+        primary: showAppBar,
         appBar: showAppBar
             ? AppBar(
                 title: const Text('Classrooms Home'),
