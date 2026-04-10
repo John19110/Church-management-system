@@ -9,11 +9,11 @@ namespace SunDaySchools.API.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class MeetingsController : ControllerBase
+    public class MeetingController : ControllerBase
     {
         private readonly IMeetingManager _meetingManager;
 
-        public MeetingsController(IMeetingManager meetingManager)
+        public MeetingController(IMeetingManager meetingManager)
         {
             _meetingManager = meetingManager;
         }

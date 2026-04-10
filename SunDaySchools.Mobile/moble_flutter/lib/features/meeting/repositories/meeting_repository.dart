@@ -9,7 +9,7 @@ class MeetingRepository {
 
   MeetingRepository(this._dio);
 
-  /// GET /api/Meetings/select — get meetings for selection dropdown
+  /// GET /api/Meeting/select — get meetings for selection dropdown
   Future<List<SelectOptionDto>> getForSelection() async {
     return apiCall(() async {
       final response =
@@ -21,7 +21,7 @@ class MeetingRepository {
     });
   }
 
-  /// GET /api/Meetings/visible — returns visible meetings
+  /// GET /api/Meeting/visible — returns visible meetings
   Future<List<MeetingReadDto>> getVisibleMeetings() async {
     return apiCall(() async {
       final response = await _dio.get('${AppConstants.meetingEndpoint}/visible');
