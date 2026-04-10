@@ -90,6 +90,20 @@ class AppLocalizations {
   String get firstNameRequired => _t('firstNameRequired');
   String get dobRequired => _t('dobRequired');
   String get joiningDateRequired => _t('joiningDateRequired');
+  String get spiritualDateOfBirth => _t('spiritualDateOfBirth');
+  String get haveBrothersInProgram => _t('haveBrothersInProgram');
+  String get brothersNamesSection => _t('brothersNamesSection');
+  String get brotherName => _t('brotherName');
+  String get addBrotherName => _t('addBrotherName');
+  String get memberNotesSection => _t('memberNotesSection');
+  String get addNoteLine => _t('addNoteLine');
+  String get noteLine => _t('noteLine');
+  String get lastAttendanceDate => _t('lastAttendanceDate');
+  String get totalDaysAttended => _t('totalDaysAttended');
+  String get discipline => _t('discipline');
+  String get classroomIdsOptional => _t('classroomIdsOptional');
+  String get weeklyAppointmentHint => _t('weeklyAppointmentHint');
+  String get invalidWeeklyAppointment => _t('invalidWeeklyAppointment');
 
   // ── Servants ──────────────────────────────────────────────────────────────
   String get noServants => _t('noServants');
@@ -221,6 +235,22 @@ class AppLocalizations {
       'firstNameRequired': 'First name is required',
       'dobRequired': 'Date of birth is required',
       'joiningDateRequired': 'Joining date is required',
+      'spiritualDateOfBirth': 'Spiritual date of birth (optional)',
+      'haveBrothersInProgram': 'Has brothers in the program',
+      'brothersNamesSection': 'Brothers\' names',
+      'brotherName': 'Brother name',
+      'addBrotherName': 'Add brother',
+      'memberNotesSection': 'Notes',
+      'addNoteLine': 'Add note',
+      'noteLine': 'Note',
+      'lastAttendanceDate': 'Last attendance date',
+      'totalDaysAttended': 'Total days attended',
+      'discipline': 'Discipline flag',
+      'classroomIdsOptional':
+          'Classroom IDs (comma-separated, optional)',
+      'weeklyAppointmentHint':
+          'ISO date & time, e.g. 2024-06-01T09:00:00',
+      'invalidWeeklyAppointment': 'Enter a valid date and time',
       // Servants
       'noServants': 'No servants yet. Tap + to add one.',
       'addServant': 'Add Servant',
@@ -347,6 +377,20 @@ class AppLocalizations {
       'firstNameRequired': 'الاسم الأول مطلوب',
       'dobRequired': 'تاريخ الميلاد مطلوب',
       'joiningDateRequired': 'تاريخ الانضمام مطلوب',
+      'spiritualDateOfBirth': 'تاريخ الميلاد الروحي (اختياري)',
+      'haveBrothersInProgram': 'لديه إخوة في البرنامج',
+      'brothersNamesSection': 'أسماء الإخوة',
+      'brotherName': 'اسم الأخ',
+      'addBrotherName': 'إضافة أخ',
+      'memberNotesSection': 'ملاحظات',
+      'addNoteLine': 'إضافة ملاحظة',
+      'noteLine': 'ملاحظة',
+      'lastAttendanceDate': 'تاريخ آخر حضور',
+      'totalDaysAttended': 'إجمالي أيام الحضور',
+      'discipline': 'علم انضباط',
+      'classroomIdsOptional': 'معرفات الفصول (مفصولة بفاصلة، اختياري)',
+      'weeklyAppointmentHint': 'تاريخ ووقت ISO، مثال 2024-06-01T09:00:00',
+      'invalidWeeklyAppointment': 'أدخل تاريخاً ووقتاً صحيحين',
       // Servants
       'noServants': 'لا يوجد خدام بعد. اضغط + للإضافة.',
       'addServant': 'إضافة خادم',

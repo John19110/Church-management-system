@@ -159,10 +159,10 @@ class MemberUpdateDto extends MemberAddDto {
   Map<String, dynamic> toJson() => {
         'id': id,
         ...super.toJson(),
-        if (lastAttendanceDate != null) 'lastAttendanceDate': lastAttendanceDate,
-        if (isDiscipline != null) 'isDiscipline': isDiscipline,
-        if (totalNumberOfDaysAttended != null)
-          'totalNumberOfDaysAttended': totalNumberOfDaysAttended,
+        if (lastAttendanceDate != null && lastAttendanceDate!.isNotEmpty)
+          'lastAttendanceDate': lastAttendanceDate,
+        'isDiscipline': isDiscipline ?? false,
+        'totalNumberOfDaysAttended': totalNumberOfDaysAttended ?? 0,
         if (classroomId != null) 'classroomId': classroomId,
       };
 }

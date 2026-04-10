@@ -23,6 +23,7 @@ class _ServantAddScreenState extends ConsumerState<ServantAddScreen> {
   final _confirmPasswordController = TextEditingController();
   final _joiningController = TextEditingController();
   final _birthController = TextEditingController();
+  final _classroomIdsController = TextEditingController();
   File? _image;
   bool _loading = false;
   bool _obscurePassword = true;
@@ -36,6 +37,7 @@ class _ServantAddScreenState extends ConsumerState<ServantAddScreen> {
     _confirmPasswordController.dispose();
     _joiningController.dispose();
     _birthController.dispose();
+    _classroomIdsController.dispose();
     super.dispose();
   }
 
@@ -50,6 +52,16 @@ class _ServantAddScreenState extends ConsumerState<ServantAddScreen> {
     setState(() => _loading = true);
     final l10n = AppLocalizations.of(context);
     try {
+      final rawIds = _classroomIdsController.text.trim();
+      List<int>? classroomIds;
+      if (rawIds.isNotEmpty) {
+        classroomIds = rawIds
+            .split(RegExp(r'[\s,;]+'))
+            .map((s) => int.tryParse(s.trim()))
+            .whereType<int>()
+            .toList();
+        if (classroomIds.isEmpty) classroomIds = null;
+      }
       await ref.read(servantsRepositoryProvider).create(
             name: _nameController.text.trim(),
             phoneNumber: _phoneController.text.trim(),
@@ -57,6 +69,7 @@ class _ServantAddScreenState extends ConsumerState<ServantAddScreen> {
             confirmPassword: _confirmPasswordController.text,
             joiningDate: _joiningController.text.trim().nullIfEmpty,
             birthDate: _birthController.text.trim().nullIfEmpty,
+            classroomsIds: classroomIds,
             image: _image,
           );
       if (mounted) {
@@ -150,6 +163,12 @@ class _ServantAddScreenState extends ConsumerState<ServantAddScreen> {
             AppDateField(controller: _joiningController, label: l10n.joiningDate),
             const SizedBox(height: 12),
             AppDateField(controller: _birthController, label: l10n.birthDate),
+            const SizedBox(height: 12),
+            AppTextField(
+              controller: _classroomIdsController,
+              label: l10n.classroomIdsOptional,
+              keyboardType: TextInputType.text,
+            ),
             const SizedBox(height: 24),
             _loading
                 ? const Center(child: CircularProgressIndicator())

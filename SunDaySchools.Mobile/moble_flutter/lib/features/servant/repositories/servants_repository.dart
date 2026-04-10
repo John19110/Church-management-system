@@ -87,6 +87,7 @@ class ServantsRepository {
         if (phoneNumber != null) 'PhoneNumber': phoneNumber,
         if (joiningDate != null) 'JoiningDate': joiningDate,
         if (birthDate != null) 'BirthDate': birthDate,
+        if (classroomId != null) 'ClassroomId': classroomId.toString(),
         if (image != null)
           'Image': await MultipartFile.fromFile(image.path,
               filename: image.path.split('/').last),
