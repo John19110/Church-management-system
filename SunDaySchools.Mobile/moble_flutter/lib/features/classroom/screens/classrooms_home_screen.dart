@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../../core/routing/app_router.dart';
 import '../../../core/storage/token_storage.dart';
 import '../../auth/providers/auth_providers.dart';
+import '../../auth/utils/auth_role_utils.dart';
+import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../models/classroom_models.dart';
 import '../providers/classroom_providers.dart';
@@ -123,80 +125,93 @@ class ClassroomsHomeScreen extends ConsumerWidget {
     final roleAsync = ref.watch(currentUserRoleProvider);
     final classroomsAsync = ref.watch(visibleClassroomsProvider);
     final role = roleAsync.valueOrNull;
+    final homeRoute = AuthRoleUtils.routeForRole(role);
+    final currentLocation = GoRouterState.of(context).matchedLocation;
     final canAddClassroom = role == 'admin';
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Classrooms Home'),
-        actions: [
-          if (canAddClassroom)
-            IconButton(
-              icon: const Icon(Icons.add),
-              tooltip: 'Add Classroom',
-              onPressed: () => _showAddClassroomDialog(context, ref),
-            ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await TokenStorage.deleteToken();
-              if (context.mounted) context.go('/login');
-            },
-          ),
-        ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          ref.invalidate(visibleClassroomsProvider);
-          await ref.read(visibleClassroomsProvider.future);
-        },
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            const Text(
-              'Visible Classrooms',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            classroomsAsync.when(
-              data: (classrooms) {
-                if (classrooms.isEmpty) {
-                  return const Card(
-                    child: Padding(
-                      padding: EdgeInsets.all(16),
-                      child: Text('No visible classrooms found.'),
-                    ),
-                  );
-                }
-                return Column(
-                  children: classrooms
-                      .map(
-                        (c) => Card(
-                          child: ListTile(
-                            leading: const Icon(Icons.class_),
-                            title: Text(c.name ?? '-'),
-                            subtitle: Text(
-                              'Age: ${c.ageOfMembers ?? '-'} • Members: ${c.totalMembersCount ?? 0}',
-                            ),
-                            trailing: const Icon(Icons.chevron_right),
-                            onTap: () => context.push(
-                              AppRoutes.classroomDetail,
-                              extra: c,
-                            ),
-                          ),
-                        ),
-                      )
-                      .toList(),
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text('Failed to load visible classrooms: $e'),
-                ),
+    return PopScope(
+      canPop: currentLocation == homeRoute,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        context.go(homeRoute);
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Classrooms Home'),
+          actions: [
+            if (canAddClassroom)
+              IconButton(
+                icon: const Icon(Icons.add),
+                tooltip: 'Add Classroom',
+                onPressed: () => _showAddClassroomDialog(context, ref),
               ),
+            IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: () async {
+                await TokenStorage.deleteToken();
+                if (context.mounted) context.go('/login');
+              },
             ),
           ],
+        ),
+        body: RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(visibleClassroomsProvider);
+            await ref.read(visibleClassroomsProvider.future);
+          },
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              const Text(
+                'Visible Classrooms',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              classroomsAsync.when(
+                data: (classrooms) {
+                  if (classrooms.isEmpty) {
+                    return const Card(
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Text('No visible classrooms found.'),
+                      ),
+                    );
+                  }
+                  return Column(
+                    children: classrooms
+                        .map(
+                          (c) => Card(
+                            child: ListTile(
+                              leading: const Icon(Icons.class_),
+                              title: Text(c.name ?? '-'),
+                              subtitle: Text(
+                                'Age: ${c.ageOfMembers ?? '-'} • Members: ${c.totalMembersCount ?? 0}',
+                              ),
+                              trailing: const Icon(Icons.chevron_right),
+                              onTap: () => context.push(
+                                AppRoutes.classroomDetail,
+                                extra: c,
+                              ),
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, _) => Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text('Failed to load visible classrooms: $e'),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        bottomNavigationBar: AppSectionBottomNavigationBar(
+          currentIndex: 0,
+          homeRoute: homeRoute,
         ),
       ),
     );
