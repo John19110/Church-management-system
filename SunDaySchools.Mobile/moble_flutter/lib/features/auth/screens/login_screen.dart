@@ -69,6 +69,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         );
       }
 
+      ref.read(authSessionEpochProvider.notifier).state++;
+      ref.read(authStateProvider.notifier).state = true;
+
       if (mounted) context.go(AuthRoleUtils.routeForRole(role));
     } catch (e) {
       if (mounted) showErrorSnackbar(context, e.toString());

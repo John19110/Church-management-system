@@ -145,6 +145,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         await ref.read(classroomRepositoryProvider).getVisible();
       }
 
+      ref.read(authSessionEpochProvider.notifier).state++;
+      ref.read(authStateProvider.notifier).state = true;
+
       if (mounted) {
         context.go(
           role == null ? '/dashboard' : AuthRoleUtils.routeForRole(role),

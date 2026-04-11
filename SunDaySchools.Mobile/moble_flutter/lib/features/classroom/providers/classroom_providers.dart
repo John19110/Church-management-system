@@ -9,5 +9,6 @@ final classroomRepositoryProvider = Provider((ref) {
 
 final visibleClassroomsProvider =
     FutureProvider<List<ClassroomReadDto>>((ref) async {
+  ref.watch(authSessionEpochProvider);
   return ref.watch(classroomRepositoryProvider).getVisible();
 });

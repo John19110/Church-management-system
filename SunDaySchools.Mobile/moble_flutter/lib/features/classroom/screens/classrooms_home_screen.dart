@@ -129,7 +129,7 @@ class ClassroomsHomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final roleAsync = ref.watch(currentUserRoleProvider);
     final classroomsAsync = ref.watch(visibleClassroomsProvider);
-    final role = roleAsync.valueOrNull;
+    final role = roleAsync.resolvedRoleOrNull;
     final homeRoute = AuthRoleUtils.routeForRole(role);
     final currentLocation = GoRouterState.of(context).matchedLocation;
     final canAddClassroom = role == 'admin';
