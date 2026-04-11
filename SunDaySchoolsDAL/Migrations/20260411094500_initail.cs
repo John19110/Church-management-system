@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SunDaySchools.DAL.Migrations
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class initail : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -217,18 +217,25 @@ namespace SunDaySchools.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ClassroomServant",
+                name: "ClassroomServants",
                 columns: table => new
                 {
-                    ClassroomsId = table.Column<int>(type: "int", nullable: false),
-                    ServantsId = table.Column<int>(type: "int", nullable: false)
+                    ServantId = table.Column<int>(type: "int", nullable: false),
+                    ClassroomId = table.Column<int>(type: "int", nullable: false),
+                    ChurchId = table.Column<int>(type: "int", nullable: true),
+                    MeetingId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ClassroomServant", x => new { x.ClassroomsId, x.ServantsId });
+                    table.PrimaryKey("PK_ClassroomServants", x => new { x.ServantId, x.ClassroomId });
                     table.ForeignKey(
-                        name: "FK_ClassroomServant_Classrooms_ClassroomsId",
-                        column: x => x.ClassroomsId,
+                        name: "FK_ClassroomServants_Churches_ChurchId",
+                        column: x => x.ChurchId,
+                        principalTable: "Churches",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_ClassroomServants_Classrooms_ClassroomId",
+                        column: x => x.ClassroomId,
                         principalTable: "Classrooms",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -369,7 +376,6 @@ namespace SunDaySchools.DAL.Migrations
                     BirthDate = table.Column<DateOnly>(type: "date", nullable: true),
                     JoiningDate = table.Column<DateOnly>(type: "date", nullable: true),
                     PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    classroomsIds = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ChurchId = table.Column<int>(type: "int", nullable: true),
                     MeetingId = table.Column<int>(type: "int", nullable: true)
                 },
@@ -609,9 +615,19 @@ namespace SunDaySchools.DAL.Migrations
                 column: "MeetingId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ClassroomServant_ServantsId",
-                table: "ClassroomServant",
-                column: "ServantsId");
+                name: "IX_ClassroomServants_ChurchId",
+                table: "ClassroomServants",
+                column: "ChurchId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ClassroomServants_ClassroomId",
+                table: "ClassroomServants",
+                column: "ClassroomId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ClassroomServants_MeetingId",
+                table: "ClassroomServants",
+                column: "MeetingId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ExamResults_ChurchId",
@@ -831,9 +847,16 @@ namespace SunDaySchools.DAL.Migrations
                 onDelete: ReferentialAction.Restrict);
 
             migrationBuilder.AddForeignKey(
-                name: "FK_ClassroomServant_Servants_ServantsId",
-                table: "ClassroomServant",
-                column: "ServantsId",
+                name: "FK_ClassroomServants_Meetings_MeetingId",
+                table: "ClassroomServants",
+                column: "MeetingId",
+                principalTable: "Meetings",
+                principalColumn: "Id");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_ClassroomServants_Servants_ServantId",
+                table: "ClassroomServants",
+                column: "ServantId",
                 principalTable: "Servants",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
@@ -915,7 +938,7 @@ namespace SunDaySchools.DAL.Migrations
                 name: "AttendanceRecords");
 
             migrationBuilder.DropTable(
-                name: "ClassroomServant");
+                name: "ClassroomServants");
 
             migrationBuilder.DropTable(
                 name: "ExamResults");

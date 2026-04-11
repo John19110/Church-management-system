@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/routing/app_router.dart';
-import '../../../core/storage/token_storage.dart';
-import '../../classroom/screens/classrooms_home_screen.dart';
 import '../../auth/providers/auth_providers.dart';
+import '../../auth/utils/auth_session.dart';
+import '../../classroom/screens/classrooms_home_screen.dart';
 
 class AdminHomeScreen extends ConsumerWidget {
   const AdminHomeScreen({super.key});
@@ -29,10 +29,7 @@ class AdminHomeScreen extends ConsumerWidget {
           actions: [
             IconButton(
               icon: const Icon(Icons.logout),
-              onPressed: () async {
-                await TokenStorage.deleteToken();
-                if (context.mounted) context.go(AppRoutes.login);
-              },
+              onPressed: () => logoutSession(ref, context),
             ),
           ],
         ),

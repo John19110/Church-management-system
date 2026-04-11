@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/routing/app_router.dart';
-import '../../../core/storage/token_storage.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
+import '../../auth/utils/auth_session.dart';
 import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../models/classroom_models.dart';
@@ -154,10 +154,7 @@ class ClassroomsHomeScreen extends ConsumerWidget {
                     ),
                   IconButton(
                     icon: const Icon(Icons.logout),
-                    onPressed: () async {
-                      await TokenStorage.deleteToken();
-                      if (context.mounted) context.go('/login');
-                    },
+                    onPressed: () => logoutSession(ref, context),
                   ),
                 ],
               )

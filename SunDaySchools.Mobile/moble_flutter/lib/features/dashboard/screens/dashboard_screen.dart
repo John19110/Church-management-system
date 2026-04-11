@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../auth/providers/auth_providers.dart';
-import '../../../core/storage/token_storage.dart';
+import '../../auth/utils/auth_session.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/routing/app_router.dart';
 import '../../../core/providers/theme_provider.dart';
@@ -50,10 +49,7 @@ class DashboardScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: l10n.logout,
-            onPressed: () async {
-              await TokenStorage.deleteToken();
-              if (context.mounted) context.go('/login');
-            },
+            onPressed: () => logoutSession(ref, context),
           ),
         ],
       ),
@@ -137,10 +133,7 @@ class DashboardScreen extends ConsumerWidget {
                     icon: Icons.logout,
                     label: l10n.logout,
                     color: const Color(0xFFE53E3E),
-                    onTap: () async {
-                      await TokenStorage.deleteToken();
-                      if (context.mounted) context.go('/login');
-                    },
+                    onTap: () => logoutSession(ref, context),
                   ),
                 ],
               ),

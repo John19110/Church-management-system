@@ -12,8 +12,8 @@ using SunDaySchoolsDAL.DBcontext;
 namespace SunDaySchools.DAL.Migrations
 {
     [DbContext(typeof(ProgramContext))]
-    [Migration("20260409143023_edit-the-class-servant-relation")]
-    partial class edittheclassservantrelation
+    [Migration("20260411094500_initail")]
+    partial class initail
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -69,7 +69,7 @@ namespace SunDaySchools.DAL.Migrations
 
                     b.HasIndex("MeetingId");
 
-                    b.ToTable("ClassroomServant");
+                    b.ToTable("ClassroomServants");
                 });
 
             modelBuilder.Entity("MemberContact", b =>

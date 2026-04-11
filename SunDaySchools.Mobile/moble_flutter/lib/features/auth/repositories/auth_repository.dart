@@ -114,7 +114,15 @@ class AuthRepository {
     });
   }
 
+  /// Calls POST /api/Account/logout with the current Bearer token, then removes the token locally.
+  /// Local storage is always cleared so the user is signed out even when offline or on 401/500.
   Future<void> logout() async {
-    await TokenStorage.deleteToken();
+    try {
+      await _dio.post(AppConstants.logoutEndpoint);
+    } on DioException {
+      // Still clear local session
+    } finally {
+      await TokenStorage.deleteToken();
+    }
   }
 }
