@@ -15,7 +15,7 @@ class MembersListScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final membersAsync = ref.watch(membersListProvider);
-    final role = ref.watch(currentUserRoleProvider).valueOrNull;
+    final role = ref.watch(currentUserRoleProvider).resolvedRoleOrNull;
     final homeRoute = AuthRoleUtils.routeForRole(role);
     final currentLocation = GoRouterState.of(context).matchedLocation;
 

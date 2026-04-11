@@ -10,9 +10,11 @@ final meetingRepositoryProvider = Provider((ref) {
 
 final meetingsForSelectionProvider =
     FutureProvider<List<SelectOptionDto>>((ref) async {
+  ref.watch(authSessionEpochProvider);
   return ref.watch(meetingRepositoryProvider).getForSelection();
 });
 
 final visibleMeetingsProvider = FutureProvider<List<MeetingReadDto>>((ref) async {
+  ref.watch(authSessionEpochProvider);
   return ref.watch(meetingRepositoryProvider).getVisibleMeetings();
 });

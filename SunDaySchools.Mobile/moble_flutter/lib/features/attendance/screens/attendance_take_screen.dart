@@ -135,7 +135,7 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final role = ref.watch(currentUserRoleProvider).valueOrNull;
+    final role = ref.watch(currentUserRoleProvider).resolvedRoleOrNull;
     final homeRoute = AuthRoleUtils.routeForRole(role);
     final currentLocation = GoRouterState.of(context).matchedLocation;
 
