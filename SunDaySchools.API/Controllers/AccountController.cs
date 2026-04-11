@@ -1,5 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Hosting; // ✅ IMPORTANT
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 using SunDaySchools.BLL.DTOS.AccountDtos;
 using SunDaySchools.BLL.Manager.Interfaces;
 
@@ -45,6 +46,17 @@ namespace SunDaySchools.API.Controllers
         {
             var token = await _accountManager.RegisterServant(dto, _env.WebRootPath);
             return Ok(new { token });
+        }
+
+        /// <summary>
+        /// Acknowledges logout for the current JWT principal. JWTs are stateless — the client must
+        /// discard the token; this endpoint validates the token once (audit / future revocation hooks).
+        /// </summary>
+        [HttpPost("logout")]
+        [Authorize]
+        public IActionResult Logout()
+        {
+            return NoContent();
         }
     }
 }

@@ -72,7 +72,6 @@ namespace SunDaySchools.DAL.Repository.Implementations
                 return null;
 
             return await _context.Servants
-                .AsNoTracking()
                 .FirstOrDefaultAsync(s => s.ApplicationUserId == applicationUserId);
         }
 

@@ -64,6 +64,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     "User identifier could not be resolved from the token. Ensure the JWT includes a 'sub' claim.");
 
             var appUser = await _userManager.FindByIdAsync(userIdClaim);
+            
 
             if (appUser == null)
                 throw new NotFoundException("User not found.");
@@ -86,7 +87,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             }
             else if (user.IsInRole("Servant"))
             {
-                var servant = await _servantRepo.GetByApplicationUserIdAsync(userIdClaim);
+                 var servant = await _servantRepo.GetByApplicationUserIdAsync(userIdClaim);
 
                 if (servant == null)
                     throw new ServantProfileMissingException(
