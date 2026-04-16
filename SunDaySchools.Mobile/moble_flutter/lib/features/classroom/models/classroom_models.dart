@@ -18,6 +18,7 @@ class ClassroomReadDto {
   final String? ageOfMembers;
   final int? numberOfDisciplineMembers;
   final int? totalMembersCount;
+  final int? pastAttendanceSessionsCount;
   final List<String> memberNames;
   final List<String> servantNames;
 
@@ -27,6 +28,7 @@ class ClassroomReadDto {
     this.ageOfMembers,
     this.numberOfDisciplineMembers,
     this.totalMembersCount,
+    this.pastAttendanceSessionsCount,
     this.memberNames = const [],
     this.servantNames = const [],
   });
@@ -41,6 +43,8 @@ class ClassroomReadDto {
         numberOfDisciplineMembers:
             json['numberOfDisplineMembers'] as int?,
         totalMembersCount: json['totalMembersCount'] as int?,
+        pastAttendanceSessionsCount:
+            json['pastAttendanceSessionsCount'] as int?,
         memberNames: _extractDisplayNames(_asList(json['members'])),
         servantNames: _extractDisplayNames(_asList(json['servants'])),
       );

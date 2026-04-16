@@ -196,16 +196,70 @@ class ClassroomsHomeScreen extends ConsumerWidget {
                   else
                     ...classrooms.map(
                       (c) => Card(
-                        child: ListTile(
-                          leading: const Icon(Icons.class_),
-                          title: Text(c.name ?? '-'),
-                          subtitle: Text(
-                            'Age: ${c.ageOfMembers ?? '-'} • Members: ${c.totalMembersCount ?? 0}',
-                          ),
-                          trailing: const Icon(Icons.chevron_right),
+                        clipBehavior: Clip.antiAlias,
+                        child: InkWell(
                           onTap: () => context.push(
                             AppRoutes.classroomDetail,
                             extra: c,
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    CircleAvatar(
+                                      backgroundColor: Theme.of(context)
+                                          .colorScheme
+                                          .primaryContainer,
+                                      child: Icon(
+                                        Icons.class_,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onPrimaryContainer,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        c.name ?? '-',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                      ),
+                                    ),
+                                    Icon(
+                                      Icons.chevron_right,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant,
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  'Age: ${c.ageOfMembers ?? '—'}',
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  '${c.totalMembersCount ?? 0} members · '
+                                  '${c.pastAttendanceSessionsCount ?? 0} attendance sessions',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant,
+                                      ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),

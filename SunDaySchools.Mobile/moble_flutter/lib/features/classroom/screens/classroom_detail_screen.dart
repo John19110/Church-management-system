@@ -1,104 +1,225 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/routing/app_router.dart';
+import '../../member/providers/members_providers.dart';
 import '../models/classroom_models.dart';
 
-class ClassroomDetailScreen extends StatelessWidget {
+class ClassroomDetailScreen extends ConsumerWidget {
   final ClassroomReadDto classroom;
 
   const ClassroomDetailScreen({super.key, required this.classroom});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final classroomId = classroom.id;
+    if (classroomId == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Classroom')),
+        body: const Center(
+          child: Text('Invalid classroom: missing id.'),
+        ),
+      );
+    }
+
+    final membersAsync = ref.watch(membersByClassroomProvider(classroomId));
+
     return Scaffold(
-      appBar: AppBar(title: Text(classroom.name ?? 'Classroom Details')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _InfoTile(label: 'Name', value: classroom.name ?? '-'),
-          _InfoTile(label: 'Age', value: classroom.ageOfMembers ?? '-'),
-          _InfoTile(
-            label: 'Members count',
-            value: (classroom.totalMembersCount ?? 0).toString(),
-          ),
-          _InfoTile(
-            label: 'Discipline members',
-            value: (classroom.numberOfDisciplineMembers ?? 0).toString(),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Servants',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 8),
-          ..._buildNameList(classroom.servantNames),
-          const SizedBox(height: 16),
-          Text(
-            'Members',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 8),
-          ..._buildNameList(classroom.memberNames),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () => context.push('/members/add', extra: classroom.id),
-            icon: const Icon(Icons.person_add),
-            label: Text(l10n.addMember),
-          ),
-          const SizedBox(height: 12),
-          ElevatedButton.icon(
-            onPressed: () => context.push(AppRoutes.member),
-            icon: const Icon(Icons.group_add),
-            label: const Text('Add/Update/Remove Members'),
-          ),
-          const SizedBox(height: 12),
-          OutlinedButton.icon(
-            onPressed: () => context.push(AppRoutes.servants),
-            icon: const Icon(Icons.person_add_alt_1),
-            label: const Text('Manage Servants'),
+      appBar: AppBar(
+        title: Text(classroom.name ?? 'Classroom'),
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              switch (value) {
+                case 'addMember':
+                  context.push('/members/add', extra: classroomId);
+                  break;
+                case 'members':
+                  context.push(AppRoutes.member);
+                  break;
+                case 'servants':
+                  context.push(AppRoutes.servants);
+                  break;
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'addMember',
+                child: Text(l10n.addMember),
+              ),
+              const PopupMenuItem(
+                value: 'members',
+                child: Text('Add/Update/Remove Members'),
+              ),
+              const PopupMenuItem(
+                value: 'servants',
+                child: Text('Manage Servants'),
+              ),
+            ],
           ),
         ],
       ),
-    );
-  }
-}
-
-class _InfoTile extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _InfoTile({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          SizedBox(
-            width: 150,
-            child: Text(
-              '$label:',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Age group: ${classroom.ageOfMembers ?? '—'}',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${classroom.totalMembersCount ?? 0} members · '
+                  '${classroom.pastAttendanceSessionsCount ?? 0} past attendance sessions',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+                if (classroom.servantNames.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    'Servants: ${classroom.servantNames.join(', ')}',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ],
             ),
           ),
-          Expanded(child: Text(value)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              'Members',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () async {
+                ref.invalidate(membersByClassroomProvider(classroomId));
+                await ref.read(membersByClassroomProvider(classroomId).future);
+              },
+              child: membersAsync.when(
+                loading: () => const ListView(
+                  children: [
+                    SizedBox(height: 80),
+                    Center(child: CircularProgressIndicator()),
+                  ],
+                ),
+                error: (e, _) => ListView(
+                  padding: const EdgeInsets.all(24),
+                  children: [
+                    Text('Could not load members: $e'),
+                    const SizedBox(height: 16),
+                    FilledButton(
+                      onPressed: () => ref.invalidate(
+                        membersByClassroomProvider(classroomId),
+                      ),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+                data: (members) {
+                  if (members.isEmpty) {
+                    return ListView(
+                      padding: const EdgeInsets.all(24),
+                      children: const [
+                        Text('No members in this classroom yet.'),
+                      ],
+                    );
+                  }
+                  return GridView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 12,
+                      crossAxisSpacing: 12,
+                      childAspectRatio: 0.72,
+                    ),
+                    itemCount: members.length,
+                    itemBuilder: (context, index) {
+                      final m = members[index];
+                      final name = m.fullName?.trim().isNotEmpty == true
+                          ? m.fullName!
+                          : 'Member #${m.id}';
+                      return Card(
+                        clipBehavior: Clip.antiAlias,
+                        child: InkWell(
+                          onTap: () => context.push('/member/${m.id}'),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                CircleAvatar(
+                                  radius: 40,
+                                  backgroundColor: Theme.of(context)
+                                      .colorScheme
+                                      .surfaceContainerHighest,
+                                  backgroundImage: m.imageUrl != null &&
+                                          m.imageUrl!.isNotEmpty
+                                      ? NetworkImage(m.imageUrl!)
+                                      : null,
+                                  child: m.imageUrl == null ||
+                                          m.imageUrl!.isEmpty
+                                      ? Text(
+                                          name.isNotEmpty
+                                              ? name[0].toUpperCase()
+                                              : '?',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleLarge,
+                                        )
+                                      : null,
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  name,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ),
+          SafeArea(
+            minimum: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: FilledButton.icon(
+              onPressed: () => context.push(
+                '${AppRoutes.attendanceTake}?classroomId=$classroomId',
+              ),
+              icon: const Icon(Icons.fact_check_outlined),
+              label: Text(l10n.takeAttendance),
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
-}
-
-List<Widget> _buildNameList(List<String> names) {
-  if (names.isEmpty) return const [Text('-')];
-  return names.map((name) => Text('• $name')).toList();
 }

@@ -64,9 +64,12 @@ namespace SunDaySchools.DAL.Repository.Implementations
             if (!servantId.HasValue)
                 return new List<Classroom>();
 
-            return await _context.ClassroomServants
-                .Where(cs => cs.ServantId == servantId.Value)
-                .Select(cs => cs.Classroom)
+            return await _context.Classrooms
+                .Where(c => c.ClassroomServants.Any(cs => cs.ServantId == servantId.Value))
+                .Include(c => c.Members)
+                .Include(c => c.AttendanceHistory)
+                .Include(c => c.ClassroomServants)
+                    .ThenInclude(cs => cs.Servant)
                 .ToListAsync();
         }
 
@@ -74,6 +77,10 @@ namespace SunDaySchools.DAL.Repository.Implementations
         {
             return await _context.Classrooms
                 .Where(c => c.MeetingId == meetingId)
+                .Include(c => c.Members)
+                .Include(c => c.AttendanceHistory)
+                .Include(c => c.ClassroomServants)
+                    .ThenInclude(cs => cs.Servant)
                 .ToListAsync();
         }
 
@@ -81,6 +88,10 @@ namespace SunDaySchools.DAL.Repository.Implementations
         {
             return await _context.Classrooms
                 .Where(c => c.ChurchId == churchId)
+                .Include(c => c.Members)
+                .Include(c => c.AttendanceHistory)
+                .Include(c => c.ClassroomServants)
+                    .ThenInclude(cs => cs.Servant)
                 .ToListAsync();
         }
 

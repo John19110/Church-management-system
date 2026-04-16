@@ -118,10 +118,10 @@ class DashboardScreen extends ConsumerWidget {
                     onTap: () => context.go(AppRoutes.member),
                   ),
                   _DashboardCard(
-                    icon: Icons.fact_check,
-                    label: l10n.attendance,
+                    icon: Icons.class_,
+                    label: l10n.classrooms,
                     color: const Color(0xFF48BB78),
-                    onTap: () => context.go(AppRoutes.attendanceTake),
+                    onTap: () => context.go(AppRoutes.classroomsHome),
                   ),
                   _DashboardCard(
                     icon: Icons.people,

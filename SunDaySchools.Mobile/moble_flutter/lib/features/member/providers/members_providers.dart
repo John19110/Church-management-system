@@ -14,3 +14,9 @@ final membersListProvider = FutureProvider<List<MemberReadDto>>((ref) async {
 final memberDetailProvider = FutureProvider.family<MemberReadDto, int>((ref, id) async {
   return ref.watch(membersRepositoryProvider).getById(id);
 });
+
+/// Members assigned to a classroom (includes photo URLs for list UI).
+final membersByClassroomProvider =
+    FutureProvider.family<List<MemberReadDto>, int>((ref, classroomId) async {
+  return ref.watch(membersRepositoryProvider).getByClassroom(classroomId);
+});

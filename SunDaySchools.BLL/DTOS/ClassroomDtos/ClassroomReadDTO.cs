@@ -1,10 +1,4 @@
-﻿using SunDaySchools.DAL.Models;
-using SunDaySchools.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace SunDaySchools.BLL.DTOS
 {
@@ -13,11 +7,13 @@ namespace SunDaySchools.BLL.DTOS
         public int Id { get; set; }
         public string? Name { get; set; }
         public string? AgeOfMembers { get; set; }
-        public ICollection<Member>? Members { get; set; }
+        public ICollection<MemberReadDTO>? Members { get; set; }
         public int? NumberOfDisplineMembers { get; set; }
         public int? TotalMembersCount => Members?.Count ?? 0;
-        public ICollection<Servant>? Servants { get; set; }
-        public ICollection<AttendanceSession>? AttendanceHistory { get; set; }
+        public ICollection<ServantReadDTO>? Servants { get; set; }
+
+        /// <summary>Number of completed attendance sessions for this classroom.</summary>
+        public int PastAttendanceSessionsCount { get; set; }
 
         public int? LeaderServantId { get; set; }  // Nullable if a meeting may not have a leader yet
 

@@ -49,6 +49,9 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
     super.initState();
     if (widget.classroomId != null) {
       _classroomController.text = widget.classroomId.toString();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _loadMembers();
+      });
     }
   }
 
