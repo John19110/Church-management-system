@@ -19,6 +19,7 @@ namespace SunDaySchools.DAL.Repository.Interfaces
 
         Task UpdateAsync(Servant servant);
 
-        Task DeleteAsync(int id);
+        /// <summary>Removes the servant if it exists. Returns <c>true</c> if a row was deleted, <c>false</c> if none matched.</summary>
+        Task<bool> DeleteAsync(int id);
     }
 }

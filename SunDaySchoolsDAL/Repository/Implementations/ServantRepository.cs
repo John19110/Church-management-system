@@ -80,18 +80,18 @@ namespace SunDaySchools.DAL.Repository.Implementations
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(int id)
         {
             if (id <= 0)
-                return;
+                return false;
 
             var servant = await _context.Servants.FindAsync(id);
+            if (servant == null)
+                return false;
 
-            if (servant != null)
-            {
-                _context.Servants.Remove(servant);
-                await _context.SaveChangesAsync();
-            }
+            _context.Servants.Remove(servant);
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }
