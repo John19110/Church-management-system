@@ -157,14 +157,21 @@ builder.Services.AddAutoMapper(m => m.AddProfile(new MappingProfile()));
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
+try
 {
-    var services = scope.ServiceProvider;
+    using (var scope = app.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
 
-    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-    var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+        var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
 
-    await IdentitySeeder.SeedIdentityAsync(roleManager, userManager);
+        await IdentitySeeder.SeedIdentityAsync(roleManager, userManager);
+    }
+}
+catch (Exception ex)
+{
+    Console.WriteLine("Seeder failed: " + ex.Message);
 }
 
 // Configure the HTTP request pipeline.
@@ -220,5 +227,5 @@ app.UseMiddleware<ChurchMiddleware>();
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
 app.MapControllers();
-
+app.MapGet("/", () => Results.Redirect("/swagger"));
 app.Run();
