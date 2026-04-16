@@ -108,8 +108,8 @@ class ClassroomDetailScreen extends ConsumerWidget {
                 await ref.read(membersByClassroomProvider(classroomId).future);
               },
               child: membersAsync.when(
-                loading: () => const ListView(
-                  children: [
+                loading: () => ListView(
+                  children: const [
                     SizedBox(height: 80),
                     Center(child: CircularProgressIndicator()),
                   ],
