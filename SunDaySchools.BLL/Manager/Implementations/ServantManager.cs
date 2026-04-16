@@ -107,14 +107,12 @@ namespace SunDaySchools.BLL.Manager.Implementations
             await _servantRepository.UpdateAsync(existing);
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(int id)
         {
-            var existing = await _servantRepository.GetByIdAsync(id);
+            if (id <= 0)
+                return false;
 
-            if (existing == null)
-                throw new NotFoundException($"Servant with id {id} not found.");
-
-            await _servantRepository.DeleteAsync(id);
+            return await _servantRepository.DeleteAsync(id);
         }
     }
 }

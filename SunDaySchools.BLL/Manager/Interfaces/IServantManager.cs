@@ -20,6 +20,7 @@ namespace SunDaySchools.BLL.Manager.Interfaces
 
         Task UpdateAsync(ServantUpdateDTO servant);
 
-        Task DeleteAsync(int id);
+        /// <summary>Returns <c>true</c> if the servant existed and was deleted; <c>false</c> if no matching servant.</summary>
+        Task<bool> DeleteAsync(int id);
     }
 }

@@ -105,7 +105,10 @@ namespace SunDaySchools.API.Controllers
             if (id <= 0)
                 return BadRequest("Servant id must be a positive integer.");
 
-            await _servantManager.DeleteAsync(id);
+            var deleted = await _servantManager.DeleteAsync(id);
+            if (!deleted)
+                return NotFound();
+
             return NoContent();
         }
     }
