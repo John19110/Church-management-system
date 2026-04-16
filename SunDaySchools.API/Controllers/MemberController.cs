@@ -59,17 +59,15 @@ namespace SunDaySchools.API.Controllers
             return Ok(result);
         }
 
+        /// <summary>Returns members for a classroom. 200 with an empty array if the classroom exists but has no members; 404 only if the classroom does not exist.</summary>
         [HttpGet("classroom/{classroomId}")]
-        public async Task<ActionResult<IEnumerable<MemberReadDTO>>> GetSpecificClassroom(int classroomId)
+        public async Task<ActionResult<IEnumerable<MemberReadDTO>>> GetMembersByClassroom(int classroomId)
         {
+            if (classroomId <= 0)
+                return BadRequest("Classroom id must be a positive integer.");
+
             var members = await _memberManager.GetSpecificClassroomAsync(classroomId);
-
-            if (members != null && members.Any())
-            {
-                return Ok(members);
-            }
-
-            throw new NotFoundException($"Classroom {classroomId} not found or there are no members in it.");
+            return Ok(members);
         }
 
         [HttpGet("{id:int}")]

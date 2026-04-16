@@ -71,8 +71,9 @@ namespace SunDaySchools.DAL.Repository.Implementations
         public async Task<IEnumerable<Member>> GetSpecificClassroomAsync(int classroomId)
         {
             return await _context.Members
-                .Where(ch => ch.ClassroomId == classroomId)
-                .Include(c => c.PhoneNumbers)
+                .AsNoTracking()
+                .Include(m => m.PhoneNumbers)
+                .Where(m => m.ClassroomId == classroomId)
                 .ToListAsync();
         }
 

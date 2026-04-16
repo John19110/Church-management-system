@@ -36,6 +36,11 @@ namespace SunDaySchools.DAL.Repository.Implementations
                 .FirstOrDefaultAsync(s => s.Id == id);
         }
 
+        public async Task<bool> ExistsAsync(int id)
+        {
+            return await _context.Classrooms.AnyAsync(c => c.Id == id);
+        }
+
         public async Task AddAsync(Classroom classroom)
         {
             await _context.Classrooms.AddAsync(classroom);
