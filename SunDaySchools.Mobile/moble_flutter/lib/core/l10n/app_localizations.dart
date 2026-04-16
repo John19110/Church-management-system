@@ -54,6 +54,7 @@ class AppLocalizations {
   String get quickAccess => _t('quickAccess');
   String get members => _t('members');
   String get attendance => _t('attendance');
+  String get classrooms => _t('classrooms');
   String get servants => _t('servants');
   String get logout => _t('logout');
   String get sundaySchool => _t('sundaySchool');
@@ -200,6 +201,7 @@ class AppLocalizations {
       'quickAccess': 'Quick Access',
       'members': 'Members',
       'attendance': 'Attendance',
+      'classrooms': 'Classrooms',
       'servants': 'Servants',
       'logout': 'Logout',
       'sundaySchool': 'Sunday School',
@@ -342,6 +344,7 @@ class AppLocalizations {
       'quickAccess': 'الوصول السريع',
       'members': 'الأعضاء',
       'attendance': 'الحضور',
+      'classrooms': 'الفصول',
       'servants': 'الخدام',
       'logout': 'تسجيل الخروج',
       'sundaySchool': 'مدرسة الأحد',

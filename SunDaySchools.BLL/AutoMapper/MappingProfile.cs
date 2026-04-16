@@ -7,6 +7,7 @@ using SunDaySchools.BLL.DTOS.MeetingDtos;
 using SunDaySchools.DAL.Models;
 using SunDaySchools.Models;
 using System;
+using System.Linq;
 
 namespace SunDaySchools.BLL.AutoMapper
 {
@@ -38,7 +39,11 @@ namespace SunDaySchools.BLL.AutoMapper
 
             
             CreateMap< ClassroomAddDTO, Classroom>();
-            CreateMap<Classroom,ClassroomReadDTO>();
+            CreateMap<Classroom, ClassroomReadDTO>()
+                .ForMember(d => d.Servants,
+                    o => o.MapFrom(s => s.ClassroomServants.Select(cs => cs.Servant)))
+                .ForMember(d => d.PastAttendanceSessionsCount,
+                    o => o.MapFrom(s => s.AttendanceHistory != null ? s.AttendanceHistory.Count : 0));
 
            // CreateMap<RegisterServamtinAddAdmin, PendingServantDTO>();
 
