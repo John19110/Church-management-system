@@ -12,6 +12,7 @@ namespace SunDaySchools.DAL.Repository.Interfaces
     {
         Task<IQueryable<Classroom>> GetAllAsync(); 
         Task<Classroom?> GetByIdAsync(int id);
+        Task<bool> ExistsAsync(int id);
         Task AddAsync(Classroom classroom);
         Task UpdateAsync(Classroom classroom);
         Task DeleteAsync(int id);

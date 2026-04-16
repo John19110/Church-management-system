@@ -56,6 +56,10 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
         public async Task<IEnumerable<MemberReadDTO>> GetSpecificClassroomAsync(int classroomId)
         {
+            var exists = await _classroomRepository.ExistsAsync(classroomId);
+            if (!exists)
+                throw new NotFoundException($"Classroom with id {classroomId} was not found.");
+
             var members = await _memberRepository.GetSpecificClassroomAsync(classroomId);
             return _mapper.Map<IEnumerable<MemberReadDTO>>(members);
         }
