@@ -75,6 +75,16 @@ namespace SunDaySchools.DAL.Repository.Implementations
                 .FirstOrDefaultAsync(s => s.ApplicationUserId == applicationUserId);
         }
 
+        public async Task<bool> HasServantProfileLinkedAsync(string applicationUserId)
+        {
+            if (string.IsNullOrWhiteSpace(applicationUserId))
+                return false;
+
+            return await _context.Servants
+                .IgnoreQueryFilters()
+                .AnyAsync(s => s.ApplicationUserId == applicationUserId);
+        }
+
         public async Task UpdateAsync(Servant servant)
         {
             await _context.SaveChangesAsync();

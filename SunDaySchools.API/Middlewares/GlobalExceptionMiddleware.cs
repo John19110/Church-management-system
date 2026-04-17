@@ -95,6 +95,13 @@ public class GlobalExceptionMiddleware
                 problemDetails.Detail = accountNotApproved.Message;
                 break;
 
+            case ProfileNotCompletedException profileNotCompleted:
+                problemDetails.Title = "Profile not completed.";
+                problemDetails.Status = (int)HttpStatusCode.Forbidden;
+                problemDetails.Type = "https://tools.ietf.org/html/rfc7231#section-6.5.3";
+                problemDetails.Detail = profileNotCompleted.Message;
+                break;
+
             case UserAlreadyExistsException userAlreadyExists:
                 problemDetails.Title = "User already exists.";
                 problemDetails.Status = (int)HttpStatusCode.Conflict;

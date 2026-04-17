@@ -460,8 +460,29 @@ namespace SunDaySchools.BLL.Manager.Implementations
             }
 
 }
+        /// <summary>
+        /// Users with <c>Admin</c>, <c>Servant</c>, or <c>SuperAdmin</c> must have a <c>Servants</c> row linked by <see cref="Servant.ApplicationUserId"/>.
+        /// </summary>
+        private async Task EnsurePrivilegedRolesHaveServantProfileAsync(ApplicationUser user)
+        {
+            var roles = await _userManager.GetRolesAsync(user);
+            var needsServantRow = roles.Any(static r =>
+                string.Equals(r, "Admin", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(r, "Servant", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(r, "SuperAdmin", StringComparison.OrdinalIgnoreCase));
+
+            if (!needsServantRow)
+                return;
+
+            var hasProfile = await _servantRepo.HasServantProfileLinkedAsync(user.Id);
+            if (!hasProfile)
+                throw new ProfileNotCompletedException();
+        }
+
         private async Task<List<Claim>> BuildJwtClaims(ApplicationUser user)
         {
+            await EnsurePrivilegedRolesHaveServantProfileAsync(user);
+
             var claims = new List<Claim>
                         {
                             // User id: use RFC 7519 "sub" only. JwtBearer maps it to NameIdentifier on ClaimsPrincipal,
