@@ -6,6 +6,7 @@ using SunDaySchools.BLL.DTOS;
 using SunDaySchools.BLL.DTOS.AccountDtos;
 using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Interfaces;
+using SunDaySchools.DAL.Models;
 using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchools.Models;
 using SunDaySchoolsDAL.DBcontext;
@@ -26,6 +27,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IAccountManager _accountManager;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
 
 
@@ -34,7 +36,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
         public ServantManager(IServantRepository servantRepository,
             ProgramContext dbContext,
             IMapper mapper, IHttpContextAccessor httpContextAccessor, IAccountManager accountManager,
-           UserManager<ApplicationUser> usermanager)
+            UserManager<ApplicationUser> usermanager,
+            RoleManager<IdentityRole> roleManager)
         {
             _servantRepository = servantRepository;
             _dbContext = dbContext;
@@ -42,6 +45,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             _httpContextAccessor = httpContextAccessor;
             _accountManager = accountManager;
             _userManager = usermanager;
+            _roleManager = roleManager;
         }
 
         public async Task AddAsync(AdminAddServantDTO servantDto, string webRootPath)
@@ -115,8 +119,10 @@ namespace SunDaySchools.BLL.Manager.Implementations
         }
 
         /// <summary>
-        /// Deletes the servant row and removes the Identity <c>Servant</c> role from the linked user so
-        /// tokens never imply a servant profile without a <see cref="Servant"/> row.
+        /// Deletes a servant and all links so Identity never has the <c>Servant</c> role without a matching
+        /// <see cref="Servant"/> row: clears restrictive FKs, removes <see cref="ClassroomServant"/> rows,
+        /// deletes <c>AspNetUserRoles</c> for role <c>Servant</c>, removes the <c>Servants</c> row, and
+        /// bumps the user security stamp so existing sessions can be rejected.
         /// </summary>
         public async Task<bool> DeleteAsync(int id)
         {
@@ -127,6 +133,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             try
             {
                 var servant = await _dbContext.Servants
+                    .IgnoreQueryFilters()
                     .FirstOrDefaultAsync(s => s.Id == id);
 
                 if (servant == null)
@@ -135,21 +142,52 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     return false;
                 }
 
-                var user = await _userManager.FindByIdAsync(servant.ApplicationUserId);
-                if (user != null && await _userManager.IsInRoleAsync(user, ServantRoleName))
+                var applicationUserId = servant.ApplicationUserId;
+
+                // Clear optional FKs that use DeleteBehavior.Restrict toward Servant
+                await _dbContext.AttendanceSessions
+                    .IgnoreQueryFilters()
+                    .Where(s => s.TakenByServantId == id)
+                    .ExecuteUpdateAsync(s => s.SetProperty(x => x.TakenByServantId, (int?)null));
+
+                await _dbContext.Meetings
+                    .IgnoreQueryFilters()
+                    .Where(m => m.LeaderServantId == id)
+                    .ExecuteUpdateAsync(s => s.SetProperty(x => x.LeaderServantId, (int?)null));
+
+                await _dbContext.Classrooms
+                    .IgnoreQueryFilters()
+                    .Where(c => c.LeaderServantId == id)
+                    .ExecuteUpdateAsync(s => s.SetProperty(x => x.LeaderServantId, (int?)null));
+
+                await _dbContext.Churches
+                    .Where(ch => ch.PastorId == id)
+                    .ExecuteUpdateAsync(s => s.SetProperty(x => x.PastorId, (int?)null));
+
+                // PhoneCall maps Servant with optional FK; clear if present (column may exist without CLR property).
+                await _dbContext.Database.ExecuteSqlInterpolatedAsync(
+                    $"UPDATE PhoneCalls SET ServantId = NULL WHERE ServantId = {id}");
+
+                await _dbContext.ClassroomServants
+                    .IgnoreQueryFilters()
+                    .Where(cs => cs.ServantId == id)
+                    .ExecuteDeleteAsync();
+
+                var servantRole = await _roleManager.FindByNameAsync(ServantRoleName);
+                if (servantRole != null)
                 {
-                    var roleResult = await _userManager.RemoveFromRoleAsync(user, ServantRoleName);
-                    if (!roleResult.Succeeded)
-                    {
-                        await transaction.RollbackAsync();
-                        throw new InvalidOperationException(
-                            "Could not remove Servant role: " +
-                            string.Join("; ", roleResult.Errors.Select(e => e.Description)));
-                    }
+                    await _dbContext.UserRoles
+                        .Where(ur => ur.UserId == applicationUserId && ur.RoleId == servantRole.Id)
+                        .ExecuteDeleteAsync();
                 }
 
                 _dbContext.Servants.Remove(servant);
                 await _dbContext.SaveChangesAsync();
+
+                var user = await _userManager.FindByIdAsync(applicationUserId);
+                if (user != null)
+                    await _userManager.UpdateSecurityStampAsync(user);
+
                 await transaction.CommitAsync();
                 return true;
             }
