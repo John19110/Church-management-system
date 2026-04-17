@@ -10,6 +10,9 @@ namespace SunDaySchools.DAL.Repository.Interfaces
 
         Task<Servant?> GetByApplicationUserIdAsync(string applicationUserId);
 
+        /// <summary>Whether a <c>Servants</c> row exists for this user (ignores tenant query filters for integrity checks).</summary>
+        Task<bool> HasServantProfileLinkedAsync(string applicationUserId);
+
         Task<Servant?> GetByIdAsync(int id);
 
         Task<List<Servant>> GetByIdsAsync(List<int> ids);
