@@ -10,9 +10,8 @@ class MeetingDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final appointment = meeting.weeklyAppointment == null
-        ? '-'
-        : meeting.weeklyAppointment!.toLocal().toString();
+    final appointment = meeting.weeklyAppointment ?? '-';
+    final day = meeting.dayOfWeek ?? '-';
 
     return Scaffold(
       appBar: AppBar(title: Text(meeting.name ?? 'Meeting Details')),
@@ -20,6 +19,7 @@ class MeetingDetailScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         children: [
           _InfoTile(label: 'Name', value: meeting.name ?? '-'),
+          _InfoTile(label: 'Day of week', value: day),
           _InfoTile(label: 'Weekly appointment', value: appointment),
           _InfoTile(
             label: 'Servants count',

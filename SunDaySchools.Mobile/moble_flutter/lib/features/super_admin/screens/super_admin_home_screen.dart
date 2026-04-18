@@ -6,6 +6,7 @@ import '../../auth/utils/auth_session.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../meeting/models/meeting_models.dart';
 import '../../meeting/providers/meeting_providers.dart';
+import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
 import '../providers/super_admin_providers.dart';
 
 class SuperAdminHomeScreen extends ConsumerWidget {
@@ -14,7 +15,9 @@ class SuperAdminHomeScreen extends ConsumerWidget {
   Future<void> _showAddMeetingDialog(BuildContext context, WidgetRef ref) async {
     final formKey = GlobalKey<FormState>();
     final nameController = TextEditingController();
-    final weeklyController = TextEditingController();
+    final timeController = TextEditingController();
+    TimeOfDay? selectedTime;
+    String selectedDay = 'Saturday';
     var isSubmitting = false;
 
     try {
@@ -44,21 +47,52 @@ class SuperAdminHomeScreen extends ConsumerWidget {
                         },
                       ),
                       const SizedBox(height: 12),
-                      TextFormField(
-                        controller: weeklyController,
+                      DropdownButtonFormField<String>(
+                        value: selectedDay,
                         decoration: const InputDecoration(
-                          labelText: 'Weekly Appointment',
-                          hintText: 'YYYY-MM-DDTHH:MM:SS',
+                          labelText: 'Day of week',
                         ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Weekly appointment is required';
-                          }
-                          if (DateTime.tryParse(value.trim()) == null) {
-                            return 'Enter a valid ISO date/time';
-                          }
-                          return null;
-                        },
+                        items: const [
+                          DropdownMenuItem(value: 'Saturday', child: Text('Saturday')),
+                          DropdownMenuItem(value: 'Sunday', child: Text('Sunday')),
+                          DropdownMenuItem(value: 'Monday', child: Text('Monday')),
+                          DropdownMenuItem(value: 'Tuesday', child: Text('Tuesday')),
+                          DropdownMenuItem(value: 'Wednesday', child: Text('Wednesday')),
+                          DropdownMenuItem(value: 'Thursday', child: Text('Thursday')),
+                          DropdownMenuItem(value: 'Friday', child: Text('Friday')),
+                        ],
+                        onChanged: isSubmitting
+                            ? null
+                            : (v) {
+                                if (v == null) return;
+                                setState(() => selectedDay = v);
+                              },
+                        validator: (v) =>
+                            (v == null || v.trim().isEmpty) ? 'Day of week is required' : null,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: timeController,
+                        readOnly: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Weekly appointment time',
+                          hintText: 'HH:mm',
+                        ),
+                        onTap: isSubmitting
+                            ? null
+                            : () async {
+                                final picked = await showTimePicker(
+                                  context: dialogBuilderContext,
+                                  initialTime: selectedTime ?? TimeOfDay.now(),
+                                );
+                                if (picked == null) return;
+                                setState(() {
+                                  selectedTime = picked;
+                                  timeController.text = picked.format(dialogBuilderContext);
+                                });
+                              },
+                        validator: (_) =>
+                            selectedTime == null ? 'Weekly appointment time is required' : null,
                       ),
                     ],
                   ),
@@ -77,20 +111,17 @@ class SuperAdminHomeScreen extends ConsumerWidget {
                             if (!formKey.currentState!.validate()) return;
                             setState(() => isSubmitting = true);
                           try {
-                              final weekly = DateTime.tryParse(
-                                weeklyController.text.trim(),
-                              );
+                              final weekly = selectedTime;
                               if (weekly == null) {
-                                throw const FormatException(
-                                  'Invalid weekly appointment format.',
-                                );
+                                throw const FormatException('Weekly appointment time is required.');
                               }
                               await ref
                                   .read(superAdminRepositoryProvider)
-                                  .addMeeting(
+                                  .createMeeting(
                                     MeetingAddDto(
                                       name: nameController.text.trim(),
                                       weeklyAppointment: weekly,
+                                      dayOfWeek: selectedDay,
                                     ),
                                   );
                               ref.invalidate(visibleMeetingsProvider);
@@ -127,7 +158,7 @@ class SuperAdminHomeScreen extends ConsumerWidget {
       );
     } finally {
       nameController.dispose();
-      weeklyController.dispose();
+      timeController.dispose();
     }
   }
 
@@ -150,6 +181,10 @@ class SuperAdminHomeScreen extends ConsumerWidget {
             onPressed: () => logoutSession(ref, context),
           ),
         ],
+      ),
+      bottomNavigationBar: const AppSectionBottomNavigationBar(
+        currentIndex: 0,
+        homeRoute: AppRoutes.superAdminHome,
       ),
       body: RefreshIndicator(
         onRefresh: () async {

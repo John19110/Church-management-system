@@ -50,6 +50,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   bool _obscureConfirm = true;
 
   @override
+  void initState() {
+    super.initState();
+    _passwordController.text = 'John6464@asu';
+    _confirmPasswordController.text = 'John6464@asu';
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();

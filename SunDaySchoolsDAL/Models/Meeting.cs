@@ -14,7 +14,8 @@ namespace SunDaySchools.DAL.Models
         public int ChurchId { get; set; }
 
         
-        public DateTime Weekly_appointment { get; set; }
+        public TimeOnly Weekly_appointment { get; set; }
+        public string DayOfWeek { get; set; } = string.Empty;
         public Church? Church { get; set; }
         public ICollection<Servant>? Servants { get; set; }
         public ICollection<Member>? Members { get; set; }

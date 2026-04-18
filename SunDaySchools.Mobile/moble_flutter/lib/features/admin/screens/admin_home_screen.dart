@@ -6,6 +6,7 @@ import '../../../core/routing/app_router.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_session.dart';
 import '../../classroom/screens/classrooms_home_screen.dart';
+import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
 
 class AdminHomeScreen extends ConsumerWidget {
   const AdminHomeScreen({super.key});
@@ -31,6 +32,10 @@ class AdminHomeScreen extends ConsumerWidget {
               onPressed: () => logoutSession(ref, context),
             ),
           ],
+        ),
+        bottomNavigationBar: const AppSectionBottomNavigationBar(
+          currentIndex: 0,
+          homeRoute: AppRoutes.adminHome,
         ),
         body: roleAsync.when(
           data: (role) {
