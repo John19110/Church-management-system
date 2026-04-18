@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using SunDaySchools.DAL.Models;
 using SunDaySchools.Models;
 using SunDaySchoolsDAL.Models;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 
@@ -104,11 +105,14 @@ namespace SunDaySchoolsDAL.DBcontext
             {
                 if (typeof(ChurchEntity).IsAssignableFrom(entityType.ClrType))
                 {
+                    var classroomIdProperty = entityType.FindProperty("ClassroomId");
+                    var classroomIdType = classroomIdProperty?.ClrType;
+
                     var method = typeof(ProgramContext)
                         .GetMethod(nameof(SetGlobalFilter), BindingFlags.NonPublic | BindingFlags.Instance)
                         ?.MakeGenericMethod(entityType.ClrType);
 
-                    method?.Invoke(this, new object[] { builder });
+                    method?.Invoke(this, new object[] { builder, classroomIdType });
                 }
             }
 
@@ -181,13 +185,28 @@ namespace SunDaySchoolsDAL.DBcontext
 
 
         // Global filter for all ChurchEntity tables
-        private void SetGlobalFilter<TEntity>(ModelBuilder modelBuilder)
-      where TEntity : ChurchEntity
+        private void SetGlobalFilter<TEntity>(ModelBuilder modelBuilder, Type? classroomIdType)
+            where TEntity : ChurchEntity
         {
+            var hasClassroomId = classroomIdType == typeof(int) || classroomIdType == typeof(int?);
+
             modelBuilder.Entity<TEntity>()
                 .HasQueryFilter(e =>
                     (!CurrentChurchId.HasValue || e.ChurchId == CurrentChurchId) &&
-                    (!CurrentMeetingId.HasValue || e.MeetingId == CurrentMeetingId)
+                    (!CurrentMeetingId.HasValue || e.MeetingId == CurrentMeetingId) &&
+                    (
+                        !string.Equals(CurrentScope, "Classroom", StringComparison.OrdinalIgnoreCase) ||
+                        (
+                            hasClassroomId &&
+                            CurrentClassroomIds.Count > 0 &&
+                            (
+                                (classroomIdType == typeof(int?))
+                                    ? (EF.Property<int?>(e, "ClassroomId").HasValue &&
+                                       CurrentClassroomIds.Contains(EF.Property<int?>(e, "ClassroomId")!.Value))
+                                    : CurrentClassroomIds.Contains(EF.Property<int>(e, "ClassroomId"))
+                            )
+                        )
+                    )
                 );
         }
 
@@ -197,6 +216,24 @@ namespace SunDaySchoolsDAL.DBcontext
             {
                 var value = _httpContextAccessor.HttpContext?.Items["ChurchId"];
                 return value is int churchId ? churchId : null;
+            }
+        }
+
+        private string? CurrentScope
+        {
+            get
+            {
+                var value = _httpContextAccessor.HttpContext?.Items["Scope"];
+                return value as string;
+            }
+        }
+
+        private List<int> CurrentClassroomIds
+        {
+            get
+            {
+                var value = _httpContextAccessor.HttpContext?.Items["ClassroomIds"];
+                return value as List<int> ?? new List<int>();
             }
         }
 

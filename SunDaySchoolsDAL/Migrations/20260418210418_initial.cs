@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SunDaySchools.DAL.Migrations
 {
     /// <inheritdoc />
-    public partial class initail : Migration
+    public partial class initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -302,7 +302,8 @@ namespace SunDaySchools.DAL.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ChurchId = table.Column<int>(type: "int", nullable: false),
-                    Weekly_appointment = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Weekly_appointment = table.Column<TimeOnly>(type: "time", nullable: false),
+                    DayOfWeek = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     LeaderServantId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>

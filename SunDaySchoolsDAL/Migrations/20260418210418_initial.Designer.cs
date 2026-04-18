@@ -12,8 +12,8 @@ using SunDaySchoolsDAL.DBcontext;
 namespace SunDaySchools.DAL.Migrations
 {
     [DbContext(typeof(ProgramContext))]
-    [Migration("20260418155907_change-meeting-variables")]
-    partial class changemeetingvariables
+    [Migration("20260418210418_initial")]
+    partial class initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

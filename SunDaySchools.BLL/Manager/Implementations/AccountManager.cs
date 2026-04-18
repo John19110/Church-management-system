@@ -464,9 +464,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
         /// <summary>
         /// Users with <c>Admin</c>, <c>Servant</c>, or <c>SuperAdmin</c> must have a <c>Servants</c> row linked by <see cref="Servant.ApplicationUserId"/>.
         /// </summary>
-        private async Task EnsurePrivilegedRolesHaveServantProfileAsync(ApplicationUser user)
+        private async Task EnsurePrivilegedRolesHaveServantProfileAsync(ApplicationUser user, IList<string> roles)
         {
-            var roles = await _userManager.GetRolesAsync(user);
             var needsServantRow = roles.Any(static r =>
                 string.Equals(r, "Admin", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(r, "Servant", StringComparison.OrdinalIgnoreCase) ||
@@ -480,9 +479,22 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 throw new ProfileNotCompletedException();
         }
 
+        private static string ResolveScopeFromRoles(IList<string> roles)
+        {
+            // Role precedence: SuperAdmin > Admin > Servant
+            if (roles.Any(static r => string.Equals(r, "SuperAdmin", StringComparison.OrdinalIgnoreCase)))
+                return "Church";
+
+            if (roles.Any(static r => string.Equals(r, "Admin", StringComparison.OrdinalIgnoreCase)))
+                return "Meeting";
+
+            return "Classroom";
+        }
+
         private async Task<List<Claim>> BuildJwtClaims(ApplicationUser user)
         {
-            await EnsurePrivilegedRolesHaveServantProfileAsync(user);
+            var roles = await _userManager.GetRolesAsync(user);
+            await EnsurePrivilegedRolesHaveServantProfileAsync(user, roles);
 
             var claims = new List<Claim>
                         {
@@ -490,7 +502,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                             // so UserManager.GetUserId still works on API requests.
                             new Claim(JwtRegisteredClaimNames.Sub, user.Id),
                             new Claim(ClaimTypes.Name, user.UserName ?? ""),
-                            new Claim("ChurchId", user.ChurchId.ToString())
+                            new Claim("ChurchId", user.ChurchId.ToString()),
                         };
 
             if (user.MeetingId.HasValue)
@@ -498,9 +510,20 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 claims.Add(new Claim("MeetingId", user.MeetingId.Value.ToString()));
             }
 
-            var roles = await _userManager.GetRolesAsync(user);
             foreach (var role in roles)
                 claims.Add(new Claim(ClaimTypes.Role, role));
+
+            var scope = ResolveScopeFromRoles(roles);
+            claims.Add(new Claim("Scope", scope));
+
+            if (string.Equals(scope, "Classroom", StringComparison.OrdinalIgnoreCase))
+            {
+                var classroomIds = await _servantRepo.GetClassroomIdsByApplicationUserIdAsync(user.Id);
+                if (classroomIds.Count > 0)
+                {
+                    claims.Add(new Claim("ClassroomIds", string.Join(",", classroomIds)));
+                }
+            }
 
             return claims;
         }
