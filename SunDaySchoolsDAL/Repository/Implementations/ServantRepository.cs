@@ -62,6 +62,28 @@ namespace SunDaySchools.DAL.Repository.Implementations
                 .Select(cs => cs.Classroom)
                 .ToListAsync();
         }
+
+        public async Task<List<int>> GetClassroomIdsByApplicationUserIdAsync(string applicationUserId)
+        {
+            if (string.IsNullOrWhiteSpace(applicationUserId))
+                return new List<int>();
+
+            var servantId = await _context.Servants
+                .IgnoreQueryFilters()
+                .Where(s => s.ApplicationUserId == applicationUserId)
+                .Select(s => (int?)s.Id)
+                .FirstOrDefaultAsync();
+
+            if (!servantId.HasValue)
+                return new List<int>();
+
+            return await _context.Set<ClassroomServant>()
+                .IgnoreQueryFilters()
+                .Where(cs => cs.ServantId == servantId.Value)
+                .Select(cs => cs.ClassroomId)
+                .Distinct()
+                .ToListAsync();
+        }
         /// <summary>
         /// Resolves the servant row for an ASP.NET Identity user id (<see cref="Servant.ApplicationUserId"/>).
         /// No Include graph: loading <c>Servant → ApplicationUser</c> from <c>Users</c> caused EF Core
