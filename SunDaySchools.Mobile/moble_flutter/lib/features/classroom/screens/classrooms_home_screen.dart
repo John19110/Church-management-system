@@ -10,7 +10,7 @@ import '../../../shared/widgets/common_widgets.dart';
 import '../models/classroom_models.dart';
 import '../providers/classroom_providers.dart';
 
-class ClassroomsHomeScreen extends ConsumerWidget {
+class ClassroomsHomeScreen extends ConsumerStatefulWidget {
   /// When false, no [AppBar] is shown so this screen can be embedded under a
   /// parent [Scaffold] (e.g. Servant/Admin home) without a duplicate top bar.
   /// Add-classroom for admins uses a FAB in that case.
@@ -18,27 +18,62 @@ class ClassroomsHomeScreen extends ConsumerWidget {
 
   const ClassroomsHomeScreen({super.key, this.showAppBar = true});
 
-  Future<void> _showAddClassroomDialog(BuildContext context, WidgetRef ref) async {
-    final formKey = GlobalKey<FormState>();
-    final nameController = TextEditingController();
-    final ageController = TextEditingController();
+  @override
+  ConsumerState<ClassroomsHomeScreen> createState() =>
+      _ClassroomsHomeScreenState();
+}
+
+class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
+  final _classroomFormKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _ageController = TextEditingController();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _ageController.dispose();
+    super.dispose();
+  }
+
+  void _resetAddClassroomDialog() {
+    _nameController.clear();
+    _ageController.clear();
+  }
+
+  Future<void> _refresh() async {
+    ref.invalidate(visibleClassroomsProvider);
+    await ref.read(visibleClassroomsProvider.future);
+  }
+
+  Future<void> _addClassroom() async {
+    await ref.read(classroomRepositoryProvider).add(
+          ClassroomAddDto(
+            name: _nameController.text.trim(),
+            ageOfMembers: _ageController.text.trim(),
+          ),
+        );
+    ref.invalidate(visibleClassroomsProvider);
+  }
+
+  Future<void> _showAddClassroomDialog() async {
+    _resetAddClassroomDialog();
     var isSubmitting = false;
 
-    try {
-      await showDialog<void>(
-        context: context,
-        builder: (dialogContext) {
-          return StatefulBuilder(
-            builder: (dialogBuilderContext, setState) {
-              return AlertDialog(
-                title: const Text('Add Classroom'),
-                content: Form(
-                  key: formKey,
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (dialogBuilderContext, setDialogState) {
+            return AlertDialog(
+              title: const Text('Add Classroom'),
+              content: SingleChildScrollView(
+                child: Form(
+                  key: _classroomFormKey,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       TextFormField(
-                        controller: nameController,
+                        controller: _nameController,
                         decoration: const InputDecoration(
                           labelText: 'Classroom Name',
                           hintText: 'Enter classroom name',
@@ -52,7 +87,7 @@ class ClassroomsHomeScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
-                        controller: ageController,
+                        controller: _ageController,
                         decoration: const InputDecoration(
                           labelText: 'Age of Members',
                           hintText: 'Enter age range',
@@ -67,66 +102,56 @@ class ClassroomsHomeScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                actions: [
-                  TextButton(
-                    onPressed: isSubmitting
-                        ? null
-                        : () => Navigator.of(dialogContext).pop(),
-                    child: const Text('Cancel'),
-                  ),
-                  ElevatedButton(
-                    onPressed: isSubmitting
-                        ? null
-                        : () async {
-                            if (!formKey.currentState!.validate()) return;
-                            setState(() => isSubmitting = true);
-                            try {
-                              await ref.read(classroomRepositoryProvider).add(
-                                    ClassroomAddDto(
-                                      name: nameController.text.trim(),
-                                      ageOfMembers: ageController.text.trim(),
-                                    ),
-                                  );
-                              ref.invalidate(visibleClassroomsProvider);
-                              if (context.mounted) {
-                                Navigator.of(dialogContext).pop();
-                                showSuccessSnackbar(
-                                  context,
-                                  'Classroom added successfully.',
-                                );
-                              }
-                            } catch (e) {
-                              if (context.mounted) {
-                                showErrorSnackbar(context, e.toString());
-                              }
-                            } finally {
-                              if (dialogBuilderContext.mounted) {
-                                setState(() => isSubmitting = false);
-                              }
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () async {
+                          if (!_classroomFormKey.currentState!.validate()) return;
+                          if (!dialogBuilderContext.mounted) return;
+                          setDialogState(() => isSubmitting = true);
+                          try {
+                            await _addClassroom();
+                            if (!mounted || !dialogBuilderContext.mounted) return;
+                            Navigator.of(dialogContext).pop();
+                            showSuccessSnackbar(
+                              context,
+                              'Classroom added successfully.',
+                            );
+                          } catch (e) {
+                            if (!mounted) return;
+                            showErrorSnackbar(context, e.toString());
+                          } finally {
+                            if (dialogBuilderContext.mounted) {
+                              setDialogState(() => isSubmitting = false);
                             }
-                          },
-                    child: isSubmitting
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text('Add'),
-                  ),
-                ],
-              );
-            },
-          );
-        },
-      );
-    } finally {
-      nameController.dispose();
-      ageController.dispose();
-    }
+                          }
+                        },
+                  child: isSubmitting
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Add'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final roleAsync = ref.watch(currentUserRoleProvider);
     final classroomsAsync = ref.watch(visibleClassroomsProvider);
     final role = roleAsync.resolvedRoleOrNull;
@@ -141,8 +166,8 @@ class ClassroomsHomeScreen extends ConsumerWidget {
         context.go(homeRoute);
       },
       child: Scaffold(
-        primary: showAppBar,
-        appBar: showAppBar
+        primary: widget.showAppBar,
+        appBar: widget.showAppBar
             ? AppBar(
                 title: const Text('Classrooms Home'),
                 actions: [
@@ -150,7 +175,7 @@ class ClassroomsHomeScreen extends ConsumerWidget {
                     IconButton(
                       icon: const Icon(Icons.add),
                       tooltip: 'Add Classroom',
-                      onPressed: () => _showAddClassroomDialog(context, ref),
+                      onPressed: _showAddClassroomDialog,
                     ),
                   IconButton(
                     icon: const Icon(Icons.logout),
@@ -159,18 +184,15 @@ class ClassroomsHomeScreen extends ConsumerWidget {
                 ],
               )
             : null,
-        floatingActionButton: !showAppBar && canAddClassroom
+        floatingActionButton: !widget.showAppBar && canAddClassroom
             ? FloatingActionButton(
-                onPressed: () => _showAddClassroomDialog(context, ref),
+                onPressed: _showAddClassroomDialog,
                 tooltip: 'Add Classroom',
                 child: const Icon(Icons.add),
               )
             : null,
         body: RefreshIndicator(
-          onRefresh: () async {
-            ref.invalidate(visibleClassroomsProvider);
-            await ref.read(visibleClassroomsProvider.future);
-          },
+          onRefresh: _refresh,
           child: classroomsAsync.when(
             data: (classrooms) {
               return ListView(
@@ -178,7 +200,7 @@ class ClassroomsHomeScreen extends ConsumerWidget {
                   16,
                   16,
                   16,
-                  !showAppBar && canAddClassroom ? 88 : 16,
+                  !widget.showAppBar && canAddClassroom ? 88 : 16,
                 ),
                 children: [
                   const Text(
@@ -272,7 +294,7 @@ class ClassroomsHomeScreen extends ConsumerWidget {
                 16,
                 16,
                 16,
-                !showAppBar && canAddClassroom ? 88 : 16,
+                !widget.showAppBar && canAddClassroom ? 88 : 16,
               ),
               children: const [
                 Text(
@@ -291,7 +313,7 @@ class ClassroomsHomeScreen extends ConsumerWidget {
                 16,
                 16,
                 16,
-                !showAppBar && canAddClassroom ? 88 : 16,
+                !widget.showAppBar && canAddClassroom ? 88 : 16,
               ),
               children: [
                 const Text(
