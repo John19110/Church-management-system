@@ -1,4 +1,5 @@
 ﻿using SunDaySchools.Models;
+using SunDaySchoolsDAL.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -9,6 +10,13 @@ namespace SunDaySchools.DAL.Repository.Interfaces
         Task<IEnumerable<Servant>> GetAllAsync();
 
         Task<Servant?> GetByApplicationUserIdAsync(string applicationUserId);
+
+        /// <summary>
+        /// Ensures a <c>Servant</c> profile exists for the given user.
+        /// If <paramref name="autoCreateMissing"/> is true, a minimal profile is created and returned.
+        /// Returns <c>null</c> if missing and auto-create is disabled.
+        /// </summary>
+        Task<Servant?> EnsureServantProfileAsync(ApplicationUser user, bool autoCreateMissing);
 
         /// <summary>Whether a <c>Servants</c> row exists for this user (ignores tenant query filters for integrity checks).</summary>
         Task<bool> HasServantProfileLinkedAsync(string applicationUserId);

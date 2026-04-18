@@ -2,6 +2,7 @@
 using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchools.Models;
 using SunDaySchoolsDAL.DBcontext;
+using SunDaySchoolsDAL.Models;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -73,6 +74,32 @@ namespace SunDaySchools.DAL.Repository.Implementations
 
             return await _context.Servants
                 .FirstOrDefaultAsync(s => s.ApplicationUserId == applicationUserId);
+        }
+
+        public async Task<Servant?> EnsureServantProfileAsync(ApplicationUser user, bool autoCreateMissing)
+        {
+            if (user == null)
+                return null;
+
+            var existing = await GetByApplicationUserIdAsync(user.Id);
+            if (existing != null)
+                return existing;
+
+            if (!autoCreateMissing)
+                return null;
+
+            var servant = new Servant
+            {
+                ApplicationUserId = user.Id,
+                Name = user.UserName,
+                PhoneNumber = user.PhoneNumber,
+                ChurchId = user.ChurchId,
+                MeetingId = user.MeetingId
+            };
+
+            await _context.Servants.AddAsync(servant);
+            await _context.SaveChangesAsync();
+            return servant;
         }
 
         public async Task<bool> HasServantProfileLinkedAsync(string applicationUserId)
