@@ -28,73 +28,78 @@ class SuperAdminHomeScreen extends ConsumerWidget {
             builder: (dialogBuilderContext, setState) {
               return AlertDialog(
                 title: const Text('Add Meeting'),
-                content: Form(
-                  key: formKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextFormField(
-                        controller: nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Meeting Name',
-                          hintText: 'Enter meeting name',
+                content: SingleChildScrollView(
+                  child: Form(
+                    key: formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextFormField(
+                          controller: nameController,
+                          decoration: const InputDecoration(
+                            labelText: 'Meeting Name',
+                            hintText: 'Enter meeting name',
+                          ),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Meeting name is required';
+                            }
+                            return null;
+                          },
                         ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Meeting name is required';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      DropdownButtonFormField<String>(
-                        value: selectedDay,
-                        decoration: const InputDecoration(
-                          labelText: 'Day of week',
+                        const SizedBox(height: 12),
+                        DropdownButtonFormField<String>(
+                          value: selectedDay,
+                          decoration: const InputDecoration(
+                            labelText: 'Day of week',
+                          ),
+                          items: const [
+                            DropdownMenuItem(value: 'Saturday', child: Text('Saturday')),
+                            DropdownMenuItem(value: 'Sunday', child: Text('Sunday')),
+                            DropdownMenuItem(value: 'Monday', child: Text('Monday')),
+                            DropdownMenuItem(value: 'Tuesday', child: Text('Tuesday')),
+                            DropdownMenuItem(value: 'Wednesday', child: Text('Wednesday')),
+                            DropdownMenuItem(value: 'Thursday', child: Text('Thursday')),
+                            DropdownMenuItem(value: 'Friday', child: Text('Friday')),
+                          ],
+                          onChanged: isSubmitting
+                              ? null
+                              : (v) {
+                                  if (v == null) return;
+                                  setState(() => selectedDay = v);
+                                },
+                          validator: (v) =>
+                              (v == null || v.trim().isEmpty) ? 'Day of week is required' : null,
                         ),
-                        items: const [
-                          DropdownMenuItem(value: 'Saturday', child: Text('Saturday')),
-                          DropdownMenuItem(value: 'Sunday', child: Text('Sunday')),
-                          DropdownMenuItem(value: 'Monday', child: Text('Monday')),
-                          DropdownMenuItem(value: 'Tuesday', child: Text('Tuesday')),
-                          DropdownMenuItem(value: 'Wednesday', child: Text('Wednesday')),
-                          DropdownMenuItem(value: 'Thursday', child: Text('Thursday')),
-                          DropdownMenuItem(value: 'Friday', child: Text('Friday')),
-                        ],
-                        onChanged: isSubmitting
-                            ? null
-                            : (v) {
-                                if (v == null) return;
-                                setState(() => selectedDay = v);
-                              },
-                        validator: (v) =>
-                            (v == null || v.trim().isEmpty) ? 'Day of week is required' : null,
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: timeController,
-                        readOnly: true,
-                        decoration: const InputDecoration(
-                          labelText: 'Weekly appointment time',
-                          hintText: 'HH:mm',
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: timeController,
+                          readOnly: true,
+                          decoration: const InputDecoration(
+                            labelText: 'Weekly appointment time',
+                            hintText: 'HH:mm',
+                          ),
+                          onTap: isSubmitting
+                              ? null
+                              : () async {
+                                  final picked = await showTimePicker(
+                                    context: dialogBuilderContext,
+                                    initialTime: selectedTime ?? TimeOfDay.now(),
+                                  );
+                                  if (!dialogBuilderContext.mounted) return;
+                                  if (picked == null) return;
+                                  setState(() {
+                                    selectedTime = picked;
+                                    timeController.text =
+                                        picked.format(dialogBuilderContext);
+                                  });
+                                },
+                          validator: (_) => selectedTime == null
+                              ? 'Weekly appointment time is required'
+                              : null,
                         ),
-                        onTap: isSubmitting
-                            ? null
-                            : () async {
-                                final picked = await showTimePicker(
-                                  context: dialogBuilderContext,
-                                  initialTime: selectedTime ?? TimeOfDay.now(),
-                                );
-                                if (picked == null) return;
-                                setState(() {
-                                  selectedTime = picked;
-                                  timeController.text = picked.format(dialogBuilderContext);
-                                });
-                              },
-                        validator: (_) =>
-                            selectedTime == null ? 'Weekly appointment time is required' : null,
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
                 actions: [
@@ -109,6 +114,7 @@ class SuperAdminHomeScreen extends ConsumerWidget {
                         ? null
                         : () async {
                             if (!formKey.currentState!.validate()) return;
+                            if (!dialogBuilderContext.mounted) return;
                             setState(() => isSubmitting = true);
                           try {
                               final weekly = selectedTime;
@@ -125,7 +131,7 @@ class SuperAdminHomeScreen extends ConsumerWidget {
                                     ),
                                   );
                               ref.invalidate(visibleMeetingsProvider);
-                              if (context.mounted) {
+                              if (context.mounted && dialogBuilderContext.mounted) {
                                 Navigator.of(dialogContext).pop();
                                 showSuccessSnackbar(
                                   context,
