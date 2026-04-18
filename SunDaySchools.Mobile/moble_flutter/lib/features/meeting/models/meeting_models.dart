@@ -1,21 +1,36 @@
+import 'package:flutter/material.dart';
+
 export '../../../features/classroom/models/classroom_models.dart'
     show SelectOptionDto;
 
 class MeetingAddDto {
   final String? name;
-  final DateTime weeklyAppointment;
+  final TimeOfDay weeklyAppointment;
+  final String dayOfWeek;
 
-  const MeetingAddDto({this.name, required this.weeklyAppointment});
+  const MeetingAddDto({
+    this.name,
+    required this.weeklyAppointment,
+    required this.dayOfWeek,
+  });
 
   Map<String, dynamic> toJson() => {
         if (name != null) 'name': name,
-        'weekly_appointment': weeklyAppointment.toIso8601String(),
+        'weeklyAppointment': _formatTime(weeklyAppointment),
+        'dayOfWeek': dayOfWeek,
       };
+
+  static String _formatTime(TimeOfDay time) {
+    final hh = time.hour.toString().padLeft(2, '0');
+    final mm = time.minute.toString().padLeft(2, '0');
+    return '$hh:$mm:00';
+  }
 }
 
 class MeetingReadDto {
   final String? name;
-  final DateTime? weeklyAppointment;
+  final String? weeklyAppointment;
+  final String? dayOfWeek;
   final int membersCount;
   final int servantsCount;
   final List<String> memberNames;
@@ -24,6 +39,7 @@ class MeetingReadDto {
   const MeetingReadDto({
     this.name,
     this.weeklyAppointment,
+    this.dayOfWeek,
     required this.membersCount,
     required this.servantsCount,
     this.memberNames = const [],
@@ -32,15 +48,19 @@ class MeetingReadDto {
 
   factory MeetingReadDto.fromJson(Map<String, dynamic> json) => MeetingReadDto(
         name: json['name'] as String?,
-        weeklyAppointment: DateTime.tryParse(
-          // Backend currently uses `Weekly_appointment`; keep camelCase fallback
-          // for compatibility with potential serializer naming changes.
-          (json['weekly_appointment'] ??
-                  json['Weekly_appointment'] ??
-                  json['weeklyAppointment'] ??
-                  '')
-              .toString(),
-        ),
+        weeklyAppointment: (json['weeklyAppointment'] ??
+                json['weekly_appointment'] ??
+                json['Weekly_appointment'] ??
+                '')
+            .toString()
+            .trim()
+            .isEmpty
+            ? null
+            : (json['weeklyAppointment'] ??
+                    json['weekly_appointment'] ??
+                    json['Weekly_appointment'])
+                .toString(),
+        dayOfWeek: (json['dayOfWeek'] ?? json['DayOfWeek'])?.toString(),
         membersCount: _asList(json['members']).length,
         servantsCount: _asList(json['servants']).length,
         memberNames: _extractDisplayNames(_asList(json['members'])),

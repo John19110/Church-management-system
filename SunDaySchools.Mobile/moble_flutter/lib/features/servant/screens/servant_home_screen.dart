@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_session.dart';
 import '../../classroom/screens/classrooms_home_screen.dart';
+import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
+import '../../../core/routing/app_router.dart';
 
 class ServantHomeScreen extends ConsumerWidget {
   const ServantHomeScreen({super.key});
@@ -21,6 +23,10 @@ class ServantHomeScreen extends ConsumerWidget {
             onPressed: () => logoutSession(ref, context),
           ),
         ],
+      ),
+      bottomNavigationBar: const AppSectionBottomNavigationBar(
+        currentIndex: 0,
+        homeRoute: AppRoutes.servantHome,
       ),
       body: roleAsync.when(
         data: (role) {

@@ -18,6 +18,7 @@ using SunDaySchoolsDAL.DBcontext;
 using SunDaySchoolsDAL.Models;
 using System.Diagnostics;
 using System.Text;
+using SunDaySchools.API.Json;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,7 +28,11 @@ builder.Services.AddScoped<IFileStorage, LocalFileStorage>();
 builder.Services.AddProblemDetails();
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(o =>
+    {
+        o.JsonSerializerOptions.Converters.Add(new TimeOnlyJsonConverter());
+    });
 
 builder.Services.AddHttpContextAccessor();
 

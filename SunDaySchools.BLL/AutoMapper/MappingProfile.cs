@@ -56,7 +56,8 @@ namespace SunDaySchools.BLL.AutoMapper
             // =========================
             CreateMap<AttendanceRecord, AttendanceRecordReadDTO>();
 
-            CreateMap<MeetingAddDTO,Meeting>();
+            CreateMap<MeetingAddDTO, Meeting>()
+                .ForMember(d => d.Weekly_appointment, o => o.MapFrom(s => s.WeeklyAppointment));
             CreateMap<AttendanceRecordAddDTO, AttendanceRecord>()
                 .ForMember(d => d.Id, o => o.Ignore())
                 .ForMember(d => d.AttendanceSessionId, o => o.Ignore())
@@ -94,7 +95,8 @@ namespace SunDaySchools.BLL.AutoMapper
                 .ForMember(d => d.Records, o => o.MapFrom(s => s.Records));
 
 
-            CreateMap<Meeting, MeetingReadDTO>();
+            CreateMap<Meeting, MeetingReadDTO>()
+                .ForMember(d => d.WeeklyAppointment, o => o.MapFrom(s => s.Weekly_appointment));
         }
     }
 }

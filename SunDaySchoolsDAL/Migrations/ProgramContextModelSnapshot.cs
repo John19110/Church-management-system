@@ -398,14 +398,18 @@ namespace SunDaySchools.DAL.Migrations
                     b.Property<int>("ChurchId")
                         .HasColumnType("int");
 
+                    b.Property<string>("DayOfWeek")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int?>("LeaderServantId")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("Weekly_appointment")
-                        .HasColumnType("datetime2");
+                    b.Property<TimeOnly>("Weekly_appointment")
+                        .HasColumnType("time");
 
                     b.HasKey("Id");
 

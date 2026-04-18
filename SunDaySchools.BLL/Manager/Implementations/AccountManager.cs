@@ -275,7 +275,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 {
                     Name = registerMeetingAdminDTO.MeetingName,
                     ChurchId = church.Id,
-                    Weekly_appointment = registerMeetingAdminDTO.Weekly_appointment
+                    Weekly_appointment = TimeOnly.FromDateTime(registerMeetingAdminDTO.Weekly_appointment),
+                    DayOfWeek = registerMeetingAdminDTO.Weekly_appointment.DayOfWeek.ToString()
                 };
             await _meetingRepo.AddAsync(meeting);
             await _unitOfWork.SaveChangesAsync();
