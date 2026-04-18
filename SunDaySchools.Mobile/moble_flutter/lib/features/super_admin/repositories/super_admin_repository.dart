@@ -8,11 +8,11 @@ class SuperAdminRepository {
 
   SuperAdminRepository(this._dio);
 
-  /// POST /api/SuperAdmin/add-meeting — add a new meeting (SuperAdmin role required)
-  Future<void> addMeeting(MeetingAddDto dto) async {
+  /// POST /api/Meeting — create a new meeting (SuperAdmin role required)
+  Future<void> createMeeting(MeetingAddDto dto) async {
     return apiCall(() async {
       await _dio.post(
-        '${AppConstants.superAdminEndpoint}/add-meeting',
+        AppConstants.meetingEndpoint,
         data: dto.toJson(),
       );
     });
