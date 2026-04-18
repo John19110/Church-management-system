@@ -99,9 +99,10 @@ EdgeInsets _snackBarMargin(BuildContext context) {
 }
 
 /// Shows a snackbar with an error message.
+/// Uses [SnackBarBehavior.floating] with [SnackBar.margin] only — do not set
+/// [SnackBar.width] at the same time (Flutter forbids width + margin together).
 void showErrorSnackbar(BuildContext context, String message) {
   final messenger = ScaffoldMessenger.of(context);
-  final width = MediaQuery.sizeOf(context).width;
   messenger.clearSnackBars();
   messenger.showSnackBar(
     SnackBar(
@@ -109,7 +110,6 @@ void showErrorSnackbar(BuildContext context, String message) {
       backgroundColor: Colors.red,
       behavior: SnackBarBehavior.floating,
       margin: _snackBarMargin(context),
-      width: width - 32,
     ),
   );
 }
@@ -117,7 +117,6 @@ void showErrorSnackbar(BuildContext context, String message) {
 /// Shows a snackbar with a success message.
 void showSuccessSnackbar(BuildContext context, String message) {
   final messenger = ScaffoldMessenger.of(context);
-  final width = MediaQuery.sizeOf(context).width;
   messenger.clearSnackBars();
   messenger.showSnackBar(
     SnackBar(
@@ -125,7 +124,6 @@ void showSuccessSnackbar(BuildContext context, String message) {
       backgroundColor: Colors.green,
       behavior: SnackBarBehavior.floating,
       margin: _snackBarMargin(context),
-      width: width - 32,
     ),
   );
 }

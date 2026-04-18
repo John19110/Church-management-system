@@ -10,6 +10,7 @@ using SunDaySchoolsDAL.DBcontext;
 using SunDaySchools.API.Services.Implementations;
 using SunDaySchools.API.Services.Interfaces;
 using SunDaySchools.BLL.AutoMapper;
+using SunDaySchools.BLL.Configuration;
 using SunDaySchools.BLL.Manager.Implementations;
 using SunDaySchools.BLL.Manager.Interfaces;
 using SunDaySchools.DAL.Repository.Implementations;
@@ -22,6 +23,9 @@ using SunDaySchools.API.Json;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.Configure<ServantProfileOptions>(
+    builder.Configuration.GetSection(ServantProfileOptions.SectionName));
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IFileStorage, LocalFileStorage>();
