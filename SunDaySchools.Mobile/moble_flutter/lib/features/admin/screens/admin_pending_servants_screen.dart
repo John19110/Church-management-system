@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../../classroom/providers/classroom_providers.dart';
+import '../../../shared/widgets/select_option_fields.dart';
 import '../providers/admin_providers.dart';
 
 class AdminPendingServantsScreen extends ConsumerWidget {
@@ -13,7 +14,7 @@ class AdminPendingServantsScreen extends ConsumerWidget {
     WidgetRef ref, {
     required int servantId,
   }) async {
-    final classrooms = await ref.read(visibleClassroomsProvider.future);
+    final classrooms = await ref.read(classroomsForSelectionProvider.future);
     int? selectedClassroomId;
 
     if (!context.mounted) return;
@@ -25,22 +26,12 @@ class AdminPendingServantsScreen extends ConsumerWidget {
           builder: (dialogContext, setState) {
             return AlertDialog(
               title: const Text('Assign classroom'),
-              content: DropdownButtonFormField<int>(
-                initialValue: selectedClassroomId,
-                items: classrooms
-                    .where((c) => c.id != null)
-                    .map(
-                      (c) => DropdownMenuItem<int>(
-                        value: c.id!,
-                        child: Text('${c.name ?? 'Classroom'} (#${c.id})'),
-                      ),
-                    )
-                    .toList(),
+              content: SelectOptionDropdown(
+                label: 'Classroom',
+                hintText: 'Select classroom',
+                options: classrooms,
+                value: selectedClassroomId,
                 onChanged: (v) => setState(() => selectedClassroomId = v),
-                decoration: const InputDecoration(
-                  labelText: 'Classroom',
-                  hintText: 'Select classroom',
-                ),
               ),
               actions: [
                 TextButton(

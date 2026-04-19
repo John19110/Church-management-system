@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/providers/auth_providers.dart';
+import '../../../core/models/select_option.dart';
 import '../models/member_models.dart';
 import '../repositories/members_repository.dart';
 
@@ -19,4 +20,9 @@ final memberDetailProvider = FutureProvider.family<MemberReadDto, int>((ref, id)
 final membersByClassroomProvider =
     FutureProvider.family<List<MemberReadDto>, int>((ref, classroomId) async {
   return ref.watch(membersRepositoryProvider).getByClassroom(classroomId);
+});
+
+final membersForSelectionProvider = FutureProvider<List<SelectOption>>((ref) async {
+  ref.watch(authSessionEpochProvider);
+  return ref.watch(membersRepositoryProvider).getForSelection();
 });

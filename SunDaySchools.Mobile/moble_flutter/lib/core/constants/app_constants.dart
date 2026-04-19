@@ -43,5 +43,11 @@ class AppConstants {
   // AttendanceSession endpoints
   static const String attendanceEndpoint = '/api/AttendanceSession';
 
+  // Select endpoints (all return: {id, name})
+  static const String classroomsSelectEndpoint = '/classrooms/select';
+  static const String membersSelectEndpoint = '/members/select';
+  static const String meetingsSelectEndpoint = '/meetings/select';
+  static const String servantsSelectEndpoint = '/servants/select';
+
   static const String tokenKey = 'jwt_token';
 }

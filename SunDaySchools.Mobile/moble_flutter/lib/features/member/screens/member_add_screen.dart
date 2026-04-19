@@ -7,8 +7,10 @@ import 'package:image_picker/image_picker.dart';
 
 import '../models/member_models.dart';
 import '../providers/members_providers.dart';
+import '../../classroom/providers/classroom_providers.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/common_widgets.dart';
+import '../../../shared/widgets/select_option_fields.dart';
 import '../../../core/l10n/app_localizations.dart';
 
 class MemberAddScreen extends ConsumerStatefulWidget {
@@ -29,7 +31,7 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
   final _dobController = TextEditingController();
   final _joiningController = TextEditingController();
   final _spiritualDobController = TextEditingController();
-  final _classroomController = TextEditingController();
+  int? _selectedClassroomId;
   String? _gender;
   bool _loading = false;
   bool _haveBrothers = false;
@@ -44,7 +46,7 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
   void initState() {
     super.initState();
     if (widget.classroomId != null) {
-      _classroomController.text = widget.classroomId.toString();
+      _selectedClassroomId = widget.classroomId;
     }
   }
 
@@ -57,7 +59,6 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
     _dobController.dispose();
     _joiningController.dispose();
     _spiritualDobController.dispose();
-    _classroomController.dispose();
     for (final c in _phoneRelation) {
       c.dispose();
     }
@@ -136,8 +137,7 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
           phoneNumber: _phoneNumber[i].text.trim(),
         ),
       );
-      final classroomId =
-          widget.classroomId ?? int.tryParse(_classroomController.text.trim()) ?? 0;
+      final classroomId = widget.classroomId ?? (_selectedClassroomId ?? 0);
       final brothers = _nonEmptyLines(_brotherNames);
       final noteLines = _nonEmptyLines(_notes);
       await ref.read(membersRepositoryProvider).create(
@@ -173,6 +173,7 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final classroomsAsync = ref.watch(classroomsForSelectionProvider);
     return Scaffold(
       appBar: AppBar(title: Text(l10n.addMember)),
       body: SafeArea(
@@ -254,11 +255,27 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
                 label: l10n.spiritualDateOfBirth,
               ),
               const SizedBox(height: 12),
-              AppTextField(
-                controller: _classroomController,
-                label: l10n.classroomId,
-                keyboardType: TextInputType.number,
-                enabled: widget.classroomId == null,
+              classroomsAsync.when(
+                loading: () => const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: LinearProgressIndicator(),
+                ),
+                error: (e, _) => Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text('Failed to load classrooms: $e'),
+                ),
+                data: (options) => SelectOptionDropdown(
+                  label: l10n.classroomId,
+                  hintText: l10n.classroomId,
+                  options: options,
+                  value: _selectedClassroomId,
+                  enabled: widget.classroomId == null,
+                  onChanged: (v) => setState(() => _selectedClassroomId = v),
+                  validator: (v) {
+                    if (widget.classroomId != null) return null;
+                    return v == null ? l10n.required : null;
+                  },
+                ),
               ),
               const SizedBox(height: 12),
               SwitchListTile(

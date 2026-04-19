@@ -4,8 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import '../models/member_models.dart';
 import '../providers/members_providers.dart';
+import '../../classroom/providers/classroom_providers.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/common_widgets.dart';
+import '../../../shared/widgets/select_option_fields.dart';
 import '../../../core/l10n/app_localizations.dart';
 
 const _kValidGenders = ['Male', 'Female'];
@@ -29,7 +31,7 @@ class _MemberEditScreenState extends ConsumerState<MemberEditScreen> {
   final _spiritualDobController = TextEditingController();
   final _lastAttendanceController = TextEditingController();
   final _totalDaysController = TextEditingController();
-  final _classroomController = TextEditingController();
+  int? _selectedClassroomId;
   String? _gender;
   bool _loading = false;
   bool _initialized = false;
@@ -53,7 +55,6 @@ class _MemberEditScreenState extends ConsumerState<MemberEditScreen> {
     _spiritualDobController.dispose();
     _lastAttendanceController.dispose();
     _totalDaysController.dispose();
-    _classroomController.dispose();
     for (final c in _phoneRelation) {
       c.dispose();
     }
@@ -83,7 +84,7 @@ class _MemberEditScreenState extends ConsumerState<MemberEditScreen> {
     _lastAttendanceController.text = member.lastAttendanceDate ?? '';
     _totalDaysController.text =
         member.totalNumberOfDaysAttended?.toString() ?? '';
-    _classroomController.text = member.classroomId?.toString() ?? '';
+    _selectedClassroomId = member.classroomId;
     _gender = _kValidGenders.contains(member.gender) ? member.gender : null;
     _isDiscipline = member.isDiscipline ?? false;
     _haveBrothers = member.haveBrothers ?? false;
@@ -195,7 +196,7 @@ class _MemberEditScreenState extends ConsumerState<MemberEditScreen> {
               haveBrothers: _haveBrothers,
               brothersNames: brothers.isEmpty ? null : brothers,
               notes: noteLines.isEmpty ? null : noteLines,
-              classroomId: int.tryParse(_classroomController.text.trim()),
+              classroomId: _selectedClassroomId,
               phoneNumbers: phones.isEmpty ? null : phones,
             ),
           );
@@ -213,6 +214,7 @@ class _MemberEditScreenState extends ConsumerState<MemberEditScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final classroomsAsync = ref.watch(classroomsForSelectionProvider);
     if (widget.id <= 0) {
       return Scaffold(
         appBar: AppBar(title: Text(l10n.editMember)),
@@ -319,10 +321,22 @@ class _MemberEditScreenState extends ConsumerState<MemberEditScreen> {
                     onChanged: (v) => setState(() => _isDiscipline = v),
                   ),
                   const SizedBox(height: 12),
-                  AppTextField(
-                    controller: _classroomController,
-                    label: l10n.classroomId,
-                    keyboardType: TextInputType.number,
+                  classroomsAsync.when(
+                    loading: () => const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: LinearProgressIndicator(),
+                    ),
+                    error: (e, _) => Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text('Failed to load classrooms: $e'),
+                    ),
+                    data: (options) => SelectOptionDropdown(
+                      label: l10n.classroomId,
+                      hintText: l10n.classroomId,
+                      options: options,
+                      value: _selectedClassroomId,
+                      onChanged: (v) => setState(() => _selectedClassroomId = v),
+                    ),
                   ),
                   const SizedBox(height: 12),
                   SwitchListTile(

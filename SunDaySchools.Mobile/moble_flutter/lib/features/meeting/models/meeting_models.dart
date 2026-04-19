@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 
-export '../../../features/classroom/models/classroom_models.dart'
-    show SelectOptionDto;
-
 class MeetingAddDto {
   final String? name;
   final TimeOfDay weeklyAppointment;

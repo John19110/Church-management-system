@@ -5,8 +5,10 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/servant_models.dart';
 import '../providers/servants_providers.dart';
+import '../../classroom/providers/classroom_providers.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/common_widgets.dart';
+import '../../../shared/widgets/select_option_fields.dart';
 import '../../../core/l10n/app_localizations.dart';
 
 class ServantEditScreen extends ConsumerStatefulWidget {
@@ -23,7 +25,7 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen> {
   final _phoneController = TextEditingController();
   final _joiningController = TextEditingController();
   final _birthController = TextEditingController();
-  final _classroomController = TextEditingController();
+  int? _selectedClassroomId;
   File? _image;
   bool _loading = false;
   bool _initialized = false;
@@ -34,7 +36,6 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen> {
     _phoneController.dispose();
     _joiningController.dispose();
     _birthController.dispose();
-    _classroomController.dispose();
     super.dispose();
   }
 
@@ -45,9 +46,8 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen> {
     _phoneController.text = servant.phoneNumber ?? '';
     _joiningController.text = servant.joiningDate ?? '';
     _birthController.text = servant.birthDate ?? '';
-    _classroomController.text = servant.classrooms.isNotEmpty
-        ? servant.classrooms.first.id.toString()
-        : '';
+    _selectedClassroomId =
+        servant.classrooms.isNotEmpty ? servant.classrooms.first.id : null;
   }
 
   Future<void> _pickImage() async {
@@ -67,7 +67,7 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen> {
             phoneNumber: _phoneController.text.trim().nullIfEmpty,
             joiningDate: _joiningController.text.trim().nullIfEmpty,
             birthDate: _birthController.text.trim().nullIfEmpty,
-            classroomId: int.tryParse(_classroomController.text.trim()),
+            classroomId: _selectedClassroomId,
             image: _image,
           );
       if (mounted) {
@@ -84,6 +84,7 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final classroomsAsync = ref.watch(classroomsForSelectionProvider);
     if (widget.id <= 0) {
       return Scaffold(
         appBar: AppBar(title: Text(l10n.editServant)),
@@ -149,10 +150,22 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen> {
                 AppDateField(
                     controller: _birthController, label: l10n.birthDate),
                 const SizedBox(height: 12),
-                AppTextField(
-                  controller: _classroomController,
-                  label: l10n.classroomId,
-                  keyboardType: TextInputType.number,
+                classroomsAsync.when(
+                  loading: () => const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: LinearProgressIndicator(),
+                  ),
+                  error: (e, _) => Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text('Failed to load classrooms: $e'),
+                  ),
+                  data: (options) => SelectOptionDropdown(
+                    label: l10n.classroomId,
+                    hintText: l10n.classroomId,
+                    options: options,
+                    value: _selectedClassroomId,
+                    onChanged: (v) => setState(() => _selectedClassroomId = v),
+                  ),
                 ),
                 const SizedBox(height: 24),
                 _loading

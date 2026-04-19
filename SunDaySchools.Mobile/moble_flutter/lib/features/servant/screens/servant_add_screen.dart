@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import '../providers/servants_providers.dart';
+import '../../classroom/providers/classroom_providers.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/common_widgets.dart';
+import '../../../shared/widgets/select_option_fields.dart';
 import '../../../core/l10n/app_localizations.dart';
 
 class ServantAddScreen extends ConsumerStatefulWidget {
@@ -23,7 +25,7 @@ class _ServantAddScreenState extends ConsumerState<ServantAddScreen> {
   final _confirmPasswordController = TextEditingController();
   final _joiningController = TextEditingController();
   final _birthController = TextEditingController();
-  final _classroomIdsController = TextEditingController();
+  List<int> _selectedClassroomIds = [];
   File? _image;
   bool _loading = false;
   bool _obscurePassword = true;
@@ -37,7 +39,6 @@ class _ServantAddScreenState extends ConsumerState<ServantAddScreen> {
     _confirmPasswordController.dispose();
     _joiningController.dispose();
     _birthController.dispose();
-    _classroomIdsController.dispose();
     super.dispose();
   }
 
@@ -52,16 +53,6 @@ class _ServantAddScreenState extends ConsumerState<ServantAddScreen> {
     setState(() => _loading = true);
     final l10n = AppLocalizations.of(context);
     try {
-      final rawIds = _classroomIdsController.text.trim();
-      List<int>? classroomIds;
-      if (rawIds.isNotEmpty) {
-        classroomIds = rawIds
-            .split(RegExp(r'[\s,;]+'))
-            .map((s) => int.tryParse(s.trim()))
-            .whereType<int>()
-            .toList();
-        if (classroomIds.isEmpty) classroomIds = null;
-      }
       await ref.read(servantsRepositoryProvider).create(
             name: _nameController.text.trim(),
             phoneNumber: _phoneController.text.trim(),
@@ -69,7 +60,9 @@ class _ServantAddScreenState extends ConsumerState<ServantAddScreen> {
             confirmPassword: _confirmPasswordController.text,
             joiningDate: _joiningController.text.trim().nullIfEmpty,
             birthDate: _birthController.text.trim().nullIfEmpty,
-            classroomsIds: classroomIds,
+            classroomsIds: _selectedClassroomIds.isEmpty
+                ? null
+                : List<int>.from(_selectedClassroomIds),
             image: _image,
           );
       if (mounted) {
@@ -86,6 +79,7 @@ class _ServantAddScreenState extends ConsumerState<ServantAddScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final classroomsAsync = ref.watch(classroomsForSelectionProvider);
     return Scaffold(
       appBar: AppBar(title: Text(l10n.addServant)),
       body: SafeArea(
@@ -164,10 +158,22 @@ class _ServantAddScreenState extends ConsumerState<ServantAddScreen> {
             const SizedBox(height: 12),
             AppDateField(controller: _birthController, label: l10n.birthDate),
             const SizedBox(height: 12),
-            AppTextField(
-              controller: _classroomIdsController,
-              label: l10n.classroomIdsOptional,
-              keyboardType: TextInputType.text,
+            classroomsAsync.when(
+              loading: () => const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: LinearProgressIndicator(),
+              ),
+              error: (e, _) => Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text('Failed to load classrooms: $e'),
+              ),
+              data: (options) => SelectOptionMultiSelectField(
+                label: l10n.classroomIdsOptional,
+                hintText: l10n.classroomIdsOptional,
+                options: options,
+                selectedIds: _selectedClassroomIds,
+                onChanged: (ids) => setState(() => _selectedClassroomIds = ids),
+              ),
             ),
             const SizedBox(height: 24),
             _loading

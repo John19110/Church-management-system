@@ -1,9 +1,11 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import '../../../core/api/dio_client.dart';
+import '../../../core/api/select_api.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../features/classroom/models/classroom_models.dart';
 import '../models/member_models.dart';
+import '../../../core/models/select_option.dart';
 
 class MembersRepository {
   final Dio _dio;
@@ -106,14 +108,7 @@ class MembersRepository {
   }
 
   /// GET /api/Members/select — get members for selection dropdown
-  Future<List<SelectOptionDto>> getForSelection() async {
-    return apiCall(() async {
-      final response =
-          await _dio.get('${AppConstants.membersEndpoint}/select');
-      final list = response.data as List<dynamic>;
-      return list
-          .map((e) => SelectOptionDto.fromJson(e as Map<String, dynamic>))
-          .toList();
-    });
+  Future<List<SelectOption>> getForSelection() async {
+    return fetchSelectOptions(_dio, AppConstants.membersSelectEndpoint);
   }
 }

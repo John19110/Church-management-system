@@ -1,17 +1,3 @@
-/// Shared selection option returned by `/select` endpoints.
-class SelectOptionDto {
-  final int id;
-  final String name;
-
-  const SelectOptionDto({required this.id, required this.name});
-
-  factory SelectOptionDto.fromJson(Map<String, dynamic> json) =>
-      SelectOptionDto(
-        id: json['id'] as int,
-        name: json['name'] as String? ?? '',
-      );
-}
-
 class ClassroomReadDto {
   final int? id;
   final String? name;
