@@ -7,8 +7,10 @@ import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
 import '../../member/providers/members_providers.dart';
 import '../../member/models/member_models.dart';
+import '../../classroom/providers/classroom_providers.dart';
 import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
 import '../../../shared/widgets/common_widgets.dart';
+import '../../../shared/widgets/select_option_fields.dart';
 import '../../../core/l10n/app_localizations.dart';
 
 /// State for a single attendance record row.
@@ -38,7 +40,7 @@ class AttendanceTakeScreen extends ConsumerStatefulWidget {
 }
 
 class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
-  final _classroomController = TextEditingController();
+  int? _selectedClassroomId;
   final _notesController = TextEditingController();
   List<_RecordState>? _records;
   bool _loading = false;
@@ -48,7 +50,7 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
   void initState() {
     super.initState();
     if (widget.classroomId != null) {
-      _classroomController.text = widget.classroomId.toString();
+      _selectedClassroomId = widget.classroomId;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _loadMembers();
       });
@@ -57,7 +59,6 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
 
   @override
   void dispose() {
-    _classroomController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -65,7 +66,7 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
   Future<void> _loadMembers() async {
     setState(() => _loading = true);
     try {
-      final classroomId = int.tryParse(_classroomController.text.trim());
+      final classroomId = _selectedClassroomId;
       List<MemberReadDto> members;
       if (classroomId != null) {
         members = await ref
@@ -90,7 +91,7 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
       showErrorSnackbar(context, l10n.loadMembersFirst);
       return;
     }
-    final classroomId = int.tryParse(_classroomController.text.trim());
+    final classroomId = _selectedClassroomId;
     if (classroomId == null) {
       showErrorSnackbar(context, l10n.enterClassroomId);
       return;
@@ -138,6 +139,7 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final classroomsAsync = ref.watch(classroomsForSelectionProvider);
     final role = ref.watch(currentUserRoleProvider).resolvedRoleOrNull;
     final homeRoute = AuthRoleUtils.routeForRole(role);
     final currentLocation = GoRouterState.of(context).matchedLocation;
@@ -157,12 +159,17 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
               child: Row(
                 children: [
                   Expanded(
-                    child: TextField(
-                      controller: _classroomController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: l10n.classroomId,
-                        border: const OutlineInputBorder(),
+                    child: classroomsAsync.when(
+                      loading: () => const LinearProgressIndicator(),
+                      error: (e, _) =>
+                          Text('Failed to load classrooms: $e'),
+                      data: (options) => SelectOptionDropdown(
+                        label: l10n.classroomId,
+                        hintText: l10n.classroomId,
+                        options: options,
+                        value: _selectedClassroomId,
+                        onChanged: (v) =>
+                            setState(() => _selectedClassroomId = v),
                       ),
                     ),
                   ),

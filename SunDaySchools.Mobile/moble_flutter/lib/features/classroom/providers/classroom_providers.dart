@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/providers/auth_providers.dart';
+import '../../../core/models/select_option.dart';
 import '../models/classroom_models.dart';
 import '../repositories/classroom_repository.dart';
 
@@ -11,4 +12,10 @@ final visibleClassroomsProvider =
     FutureProvider<List<ClassroomReadDto>>((ref) async {
   ref.watch(authSessionEpochProvider);
   return ref.watch(classroomRepositoryProvider).getVisible();
+});
+
+final classroomsForSelectionProvider =
+    FutureProvider<List<SelectOption>>((ref) async {
+  ref.watch(authSessionEpochProvider);
+  return ref.watch(classroomRepositoryProvider).getForSelection();
 });

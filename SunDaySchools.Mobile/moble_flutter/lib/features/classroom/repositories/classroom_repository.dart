@@ -1,12 +1,19 @@
 import 'package:dio/dio.dart';
 import '../../../core/api/dio_client.dart';
+import '../../../core/api/select_api.dart';
 import '../../../core/constants/app_constants.dart';
 import '../models/classroom_models.dart';
+import '../../../core/models/select_option.dart';
 
 class ClassroomRepository {
   final Dio _dio;
 
   ClassroomRepository(this._dio);
+
+  /// GET /classrooms/select — returns {id, name} list
+  Future<List<SelectOption>> getForSelection() async {
+    return fetchSelectOptions(_dio, AppConstants.classroomsSelectEndpoint);
+  }
 
   /// GET /api/Classroom/visible — returns visible classrooms
   Future<List<ClassroomReadDto>> getVisible() async {

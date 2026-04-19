@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/providers/auth_providers.dart';
-import '../../../features/classroom/models/classroom_models.dart';
+import '../../../core/models/select_option.dart';
 import '../models/meeting_models.dart';
 import '../repositories/meeting_repository.dart';
 
@@ -9,7 +9,7 @@ final meetingRepositoryProvider = Provider((ref) {
 });
 
 final meetingsForSelectionProvider =
-    FutureProvider<List<SelectOptionDto>>((ref) async {
+    FutureProvider<List<SelectOption>>((ref) async {
   ref.watch(authSessionEpochProvider);
   return ref.watch(meetingRepositoryProvider).getForSelection();
 });
