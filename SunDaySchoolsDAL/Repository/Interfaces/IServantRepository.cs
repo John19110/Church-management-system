@@ -23,6 +23,9 @@ namespace SunDaySchools.DAL.Repository.Interfaces
 
         Task<Servant?> GetByIdAsync(int id);
 
+        Task<List<(int Id, string Name)>> GetServantsForSelection();
+
+
         Task<List<Servant>> GetByIdsAsync(List<int> ids);
         Task<IEnumerable<Classroom>> GetByServantIdAsync(int servantId);
         Task<List<int>> GetClassroomIdsByApplicationUserIdAsync(string applicationUserId);
