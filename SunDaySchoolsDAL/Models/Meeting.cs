@@ -17,8 +17,8 @@ namespace SunDaySchools.DAL.Models
         public TimeOnly Weekly_appointment { get; set; }
         public string DayOfWeek { get; set; } = string.Empty;
         public Church? Church { get; set; }
-        public ICollection<Servant>? Servants { get; set; }
-        public ICollection<Member>? Members { get; set; }
+        public ICollection<Servant> Servants { get; set; } = new List<Servant>();
+        public ICollection<Member> Members { get; set; } = new List<Member>();
 
         public int? LeaderServantId { get; set; }  // Nullable if a meeting may not have a leader yet
         public Servant? LeaderServant { get; set; }

@@ -48,10 +48,17 @@ namespace SunDaySchools.API.Controllers
         }
 
 
+        [HttpGet("select")]
+        //[Authorize(Roles = "Admin,SuperAdmin")]
+        public async Task<IActionResult> GetClassroomsForSelection()
+        {
+            var result = await _classroomManager.GetClassroomsForSelection();
+            return Ok(result);
+        }
 
-    
 
-    
+
+
 
     }
 }

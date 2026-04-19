@@ -119,7 +119,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 throw new ValidationException(errors);
 
             var phoneNumber = dto.PhoneNumber.Trim().Replace(" ", "");
-            var userName = phoneNumber;
+          //  var userName = phoneNumber;
 
             var existingUser = await _userManager.Users
                 .FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber);
@@ -157,7 +157,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 // ✅ Create User
                 var user = new ApplicationUser
                 {
-                    UserName = userName,
+                    UserName = dto.Name,
                     PhoneNumber = phoneNumber,
                     IsApproved = true,
                     ChurchId = church.Id
@@ -201,6 +201,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
 
                 };
+
+                church.Pastor = servant;
 
                 // 🔥 Save Image
                 var (fileName, url) = await _fileManager.SaveImageAsync(
@@ -262,7 +264,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             {
 
                 // Create the church
-                var church = new Church
+            var church = new Church
             {
                 Name = registerMeetingAdminDTO.ChurchName
             };
@@ -277,11 +279,13 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     ChurchId = church.Id,
                     Weekly_appointment = TimeOnly.FromDateTime(registerMeetingAdminDTO.Weekly_appointment),
                     DayOfWeek = registerMeetingAdminDTO.Weekly_appointment.DayOfWeek.ToString()
+
                 };
             await _meetingRepo.AddAsync(meeting);
             await _unitOfWork.SaveChangesAsync();
 
 
+               // church.Meetings.Add(meeting); entity framwork alreadt do that 
 
                 // Create the user
                 var user = new ApplicationUser
@@ -291,12 +295,14 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 IsApproved = true,
                 ChurchId = church.Id,
                 MeetingId = meeting.Id
+
             };
+
 
             var result = await _userManager.CreateAsync(user, registerMeetingAdminDTO.Password);
 
 
-
+               
                 //user = await _userManager.FindByIdAsync(user.Id);
 
                 if (!result.Succeeded)
@@ -310,23 +316,29 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 throw new ValidationException(errors);
             }
 
-            await _userManager.AddToRoleAsync(user, "Admin");
+                var roleResult = await _userManager.AddToRoleAsync(user, "Admin");
 
-            // Create the servant
-            var servant = new Servant
+                if (!roleResult.Succeeded)
+                {
+                    throw new Exception("Failed to assign Admin role.");
+                }
+
+                // Create the servant
+                var servant = new Servant
             {
                 ApplicationUserId = user.Id,
                 Name = registerMeetingAdminDTO.Name,
                 PhoneNumber = registerMeetingAdminDTO.PhoneNumber,
                 BirthDate = registerMeetingAdminDTO.BirthDate,
-                JoiningDate = registerMeetingAdminDTO.BirthDate,
+                JoiningDate = registerMeetingAdminDTO.JoiningDate,
                 ChurchId = church.Id,
                 MeetingId = meeting.Id
 
             };
-
-            // 🔥 Save Image
-            var (fileName, url) = await _fileManager.SaveImageAsync(
+                //  church.Servants.Add(servant); entity framework already do that 
+                // meeting.Servants.Add(servant); entity framework already do that
+                // 🔥 Save Image
+                var (fileName, url) = await _fileManager.SaveImageAsync(
                 registerMeetingAdminDTO.Image,
                 webRootPath,
                 "images"
@@ -337,8 +349,9 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             // Link User ↔ Servant
             user.ServantProfile = servant;
-
-            await _servantRepo.AddAsync(servant);
+                // Link meeting to the admin
+                meeting.LeaderServant = servant;
+                await _servantRepo.AddAsync(servant);
             await _unitOfWork.SaveChangesAsync();
 
                 await _unitOfWork.CommitAsync();
@@ -464,65 +477,87 @@ namespace SunDaySchools.BLL.Manager.Implementations
         /// <summary>
         /// Users with <c>Admin</c>, <c>Servant</c>, or <c>SuperAdmin</c> must have a <c>Servants</c> row linked by <see cref="Servant.ApplicationUserId"/>.
         /// </summary>
-        private async Task EnsurePrivilegedRolesHaveServantProfileAsync(ApplicationUser user, IList<string> roles)
-        {
-            var needsServantRow = roles.Any(static r =>
-                string.Equals(r, "Admin", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(r, "Servant", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(r, "SuperAdmin", StringComparison.OrdinalIgnoreCase));
+        //private async Task EnsurePrivilegedRolesHaveServantProfileAsync(ApplicationUser user, IList<string> roles)
+        //{
+        //    var needsServantRow = roles.Any(static r =>
+        //        string.Equals(r, "Admin", StringComparison.OrdinalIgnoreCase) ||
+        //        string.Equals(r, "Servant", StringComparison.OrdinalIgnoreCase) ||
+        //        string.Equals(r, "SuperAdmin", StringComparison.OrdinalIgnoreCase));
 
-            if (!needsServantRow)
-                return;
+        //    if (!needsServantRow)
+        //        return;
 
-            var hasProfile = await _servantRepo.HasServantProfileLinkedAsync(user.Id);
-            if (!hasProfile)
-                throw new ProfileNotCompletedException();
-        }
+        //    var hasProfile = await _servantRepo.HasServantProfileLinkedAsync(user.Id);
+        //    if (!hasProfile)
+        //        throw new ProfileNotCompletedException();
+        //}
 
-        private static string ResolveScopeFromRoles(IList<string> roles)
-        {
-            // Role precedence: SuperAdmin > Admin > Servant
-            if (roles.Any(static r => string.Equals(r, "SuperAdmin", StringComparison.OrdinalIgnoreCase)))
-                return "Church";
 
-            if (roles.Any(static r => string.Equals(r, "Admin", StringComparison.OrdinalIgnoreCase)))
-                return "Meeting";
 
-            return "Classroom";
-        }
+
+        //private static string ResolveScopeFromRoles(IList<string> roles)
+        //{
+        //    // Role precedence: SuperAdmin > Admin > Servant
+        //    if (roles.Any(static r => string.Equals(r, "SuperAdmin", StringComparison.OrdinalIgnoreCase)))
+        //        return "Church";
+
+        //    if (roles.Any(static r => string.Equals(r, "Admin", StringComparison.OrdinalIgnoreCase)))
+        //        return "Meeting";
+
+        //    return "Classroom";
+        //}
+
+        //private string ResolveScope(ApplicationUser user)
+        //{
+        //    // Highest scope first
+        //    if (user.MeetingId.HasValue)
+        //    {
+        //        // If servant has classrooms → classroom scope
+        //        if (user.ServantProfile?.ClassroomServants?.Any() == true)
+        //            return "Classroom";
+
+        //        return "Meeting";
+        //    }
+
+        //    return "Church";
+        //}
 
         private async Task<List<Claim>> BuildJwtClaims(ApplicationUser user)
         {
-            var roles = await _userManager.GetRolesAsync(user);
-            await EnsurePrivilegedRolesHaveServantProfileAsync(user, roles);
-
             var claims = new List<Claim>
-                        {
-                            // User id: use RFC 7519 "sub" only. JwtBearer maps it to NameIdentifier on ClaimsPrincipal,
-                            // so UserManager.GetUserId still works on API requests.
-                            new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-                            new Claim(ClaimTypes.Name, user.UserName ?? ""),
-                            new Claim("ChurchId", user.ChurchId.ToString()),
-                        };
+    {
+        // 🔑 Identity (single source)
+        new Claim(JwtRegisteredClaimNames.Sub, user.Id),
 
+        // 👤 Display
+        new Claim(ClaimTypes.Name, user.ServantProfile?.Name ?? string.Empty),
+
+        // 📱 Login identifier
+        new Claim(ClaimTypes.MobilePhone, user.PhoneNumber ?? string.Empty),
+
+        // 🏛 Tenant
+        new Claim("ChurchId", user.ChurchId?.ToString() ?? string.Empty),
+    };
+
+            // 📌 Meeting (source of truth)
             if (user.MeetingId.HasValue)
-            {
                 claims.Add(new Claim("MeetingId", user.MeetingId.Value.ToString()));
+
+            // 📌 Classrooms (source of truth)
+            if (user.ServantProfile?.ClassroomServants?.Any() == true)
+            {
+                var classroomIds = user.ServantProfile.ClassroomServants
+                    .Select(x => x.ClassroomId)
+                    .Distinct();
+
+                claims.Add(new Claim("ClassroomIds", string.Join(",", classroomIds)));
             }
 
+            // 🎭 Roles
+            var roles = await _userManager.GetRolesAsync(user);
             foreach (var role in roles)
-                claims.Add(new Claim(ClaimTypes.Role, role));
-
-            var scope = ResolveScopeFromRoles(roles);
-            claims.Add(new Claim("Scope", scope));
-
-            if (string.Equals(scope, "Classroom", StringComparison.OrdinalIgnoreCase))
             {
-                var classroomIds = await _servantRepo.GetClassroomIdsByApplicationUserIdAsync(user.Id);
-                if (classroomIds.Count > 0)
-                {
-                    claims.Add(new Claim("ClassroomIds", string.Join(",", classroomIds)));
-                }
+                claims.Add(new Claim(ClaimTypes.Role, role));
             }
 
             return claims;

@@ -11,6 +11,8 @@ namespace SunDaySchools.DAL.Repository.Interfaces
         Task<Meeting?> GetByIdAsync(int id);
         Task<Meeting?> GetByNameAsync(string name);
 
+       Task<List<(int Id, string Name)>> GetMeetingsForSelection();
+
         Task<List<Meeting>> GetByChurchIdAsync(int id);
         Task AddAsync(Meeting meeting);
         Task UpdateAsync(Meeting meeting);

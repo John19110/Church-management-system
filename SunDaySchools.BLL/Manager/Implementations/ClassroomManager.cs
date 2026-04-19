@@ -106,6 +106,16 @@ namespace SunDaySchools.BLL.Manager.Implementations
             return _mapper.Map<List<ClassroomReadDTO>>(classrooms);
         }
 
+        public async Task<List<SelectOptionDTO>> GetClassroomsForSelection()
+        {
+            var classrooms = await _classroomRepository.GetClassroomsForSelection();
+
+            return classrooms.Select(c => new SelectOptionDTO
+            {
+                Id = c.Id,
+                Name = c.Item2
+            }).ToList();
+        }
 
         public async Task AddAsync(ClassroomAddDTO dto)
         {

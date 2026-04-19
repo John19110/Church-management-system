@@ -4,9 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using SunDaySchools.DAL.Models;
 using SunDaySchools.Models;
 using SunDaySchoolsDAL.Models;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Reflection.Emit;
 
 namespace SunDaySchoolsDAL.DBcontext
 {
@@ -27,35 +25,30 @@ namespace SunDaySchoolsDAL.DBcontext
         public DbSet<PhoneCall> PhoneCalls { get; set; }
         public DbSet<Servant> Servants { get; set; }
         public DbSet<Classroom> Classrooms { get; set; }
-                                       
         public DbSet<ClassroomServant> ClassroomServants { get; set; }
-
         public DbSet<AttendanceSession> AttendanceSessions { get; set; }
         public DbSet<AttendanceRecord> AttendanceRecords { get; set; }
         public DbSet<Exam> Exams { get; set; }
         public DbSet<ExamResult> ExamResults { get; set; }
         public DbSet<SpiritualCurriculum> SpiritualCurriculums { get; set; }
         public DbSet<Tool> Tools { get; set; }
-
         public DbSet<Church> Churches { get; set; }
-
         public DbSet<Meeting> Meetings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
 
-            // Member ↔ Classroom relationship
+            // Member ↔ Classroom
             builder.Entity<Member>()
                 .HasOne(c => c.Classroom)
                 .WithMany(cl => cl.Members)
                 .HasForeignKey(c => c.ClassroomId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-
-
+            // Many-to-Many ClassroomServant
             builder.Entity<ClassroomServant>()
-    .HasKey(cs => new { cs.ServantId, cs.ClassroomId });
+                .HasKey(cs => new { cs.ServantId, cs.ClassroomId });
 
             builder.Entity<ClassroomServant>()
                 .HasOne(cs => cs.Servant)
@@ -67,18 +60,15 @@ namespace SunDaySchoolsDAL.DBcontext
                 .WithMany(c => c.ClassroomServants)
                 .HasForeignKey(cs => cs.ClassroomId);
 
-
-
-            // Prevent duplicate attendance records
+            // Attendance uniqueness
             builder.Entity<AttendanceRecord>()
                 .HasIndex(x => new { x.AttendanceSessionId, x.MemberId })
                 .IsUnique();
 
-            // Index for classroom lookup
             builder.Entity<Member>()
                 .HasIndex(c => c.ClassroomId);
 
-            // Servant ↔ ApplicationUser relationship
+            // Servant ↔ User
             builder.Entity<Servant>()
                 .HasOne(s => s.ApplicationUser)
                 .WithOne(u => u.ServantProfile)
@@ -89,36 +79,56 @@ namespace SunDaySchoolsDAL.DBcontext
                 .HasIndex(s => s.ApplicationUserId)
                 .IsUnique();
 
+            // Exam relations
             builder.Entity<ExamResult>()
-                    .HasOne(er => er.Meeting)
-                    .WithMany()
-                    .HasForeignKey(er => er.MeetingId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                .HasOne(er => er.Meeting)
+                .WithMany()
+                .HasForeignKey(er => er.MeetingId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.Entity<ExamResult>()
-                    .HasOne(er => er.Member)
-                    .WithMany(m => m.ExamsResults)
-                    .HasForeignKey(er => er.MemberId)
-                    .OnDelete(DeleteBehavior.NoAction);
-            // Apply multi-tenant filters automatically
+                .HasOne(er => er.Member)
+                .WithMany(m => m.ExamsResults)
+                .HasForeignKey(er => er.MemberId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // Church → Pastor
+            builder.Entity<Church>()
+                .HasOne(c => c.Pastor)
+                .WithMany()
+                .HasForeignKey(c => c.PastorId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Meeting → Leader
+            builder.Entity<Meeting>()
+                .HasOne(m => m.LeaderServant)
+                .WithMany()
+                .HasForeignKey(m => m.LeaderServantId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Classroom → Leader
+            builder.Entity<Classroom>()
+                .HasOne(c => c.LeaderServant)
+                .WithMany()
+                .HasForeignKey(c => c.LeaderServantId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // 🔥 GLOBAL FILTERS (FIXED)
             foreach (var entityType in builder.Model.GetEntityTypes())
             {
                 if (typeof(ChurchEntity).IsAssignableFrom(entityType.ClrType))
                 {
-                    var classroomIdProperty = entityType.FindProperty("ClassroomId");
-                    var classroomIdType = classroomIdProperty?.ClrType;
+                    var hasClassroomId = entityType.FindProperty("ClassroomId") != null;
 
                     var method = typeof(ProgramContext)
                         .GetMethod(nameof(SetGlobalFilter), BindingFlags.NonPublic | BindingFlags.Instance)
                         ?.MakeGenericMethod(entityType.ClrType);
 
-                    method?.Invoke(this, new object[] { builder, classroomIdType });
+                    method?.Invoke(this, new object[] { builder, hasClassroomId });
                 }
             }
 
-
-
-            // Automatically index ChurchId for performance
+            // Index ChurchId
             foreach (var entityType in builder.Model.GetEntityTypes())
             {
                 if (typeof(ChurchEntity).IsAssignableFrom(entityType.ClrType))
@@ -127,145 +137,83 @@ namespace SunDaySchoolsDAL.DBcontext
                         .HasIndex("ChurchId");
                 }
             }
-
-
-            // Church → Pastor relationship
-            builder.Entity<Church>()
-                .HasOne(c => c.Pastor)         // navigation property
-                .WithMany()                     // the Pastor doesn't have a collection of Churches
-                .HasForeignKey(c => c.PastorId) // foreign key
-                .OnDelete(DeleteBehavior.Restrict); // optional, prevents cascade delete
-
-
-
-            builder.Entity<Meeting>()
-                .HasOne(m => m.LeaderServant)    // Meeting has one LeaderServant
-                .WithMany()                       // Servant doesn’t have a collection of meetings as leader
-                .HasForeignKey(m => m.LeaderServantId)
-                .OnDelete(DeleteBehavior.Restrict);
-            // Prevent cascading delete
-
-
-            // Classroom → LeaderServant (optional)
-            builder.Entity<Classroom>()
-                .HasOne(c => c.LeaderServant)   // Classroom has one LeaderServant
-                .WithMany()                     // Servant doesn't have a collection of classrooms they lead
-                .HasForeignKey(c => c.LeaderServantId)
-                .OnDelete(DeleteBehavior.Restrict);  // 
-
         }
 
-        
+        // ✅ SAFE GLOBAL FILTER (NO EF.Property CRASH)
+        private void SetGlobalFilter<TEntity>(ModelBuilder modelBuilder, bool hasClassroomId)
+            where TEntity : ChurchEntity
+        {
+            if (hasClassroomId)
+            {
+                modelBuilder.Entity<TEntity>()
+                    .HasQueryFilter(e =>
+                        (!CurrentChurchId.HasValue || e.ChurchId == CurrentChurchId) &&
+                        (!CurrentMeetingId.HasValue || e.MeetingId == CurrentMeetingId) &&
+                        (
+                            !string.Equals(CurrentScope, "Classroom", StringComparison.OrdinalIgnoreCase) ||
+                            (
+                                CurrentClassroomIds.Count > 0 &&
+                                CurrentClassroomIds.Contains(EF.Property<int>(e, "ClassroomId"))
+                            )
+                        )
+                    );
+            }
+            else
+            {
+                // 🔥 IMPORTANT: no Classroom filter here
+                modelBuilder.Entity<TEntity>()
+                    .HasQueryFilter(e =>
+                        (!CurrentChurchId.HasValue || e.ChurchId == CurrentChurchId) &&
+                        (!CurrentMeetingId.HasValue || e.MeetingId == CurrentMeetingId)
+                    );
+            }
+        }
+
+        // ================= CONTEXT VALUES =================
+
+        private int? CurrentChurchId =>
+            _httpContextAccessor.HttpContext?.Items["ChurchId"] as int?;
+
+        private int? CurrentMeetingId =>
+            _httpContextAccessor.HttpContext?.Items["MeetingId"] as int?;
+
+        private string? CurrentScope =>
+            _httpContextAccessor.HttpContext?.Items["Scope"] as string;
+
+        private List<int> CurrentClassroomIds =>
+            _httpContextAccessor.HttpContext?.Items["ClassroomIds"] as List<int> ?? new List<int>();
+
+        // ================= SAVE HOOKS =================
+
         private void ApplyChurchId()
         {
-            if (_httpContextAccessor.HttpContext == null)
-                return; // skip for non-HTTP scenarios
-            var churchIdFromContext = _httpContextAccessor.HttpContext?.Items["ChurchId"] as int?;
+            var churchId = CurrentChurchId;
 
             foreach (var entry in ChangeTracker.Entries<ChurchEntity>())
             {
-
-             
-                if (entry.State == EntityState.Added || entry.State == EntityState.Modified)
+                if ((entry.State == EntityState.Added || entry.State == EntityState.Modified) &&
+                    (!entry.Entity.ChurchId.HasValue || entry.Entity.ChurchId == 0))
                 {
-                    if (entry.Entity.ChurchId != null && entry.Entity.ChurchId != 0)
-                        continue;
-
-                    if (churchIdFromContext.HasValue)
-                    {
-                        entry.Entity.ChurchId = churchIdFromContext.Value;
-                        continue;
-                    }
-
-                    throw new Exception("ChurchId is missing from the request.");
+                    if (churchId.HasValue)
+                        entry.Entity.ChurchId = churchId.Value;
+                    else
+                        throw new Exception("ChurchId is missing from the request.");
                 }
             }
         }
-
-
-
-        // Global filter for all ChurchEntity tables
-        private void SetGlobalFilter<TEntity>(ModelBuilder modelBuilder, Type? classroomIdType)
-            where TEntity : ChurchEntity
-        {
-            var hasClassroomId = classroomIdType == typeof(int) || classroomIdType == typeof(int?);
-
-            modelBuilder.Entity<TEntity>()
-                .HasQueryFilter(e =>
-                    (!CurrentChurchId.HasValue || e.ChurchId == CurrentChurchId) &&
-                    (!CurrentMeetingId.HasValue || e.MeetingId == CurrentMeetingId) &&
-                    (
-                        !string.Equals(CurrentScope, "Classroom", StringComparison.OrdinalIgnoreCase) ||
-                        (
-                            hasClassroomId &&
-                            CurrentClassroomIds.Count > 0 &&
-                            (
-                                (classroomIdType == typeof(int?))
-                                    ? (EF.Property<int?>(e, "ClassroomId").HasValue &&
-                                       CurrentClassroomIds.Contains(EF.Property<int?>(e, "ClassroomId")!.Value))
-                                    : CurrentClassroomIds.Contains(EF.Property<int>(e, "ClassroomId"))
-                            )
-                        )
-                    )
-                );
-        }
-
-        private int? CurrentChurchId
-        {
-            get
-            {
-                var value = _httpContextAccessor.HttpContext?.Items["ChurchId"];
-                return value is int churchId ? churchId : null;
-            }
-        }
-
-        private string? CurrentScope
-        {
-            get
-            {
-                var value = _httpContextAccessor.HttpContext?.Items["Scope"];
-                return value as string;
-            }
-        }
-
-        private List<int> CurrentClassroomIds
-        {
-            get
-            {
-                var value = _httpContextAccessor.HttpContext?.Items["ClassroomIds"];
-                return value as List<int> ?? new List<int>();
-            }
-        }
-
 
         private void ApplyMeetingId()
         {
-            var meetingIdFromContext = _httpContextAccessor.HttpContext?.Items["MeetingId"] as int?;
+            var meetingId = CurrentMeetingId;
 
             foreach (var entry in ChangeTracker.Entries<ChurchEntity>())
             {
-                if (entry.State == EntityState.Added || entry.State == EntityState.Modified)
+                if ((entry.State == EntityState.Added || entry.State == EntityState.Modified) &&
+                    (!entry.Entity.MeetingId.HasValue || entry.Entity.MeetingId == 0))
                 {
-                    if (entry.Entity.MeetingId != null && entry.Entity.MeetingId != 0)
-                        continue;
-
-                    if (meetingIdFromContext.HasValue)
-                    {
-                        entry.Entity.MeetingId = meetingIdFromContext.Value;
-                    }
-
-                    // no exception here
-                    // because some users are church-level, not meeting-level
+                    if (meetingId.HasValue)
+                        entry.Entity.MeetingId = meetingId.Value;
                 }
-            }
-        }
-        
-        private int? CurrentMeetingId
-        {
-            get
-            {
-                var value = _httpContextAccessor.HttpContext?.Items["MeetingId"];
-                return value is int meetingId ? meetingId : null;
             }
         }
 
@@ -276,8 +224,7 @@ namespace SunDaySchoolsDAL.DBcontext
             return base.SaveChanges();
         }
 
-        public override async Task<int> SaveChangesAsync(
-            CancellationToken cancellationToken = default)
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             ApplyChurchId();
             ApplyMeetingId();

@@ -23,7 +23,13 @@ namespace SunDaySchools.DAL.Repository.Implementations
                 .Include(c => c.PhoneNumbers)
                 .ToListAsync();
         }
-
+        public async Task<List<(int Id, string Name)>> GetMembersForSelection()
+        {
+            return await _context.Members
+                .AsNoTracking()
+                .Select(m => new ValueTuple<int, string>(m.Id, m.FullName))
+                .ToListAsync();
+        }
         public async Task<Member?> GetByIdAsync(int id)
         {
             if (id <= 0)

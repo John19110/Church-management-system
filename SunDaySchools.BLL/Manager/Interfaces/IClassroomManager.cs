@@ -13,6 +13,7 @@ namespace SunDaySchools.BLL.Manager.Interfaces
     {
         Task<List<ClassroomReadDTO>> GetVisibleClassrooms();
         Task AddAsync(ClassroomAddDTO classroom);
+        Task<List<SelectOptionDTO>> GetClassroomsForSelection();
 
     }
 }

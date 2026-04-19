@@ -25,6 +25,9 @@ namespace SunDaySchools.DAL.Repository.Interfaces
         Task SaveAsync();
 
 
+        Task<List<(int Id, string Name)>> GetClassroomsForSelection();
+
+
 
     }
 }

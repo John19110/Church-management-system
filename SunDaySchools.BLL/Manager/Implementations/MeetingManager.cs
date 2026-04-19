@@ -53,15 +53,14 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
         public async Task<List<SelectOptionDTO>> GetMeetingsForSelection()
         {
-            var meetings = await _meetingRepository.GetAllAsync();
+            var meetings = await _meetingRepository.GetMeetingsForSelection();
 
             return meetings.Select(m => new SelectOptionDTO
             {
                 Id = m.Id,
-                Name = m.Name
+                Name = m.Item2
             }).ToList();
         }
-
 
         public async Task<List<MeetingReadDTO>> GetVisibleMeetings()
         {
