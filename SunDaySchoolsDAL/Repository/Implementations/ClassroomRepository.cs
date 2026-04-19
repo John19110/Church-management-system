@@ -21,12 +21,21 @@ namespace SunDaySchools.DAL.Repository.Implementations
             return await Task.FromResult(
                 _context.Classrooms
                     .Include(c => c.ClassroomServants)
-                        .ThenInclude(cs => cs.Servant)
+                    .ThenInclude(cs => cs.Servant)
                     .Include(c => c.Members)
                     .Include(c => c.AttendanceHistory)
             );
         }
+        public async Task<List<SelectOptionDTO>> GetClassroomsForSelection()
+        {
+            var classrooms = await _classroomRepository.GetClassroomsForSelection();
 
+            return classrooms.Select(c => new SelectOptionDTO
+            {
+                Id = c.Id,
+                Name = c.Item2
+            }).ToList();
+        }
         public async Task<Classroom?> GetByIdAsync(int id)
         {
             return await _context.Classrooms

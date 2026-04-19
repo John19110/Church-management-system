@@ -86,12 +86,12 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
         public async Task<List<SelectOptionDTO>> GetServantsForSelection()
         {
-            var servants = await _servantRepository.GetAllAsync();
+            var servants = await _servantRepository.GetServantsForSelection();
 
             return servants.Select(s => new SelectOptionDTO
             {
                 Id = s.Id,
-                Name = s.Name
+                Name = s.Item2
             }).ToList();
         }
         public async Task<ServantReadDTO?> GetByIdAsync(int id)

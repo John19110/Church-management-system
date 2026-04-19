@@ -129,12 +129,12 @@ namespace SunDaySchools.BLL.Manager.Implementations
         }
         public async Task<List<SelectOptionDTO>> GetMembersForSelection()
         {
-            var members = await _memberRepository.GetAllAsync();
+            var members = await _memberRepository.GetMembersForSelection();
 
             return members.Select(m => new SelectOptionDTO
             {
                 Id = m.Id,
-                Name = m.FullName
+                Name = m.Item2
             }).ToList();
         }
         public async Task UpdateAsync(MemberUpdateDTO memberUpdateDto)

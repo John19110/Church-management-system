@@ -15,12 +15,15 @@ namespace SunDaySchools.DAL.Repository.Implementations
             _context = context;
         }
 
-        public async Task<IEnumerable<Meeting>> GetAllAsync()
+        public async Task<List<SelectOptionDTO>> GetMeetingsForSelection()
         {
-            return await _context.Meetings
-                .Include(m => m.Servants)
-                .Include(m => m.Members)
-                .ToListAsync();
+            var meetings = await _meetingRepository.GetMeetingsForSelection();
+
+            return meetings.Select(m => new SelectOptionDTO
+            {
+                Id = m.Id,
+                Name = m.Item2
+            }).ToList();
         }
 
         public async Task<Meeting?> GetByIdAsync(int id)

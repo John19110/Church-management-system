@@ -9,7 +9,7 @@ namespace SunDaySchools.DAL.Models
     public abstract class ChurchEntity
     {
         public int? ChurchId { get; set; }
-        public Church? Chuch { get; set; }
+        public Church? Church { get; set; }
 
         public int? MeetingId { get; set; }
         public Meeting? Meeting { get; set; }

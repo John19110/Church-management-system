@@ -26,11 +26,6 @@ namespace SunDaySchools.API.Controllers
         }
 
 
-
-
-     
-
-
         [HttpGet("pending-admins")]
         public async Task<ActionResult<List<PendingServantDTO>>> GetPendingAdmins()
         {
