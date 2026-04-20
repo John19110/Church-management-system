@@ -49,6 +49,13 @@ class _ServantAddScreenState extends ConsumerState<ServantAddScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_selectedClassroomIds.isEmpty) {
+      final l10n = AppLocalizations.of(context);
+      if (mounted) {
+        showErrorSnackbar(context, '${l10n.required}: ${l10n.classroomId}');
+      }
+      return;
+    }
     setState(() => _loading = true);
     final l10n = AppLocalizations.of(context);
     try {
@@ -59,9 +66,7 @@ class _ServantAddScreenState extends ConsumerState<ServantAddScreen> {
             confirmPassword: _confirmPasswordController.text,
             joiningDate: _joiningController.text.trim().nullIfEmpty,
             birthDate: _birthController.text.trim().nullIfEmpty,
-            classroomsIds: _selectedClassroomIds.isEmpty
-                ? null
-                : List<int>.from(_selectedClassroomIds),
+            classroomsIds: List<int>.from(_selectedClassroomIds),
             image: _image,
           );
       if (mounted) {
@@ -158,8 +163,8 @@ class _ServantAddScreenState extends ConsumerState<ServantAddScreen> {
             const SizedBox(height: 12),
             EndpointMultiSelectField(
               endpoint: SelectionEndpoints.classrooms,
-              label: l10n.classroomIdsOptional,
-              hintText: l10n.classroomIdsOptional,
+              label: l10n.classroomId,
+              hintText: l10n.classroomId,
               selectedIds: _selectedClassroomIds,
               onChanged: (ids) => setState(() => _selectedClassroomIds = ids),
             ),

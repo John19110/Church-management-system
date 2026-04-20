@@ -25,6 +25,7 @@ class MeetingAddDto {
 }
 
 class MeetingReadDto {
+  final int? id;
   final String? name;
   final String? weeklyAppointment;
   final String? dayOfWeek;
@@ -32,8 +33,10 @@ class MeetingReadDto {
   final int servantsCount;
   final List<String> memberNames;
   final List<String> servantNames;
+  final int? leaderServantId;
 
   const MeetingReadDto({
+    this.id,
     this.name,
     this.weeklyAppointment,
     this.dayOfWeek,
@@ -41,9 +44,11 @@ class MeetingReadDto {
     required this.servantsCount,
     this.memberNames = const [],
     this.servantNames = const [],
+    this.leaderServantId,
   });
 
   factory MeetingReadDto.fromJson(Map<String, dynamic> json) => MeetingReadDto(
+        id: json['id'] as int?,
         name: json['name'] as String?,
         weeklyAppointment: (json['weeklyAppointment'] ??
                 json['weekly_appointment'] ??
@@ -62,6 +67,7 @@ class MeetingReadDto {
         servantsCount: _asList(json['servants']).length,
         memberNames: _extractDisplayNames(_asList(json['members'])),
         servantNames: _extractDisplayNames(_asList(json['servants'])),
+        leaderServantId: json['leaderServantId'] as int?,
       );
 
   static List<dynamic> _asList(dynamic value) {

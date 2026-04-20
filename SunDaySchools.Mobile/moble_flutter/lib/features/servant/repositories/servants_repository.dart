@@ -3,7 +3,6 @@ import 'package:dio/dio.dart';
 import '../../../core/api/dio_client.dart';
 import '../../../core/api/select_api.dart';
 import '../../../core/constants/app_constants.dart';
-import '../../../features/classroom/models/classroom_models.dart';
 import '../models/servant_models.dart';
 import '../../../core/models/select_option.dart';
 
@@ -55,6 +54,13 @@ class ServantsRepository {
     File? image,
   }) async {
     return apiCall(() async {
+      final ids = (classroomsIds ?? const <int>[])
+          .where((id) => id > 0)
+          .toList();
+      if (ids.isEmpty) {
+        throw ArgumentError('classroomsIds is required and cannot be empty.');
+      }
+
       final map = <String, dynamic>{
         'Account.Name': name,
         'Account.PhoneNumber': phoneNumber,
@@ -70,15 +76,19 @@ class ServantsRepository {
           'Servant.Image': await MultipartFile.fromFile(image.path,
               filename: image.path.split('/').last),
       };
-      if (classroomsIds != null) {
-        for (var i = 0; i < classroomsIds.length; i++) {
-          map['Account.classroomsIds[$i]'] = classroomsIds[i].toString();
-          map['Servant.classroomsIds[$i]'] = classroomsIds[i].toString();
-        }
+      for (var i = 0; i < ids.length; i++) {
+        map['Account.classroomsIds[$i]'] = ids[i];
+        map['Servant.classroomsIds[$i]'] = ids[i];
       }
+
+      // Debug log: do not print password fields.
+      // ignore: avoid_print
+      print('[add-servant] POST ${AppConstants.adminEndpoint}/add-servant '
+          'classroomsIds=$ids image=${image != null}');
       await _dio.post(
         '${AppConstants.adminEndpoint}/add-servant',
         data: FormData.fromMap(map),
+        options: Options(contentType: 'multipart/form-data'),
       );
     });
   }

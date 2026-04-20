@@ -10,7 +10,10 @@ Dio createDio() {
       baseUrl: AppConstants.baseUrl,
       connectTimeout: const Duration(seconds: 15),
       receiveTimeout: const Duration(seconds: 15),
-      headers: {'Content-Type': 'application/json'},
+      // Do not force a global Content-Type. Dio will set it per-request:
+      // - application/json for JSON bodies
+      // - multipart/form-data for FormData
+      headers: const {},
     ),
   );
 

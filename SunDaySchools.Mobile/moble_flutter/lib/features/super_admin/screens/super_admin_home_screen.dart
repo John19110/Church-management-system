@@ -8,6 +8,9 @@ import '../../meeting/models/meeting_models.dart';
 import '../../meeting/providers/meeting_providers.dart';
 import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
 import '../providers/super_admin_providers.dart';
+import '../../classroom/models/classroom_models.dart';
+import '../../classroom/providers/classroom_providers.dart';
+import '../../../shared/widgets/endpoint_select_fields.dart';
 
 class SuperAdminHomeScreen extends ConsumerStatefulWidget {
   const SuperAdminHomeScreen({super.key});
@@ -25,10 +28,17 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
   TimeOfDay? _selectedTime;
   String _selectedDay = 'Saturday';
 
+  final _classroomFormKey = GlobalKey<FormState>();
+  final _classroomNameController = TextEditingController();
+  final _classroomAgeController = TextEditingController();
+  int? _selectedMeetingIdForClassroom;
+
   @override
   void dispose() {
     _nameController.dispose();
     _timeController.dispose();
+    _classroomNameController.dispose();
+    _classroomAgeController.dispose();
     super.dispose();
   }
 
@@ -205,6 +215,211 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
     );
   }
 
+  void _resetAddClassroomDialogState() {
+    _classroomNameController.clear();
+    _classroomAgeController.clear();
+    _selectedMeetingIdForClassroom = null;
+  }
+
+  Future<void> _createClassroom() async {
+    await ref.read(classroomRepositoryProvider).add(
+          ClassroomAddDto(
+            name: _classroomNameController.text.trim(),
+            ageOfMembers: _classroomAgeController.text.trim(),
+            meetingId: _selectedMeetingIdForClassroom,
+          ),
+        );
+    ref.invalidate(visibleClassroomsProvider);
+  }
+
+  Future<void> _showAddClassroomDialog() async {
+    _resetAddClassroomDialogState();
+    var isSubmitting = false;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (dialogBuilderContext, setDialogState) {
+            return AlertDialog(
+              title: const Text('Add Classroom'),
+              content: SingleChildScrollView(
+                child: Form(
+                  key: _classroomFormKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextFormField(
+                        controller: _classroomNameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Classroom Name',
+                          hintText: 'Enter classroom name',
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Classroom name is required';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _classroomAgeController,
+                        decoration: const InputDecoration(
+                          labelText: 'Age of Members',
+                          hintText: 'Enter age range',
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Age of members is required';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      EndpointSelectDropdown(
+                        endpoint: SelectionEndpoints.meetings,
+                        label: 'Meeting (optional)',
+                        hintText: 'Select meeting',
+                        value: _selectedMeetingIdForClassroom,
+                        enabled: !isSubmitting,
+                        onChanged: (v) => setDialogState(
+                            () => _selectedMeetingIdForClassroom = v),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () async {
+                          if (!_classroomFormKey.currentState!.validate()) {
+                            return;
+                          }
+                          if (!dialogBuilderContext.mounted) return;
+                          setDialogState(() => isSubmitting = true);
+                          try {
+                            await _createClassroom();
+                            if (!mounted || !dialogBuilderContext.mounted) {
+                              return;
+                            }
+                            Navigator.of(dialogContext).pop();
+                            showSuccessSnackbar(
+                              context,
+                              'Classroom added successfully.',
+                            );
+                          } catch (e) {
+                            if (!mounted) return;
+                            showErrorSnackbar(context, e.toString());
+                          } finally {
+                            if (dialogBuilderContext.mounted) {
+                              setDialogState(() => isSubmitting = false);
+                            }
+                          }
+                        },
+                  child: isSubmitting
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Add'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _showEditMeetingDialog(MeetingReadDto meeting) async {
+    final meetingId = meeting.id;
+    if (meetingId == null || meetingId <= 0) {
+      showErrorSnackbar(context, 'Meeting id is missing.');
+      return;
+    }
+
+    var isSubmitting = false;
+    int? selectedLeaderId = meeting.leaderServantId;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (dialogBuilderContext, setDialogState) {
+            return AlertDialog(
+              title: Text('Edit Meeting: ${meeting.name ?? meetingId}'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    EndpointSelectDropdown(
+                      endpoint: SelectionEndpoints.servants,
+                      label: 'Leader Servant (optional)',
+                      hintText: 'Select servant',
+                      value: selectedLeaderId,
+                      enabled: !isSubmitting,
+                      onChanged: (v) =>
+                          setDialogState(() => selectedLeaderId = v),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () async {
+                          if (!dialogBuilderContext.mounted) return;
+                          setDialogState(() => isSubmitting = true);
+                          try {
+                            await ref
+                                .read(meetingRepositoryProvider)
+                                .update(meetingId, leaderServantId: selectedLeaderId);
+                            ref.invalidate(visibleMeetingsProvider);
+                            if (!mounted || !dialogBuilderContext.mounted) return;
+                            Navigator.of(dialogContext).pop();
+                            showSuccessSnackbar(context, 'Meeting updated.');
+                          } catch (e) {
+                            if (!mounted) return;
+                            showErrorSnackbar(context, e.toString());
+                          } finally {
+                            if (dialogBuilderContext.mounted) {
+                              setDialogState(() => isSubmitting = false);
+                            }
+                          }
+                        },
+                  child: isSubmitting
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Save'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final meetingsAsync = ref.watch(visibleMeetingsProvider);
@@ -218,6 +433,11 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
             icon: const Icon(Icons.add),
             tooltip: 'Add Meeting',
             onPressed: _showAddMeetingDialog,
+          ),
+          IconButton(
+            icon: const Icon(Icons.class_),
+            tooltip: 'Add Classroom',
+            onPressed: _showAddClassroomDialog,
           ),
           IconButton(
             icon: const Icon(Icons.logout),
@@ -271,7 +491,17 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
                         subtitle: Text(
                           'Servants: ${m.servantsCount} • Members: ${m.membersCount}',
                         ),
-                        trailing: const Icon(Icons.chevron_right),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit),
+                              tooltip: 'Edit meeting',
+                              onPressed: () => _showEditMeetingDialog(m),
+                            ),
+                            const Icon(Icons.chevron_right),
+                          ],
+                        ),
                         onTap: () => context.push(
                           AppRoutes.meetingDetail,
                           extra: m,

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SunDaySchools.BLL.DTOS.Meeting;
+using SunDaySchools.BLL.DTOS.MeetingDtos;
 using SunDaySchools.BLL.Manager.Implementations;
 using SunDaySchools.BLL.Manager.Interfaces;
 
@@ -42,6 +43,14 @@ namespace SunDaySchools.API.Controllers
         {
             var result = await _meetingManager.GetVisibleMeetings();
             return Ok(result);
+        }
+
+        [HttpPut("{id:int}")]
+        //[Authorize(Roles = "SuperAdmin")]
+        public async Task<IActionResult> UpdateMeeting(int id, [FromBody] MeetingUpdateDto dto)
+        {
+            await _meetingManager.UpdateMeeting(id, dto);
+            return NoContent();
         }
 
 
