@@ -7,10 +7,9 @@ import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
 import '../../member/providers/members_providers.dart';
 import '../../member/models/member_models.dart';
-import '../../classroom/providers/classroom_providers.dart';
 import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
 import '../../../shared/widgets/common_widgets.dart';
-import '../../../shared/widgets/select_option_fields.dart';
+import '../../../shared/widgets/endpoint_select_fields.dart';
 import '../../../core/l10n/app_localizations.dart';
 
 /// State for a single attendance record row.
@@ -139,7 +138,6 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final classroomsAsync = ref.watch(classroomsForSelectionProvider);
     final role = ref.watch(currentUserRoleProvider).resolvedRoleOrNull;
     final homeRoute = AuthRoleUtils.routeForRole(role);
     final currentLocation = GoRouterState.of(context).matchedLocation;
@@ -159,18 +157,13 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
               child: Row(
                 children: [
                   Expanded(
-                    child: classroomsAsync.when(
-                      loading: () => const LinearProgressIndicator(),
-                      error: (e, _) =>
-                          Text('Failed to load classrooms: $e'),
-                      data: (options) => SelectOptionDropdown(
-                        label: l10n.classroomId,
-                        hintText: l10n.classroomId,
-                        options: options,
-                        value: _selectedClassroomId,
-                        onChanged: (v) =>
-                            setState(() => _selectedClassroomId = v),
-                      ),
+                    child: EndpointSelectDropdown(
+                      endpoint: SelectionEndpoints.classrooms,
+                      label: l10n.classroomId,
+                      hintText: l10n.classroomId,
+                      value: _selectedClassroomId,
+                      onChanged: (v) =>
+                          setState(() => _selectedClassroomId = v),
                     ),
                   ),
                   const SizedBox(width: 12),

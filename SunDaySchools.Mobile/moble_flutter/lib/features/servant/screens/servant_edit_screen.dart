@@ -5,10 +5,9 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/servant_models.dart';
 import '../providers/servants_providers.dart';
-import '../../classroom/providers/classroom_providers.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/common_widgets.dart';
-import '../../../shared/widgets/select_option_fields.dart';
+import '../../../shared/widgets/endpoint_select_fields.dart';
 import '../../../core/l10n/app_localizations.dart';
 
 class ServantEditScreen extends ConsumerStatefulWidget {
@@ -84,7 +83,6 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final classroomsAsync = ref.watch(classroomsForSelectionProvider);
     if (widget.id <= 0) {
       return Scaffold(
         appBar: AppBar(title: Text(l10n.editServant)),
@@ -150,22 +148,12 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen> {
                 AppDateField(
                     controller: _birthController, label: l10n.birthDate),
                 const SizedBox(height: 12),
-                classroomsAsync.when(
-                  loading: () => const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8),
-                    child: LinearProgressIndicator(),
-                  ),
-                  error: (e, _) => Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Text('Failed to load classrooms: $e'),
-                  ),
-                  data: (options) => SelectOptionDropdown(
-                    label: l10n.classroomId,
-                    hintText: l10n.classroomId,
-                    options: options,
-                    value: _selectedClassroomId,
-                    onChanged: (v) => setState(() => _selectedClassroomId = v),
-                  ),
+                EndpointSelectDropdown(
+                  endpoint: SelectionEndpoints.classrooms,
+                  label: l10n.classroomId,
+                  hintText: l10n.classroomId,
+                  value: _selectedClassroomId,
+                  onChanged: (v) => setState(() => _selectedClassroomId = v),
                 ),
                 const SizedBox(height: 24),
                 _loading
