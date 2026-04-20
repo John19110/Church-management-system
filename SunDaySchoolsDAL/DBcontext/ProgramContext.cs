@@ -46,6 +46,27 @@ namespace SunDaySchoolsDAL.DBcontext
                 .HasForeignKey(c => c.ClassroomId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // MemberContact ↔ Member (required)
+            builder.Entity<MemberContact>()
+                .HasOne(mc => mc.Member)
+                .WithMany(m => m.PhoneNumbers)
+                .HasForeignKey(mc => mc.MemberId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // PhoneCall ↔ MemberContact (required)
+            builder.Entity<PhoneCall>()
+                .HasOne(pc => pc.MemberContact)
+                .WithMany(mc => mc.CallsHistory)
+                .HasForeignKey(pc => pc.MemberContactId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // AttendanceSession ↔ Classroom (required)
+            builder.Entity<AttendanceSession>()
+                .HasOne(s => s.Classroom)
+                .WithMany(c => c.AttendanceHistory)
+                .HasForeignKey(s => s.ClassroomId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // Many-to-Many ClassroomServant
             builder.Entity<ClassroomServant>()
                 .HasKey(cs => new { cs.ServantId, cs.ClassroomId });
@@ -112,6 +133,49 @@ namespace SunDaySchoolsDAL.DBcontext
                 .WithMany()
                 .HasForeignKey(c => c.LeaderServantId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Keep query filters consistent across required relationships:
+            // Member is globally filtered (ChurchEntity), so dependents that require Member must be filtered too.
+            builder.Entity<MemberContact>()
+                .HasQueryFilter(mc =>
+                    (!CurrentChurchId.HasValue || mc.Member.ChurchId == CurrentChurchId) &&
+                    (!CurrentMeetingId.HasValue || mc.Member.MeetingId == CurrentMeetingId) &&
+                    (
+                        !string.Equals(CurrentScope, "Classroom", StringComparison.OrdinalIgnoreCase) ||
+                        (
+                            CurrentClassroomIds.Count > 0 &&
+                            CurrentClassroomIds.Contains(EF.Property<int>(mc.Member, "ClassroomId"))
+                        )
+                    )
+                );
+
+            // Classroom is globally filtered (ChurchEntity), so dependents that require Classroom must be filtered too.
+            builder.Entity<AttendanceSession>()
+                .HasQueryFilter(s =>
+                    (!CurrentChurchId.HasValue || s.Classroom!.ChurchId == CurrentChurchId) &&
+                    (!CurrentMeetingId.HasValue || s.Classroom!.MeetingId == CurrentMeetingId) &&
+                    (
+                        !string.Equals(CurrentScope, "Classroom", StringComparison.OrdinalIgnoreCase) ||
+                        (
+                            CurrentClassroomIds.Count > 0 &&
+                            CurrentClassroomIds.Contains(s.ClassroomId)
+                        )
+                    )
+                );
+
+            // MemberContact is filtered, so dependents that require MemberContact must be filtered too.
+            builder.Entity<PhoneCall>()
+                .HasQueryFilter(pc =>
+                    (!CurrentChurchId.HasValue || pc.MemberContact.Member.ChurchId == CurrentChurchId) &&
+                    (!CurrentMeetingId.HasValue || pc.MemberContact.Member.MeetingId == CurrentMeetingId) &&
+                    (
+                        !string.Equals(CurrentScope, "Classroom", StringComparison.OrdinalIgnoreCase) ||
+                        (
+                            CurrentClassroomIds.Count > 0 &&
+                            CurrentClassroomIds.Contains(EF.Property<int>(pc.MemberContact.Member, "ClassroomId"))
+                        )
+                    )
+                );
 
             // 🔥 GLOBAL FILTERS (FIXED)
             foreach (var entityType in builder.Model.GetEntityTypes())
