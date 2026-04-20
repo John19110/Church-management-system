@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../shared/widgets/common_widgets.dart' as cw;
-import '../../classroom/providers/classroom_providers.dart';
-import '../../../shared/widgets/select_option_fields.dart';
 import '../providers/admin_providers.dart';
+import '../../../shared/widgets/endpoint_select_fields.dart';
 
 class AdminPendingServantsScreen extends ConsumerWidget {
   const AdminPendingServantsScreen({super.key});
@@ -14,7 +13,6 @@ class AdminPendingServantsScreen extends ConsumerWidget {
     WidgetRef ref, {
     required int servantId,
   }) async {
-    final classrooms = await ref.read(classroomsForSelectionProvider.future);
     int? selectedClassroomId;
 
     if (!context.mounted) return;
@@ -26,10 +24,10 @@ class AdminPendingServantsScreen extends ConsumerWidget {
           builder: (dialogContext, setState) {
             return AlertDialog(
               title: const Text('Assign classroom'),
-              content: SelectOptionDropdown(
+              content: EndpointSelectDropdown(
+                endpoint: SelectionEndpoints.classrooms,
                 label: 'Classroom',
                 hintText: 'Select classroom',
-                options: classrooms,
                 value: selectedClassroomId,
                 onChanged: (v) => setState(() => selectedClassroomId = v),
               ),
