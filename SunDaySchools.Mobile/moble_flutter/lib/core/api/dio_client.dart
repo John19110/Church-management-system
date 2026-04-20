@@ -15,6 +15,7 @@ Dio createDio() {
   );
 
   dio.interceptors.add(_AuthInterceptor());
+  dio.interceptors.add(_FullUrlLogger());
   dio.interceptors.add(LogInterceptor(
     requestBody: true,
     responseBody: true,
@@ -22,6 +23,15 @@ Dio createDio() {
   ));
 
   return dio;
+}
+
+/// Logs the full resolved request URL (method + uri) before sending.
+class _FullUrlLogger extends Interceptor {
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    debugPrint('[DIO] ${options.method} ${options.uri}');
+    handler.next(options);
+  }
 }
 
 /// Adds JWT Bearer token to every request and handles 401 errors.

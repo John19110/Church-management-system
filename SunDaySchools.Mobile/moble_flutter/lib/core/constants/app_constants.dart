@@ -29,7 +29,7 @@ class AppConstants {
   static const String servantEndpoint = '/api/Servant';
 
   // Admin endpoints
-  static const String adminEndpoint = '/Api/Admin';
+  static const String adminEndpoint = '/api/Admin';
 
   // Classroom endpoints
   static const String classroomEndpoint = '/api/Classroom';
@@ -44,10 +44,10 @@ class AppConstants {
   static const String attendanceEndpoint = '/api/AttendanceSession';
 
   // Select endpoints (all return: {id, name})
-  static const String classroomsSelectEndpoint = '/classrooms/select';
-  static const String membersSelectEndpoint = '/members/select';
-  static const String meetingsSelectEndpoint = '/meetings/select';
-  static const String servantsSelectEndpoint = '/servants/select';
+  static const String classroomsSelectEndpoint = '/api/Classroom/select';
+  static const String membersSelectEndpoint = '/api/Member/select';
+  static const String meetingsSelectEndpoint = '/api/Meeting/select';
+  static const String servantsSelectEndpoint = '/api/Servant/select';
 
   static const String tokenKey = 'jwt_token';
 }
