@@ -67,7 +67,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             
 
             if (appUser == null)
-                throw new NotFoundException("User not found.");
+                throw new UnauthorizedAccessException("User not found for the supplied token.");
 
             List<Classroom> classrooms;
 
