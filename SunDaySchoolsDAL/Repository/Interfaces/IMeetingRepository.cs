@@ -7,7 +7,7 @@ namespace SunDaySchools.DAL.Repository.Interfaces
 {
     public interface IMeetingRepository
     {
-        Task<IEnumerable<Meeting>> GetAllAsync();
+        Task<IQueryable<Meeting>> GetAllAsync();
         Task<Meeting?> GetByIdAsync(int id);
         Task<Meeting?> GetByNameAsync(string name);
 

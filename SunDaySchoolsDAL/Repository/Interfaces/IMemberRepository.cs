@@ -12,6 +12,7 @@ namespace SunDaySchools.DAL.Repository.Interfaces
 
         Task<List<Member>> GetByIdsAsync(List<int> ids);
 
+        Task<List<(int Id, string Name)>> GetMembersForSelection();
 
         Task AddAsync(Member member);
 
