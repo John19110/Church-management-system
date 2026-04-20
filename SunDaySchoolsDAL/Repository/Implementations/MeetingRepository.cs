@@ -15,15 +15,30 @@ namespace SunDaySchools.DAL.Repository.Implementations
             _context = context;
         }
 
-        public async Task<List<SelectOptionDTO>> GetMeetingsForSelection()
-        {
-            var meetings = await _meetingRepository.GetMeetingsForSelection();
 
-            return meetings.Select(m => new SelectOptionDTO
-            {
-                Id = m.Id,
-                Name = m.Item2
-            }).ToList();
+       //public async Task<IQueryable<Meeting>> GetAllAsync()
+       // {
+
+
+       //     return await _context.Meetings
+       //         .Include(m => m.Servants)
+       //         .Include(m => m.Members);     
+       // }
+        public async Task<IQueryable<Meeting>> GetAllAsync()
+        {
+            return await Task.FromResult(
+                _context.Meetings
+                     .Include(m => m.Servants)
+                     .Include(m => m.Members) 
+            );
+        }
+
+        public async Task<List<(int Id, string Name)>> GetMeetingsForSelection()
+        {
+            return await _context.Meetings
+                .AsNoTracking()
+                .Select(m => new ValueTuple<int, string>(m.Id, m.Name))
+                .ToListAsync();
         }
 
         public async Task<Meeting?> GetByIdAsync(int id)

@@ -32,6 +32,13 @@ namespace SunDaySchools.DAL.Repository.Implementations
                 .ToListAsync();
         }
 
+        public async Task<List<(int Id, string Name)>> GetServantsForSelection()
+        {
+            return await _context.Servants
+                .AsNoTracking()
+                .Select(s => new ValueTuple<int, string>(s.Id, s.Name))
+                .ToListAsync();
+        }
         public async Task<Servant?> GetByIdAsync(int id)
         {
             if (id <= 0)

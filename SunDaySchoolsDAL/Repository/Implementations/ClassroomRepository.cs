@@ -26,15 +26,12 @@ namespace SunDaySchools.DAL.Repository.Implementations
                     .Include(c => c.AttendanceHistory)
             );
         }
-        public async Task<List<SelectOptionDTO>> GetClassroomsForSelection()
+        public async Task<List<(int Id, string Name)>> GetClassroomsForSelection()
         {
-            var classrooms = await _classroomRepository.GetClassroomsForSelection();
-
-            return classrooms.Select(c => new SelectOptionDTO
-            {
-                Id = c.Id,
-                Name = c.Item2
-            }).ToList();
+            return await _context.Classrooms
+                .AsNoTracking()
+                .Select(c => new ValueTuple<int, string>(c.Id, c.Name))
+                .ToListAsync();
         }
         public async Task<Classroom?> GetByIdAsync(int id)
         {
