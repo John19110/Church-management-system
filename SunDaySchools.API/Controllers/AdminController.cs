@@ -12,20 +12,41 @@ using SunDaySchools.BLL.Manager.Interfaces;
 namespace SunDaySchools.API.Controllers
 {
     [ApiController]
-    [Route("Api/[controller]")]
+    [Route("api/[controller]")]
     public class AdminController : ControllerBase
     {
         private readonly IAdminManager _adminManager;
         private readonly IFileStorage _filestorage;
         private readonly IWebHostEnvironment _env;
+        private readonly IServantManager _servantManager;
 
 
 
-        public AdminController(IAdminManager adminmanager, IFileStorage filestorage, IWebHostEnvironment env)
+        public AdminController(IAdminManager adminmanager, IFileStorage filestorage, IWebHostEnvironment env, IServantManager servantManager)
         {
             _adminManager = adminmanager;
             _filestorage = filestorage;
             _env = env;
+            _servantManager = servantManager;
+        }
+
+        // Add servant (admin flow)
+        [HttpPost("add-servant")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> AddServant([FromForm(Name = "")] AdminAddServantDTO servant)
+        {
+            if (servant == null)
+            {
+                var errors = new Dictionary<string, string[]>
+                {
+                    ["servant"] = new[] { "The request body cannot be empty." }
+                };
+                throw new ValidationException(errors);
+            }
+
+            await _servantManager.AddAsync(servant, _env.WebRootPath);
+
+            return StatusCode(201, new { message = "Created Successfully" });
         }
 
 
