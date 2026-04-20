@@ -13,6 +13,13 @@ class AdminRepository {
   /// Adds a servant along with their account credentials.
   Future<void> addServant(AdminAddServantDto dto, {File? image}) async {
     return apiCall(() async {
+      final classroomsIds = (dto.classroomsIds ?? const <int>[])
+          .where((id) => id > 0)
+          .toList();
+      if (classroomsIds.isEmpty) {
+        throw ArgumentError('classroomsIds is required and cannot be empty.');
+      }
+
       final map = <String, dynamic>{
         'Account.Name': dto.accountName,
         'Account.PhoneNumber': dto.phoneNumber,
@@ -28,17 +35,20 @@ class AdminRepository {
           'Servant.Image': await MultipartFile.fromFile(image.path,
               filename: image.path.split('/').last),
       };
-      if (dto.classroomsIds != null) {
-        for (var i = 0; i < dto.classroomsIds!.length; i++) {
-          map['Account.classroomsIds[$i]'] =
-              dto.classroomsIds![i].toString();
-          map['Servant.classroomsIds[$i]'] =
-              dto.classroomsIds![i].toString();
-        }
+      for (var i = 0; i < classroomsIds.length; i++) {
+        map['Account.classroomsIds[$i]'] = classroomsIds[i];
+        map['Servant.classroomsIds[$i]'] = classroomsIds[i];
       }
+
+      // Debug log: ensure classroomsIds exists in the outgoing payload.
+      // (Endpoint + ids only; do not print passwords.)
+      // ignore: avoid_print
+      print('[add-servant] POST ${AppConstants.adminEndpoint}/add-servant '
+          'classroomsIds=$classroomsIds image=${image != null}');
       await _dio.post(
         '${AppConstants.adminEndpoint}/add-servant',
         data: FormData.fromMap(map),
+        options: Options(contentType: 'multipart/form-data'),
       );
     });
   }

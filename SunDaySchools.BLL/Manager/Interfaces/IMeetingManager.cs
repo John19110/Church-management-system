@@ -17,6 +17,7 @@ namespace SunDaySchools.BLL.Manager.Interfaces
         Task<List<SelectOptionDTO>> GetMeetingsForSelection();
         Task<List<MeetingReadDTO>> GetVisibleMeetings();
 
+        Task UpdateMeeting(int id, MeetingUpdateDto dto);
 
     }
 }

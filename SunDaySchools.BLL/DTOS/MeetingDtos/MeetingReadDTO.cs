@@ -10,6 +10,7 @@ namespace SunDaySchools.BLL.DTOS.MeetingDtos
     public class MeetingReadDTO
     {
 
+            public int Id { get; set; }
             public string? Name { get; set; }
             public TimeOnly WeeklyAppointment { get; set; }
             public string DayOfWeek { get; set; } = string.Empty;

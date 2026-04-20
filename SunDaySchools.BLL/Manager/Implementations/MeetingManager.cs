@@ -149,6 +149,23 @@ namespace SunDaySchools.BLL.Manager.Implementations
             await  _meetingRepository.AddAsync(model);
         }
 
+        public async Task UpdateMeeting(int id, MeetingUpdateDto dto)
+        {
+            if (id <= 0)
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["MeetingId"] = new[] { "Meeting id must be a positive integer." }
+                });
+
+            var meeting = await _meetingRepository.GetByIdAsync(id);
+            if (meeting == null)
+                throw new NotFoundException($"Meeting with id {id} not found.");
+
+            meeting.LeaderServantId = dto.LeaderServantId;
+
+            await _meetingRepository.UpdateAsync(meeting);
+        }
+
 
     }
 }
