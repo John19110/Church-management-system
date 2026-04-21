@@ -48,7 +48,9 @@ namespace SunDaySchools.DAL.Repository.Implementations
         }
         public async Task<AttendanceSession> Get(int  SessionId)
         {
-             return  _context.AttendanceSessions.Include(c=>c.Records)
+             return  _context.AttendanceSessions
+                .Include(c=>c.Records)
+                    .ThenInclude(r => r.Member)
                 .FirstOrDefault(c => c.Id == SessionId);
             
         }
@@ -59,6 +61,7 @@ namespace SunDaySchools.DAL.Repository.Implementations
                 .AsNoTracking()
                 .Where(s => s.ClassroomId == classroomId)
                 .Include(s => s.Records)
+                    .ThenInclude(r => r.Member)
                 .OrderByDescending(s => s.CreatedAt)
                 .ToListAsync();
         }

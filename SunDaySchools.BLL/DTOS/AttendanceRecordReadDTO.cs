@@ -11,6 +11,7 @@ namespace SunDaySchools.BLL.DTOS
     {
 
         public int ChildId { get; set; }
+        public string? MemberName { get; set; }
 
         public bool MadeHomeWork { get; set; } = false;
         public bool HasTools { get; set; } = false;

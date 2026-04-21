@@ -32,6 +32,7 @@ enum AttendanceStatus {
 class AttendanceRecordDto {
   final int? id;
   final int memberId;
+  final String? memberName;
   final bool madeHomeWork;
   final bool hasTools;
   final int status;
@@ -40,6 +41,7 @@ class AttendanceRecordDto {
   const AttendanceRecordDto({
     this.id,
     required this.memberId,
+    this.memberName,
     required this.madeHomeWork,
     required this.hasTools,
     required this.status,
@@ -51,6 +53,7 @@ class AttendanceRecordDto {
         id: json['id'] as int?,
         // Read DTO returns 'childId'; Add/Update DTOs use 'memberId'.
         memberId: (json['memberId'] ?? json['childId']) as int? ?? 0,
+        memberName: (json['memberName'] ?? json['MemberName']) as String?,
         madeHomeWork: json['madeHomeWork'] as bool? ?? false,
         hasTools: json['hasTools'] as bool? ?? false,
         status: json['status'] as int? ?? 2,
