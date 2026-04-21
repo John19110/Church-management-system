@@ -128,6 +128,32 @@ void showSuccessSnackbar(BuildContext context, String message) {
   );
 }
 
+/// Fixed snackbars reserve layout space and won't render off-screen with
+/// bottom navigation bars.
+void showErrorSnackbarFixed(BuildContext context, String message) {
+  final messenger = ScaffoldMessenger.of(context);
+  messenger.clearSnackBars();
+  messenger.showSnackBar(
+    SnackBar(
+      content: Text(message),
+      backgroundColor: Colors.red,
+      behavior: SnackBarBehavior.fixed,
+    ),
+  );
+}
+
+void showSuccessSnackbarFixed(BuildContext context, String message) {
+  final messenger = ScaffoldMessenger.of(context);
+  messenger.clearSnackBars();
+  messenger.showSnackBar(
+    SnackBar(
+      content: Text(message),
+      backgroundColor: Colors.green,
+      behavior: SnackBarBehavior.fixed,
+    ),
+  );
+}
+
 /// Shows a confirmation dialog. Returns true if confirmed.
 Future<bool> showConfirmDialog(
   BuildContext context, {
