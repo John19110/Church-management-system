@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/routing/app_router.dart';
+import '../../auth/providers/auth_providers.dart';
+import '../../auth/utils/auth_role_utils.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
 import '../providers/servants_providers.dart';
@@ -15,12 +17,14 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profileAsync = ref.watch(servantProfileProvider);
+    final role = ref.watch(currentUserRoleProvider).resolvedRoleOrNull;
+    final homeRoute = AuthRoleUtils.routeForRole(role);
 
     return Scaffold(
       appBar: showAppBar ? AppBar(title: const Text('Profile')) : null,
-      bottomNavigationBar: const AppSectionBottomNavigationBar(
+      bottomNavigationBar: AppSectionBottomNavigationBar(
         currentIndex: 3,
-        homeRoute: AppRoutes.servantHome,
+        homeRoute: homeRoute,
       ),
       body: profileAsync.when(
         loading: () => const cw.LoadingWidget(),
