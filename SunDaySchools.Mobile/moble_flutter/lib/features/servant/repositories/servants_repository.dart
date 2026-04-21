@@ -40,6 +40,52 @@ class ServantsRepository {
     });
   }
 
+  Future<ServantProfileDto> getProfile() async {
+    return apiCall(() async {
+      final response = await _dio.get(AppConstants.servantProfileEndpoint);
+      return ServantProfileDto.fromJson(response.data as Map<String, dynamic>);
+    });
+  }
+
+  Future<void> updateProfile({
+    String? name,
+    String? phoneNumber,
+    String? birthDate,
+    String? joiningDate,
+    String? spiritualBirthDate,
+    int? churchId,
+    int? meetingId,
+    List<int>? classroomIds,
+    File? image,
+  }) async {
+    return apiCall(() async {
+      final map = <String, dynamic>{
+        if (name != null) 'Name': name,
+        if (phoneNumber != null) 'PhoneNumber': phoneNumber,
+        if (birthDate != null) 'BirthDate': birthDate,
+        if (joiningDate != null) 'JoiningDate': joiningDate,
+        if (spiritualBirthDate != null) 'SpiritualBirthDate': spiritualBirthDate,
+        if (churchId != null) 'ChurchId': churchId.toString(),
+        if (meetingId != null) 'MeetingId': meetingId.toString(),
+        if (image != null)
+          'Image': await MultipartFile.fromFile(image.path,
+              filename: image.path.split('/').last),
+      };
+
+      final ids = (classroomIds ?? const <int>[])
+          .where((id) => id > 0)
+          .toList();
+      for (var i = 0; i < ids.length; i++) {
+        map['ClassroomIds[$i]'] = ids[i].toString();
+      }
+
+      await _dio.put(
+        AppConstants.servantProfileEndpoint,
+        data: FormData.fromMap(map),
+      );
+    });
+  }
+
   /// Update servant: PUT /api/Servant/{id} (multipart/form-data)
   /// Matches ServantFormRequest: Name, JoiningDate, BirthDate, PhoneNumber, Image
   Future<void> update(

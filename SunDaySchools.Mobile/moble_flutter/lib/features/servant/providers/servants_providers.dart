@@ -21,3 +21,8 @@ final servantsForSelectionProvider = FutureProvider<List<SelectOption>>((ref) as
   ref.watch(authSessionEpochProvider);
   return ref.watch(servantsRepositoryProvider).getForSelection();
 });
+
+final servantProfileProvider = FutureProvider<ServantProfileDto>((ref) async {
+  ref.watch(authSessionEpochProvider);
+  return ref.watch(servantsRepositoryProvider).getProfile();
+});

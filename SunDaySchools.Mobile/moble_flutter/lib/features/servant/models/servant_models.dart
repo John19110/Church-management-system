@@ -54,3 +54,65 @@ class ServantReadDto {
             [],
       );
 }
+
+class NamedEntityDto {
+  final int id;
+  final String? name;
+
+  const NamedEntityDto({required this.id, this.name});
+
+  factory NamedEntityDto.fromJson(Map<String, dynamic> json) => NamedEntityDto(
+        id: json['id'] as int? ?? 0,
+        name: json['name'] as String?,
+      );
+}
+
+class ServantProfileDto {
+  final int id;
+  final String? name;
+  final String? phoneNumber;
+  final String? imageUrl;
+  final String? birthDate;
+  final String? joiningDate;
+  final String? spiritualBirthDate;
+  final NamedEntityDto? church;
+  final NamedEntityDto? meeting;
+  final List<ClassroomSummaryDto> classrooms;
+
+  const ServantProfileDto({
+    required this.id,
+    this.name,
+    this.phoneNumber,
+    this.imageUrl,
+    this.birthDate,
+    this.joiningDate,
+    this.spiritualBirthDate,
+    this.church,
+    this.meeting,
+    this.classrooms = const [],
+  });
+
+  factory ServantProfileDto.fromJson(Map<String, dynamic> json) => ServantProfileDto(
+        id: json['id'] as int? ?? 0,
+        name: json['name'] as String?,
+        phoneNumber: json['phoneNumber'] as String?,
+        imageUrl: json['imageUrl'] as String?,
+        birthDate: json['birthDate']?.toString(),
+        joiningDate: json['joiningDate']?.toString(),
+        spiritualBirthDate: (json['spiritualBirthDate'] ?? json['SpiritualBirthDate'])?.toString(),
+        church: json['church'] is Map<String, dynamic>
+            ? NamedEntityDto.fromJson(json['church'] as Map<String, dynamic>)
+            : (json['Church'] is Map<String, dynamic>
+                ? NamedEntityDto.fromJson(json['Church'] as Map<String, dynamic>)
+                : null),
+        meeting: json['meeting'] is Map<String, dynamic>
+            ? NamedEntityDto.fromJson(json['meeting'] as Map<String, dynamic>)
+            : (json['Meeting'] is Map<String, dynamic>
+                ? NamedEntityDto.fromJson(json['Meeting'] as Map<String, dynamic>)
+                : null),
+        classrooms: ((json['classrooms'] ?? json['Classrooms']) as List<dynamic>?)
+                ?.map((e) => ClassroomSummaryDto.fromJson(e as Map<String, dynamic>))
+                .toList() ??
+            [],
+      );
+}

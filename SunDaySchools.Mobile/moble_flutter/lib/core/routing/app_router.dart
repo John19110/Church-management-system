@@ -13,6 +13,8 @@ import '../../features/member/screens/member_edit_screen.dart';
 import '../../features/servant/screens/servants_list_screen.dart';
 import '../../features/servant/screens/servant_detail_screen.dart';
 import '../../features/servant/screens/servant_edit_screen.dart';
+import '../../features/servant/screens/profile_screen.dart';
+import '../../features/servant/screens/edit_profile_screen.dart';
 import '../../features/attendance/screens/attendance_take_screen.dart';
 import '../../features/attendance/screens/attendance_view_screen.dart';
 import '../../features/super_admin/screens/super_admin_home_screen.dart';
@@ -35,6 +37,8 @@ class AppRoutes {
   static const adminHome = '/admin-home';
   static const servantHome = '/servant-home';
   static const classroomsHome = '/classrooms-home';
+  static const profile = '/profile';
+  static const profileEdit = '/profile/edit';
   static const pendingAdmins = '/super-admin/pending-admins';
   static const pendingServants = '/admin/pending-servants';
   static const meetingDetail = '/meeting-detail';
@@ -93,6 +97,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.classroomsHome,
         builder: (_, __) => const ClassroomsHomeScreen(),
+      ),
+
+      GoRoute(
+        path: AppRoutes.profile,
+        builder: (_, __) => const ProfileScreen(),
+      ),
+
+      GoRoute(
+        path: AppRoutes.profileEdit,
+        builder: (_, __) => const EditProfileScreen(),
       ),
 
       GoRoute(
