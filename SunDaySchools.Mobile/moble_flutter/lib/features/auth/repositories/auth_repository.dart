@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import '../../../core/api/dio_client.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/storage/token_storage.dart';
@@ -8,6 +9,12 @@ class AuthRepository {
   final Dio _dio;
 
   AuthRepository(this._dio);
+
+  static String _formatTimeOfDay(TimeOfDay time) {
+    final hh = time.hour.toString().padLeft(2, '0');
+    final mm = time.minute.toString().padLeft(2, '0');
+    return '$hh:$mm:00';
+  }
 
   /// Login: POST /api/Account/login
   /// Response body: { "token": "<jwt>" }
@@ -96,7 +103,12 @@ class AuthRepository {
         'ConfirmPassword': dto.confirmPassword,
         'ChurchName': dto.churchName,
         'MeetingName': dto.meetingName,
-        'Weekly_appointment': dto.weeklyAppointment.toIso8601String(),
+        // Backend meeting model expects time-only for weekly appointment.
+        'Weekly_appointment': _formatTimeOfDay(dto.weeklyAppointment),
+        // Backend meeting model also includes a weekday string.
+        // Send both casings to be resilient to binder naming differences.
+        'DayOfWeek': dto.dayOfWeek,
+        'dayOfWeek': dto.dayOfWeek,
         if (dto.birthDate != null) 'BirthDate': dto.birthDate,
         if (dto.joiningDate != null) 'JoiningDate': dto.joiningDate,
         if (dto.image != null)

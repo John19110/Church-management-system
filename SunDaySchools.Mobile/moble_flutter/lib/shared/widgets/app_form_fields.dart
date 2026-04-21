@@ -11,6 +11,8 @@ class AppTextField extends StatelessWidget {
   final int maxLines;
   final Widget? suffixIcon;
   final bool enabled;
+  final bool readOnly;
+  final VoidCallback? onTap;
 
   const AppTextField({
     super.key,
@@ -23,6 +25,8 @@ class AppTextField extends StatelessWidget {
     this.maxLines = 1,
     this.suffixIcon,
     this.enabled = true,
+    this.readOnly = false,
+    this.onTap,
   });
 
   @override
@@ -34,6 +38,8 @@ class AppTextField extends StatelessWidget {
       validator: validator,
       maxLines: obscureText ? 1 : maxLines,
       enabled: enabled,
+      readOnly: readOnly,
+      onTap: onTap,
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,

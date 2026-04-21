@@ -105,6 +105,7 @@ class AppLocalizations {
   String get classroomIdsOptional => _t('classroomIdsOptional');
   String get weeklyAppointmentHint => _t('weeklyAppointmentHint');
   String get invalidWeeklyAppointment => _t('invalidWeeklyAppointment');
+  String get meetingDayOfWeek => _t('meetingDayOfWeek');
 
   // ── Servants ──────────────────────────────────────────────────────────────
   String get noServants => _t('noServants');
@@ -251,10 +252,11 @@ class AppLocalizations {
       'classroomIdsOptional':
           'Classroom IDs (comma-separated, optional)',
       'weeklyAppointmentHint':
-          'ISO date & time, e.g. 2024-06-01T09:00:00',
-      'invalidWeeklyAppointment': 'Enter a valid date and time',
+          'Time only, e.g. 09:00',
+      'invalidWeeklyAppointment': 'Enter a valid time',
+      'meetingDayOfWeek': 'Day of week',
       // Servants
-      'noServants': 'No servants yet. Tap + to add one.',
+      'noServants': 'No servants found.',
       'addServant': 'Add Servant',
       'editServant': 'Edit Servant',
       'servantDetails': 'Servant Details',
@@ -392,10 +394,11 @@ class AppLocalizations {
       'totalDaysAttended': 'إجمالي أيام الحضور',
       'discipline': 'علم انضباط',
       'classroomIdsOptional': 'معرفات الفصول (مفصولة بفاصلة، اختياري)',
-      'weeklyAppointmentHint': 'تاريخ ووقت ISO، مثال 2024-06-01T09:00:00',
-      'invalidWeeklyAppointment': 'أدخل تاريخاً ووقتاً صحيحين',
+      'weeklyAppointmentHint': 'وقت فقط، مثال 09:00',
+      'invalidWeeklyAppointment': 'أدخل وقتاً صحيحاً',
+      'meetingDayOfWeek': 'يوم الأسبوع',
       // Servants
-      'noServants': 'لا يوجد خدام بعد. اضغط + للإضافة.',
+      'noServants': 'لا يوجد خدام.',
       'addServant': 'إضافة خادم',
       'editServant': 'تعديل خادم',
       'servantDetails': 'تفاصيل الخادم',
