@@ -42,7 +42,6 @@ namespace SunDaySchools.API.Controllers
             return StatusCode(201, new { message = "Created Successfully" });
         }
 
-
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MemberReadDTO>>> GetAll()
         {
