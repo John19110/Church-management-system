@@ -127,7 +127,7 @@ namespace SunDaySchools.API.Controllers
             return NoContent();
         }
 
-        [Authorize(Roles = "Servant")]
+     //   [Authorize(Roles = "Servant")]
         [HttpGet("profile")]
         public async Task<IActionResult> GetProfile(CancellationToken ct)
         {
