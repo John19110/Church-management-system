@@ -17,6 +17,7 @@ import '../../features/servant/screens/profile_screen.dart';
 import '../../features/servant/screens/edit_profile_screen.dart';
 import '../../features/attendance/screens/attendance_take_screen.dart';
 import '../../features/attendance/screens/attendance_view_screen.dart';
+import '../../features/attendance/screens/attendance_history_screen.dart';
 import '../../features/super_admin/screens/super_admin_home_screen.dart';
 import '../../features/super_admin/screens/super_admin_pending_admins_screen.dart';
 import '../../features/meeting/models/meeting_models.dart';
@@ -46,6 +47,7 @@ class AppRoutes {
   static const member = '/member';
   static const servants = '/servants';
   static const attendanceTake = '/attendance/take';
+  static const attendanceHistory = '/attendance/history';
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -200,6 +202,21 @@ final routerProvider = Provider<GoRouter>((ref) {
               : null;
 
           return AttendanceTakeScreen(classroomId: classroomId);
+        },
+      ),
+
+      GoRoute(
+        path: '${AppRoutes.attendanceHistory}/:classroomId',
+        builder: (_, state) {
+          final classroomId = int.tryParse(state.pathParameters['classroomId'] ?? '');
+          if (classroomId == null) {
+            return const _MissingRouteDataScreen(title: 'Attendance history');
+          }
+          final classroomName = state.uri.queryParameters['classroomName'];
+          return AttendanceHistoryScreen(
+            classroomId: classroomId,
+            classroomName: classroomName,
+          );
         },
       ),
 

@@ -12,6 +12,7 @@ namespace SunDaySchools.DAL.Repository.Interfaces
         Task  Take(AttendanceSession session);
         Task  Edit(AttendanceSession session);
         Task<AttendanceSession> Get(int SessionId);
+        Task<List<AttendanceSession>> GetByClassroom(int classroomId);
 
     }
 }

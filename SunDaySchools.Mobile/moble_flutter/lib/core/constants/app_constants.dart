@@ -43,6 +43,8 @@ class AppConstants {
 
   // AttendanceSession endpoints
   static const String attendanceEndpoint = '/api/AttendanceSession';
+  static const String attendanceByClassroomEndpoint =
+      '/api/AttendanceSession/by-classroom';
 
   // Select endpoints (all return: {id, name})
   static const String classroomsSelectEndpoint = '/api/Classroom/select';

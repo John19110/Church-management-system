@@ -150,3 +150,25 @@ class AttendanceSessionReadDto {
             [],
       );
 }
+
+class AttendanceSessionSummaryDto {
+  final int id;
+  final String? createdAt;
+  final String? notes;
+  final int recordsCount;
+
+  const AttendanceSessionSummaryDto({
+    required this.id,
+    this.createdAt,
+    this.notes,
+    required this.recordsCount,
+  });
+
+  factory AttendanceSessionSummaryDto.fromJson(Map<String, dynamic> json) =>
+      AttendanceSessionSummaryDto(
+        id: json['id'] as int? ?? 0,
+        createdAt: json['createdAt']?.toString(),
+        notes: json['notes'] as String?,
+        recordsCount: json['recordsCount'] as int? ?? 0,
+      );
+}

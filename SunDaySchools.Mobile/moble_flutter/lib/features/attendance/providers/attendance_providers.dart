@@ -11,3 +11,11 @@ final attendanceSessionProvider =
     FutureProvider.family<AttendanceSessionReadDto, int>((ref, id) async {
   return ref.watch(attendanceRepositoryProvider).getById(id);
 });
+
+final attendanceHistoryByClassroomProvider =
+    FutureProvider.family<List<AttendanceSessionSummaryDto>, int>(
+        (ref, classroomId) async {
+  return ref
+      .watch(attendanceRepositoryProvider)
+      .getHistoryByClassroom(classroomId);
+});

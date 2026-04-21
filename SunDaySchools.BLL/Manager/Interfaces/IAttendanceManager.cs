@@ -15,5 +15,7 @@ namespace SunDaySchools.BLL.Manager.Interfaces
         Task EditAttendanceAsync(AttendanceSessionUpdateDTO session);
 
         Task<AttendanceSessionReadDTO?> GetAttendanceAsync(int sessionId);
+
+        Task<List<AttendanceSessionSummaryDTO>> GetHistoryByClassroomAsync(int classroomId);
     }
 }
