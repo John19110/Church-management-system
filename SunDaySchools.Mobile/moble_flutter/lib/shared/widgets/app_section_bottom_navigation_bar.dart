@@ -30,7 +30,7 @@ class AppSectionBottomNavigationBar extends StatelessWidget {
             context.go(AppRoutes.servants);
             break;
           case 3:
-            context.go(AppRoutes.classroomsHome);
+            context.go(AppRoutes.profile);
             break;
         }
       },
@@ -42,8 +42,8 @@ class AppSectionBottomNavigationBar extends StatelessWidget {
           label: 'Servants',
         ),
         NavigationDestination(
-          icon: Icon(Icons.class_outlined),
-          label: 'Classrooms',
+          icon: Icon(Icons.person_outline),
+          label: 'Profile',
         ),
       ],
     );

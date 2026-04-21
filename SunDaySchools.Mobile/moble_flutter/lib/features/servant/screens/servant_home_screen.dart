@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_session.dart';
-import '../../classroom/screens/classrooms_home_screen.dart';
+import 'profile_screen.dart';
 
 class ServantHomeScreen extends ConsumerWidget {
   const ServantHomeScreen({super.key});
@@ -25,7 +25,7 @@ class ServantHomeScreen extends ConsumerWidget {
       body: roleAsync.when(
         data: (role) {
           if (role == 'servant') {
-            return const ClassroomsHomeScreen(showAppBar: false);
+            return const ProfileScreen(showAppBar: false);
           }
           if (role == null) {
             return const Center(

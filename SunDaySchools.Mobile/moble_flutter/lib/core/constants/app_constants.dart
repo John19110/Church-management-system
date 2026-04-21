@@ -27,6 +27,7 @@ class AppConstants {
 
   // Servant endpoints
   static const String servantEndpoint = '/api/Servant';
+  static const String servantProfileEndpoint = '/api/Servant/profile';
 
   // Admin endpoints
   static const String adminEndpoint = '/api/Admin';
