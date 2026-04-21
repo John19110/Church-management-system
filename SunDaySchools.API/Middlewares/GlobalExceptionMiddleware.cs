@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using SunDaySchools.BLL.Exceptions;
 using System;
@@ -12,6 +11,8 @@ public class GlobalExceptionMiddleware
     private readonly RequestDelegate _next;
     private readonly ILogger<GlobalExceptionMiddleware> _logger;
     private readonly IWebHostEnvironment _env;
+
+    private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web);
 
     public GlobalExceptionMiddleware(
         RequestDelegate next,
@@ -37,123 +38,63 @@ public class GlobalExceptionMiddleware
 
     private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
-        _logger.LogError(exception, "An unhandled exception occurred.");
+        // Logs full exception + stack trace to server logs only.
+        _logger.LogError(
+            exception,
+            "Unhandled exception. method={Method} path={Path} query={QueryString} traceId={TraceId}",
+            context.Request.Method,
+            context.Request.Path.Value,
+            context.Request.QueryString.Value,
+            context.TraceIdentifier);
 
         var response = context.Response;
-        response.ContentType = "application/problem+json";
-
-        var problemDetails = new ProblemDetails
+        if (response.HasStarted)
         {
-            Title = "An error occurred while processing your request.",
-            Status = (int)HttpStatusCode.InternalServerError,
-            Instance = context.Request.Path,
-            Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1"
-        };
-
-        switch (exception)
-        {
-            case NotFoundException notFound:
-                problemDetails.Title = "The requested resource was not found.";
-                problemDetails.Status = (int)HttpStatusCode.NotFound;
-                problemDetails.Type = "https://tools.ietf.org/html/rfc7231#section-6.5.4";
-                problemDetails.Detail = notFound.Message;
-                break;
-
-            case ValidationException validation:
-                problemDetails.Title = "One or more validation errors occurred.";
-                problemDetails.Status = (int)HttpStatusCode.BadRequest;
-                problemDetails.Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1";
-                problemDetails.Detail = validation.Message;
-                problemDetails.Extensions["errors"] = validation.Errors;
-                break;
-
-            case InvalidCredentialsException invalidCredentials:
-                problemDetails.Title = "Authentication failed.";
-                problemDetails.Status = (int)HttpStatusCode.Unauthorized;
-                problemDetails.Type = "https://tools.ietf.org/html/rfc7235#section-3.1";
-                problemDetails.Detail = invalidCredentials.Message;
-                break;
-
-            case UnauthorizedAccessException unauthorized:
-                problemDetails.Title = "Unauthorized.";
-                problemDetails.Status = (int)HttpStatusCode.Unauthorized;
-                problemDetails.Type = "https://tools.ietf.org/html/rfc7235#section-3.1";
-                problemDetails.Detail = unauthorized.Message;
-                break;
-
-            case ServantProfileMissingException servantProfileMissing:
-                problemDetails.Title = "Servant profile required.";
-                problemDetails.Status = (int)HttpStatusCode.Forbidden;
-                problemDetails.Type = "https://tools.ietf.org/html/rfc7231#section-6.5.3";
-                problemDetails.Detail = servantProfileMissing.Message;
-                break;
-
-            case AccountNotApprovedException accountNotApproved:
-                problemDetails.Title = "Account not approved.";
-                problemDetails.Status = (int)HttpStatusCode.Forbidden;
-                problemDetails.Type = "https://tools.ietf.org/html/rfc7231#section-6.5.3";
-                problemDetails.Detail = accountNotApproved.Message;
-                break;
-
-            case ProfileNotCompletedException profileNotCompleted:
-                problemDetails.Title = "Profile not completed.";
-                problemDetails.Status = (int)HttpStatusCode.Forbidden;
-                problemDetails.Type = "https://tools.ietf.org/html/rfc7231#section-6.5.3";
-                problemDetails.Detail = profileNotCompleted.Message;
-                break;
-
-            case UserAlreadyExistsException userAlreadyExists:
-                problemDetails.Title = "User already exists.";
-                problemDetails.Status = (int)HttpStatusCode.Conflict;
-                problemDetails.Type = "https://tools.ietf.org/html/rfc7231#section-6.5.8";
-                problemDetails.Detail = userAlreadyExists.Message;
-                break;
-
-            case ServantAlreayAssigned servantAlreadyAssigned:
-                problemDetails.Title = "Servant already assigned to the class.";
-                problemDetails.Status = (int)HttpStatusCode.Conflict;
-                problemDetails.Type = "https://tools.ietf.org/html/rfc7231#section-6.5.8";
-                problemDetails.Detail = servantAlreadyAssigned.Message;
-                break;
-
-            case ChurchAlreadyExistsException churchAlreadyExists:
-                problemDetails.Title = "Church already exists.";
-                problemDetails.Status = (int)HttpStatusCode.Conflict;
-                problemDetails.Type = "https://tools.ietf.org/html/rfc7231#section-6.5.8";
-                problemDetails.Detail = churchAlreadyExists.Message;
-                break;
-
-            case MeetingAlreadyExistsException meetingAlreadyExists:
-                problemDetails.Title = "Meeting already exists.";
-                problemDetails.Status = (int)HttpStatusCode.Conflict;
-                problemDetails.Type = "https://tools.ietf.org/html/rfc7231#section-6.5.8";
-                problemDetails.Detail = meetingAlreadyExists.Message;
-                break;
-
-            case PassordsMissMatchException passordsMissMatchException:
-                problemDetails.Title =" Passwords Miss match.";
-                problemDetails.Status = (int)HttpStatusCode.Conflict;
-                problemDetails.Type = "https://tools.ietf.org/html/rfc7231#section-6.5.8";
-                problemDetails.Detail = passordsMissMatchException.Message;
-                break;
-
-
-            default:
-                if (_env.IsDevelopment())
-                {
-                    problemDetails.Detail = exception.ToString();
-                }
-                else
-                {
-                    problemDetails.Detail = "An internal server error occurred. Please try again later.";
-                }
-                break;
+            _logger.LogWarning("Response already started; cannot write error response. traceId={TraceId}", context.TraceIdentifier);
+            return;
         }
 
-        response.StatusCode = problemDetails.Status ?? (int)HttpStatusCode.InternalServerError;
+        response.ContentType = "application/json; charset=utf-8";
 
-        var json = JsonSerializer.Serialize(problemDetails);
+        var (statusCode, errorCode, publicMessage) = MapException(exception);
 
+        response.StatusCode = statusCode;
+
+        var payload = new ApiErrorResponse
+        {
+            Success = false,
+            Message = publicMessage,
+            ErrorCode = errorCode
+        };
+
+        var json = JsonSerializer.Serialize(payload, _jsonOptions);
         await response.WriteAsync(json);
+    }
+
+    private (int StatusCode, string ErrorCode, string Message) MapException(Exception exception)
+    {
+        return exception switch
+        {
+            NotFoundException => ((int)HttpStatusCode.NotFound, "NOT_FOUND", "Not found"),
+            ValidationException => ((int)HttpStatusCode.BadRequest, "VALIDATION_ERROR", "Validation error"),
+            InvalidCredentialsException => ((int)HttpStatusCode.Unauthorized, "AUTH_FAILED", "Authentication failed"),
+            UnauthorizedAccessException => ((int)HttpStatusCode.Unauthorized, "UNAUTHORIZED", "Unauthorized"),
+            ServantProfileMissingException => ((int)HttpStatusCode.Forbidden, "FORBIDDEN", "Forbidden"),
+            AccountNotApprovedException => ((int)HttpStatusCode.Forbidden, "FORBIDDEN", "Forbidden"),
+            ProfileNotCompletedException => ((int)HttpStatusCode.Forbidden, "FORBIDDEN", "Forbidden"),
+            UserAlreadyExistsException => ((int)HttpStatusCode.Conflict, "CONFLICT", "Conflict"),
+            ServantAlreayAssigned => ((int)HttpStatusCode.Conflict, "CONFLICT", "Conflict"),
+            ChurchAlreadyExistsException => ((int)HttpStatusCode.Conflict, "CONFLICT", "Conflict"),
+            MeetingAlreadyExistsException => ((int)HttpStatusCode.Conflict, "CONFLICT", "Conflict"),
+            PassordsMissMatchException => ((int)HttpStatusCode.Conflict, "CONFLICT", "Conflict"),
+            _ => ((int)HttpStatusCode.InternalServerError, "SERVER_ERROR", "Server error")
+        };
+    }
+
+    private sealed class ApiErrorResponse
+    {
+        public bool Success { get; init; }
+        public string Message { get; init; } = "";
+        public string ErrorCode { get; init; } = "";
     }
 }

@@ -120,8 +120,15 @@ builder.Services.AddAuthentication(option =>
 }).AddJwtBearer(
     "jwt", options =>
     {
-        var SecretKey = builder.Configuration.GetSection("SecretKey").Value;
-        var SecretKeybyte = Encoding.UTF8.GetBytes(SecretKey);
+        var secretKey = builder.Configuration["SecretKey"];
+        if (string.IsNullOrWhiteSpace(secretKey))
+        {
+            throw new InvalidOperationException(
+                "Missing required configuration value 'SecretKey'. " +
+                "Set it in appsettings.Production.json or as an environment variable in the hosting environment.");
+        }
+
+        var SecretKeybyte = Encoding.UTF8.GetBytes(secretKey);
         SecurityKey securityKey = new SymmetricSecurityKey(SecretKeybyte);
         options.TokenValidationParameters = new TokenValidationParameters()
         {
@@ -140,7 +147,15 @@ builder.Services.AddAuthentication(option =>
 // DbContext
 builder.Services.AddDbContext<ProgramContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("cs"));
+    var cs = builder.Configuration.GetConnectionString("cs");
+    if (string.IsNullOrWhiteSpace(cs))
+    {
+        throw new InvalidOperationException(
+            "Missing required connection string 'ConnectionStrings:cs'. " +
+            "Set it in appsettings.Production.json or as an environment variable in the hosting environment.");
+    }
+
+    options.UseSqlServer(cs);
 });
 
 
@@ -183,9 +198,12 @@ catch (Exception ex)
     Console.WriteLine("Seeder failed: " + ex.Message);
 }
 
+// Must be first so it catches exceptions from all middleware/controllers.
+app.UseMiddleware<GlobalExceptionMiddleware>();
+
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
+//if (app.Environment.IsDevelopment())
+//{
     app.UseSwagger();
     app.UseSwaggerUI();
 
@@ -217,7 +235,7 @@ if (app.Environment.IsDevelopment())
             // If something blocks browser launching, ignore to avoid crashing the app.
         }
     });
-}
+//}
 
 // If you are NOT running HTTPS (and you see it only listens on http),
 // this redirection can prevent reaching Swagger unless HTTPS is configured.
@@ -233,7 +251,6 @@ app.UseAuthorization();
 
 app.UseMiddleware<MeetingMiddleware>();
 app.UseMiddleware<ChurchMiddleware>();
-app.UseMiddleware<GlobalExceptionMiddleware>();
 
 app.MapControllers();
 app.MapGet("/", () => Results.Redirect("/swagger"));
