@@ -78,7 +78,7 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
         _records = members.map((m) => _RecordState(member: m)).toList();
       });
     } catch (e) {
-      if (mounted) showErrorSnackbar(context, e.toString());
+      if (mounted) showErrorSnackbarFixed(context, e.toString());
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -87,12 +87,12 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
   Future<void> _submit() async {
     final l10n = AppLocalizations.of(context);
     if (_records == null || _records!.isEmpty) {
-      showErrorSnackbar(context, l10n.loadMembersFirst);
+      showErrorSnackbarFixed(context, l10n.loadMembersFirst);
       return;
     }
     final classroomId = _selectedClassroomId;
     if (classroomId == null) {
-      showErrorSnackbar(context, l10n.enterClassroomId);
+      showErrorSnackbarFixed(context, l10n.enterClassroomId);
       return;
     }
     setState(() => _submitting = true);
@@ -112,11 +112,11 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
       );
       await ref.read(attendanceRepositoryProvider).create(dto);
       if (mounted) {
-        showSuccessSnackbar(context, l10n.attendanceSaved);
+        showSuccessSnackbarFixed(context, l10n.attendanceSaved);
         context.pop();
       }
     } catch (e) {
-      if (mounted) showErrorSnackbar(context, e.toString());
+      if (mounted) showErrorSnackbarFixed(context, e.toString());
     } finally {
       if (mounted) setState(() => _submitting = false);
     }

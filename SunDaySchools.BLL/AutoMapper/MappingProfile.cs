@@ -85,7 +85,7 @@ namespace SunDaySchools.BLL.AutoMapper
                 .ForMember(d => d.Id, o => o.Ignore())
                 .ForMember(d => d.Classroom, o => o.Ignore())
                 .ForMember(d => d.TakenByServant, o => o.Ignore())
-                .ForMember(d => d.CreatedAt, o => o.MapFrom(_ => DateTime.UtcNow))
+                .ForMember(d => d.CreatedAt, o => o.MapFrom(_ => DateOnly.FromDateTime(DateTime.UtcNow)))
                 .ForMember(d => d.Records, o => o.MapFrom(s => s.Records));
 
             CreateMap<AttendanceSessionUpdateDTO, AttendanceSession>()
