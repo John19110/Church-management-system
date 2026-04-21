@@ -54,8 +54,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   void initState() {
     super.initState();
-    _passwordController.text = 'John6464@asu';
-    _confirmPasswordController.text = 'John6464@asu';
+    _passwordController.text = 'TestPassword@12345';
+    _confirmPasswordController.text = 'TestPassword@12345';
   }
 
   @override
