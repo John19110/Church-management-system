@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/material.dart';
 
 class LoginDto {
   final String phoneNumber;
@@ -70,7 +71,8 @@ class RegisterMeetingAdminDto {
   final String confirmPassword;
   final String churchName;
   final String meetingName;
-  final DateTime weeklyAppointment;
+  final TimeOfDay weeklyAppointment;
+  final String dayOfWeek;
   final File? image;
   final String? birthDate;
   final String? joiningDate;
@@ -83,6 +85,7 @@ class RegisterMeetingAdminDto {
     required this.churchName,
     required this.meetingName,
     required this.weeklyAppointment,
+    required this.dayOfWeek,
     this.image,
     this.birthDate,
     this.joiningDate,

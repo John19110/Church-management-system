@@ -38,6 +38,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _churchNameController = TextEditingController();
   final _meetingNameController = TextEditingController();
   final _weeklyAppointmentController = TextEditingController();
+  String _selectedMeetingDay = 'Saturday';
+  TimeOfDay? _selectedWeeklyTime;
 
   // Optional controllers
   final _birthController = TextEditingController();
@@ -81,11 +83,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
     final l10n = AppLocalizations.of(context);
-    DateTime? parsedWeekly;
     if (_selectedType == _RegisterType.meetingAdmin) {
-      parsedWeekly = DateTime.tryParse(_weeklyAppointmentController.text.trim());
-      if (parsedWeekly == null) {
-        showErrorSnackbar(context, l10n.invalidWeeklyAppointment);
+      if (_selectedWeeklyTime == null) {
+        showErrorSnackbar(context, l10n.weeklyAppointmentRequired);
         return;
       }
     }
@@ -134,7 +134,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               confirmPassword: _confirmPasswordController.text,
               churchName: _churchNameController.text.trim(),
               meetingName: _meetingNameController.text.trim(),
-              weeklyAppointment: parsedWeekly!,
+              weeklyAppointment: _selectedWeeklyTime!,
+              dayOfWeek: _selectedMeetingDay,
               birthDate: _birthController.text.trim().nullIfEmpty,
               joiningDate: _joiningController.text.trim().nullIfEmpty,
               image: _image,
@@ -388,19 +389,50 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             : null,
                   ),
                   const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    value: _selectedMeetingDay,
+                    decoration: InputDecoration(
+                      labelText: l10n.meetingDayOfWeek,
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                          value: 'Saturday', child: Text('Saturday')),
+                      DropdownMenuItem(value: 'Sunday', child: Text('Sunday')),
+                      DropdownMenuItem(value: 'Monday', child: Text('Monday')),
+                      DropdownMenuItem(
+                          value: 'Tuesday', child: Text('Tuesday')),
+                      DropdownMenuItem(
+                          value: 'Wednesday', child: Text('Wednesday')),
+                      DropdownMenuItem(
+                          value: 'Thursday', child: Text('Thursday')),
+                      DropdownMenuItem(value: 'Friday', child: Text('Friday')),
+                    ],
+                    onChanged: (v) => setState(() => _selectedMeetingDay = v!),
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? l10n.required
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
                   AppTextField(
                     controller: _weeklyAppointmentController,
                     label: l10n.weeklyAppointment,
                     hint: l10n.weeklyAppointmentHint,
-                    validator: (v) {
-                      if (v == null || v.trim().isEmpty) {
-                        return l10n.weeklyAppointmentRequired;
-                      }
-                      if (DateTime.tryParse(v.trim()) == null) {
-                        return l10n.invalidWeeklyAppointment;
-                      }
-                      return null;
+                    readOnly: true,
+                    onTap: () async {
+                      if (_loading) return;
+                      final picked = await showTimePicker(
+                        context: context,
+                        initialTime: _selectedWeeklyTime ?? TimeOfDay.now(),
+                      );
+                      if (!mounted) return;
+                      if (picked == null) return;
+                      setState(() {
+                        _selectedWeeklyTime = picked;
+                        _weeklyAppointmentController.text = picked.format(context);
+                      });
                     },
+                    validator: (_) =>
+                        _selectedWeeklyTime == null ? l10n.weeklyAppointmentRequired : null,
                   ),
                 ],
 
