@@ -27,13 +27,6 @@ class ServantsListScreen extends ConsumerWidget {
       },
       child: Scaffold(
         appBar: AppBar(title: Text(l10n.servants)),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () async {
-            await context.push('/servants/add');
-            ref.invalidate(servantsListProvider);
-          },
-          child: const Icon(Icons.add),
-        ),
         body: servantsAsync.when(
           loading: () => const cw.LoadingWidget(),
           error: (e, _) => cw.AppErrorWidget(
@@ -50,8 +43,7 @@ class ServantsListScreen extends ConsumerWidget {
             return RefreshIndicator(
               onRefresh: () async => ref.invalidate(servantsListProvider),
               child: ListView.builder(
-                // bottom: 88 = FAB height (56) + top margin (16) + bottom margin (16)
-                padding: const EdgeInsets.only(top: 8, bottom: 88),
+                padding: const EdgeInsets.only(top: 8, bottom: 16),
                 itemCount: servants.length,
                 itemBuilder: (context, index) {
                   final servant = servants[index];
