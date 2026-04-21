@@ -58,6 +58,22 @@ namespace SunDaySchools.API.Controllers
             return Ok(session);
         }
 
+        [HttpGet("by-classroom/{classroomId:int}")]
+        public async Task<IActionResult> GetHistoryByClassroom(int classroomId)
+        {
+            if (classroomId <= 0)
+            {
+                var errors = new Dictionary<string, string[]>
+                {
+                    ["classroomId"] = new[] { "ClassroomId must be a positive integer." }
+                };
+                throw new ValidationException(errors);
+            }
+
+            var sessions = await _attendanceManager.GetHistoryByClassroomAsync(classroomId);
+            return Ok(sessions);
+        }
+
         [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdateAttendance(int id, [FromBody] AttendanceSessionUpdateDTO attendanceSession)
         {

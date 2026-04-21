@@ -53,6 +53,16 @@ namespace SunDaySchools.DAL.Repository.Implementations
             
         }
 
+        public async Task<List<AttendanceSession>> GetByClassroom(int classroomId)
+        {
+            return await _context.AttendanceSessions
+                .AsNoTracking()
+                .Where(s => s.ClassroomId == classroomId)
+                .Include(s => s.Records)
+                .OrderByDescending(s => s.CreatedAt)
+                .ToListAsync();
+        }
+
 
 
 

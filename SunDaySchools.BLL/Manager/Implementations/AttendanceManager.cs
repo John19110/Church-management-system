@@ -5,6 +5,7 @@ using SunDaySchools.DAL.Models;
 using SunDaySchools.DAL.Repository.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace SunDaySchools.BLL.Manager.Implementations
@@ -126,6 +127,14 @@ namespace SunDaySchools.BLL.Manager.Implementations
             // NOTE: Records will be empty unless repository loads them:
             // _context.AttendanceSessions.Include(s => s.Records)...
             return _mapper.Map<AttendanceSessionReadDTO>(result);
+        }
+
+        public async Task<List<AttendanceSessionSummaryDTO>> GetHistoryByClassroomAsync(int classroomId)
+        {
+            if (classroomId <= 0) throw new ArgumentException("ClassroomId must be a positive integer.", nameof(classroomId));
+
+            var sessions = await _attendanceRepository.GetByClassroom(classroomId);
+            return sessions.Select(s => _mapper.Map<AttendanceSessionSummaryDTO>(s)).ToList();
         }
     }
 }

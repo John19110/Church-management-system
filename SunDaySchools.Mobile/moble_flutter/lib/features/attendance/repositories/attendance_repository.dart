@@ -29,4 +29,18 @@ class AttendanceRepository {
           '${AppConstants.attendanceEndpoint}/$id', data: dto.toJson());
     });
   }
+
+  Future<List<AttendanceSessionSummaryDto>> getHistoryByClassroom(
+      int classroomId) async {
+    return apiCall(() async {
+      final response = await _dio.get(
+        '${AppConstants.attendanceByClassroomEndpoint}/$classroomId',
+      );
+      final list = response.data as List<dynamic>;
+      return list
+          .map((e) =>
+              AttendanceSessionSummaryDto.fromJson(e as Map<String, dynamic>))
+          .toList();
+    });
+  }
 }

@@ -207,15 +207,31 @@ class ClassroomDetailScreen extends ConsumerWidget {
           ),
           SafeArea(
             minimum: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: FilledButton.icon(
-              onPressed: () => context.push(
-                '${AppRoutes.attendanceTake}?classroomId=$classroomId',
-              ),
-              icon: const Icon(Icons.fact_check_outlined),
-              label: Text(l10n.takeAttendance),
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                FilledButton.icon(
+                  onPressed: () => context.push(
+                    '${AppRoutes.attendanceTake}?classroomId=$classroomId',
+                  ),
+                  icon: const Icon(Icons.fact_check_outlined),
+                  label: Text(l10n.takeAttendance),
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                OutlinedButton.icon(
+                  onPressed: () => context.push(
+                    '${AppRoutes.attendanceHistory}/$classroomId?classroomName=${Uri.encodeComponent(classroom.name ?? '')}',
+                  ),
+                  icon: const Icon(Icons.history),
+                  label: const Text('Attendance history'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
