@@ -32,7 +32,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.initState();
 
     // ✅ DEFAULT TEST PASSWORD
-    _passwordController.text = "John6464@asu";
+    _passwordController.text = "TestPassword@12345";
   }
 
   @override
