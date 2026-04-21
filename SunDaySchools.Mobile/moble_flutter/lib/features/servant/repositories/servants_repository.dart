@@ -40,59 +40,6 @@ class ServantsRepository {
     });
   }
 
-  /// Create servant via admin endpoint:
-  /// POST /Api/Admin/add-servant (multipart/form-data)
-  /// The form includes both Account and Servant sub-object fields.
-  Future<void> create({
-    required String name,
-    required String phoneNumber,
-    required String password,
-    required String confirmPassword,
-    String? joiningDate,
-    String? birthDate,
-    List<int>? classroomsIds,
-    File? image,
-  }) async {
-    return apiCall(() async {
-      final ids = (classroomsIds ?? const <int>[])
-          .where((id) => id > 0)
-          .toList();
-      if (ids.isEmpty) {
-        throw ArgumentError('classroomsIds is required and cannot be empty.');
-      }
-
-      final map = <String, dynamic>{
-        'Account.Name': name,
-        'Account.PhoneNumber': phoneNumber,
-        'Account.Password': password,
-        'Account.ConfirmPassword': confirmPassword,
-        if (birthDate != null) 'Account.BirthDate': birthDate,
-        if (joiningDate != null) 'Account.JoiningDate': joiningDate,
-        // AdminAddServantDTO wraps two sub-DTOs: Account and Servant.
-        // Both receive dates/classrooms so the backend can populate each one.
-        if (joiningDate != null) 'Servant.JoiningDate': joiningDate,
-        if (birthDate != null) 'Servant.BirthDate': birthDate,
-        if (image != null)
-          'Servant.Image': await MultipartFile.fromFile(image.path,
-              filename: image.path.split('/').last),
-      };
-      for (var i = 0; i < ids.length; i++) {
-        map['Account.classroomsIds[$i]'] = ids[i];
-        map['Servant.classroomsIds[$i]'] = ids[i];
-      }
-
-      // Debug log: do not print password fields.
-      // ignore: avoid_print
-      print('[add-servant] POST ${AppConstants.adminEndpoint}/add-servant '
-          'classroomsIds=$ids image=${image != null}');
-      await _dio.post(
-        '${AppConstants.adminEndpoint}/add-servant',
-        data: FormData.fromMap(map),
-        options: Options(contentType: 'multipart/form-data'),
-      );
-    });
-  }
-
   /// Update servant: PUT /api/Servant/{id} (multipart/form-data)
   /// Matches ServantFormRequest: Name, JoiningDate, BirthDate, PhoneNumber, Image
   Future<void> update(

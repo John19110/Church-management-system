@@ -12,7 +12,6 @@ import '../../features/member/screens/member_add_screen.dart';
 import '../../features/member/screens/member_edit_screen.dart';
 import '../../features/servant/screens/servants_list_screen.dart';
 import '../../features/servant/screens/servant_detail_screen.dart';
-import '../../features/servant/screens/servant_add_screen.dart';
 import '../../features/servant/screens/servant_edit_screen.dart';
 import '../../features/attendance/screens/attendance_take_screen.dart';
 import '../../features/attendance/screens/attendance_view_screen.dart';
@@ -161,11 +160,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.servants,
         builder: (_, __) => const ServantsListScreen(),
-      ),
-
-      GoRoute(
-        path: '/servants/add',
-        builder: (_, __) => const ServantAddScreen(),
       ),
 
       GoRoute(
