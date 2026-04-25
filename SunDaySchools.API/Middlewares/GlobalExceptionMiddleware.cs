@@ -1,4 +1,5 @@
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SunDaySchools.BLL.Exceptions;
 using System;
@@ -10,14 +11,14 @@ public class GlobalExceptionMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<GlobalExceptionMiddleware> _logger;
-    private readonly IWebHostEnvironment _env;
+    private readonly IHostEnvironment _env;
 
     private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web);
 
     public GlobalExceptionMiddleware(
         RequestDelegate next,
         ILogger<GlobalExceptionMiddleware> logger,
-        IWebHostEnvironment env)
+        IHostEnvironment env)
     {
         _next = next;
         _logger = logger;
@@ -38,63 +39,79 @@ public class GlobalExceptionMiddleware
 
     private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
-        // Logs full exception + stack trace to server logs only.
+        // 🔥 Log FULL error (always)
         _logger.LogError(
             exception,
-            "Unhandled exception. method={Method} path={Path} query={QueryString} traceId={TraceId}",
+            "Unhandled exception occurred. Method={Method}, Path={Path}, TraceId={TraceId}",
             context.Request.Method,
-            context.Request.Path.Value,
-            context.Request.QueryString.Value,
+            context.Request.Path,
             context.TraceIdentifier);
 
-        var response = context.Response;
-        if (response.HasStarted)
+        if (context.Response.HasStarted)
         {
-            _logger.LogWarning("Response already started; cannot write error response. traceId={TraceId}", context.TraceIdentifier);
+            _logger.LogWarning("Response already started, cannot write error response.");
             return;
         }
 
-        response.ContentType = "application/json; charset=utf-8";
+        context.Response.ContentType = "application/json; charset=utf-8";
 
-        var (statusCode, errorCode, publicMessage) = MapException(exception);
+        var (statusCode, errorCode, message) = MapException(exception);
 
-        response.StatusCode = statusCode;
+        context.Response.StatusCode = statusCode;
 
-        var payload = new ApiErrorResponse
+        var response = new ApiErrorResponse
         {
             Success = false,
-            Message = publicMessage,
-            ErrorCode = errorCode
+            ErrorCode = errorCode,
+
+            // 🔥 IMPORTANT:
+            // show full error ONLY in development
+            Message = _env.IsDevelopment()
+                ? exception.ToString()
+                : message
         };
 
-        var json = JsonSerializer.Serialize(payload, _jsonOptions);
-        await response.WriteAsync(json);
+        var json = JsonSerializer.Serialize(response, _jsonOptions);
+
+        await context.Response.WriteAsync(json);
     }
 
-    private (int StatusCode, string ErrorCode, string Message) MapException(Exception exception)
+    private static (int StatusCode, string ErrorCode, string Message) MapException(Exception exception)
     {
         return exception switch
         {
-            NotFoundException => ((int)HttpStatusCode.NotFound, "NOT_FOUND", "Not found"),
+            // 🔹 400
+            ArgumentException => ((int)HttpStatusCode.BadRequest, "BAD_REQUEST", "Invalid argument"),
             ValidationException => ((int)HttpStatusCode.BadRequest, "VALIDATION_ERROR", "Validation error"),
-            InvalidCredentialsException => ((int)HttpStatusCode.Unauthorized, "AUTH_FAILED", "Authentication failed"),
+
+            // 🔹 401
             UnauthorizedAccessException => ((int)HttpStatusCode.Unauthorized, "UNAUTHORIZED", "Unauthorized"),
+            InvalidCredentialsException => ((int)HttpStatusCode.Unauthorized, "AUTH_FAILED", "Authentication failed"),
+
+            // 🔹 403
             ServantProfileMissingException => ((int)HttpStatusCode.Forbidden, "FORBIDDEN", "Forbidden"),
             AccountNotApprovedException => ((int)HttpStatusCode.Forbidden, "FORBIDDEN", "Forbidden"),
             ProfileNotCompletedException => ((int)HttpStatusCode.Forbidden, "FORBIDDEN", "Forbidden"),
+
+            // 🔹 404
+            NotFoundException => ((int)HttpStatusCode.NotFound, "NOT_FOUND", "Not found"),
+
+            // 🔹 409
             UserAlreadyExistsException => ((int)HttpStatusCode.Conflict, "CONFLICT", "Conflict"),
             ServantAlreayAssigned => ((int)HttpStatusCode.Conflict, "CONFLICT", "Conflict"),
             ChurchAlreadyExistsException => ((int)HttpStatusCode.Conflict, "CONFLICT", "Conflict"),
             MeetingAlreadyExistsException => ((int)HttpStatusCode.Conflict, "CONFLICT", "Conflict"),
             PassordsMissMatchException => ((int)HttpStatusCode.Conflict, "CONFLICT", "Conflict"),
-            _ => ((int)HttpStatusCode.InternalServerError, "SERVER_ERROR", "Server error")
+
+            // 🔥 fallback
+            _ => ((int)HttpStatusCode.InternalServerError, "SERVER_ERROR", "An unexpected error occurred")
         };
     }
 
     private sealed class ApiErrorResponse
     {
-        public bool Success { get; init; }
-        public string Message { get; init; } = "";
-        public string ErrorCode { get; init; } = "";
+        public bool Success { get; set; }
+        public string Message { get; set; } = "";
+        public string ErrorCode { get; set; } = "";
     }
 }

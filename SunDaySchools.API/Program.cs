@@ -250,8 +250,8 @@ app.UseMiddleware<MeetingMiddleware>();
 app.UseMiddleware<ChurchMiddleware>();
 
 app.MapControllers();
-if (app.Environment.IsDevelopment())
-{
+//if (app.Environment.IsDevelopment())
+//{
     app.MapGet("/", () => Results.Redirect("/swagger"));
-}
+//}
 app.Run();

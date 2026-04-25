@@ -1,4 +1,4 @@
-# Build output (for ALL projects)
+# Build output
 bin/
 obj/
 
@@ -7,9 +7,8 @@ obj/
 *.user
 *.suo
 
-# Secrets (usually in API project)
+# Secrets
 appsettings.Development.json
-appsettings.json
 appsettings.Production.json
 secrets.json
 .env
