@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using Microsoft.AspNetCore.Identity;
 using SunDaySchoolsDAL.DBcontext;
 using SunDaySchools.API.Services.Implementations;
 using SunDaySchools.API.Services.Interfaces;
@@ -15,7 +14,6 @@ using SunDaySchools.BLL.Manager.Implementations;
 using SunDaySchools.BLL.Manager.Interfaces;
 using SunDaySchools.DAL.Repository.Implementations;
 using SunDaySchools.DAL.Repository.Interfaces;
-using SunDaySchoolsDAL.DBcontext;
 using SunDaySchoolsDAL.Models;
 using System.Diagnostics;
 using System.Text;
@@ -27,7 +25,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<ServantProfileOptions>(
     builder.Configuration.GetSection(ServantProfileOptions.SectionName));
 
-builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IFileStorage, LocalFileStorage>();
 builder.Services.AddProblemDetails();
 
@@ -220,15 +217,15 @@ app.UseMiddleware<GlobalExceptionMiddleware>();
                 .OrderByDescending(a => a.StartsWith("https", StringComparison.OrdinalIgnoreCase))
                 .FirstOrDefault();
 
-            if (!string.IsNullOrWhiteSpace(baseUrl))
-            {
-                var swaggerUrl = baseUrl.TrimEnd('/') + "/swagger";
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = swaggerUrl,
-                    UseShellExecute = true
-                });
-            }
+            //if (!string.IsNullOrWhiteSpace(baseUrl))
+            //{
+            //    var swaggerUrl = baseUrl.TrimEnd('/') + "/swagger";
+            //    Process.Start(new ProcessStartInfo
+            //    {
+            //        FileName = swaggerUrl,
+            //        UseShellExecute = true
+            //    });
+            //}
         }
         catch
         {
@@ -240,7 +237,7 @@ app.UseMiddleware<GlobalExceptionMiddleware>();
 // If you are NOT running HTTPS (and you see it only listens on http),
 // this redirection can prevent reaching Swagger unless HTTPS is configured.
 // You can comment it out if needed.
-//app.UseHttpsRedirection();
+app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 
@@ -253,5 +250,8 @@ app.UseMiddleware<MeetingMiddleware>();
 app.UseMiddleware<ChurchMiddleware>();
 
 app.MapControllers();
-app.MapGet("/", () => Results.Redirect("/swagger"));
+if (app.Environment.IsDevelopment())
+{
+    app.MapGet("/", () => Results.Redirect("/swagger"));
+}
 app.Run();

@@ -9,6 +9,8 @@ obj/
 
 # Secrets (usually in API project)
 appsettings.Development.json
+appsettings.json
+appsettings.Production.json
 secrets.json
 .env
 
