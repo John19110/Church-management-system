@@ -1,10 +1,8 @@
-import 'dart:io';
-
 class AppConstants {
-  /// Base URL for the deployed ASP.NET API
-  static const String baseUrl = 'http://mychurch.runasp.net';
+  /// Base URL for the deployed ASP.NET API (HTTPS FIXED)
+  static const String baseUrl = 'https://mychurch.runasp.net';
 
-// Auth endpoints
+  // Auth endpoints
   static const String loginEndpoint = '/api/Account/login';
   static const String logoutEndpoint = '/api/Account/logout';
   static const String registerServantEndpoint = '/api/Account/register-servant';
@@ -13,32 +11,32 @@ class AppConstants {
   static const String registerMeetingAdminEndpoint =
       '/api/Account/register-meeting-admin-new-church';
 
-// Members (children) endpoints
+  // Members (children) endpoints
   static const String membersEndpoint = '/api/Member';
   static const String classroomMembersBasePath = '/api/classrooms';
 
-// Servant endpoints
+  // Servant endpoints
   static const String servantEndpoint = '/api/Servant';
   static const String servantProfileEndpoint = '/api/Servant/profile';
 
-// Admin endpoints
+  // Admin endpoints
   static const String adminEndpoint = '/api/Admin';
 
-// Classroom endpoints
+  // Classroom endpoints
   static const String classroomEndpoint = '/api/Classroom';
 
-// Meeting endpoints
+  // Meeting endpoints
   static const String meetingEndpoint = '/api/Meeting';
 
-// SuperAdmin endpoints
+  // SuperAdmin endpoints
   static const String superAdminEndpoint = '/api/SuperAdmin';
 
-// AttendanceSession endpoints
+  // AttendanceSession endpoints
   static const String attendanceEndpoint = '/api/AttendanceSession';
   static const String attendanceByClassroomEndpoint =
       '/api/AttendanceSession/by-classroom';
 
-// Select endpoints (all return: {id, name})
+  // Select endpoints (all return: {id, name})
   static const String classroomsSelectEndpoint = '/api/Classroom/select';
   static const String membersSelectEndpoint = '/api/Member/select';
   static const String meetingsSelectEndpoint = '/api/Meeting/select';
