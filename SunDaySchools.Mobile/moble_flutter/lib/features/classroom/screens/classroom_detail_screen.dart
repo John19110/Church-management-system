@@ -29,37 +29,10 @@ class ClassroomDetailScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(classroom.name ?? 'Classroom'),
-        actions: [
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              switch (value) {
-                case 'addMember':
-                  context.push('/members/add', extra: classroomId);
-                  break;
-                case 'members':
-                  context.push(AppRoutes.member);
-                  break;
-                case 'servants':
-                  context.push(AppRoutes.servants);
-                  break;
-              }
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'addMember',
-                child: Text(l10n.addMember),
-              ),
-              const PopupMenuItem(
-                value: 'members',
-                child: Text('Add/Update/Remove Members'),
-              ),
-              const PopupMenuItem(
-                value: 'servants',
-                child: Text('Manage Servants'),
-              ),
-            ],
-          ),
-        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.push('/members/add', extra: classroomId),
+        child: const Icon(Icons.add),
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
