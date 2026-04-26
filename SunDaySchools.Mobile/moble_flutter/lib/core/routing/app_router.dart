@@ -28,6 +28,7 @@ import '../../features/classroom/screens/classrooms_home_screen.dart';
 import '../../features/admin/screens/admin_home_screen.dart';
 import '../../features/admin/screens/admin_pending_servants_screen.dart';
 import '../../features/servant/screens/servant_home_screen.dart';
+import '../../features/notifications/screens/notifications_screen.dart';
 import '../../core/storage/token_storage.dart';
 
 class AppRoutes {
@@ -45,6 +46,7 @@ class AppRoutes {
   static const meetingDetail = '/meeting-detail';
   static const classroomDetail = '/classroom-detail';
   static const member = '/member';
+  static const notifications = '/notifications';
   static const servants = '/servants';
   static const attendanceTake = '/attendance/take';
   static const attendanceHistory = '/attendance/history';
@@ -147,6 +149,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.member,
         builder: (_, __) => const MembersListScreen(),
+      ),
+
+      // Notifications
+      GoRoute(
+        path: AppRoutes.notifications,
+        builder: (_, __) => const NotificationsScreen(),
       ),
 
       GoRoute(
