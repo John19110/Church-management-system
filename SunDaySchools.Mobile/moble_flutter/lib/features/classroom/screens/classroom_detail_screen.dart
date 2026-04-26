@@ -15,6 +15,7 @@ class ClassroomDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final classroomId = classroom.id;
+
     if (classroomId == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('Classroom')),
@@ -30,10 +31,20 @@ class ClassroomDetailScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(classroom.name ?? 'Classroom'),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push('/members/add', extra: classroomId),
-        child: const Icon(Icons.add),
+
+      // ✅ FAB pushed higher (120)
+      floatingActionButton: Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).padding.bottom + 120,
+        ),
+        child: FloatingActionButton(
+          onPressed: () =>
+              context.push('/members/add', extra: classroomId),
+          child: const Icon(Icons.add),
+        ),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -49,10 +60,10 @@ class ClassroomDetailScreen extends ConsumerWidget {
                 const SizedBox(height: 4),
                 Text(
                   '${classroom.totalMembersCount ?? 0} members · '
-                  '${classroom.pastAttendanceSessionsCount ?? 0} past attendance sessions',
+                      '${classroom.pastAttendanceSessionsCount ?? 0} past attendance sessions',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 if (classroom.servantNames.isNotEmpty) ...[
                   const SizedBox(height: 8),
@@ -64,21 +75,26 @@ class ClassroomDetailScreen extends ConsumerWidget {
               ],
             ),
           ),
+
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
               'Members',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
+
           const SizedBox(height: 8),
+
           Expanded(
             child: RefreshIndicator(
               onRefresh: () async {
                 ref.invalidate(membersByClassroomProvider(classroomId));
-                await ref.read(membersByClassroomProvider(classroomId).future);
+                await ref.read(
+                  membersByClassroomProvider(classroomId).future,
+                );
               },
               child: membersAsync.when(
                 loading: () => ListView(
@@ -109,10 +125,11 @@ class ClassroomDetailScreen extends ConsumerWidget {
                       ],
                     );
                   }
+
                   return GridView.builder(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                     gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
+                    const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       mainAxisSpacing: 12,
                       crossAxisSpacing: 12,
@@ -124,6 +141,7 @@ class ClassroomDetailScreen extends ConsumerWidget {
                       final name = m.fullName?.trim().isNotEmpty == true
                           ? m.fullName!
                           : 'Member #${m.id}';
+
                       return Card(
                         clipBehavior: Clip.antiAlias,
                         child: InkWell(
@@ -139,19 +157,19 @@ class ClassroomDetailScreen extends ConsumerWidget {
                                       .colorScheme
                                       .surfaceContainerHighest,
                                   backgroundImage: m.imageUrl != null &&
-                                          m.imageUrl!.isNotEmpty
+                                      m.imageUrl!.isNotEmpty
                                       ? NetworkImage(m.imageUrl!)
                                       : null,
                                   child: m.imageUrl == null ||
-                                          m.imageUrl!.isEmpty
+                                      m.imageUrl!.isEmpty
                                       ? Text(
-                                          name.isNotEmpty
-                                              ? name[0].toUpperCase()
-                                              : '?',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleLarge,
-                                        )
+                                    name.isNotEmpty
+                                        ? name[0].toUpperCase()
+                                        : '?',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge,
+                                  )
                                       : null,
                                 ),
                                 const SizedBox(height: 10),
@@ -164,8 +182,8 @@ class ClassroomDetailScreen extends ConsumerWidget {
                                       .textTheme
                                       .bodyMedium
                                       ?.copyWith(
-                                        fontWeight: FontWeight.w500,
-                                      ),
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ],
                             ),
@@ -178,6 +196,7 @@ class ClassroomDetailScreen extends ConsumerWidget {
               ),
             ),
           ),
+
           SafeArea(
             minimum: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: Column(

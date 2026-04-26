@@ -502,10 +502,13 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
                             const Icon(Icons.chevron_right),
                           ],
                         ),
-                        onTap: () => context.push(
-                          AppRoutes.meetingDetail,
-                          extra: m,
-                        ),
+                        onTap: () {
+                          final meetingId = m.id;
+                          if (meetingId == null || meetingId <= 0) return;
+                          context.push(
+                            '${AppRoutes.classroomsHome}?meetingId=$meetingId&meetingName=${Uri.encodeComponent(m.name ?? '')}',
+                          );
+                        },
                       ),
                     ),
                   ),

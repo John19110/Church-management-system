@@ -53,13 +53,78 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
         public async Task<List<SelectOptionDTO>> GetMeetingsForSelection()
         {
-            var meetings = await _meetingRepository.GetMeetingsForSelection();
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null)
+                throw new UnauthorizedAccessException("User is not authenticated.");
 
-            return meetings.Select(m => new SelectOptionDTO
+            var userIdClaim = _userManager.GetUserId(user);
+
+            if (string.IsNullOrEmpty(userIdClaim))
+                throw new UnauthorizedAccessException(
+                    "User identifier could not be resolved from the token.");
+
+            var appUser = await _userManager.FindByIdAsync(userIdClaim);
+
+            if (appUser == null)
+                throw new NotFoundException("User not found.");
+
+            List<Meeting> meetings;
+
+            if (user.IsInRole("SuperAdmin"))
             {
-                Id = m.Id,
-                Name = m.Item2
-            }).ToList();
+                if (appUser.ChurchId == null)
+                    throw new ValidationException(new Dictionary<string, string[]>
+                    {
+                        ["Church"] = new[] { "Pastor is not assigned to a church." }
+                    });
+
+                meetings = await _meetingRepository.GetByChurchIdAsync(appUser.ChurchId.Value);
+            }
+            else if (user.IsInRole("Admin"))
+            {
+                if (appUser.MeetingId == null)
+                    throw new ValidationException(new Dictionary<string, string[]>
+                    {
+                        ["Meeting"] = new[] { "Admin is not assigned to a meeting." }
+                    });
+
+                var meeting = await _meetingRepository.GetByIdAsync(appUser.MeetingId.Value);
+                meetings = meeting != null ? new List<Meeting> { meeting } : new List<Meeting>();
+            }
+            else if (user.IsInRole("Servant"))
+            {
+                var servant = await _servantRepo.EnsureServantProfileAsync(
+                    appUser,
+                    _servantProfileOptions.AutoCreateMissingProfile);
+
+                if (servant == null)
+                {
+                    var detail = _servantProfileOptions.AutoCreateMissingProfile
+                        ? ServantProfileMessages.MissingAfterAutoCreateAttempt()
+                        : ServantProfileMessages.MissingProfileManual();
+                    throw new ServantProfileMissingException(detail);
+                }
+
+                if (servant.MeetingId == null)
+                    meetings = new List<Meeting>();
+                else
+                {
+                    var meeting = await _meetingRepository.GetByIdAsync(servant.MeetingId.Value);
+                    meetings = meeting != null ? new List<Meeting> { meeting } : new List<Meeting>();
+                }
+            }
+            else
+            {
+                throw new UnauthorizedAccessException("User role is not allowed.");
+            }
+
+            return meetings
+                .Select(m => new SelectOptionDTO
+                {
+                    Id = m.Id,
+                    Name = m.Name ?? string.Empty
+                })
+                .ToList();
         }
 
         public async Task<List<MeetingReadDTO>> GetVisibleMeetings()

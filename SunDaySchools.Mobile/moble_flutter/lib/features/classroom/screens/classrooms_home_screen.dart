@@ -15,8 +15,15 @@ class ClassroomsHomeScreen extends ConsumerStatefulWidget {
   /// parent [Scaffold] (e.g. Servant/Admin home) without a duplicate top bar.
   /// Add-classroom for admins uses a FAB in that case.
   final bool showAppBar;
+  final int? meetingId;
+  final String? meetingName;
 
-  const ClassroomsHomeScreen({super.key, this.showAppBar = true});
+  const ClassroomsHomeScreen({
+    super.key,
+    this.showAppBar = true,
+    this.meetingId,
+    this.meetingName,
+  });
 
   @override
   ConsumerState<ClassroomsHomeScreen> createState() =>
@@ -41,8 +48,13 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
   }
 
   Future<void> _refresh() async {
-    ref.invalidate(visibleClassroomsProvider);
-    await ref.read(visibleClassroomsProvider.future);
+    if (widget.meetingId != null) {
+      ref.invalidate(visibleClassroomsByMeetingProvider(widget.meetingId));
+      await ref.read(visibleClassroomsByMeetingProvider(widget.meetingId).future);
+    } else {
+      ref.invalidate(visibleClassroomsProvider);
+      await ref.read(visibleClassroomsProvider.future);
+    }
   }
 
   Future<void> _addClassroom() async {
@@ -153,11 +165,16 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final roleAsync = ref.watch(currentUserRoleProvider);
-    final classroomsAsync = ref.watch(visibleClassroomsProvider);
+    final classroomsAsync = widget.meetingId != null
+        ? ref.watch(visibleClassroomsByMeetingProvider(widget.meetingId))
+        : ref.watch(visibleClassroomsProvider);
     final role = roleAsync.resolvedRoleOrNull;
     final homeRoute = AuthRoleUtils.routeForRole(role);
     final currentLocation = GoRouterState.of(context).matchedLocation;
     final canAddClassroom = role == 'admin';
+    final title = widget.meetingName?.trim().isNotEmpty == true
+        ? 'Classrooms — ${widget.meetingName}'
+        : 'Classrooms Home';
 
     return PopScope(
       canPop: currentLocation == homeRoute,
@@ -169,7 +186,7 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
         primary: widget.showAppBar,
         appBar: widget.showAppBar
             ? AppBar(
-                title: const Text('Classrooms Home'),
+                title: Text(title),
                 actions: [
                   if (canAddClassroom)
                     IconButton(
@@ -203,9 +220,9 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
                   !widget.showAppBar && canAddClassroom ? 88 : 16,
                 ),
                 children: [
-                  const Text(
+                  Text(
                     'Visible Classrooms',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   if (classrooms.isEmpty)

@@ -14,6 +14,12 @@ final visibleClassroomsProvider =
   return ref.watch(classroomRepositoryProvider).getVisible();
 });
 
+final visibleClassroomsByMeetingProvider =
+    FutureProvider.family<List<ClassroomReadDto>, int?>((ref, meetingId) async {
+  ref.watch(authSessionEpochProvider);
+  return ref.watch(classroomRepositoryProvider).getVisible(meetingId: meetingId);
+});
+
 final classroomsForSelectionProvider =
     FutureProvider<List<SelectOption>>((ref) async {
   ref.watch(authSessionEpochProvider);

@@ -16,10 +16,14 @@ class ClassroomRepository {
   }
 
   /// GET /api/Classroom/visible — returns visible classrooms
-  Future<List<ClassroomReadDto>> getVisible() async {
+  Future<List<ClassroomReadDto>> getVisible({int? meetingId}) async {
     return apiCall(() async {
-      final response =
-          await _dio.get('${AppConstants.classroomEndpoint}/visible');
+      final response = await _dio.get(
+        '${AppConstants.classroomEndpoint}/visible',
+        queryParameters: {
+          if (meetingId != null) 'meetingId': meetingId,
+        },
+      );
       final list = response.data as List<dynamic>;
       return list
           .map((e) => ClassroomReadDto.fromJson(e as Map<String, dynamic>))

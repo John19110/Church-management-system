@@ -100,7 +100,16 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       GoRoute(
         path: AppRoutes.classroomsHome,
-        builder: (_, __) => const ClassroomsHomeScreen(),
+        builder: (_, state) {
+          final meetingId = state.uri.queryParameters['meetingId'] != null
+              ? int.tryParse(state.uri.queryParameters['meetingId']!)
+              : null;
+          final meetingName = state.uri.queryParameters['meetingName'];
+          return ClassroomsHomeScreen(
+            meetingId: meetingId,
+            meetingName: meetingName,
+          );
+        },
       ),
 
       GoRoute(
