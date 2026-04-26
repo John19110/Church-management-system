@@ -41,9 +41,9 @@ namespace SunDaySchools.API.Controllers
         }
 
         [HttpGet("visible")]
-        public async Task<IActionResult> GetVisibleClassrooms()
+        public async Task<IActionResult> GetVisibleClassrooms([FromQuery] int? meetingId = null)
         {
-            var result = await _classroomManager.GetVisibleClassrooms();
+            var result = await _classroomManager.GetVisibleClassrooms(meetingId);
             return Ok(result);
         }
 

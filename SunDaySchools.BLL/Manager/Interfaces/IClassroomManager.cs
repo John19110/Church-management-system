@@ -11,7 +11,7 @@ namespace SunDaySchools.BLL.Manager.Interfaces
 {
     public interface IClassroomManager
     {
-        Task<List<ClassroomReadDTO>> GetVisibleClassrooms();
+        Task<List<ClassroomReadDTO>> GetVisibleClassrooms(int? meetingId = null);
         Task AddAsync(ClassroomAddDTO classroom);
         Task<List<SelectOptionDTO>> GetClassroomsForSelection();
 
