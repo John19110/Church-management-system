@@ -7,6 +7,7 @@ namespace SunDaySchools.BLL.DTOS
         public int Id { get; set; }
         public string? Name { get; set; }
         public string? AgeOfMembers { get; set; }
+        public int? MeetingId { get; set; }
         public ICollection<MemberReadDTO>? Members { get; set; }
         public int? NumberOfDisplineMembers { get; set; }
         public int? TotalMembersCount => Members?.Count ?? 0;
