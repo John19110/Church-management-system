@@ -506,7 +506,11 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
                           final meetingId = m.id;
                           if (meetingId == null || meetingId <= 0) return;
                           context.push(
-                            '${AppRoutes.classroomsHome}?meetingId=$meetingId&meetingName=${Uri.encodeComponent(m.name ?? '')}',
+                            AppRoutes.classroomsHome,
+                            extra: {
+                              'meetingId': meetingId,
+                              'meetingName': m.name ?? '',
+                            },
                           );
                         },
                       ),

@@ -101,10 +101,22 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.classroomsHome,
         builder: (_, state) {
-          final meetingId = state.uri.queryParameters['meetingId'] != null
+          int? meetingId;
+          String? meetingName;
+
+          final extra = state.extra;
+          if (extra is Map) {
+            final rawMeetingId = extra['meetingId'];
+            final rawMeetingName = extra['meetingName'];
+            if (rawMeetingId is int) meetingId = rawMeetingId;
+            if (rawMeetingName is String) meetingName = rawMeetingName;
+          }
+
+          meetingId ??= state.uri.queryParameters['meetingId'] != null
               ? int.tryParse(state.uri.queryParameters['meetingId']!)
               : null;
-          final meetingName = state.uri.queryParameters['meetingName'];
+          meetingName ??= state.uri.queryParameters['meetingName'];
+
           return ClassroomsHomeScreen(
             meetingId: meetingId,
             meetingName: meetingName,
