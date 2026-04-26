@@ -212,6 +212,11 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
           onRefresh: _refresh,
           child: classroomsAsync.when(
             data: (classrooms) {
+              final filtered = widget.meetingId != null
+                  ? classrooms
+                      .where((c) => c.meetingId == widget.meetingId)
+                      .toList()
+                  : classrooms;
               return ListView(
                 padding: EdgeInsets.fromLTRB(
                   16,
@@ -225,7 +230,7 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  if (classrooms.isEmpty)
+                  if (filtered.isEmpty)
                     const Card(
                       child: Padding(
                         padding: EdgeInsets.all(16),
@@ -233,7 +238,7 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
                       ),
                     )
                   else
-                    ...classrooms.map(
+                    ...filtered.map(
                       (c) => Card(
                         clipBehavior: Clip.antiAlias,
                         child: InkWell(

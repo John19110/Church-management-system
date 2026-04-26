@@ -2,6 +2,7 @@ class ClassroomReadDto {
   final int? id;
   final String? name;
   final String? ageOfMembers;
+  final int? meetingId;
   final int? numberOfDisciplineMembers;
   final int? totalMembersCount;
   final int? pastAttendanceSessionsCount;
@@ -12,6 +13,7 @@ class ClassroomReadDto {
     this.id,
     this.name,
     this.ageOfMembers,
+    this.meetingId,
     this.numberOfDisciplineMembers,
     this.totalMembersCount,
     this.pastAttendanceSessionsCount,
@@ -24,6 +26,7 @@ class ClassroomReadDto {
         id: json['id'] as int?,
         name: json['name'] as String?,
         ageOfMembers: json['ageOfMembers'] as String?,
+        meetingId: json['meetingId'] as int?,
         // The key 'numberOfDisplineMembers' matches the backend's Classroom model
         // which contains this spelling (typo preserved from the C# entity).
         numberOfDisciplineMembers:
