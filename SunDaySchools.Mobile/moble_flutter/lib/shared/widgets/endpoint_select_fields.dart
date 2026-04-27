@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/l10n/app_localizations.dart';
 import '../../core/api/selection_service.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/models/select_option.dart';
@@ -57,6 +58,7 @@ class _EndpointSelectDropdownState extends ConsumerState<EndpointSelectDropdown>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return FutureBuilder<List<SelectOption>>(
       future: _future,
       builder: (context, snapshot) {
@@ -70,7 +72,7 @@ class _EndpointSelectDropdownState extends ConsumerState<EndpointSelectDropdown>
           final msg = snapshot.error.toString();
           return Padding(
             padding: const EdgeInsets.only(top: 8),
-            child: Text('Failed to load options: $msg'),
+            child: Text('${l10n.failedToLoadOptions} $msg'),
           );
         }
         final options = snapshot.data ?? const <SelectOption>[];
@@ -134,6 +136,7 @@ class _EndpointMultiSelectFieldState extends ConsumerState<EndpointMultiSelectFi
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return FutureBuilder<List<SelectOption>>(
       future: _future,
       builder: (context, snapshot) {
@@ -147,7 +150,7 @@ class _EndpointMultiSelectFieldState extends ConsumerState<EndpointMultiSelectFi
           final msg = snapshot.error.toString();
           return Padding(
             padding: const EdgeInsets.only(top: 8),
-            child: Text('Failed to load options: $msg'),
+            child: Text('${l10n.failedToLoadOptions} $msg'),
           );
         }
         final options = snapshot.data ?? const <SelectOption>[];

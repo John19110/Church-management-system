@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/l10n/app_localizations.dart';
 
 /// A full-page loading indicator.
 class LoadingWidget extends StatelessWidget {
@@ -19,6 +20,7 @@ class AppErrorWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
@@ -41,7 +43,7 @@ class AppErrorWidget extends StatelessWidget {
                     ElevatedButton.icon(
                       onPressed: onRetry,
                       icon: const Icon(Icons.refresh),
-                      label: const Text('Retry'),
+                      label: Text(l10n.retry),
                     ),
                   ],
                 ],
@@ -159,9 +161,10 @@ Future<bool> showConfirmDialog(
   BuildContext context, {
   required String title,
   required String content,
-  String confirmText = 'Delete',
+  String? confirmText,
   Color confirmColor = Colors.red,
 }) async {
+  final l10n = AppLocalizations.of(context);
   final result = await showDialog<bool>(
     context: context,
     builder: (ctx) => AlertDialog(
@@ -170,11 +173,14 @@ Future<bool> showConfirmDialog(
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx, false),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancel),
         ),
         TextButton(
           onPressed: () => Navigator.pop(ctx, true),
-          child: Text(confirmText, style: TextStyle(color: confirmColor)),
+          child: Text(
+            confirmText ?? l10n.delete,
+            style: TextStyle(color: confirmColor),
+          ),
         ),
       ],
     ),

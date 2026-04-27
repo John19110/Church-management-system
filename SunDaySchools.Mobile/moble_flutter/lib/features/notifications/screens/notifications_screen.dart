@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/app_localizations.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
 import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
@@ -11,6 +12,7 @@ class NotificationsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final role = ref.watch(currentUserRoleProvider).resolvedRoleOrNull;
     final homeRoute = AuthRoleUtils.routeForRole(role);
     final currentLocation = GoRouterState.of(context).matchedLocation;
@@ -22,11 +24,11 @@ class NotificationsScreen extends ConsumerWidget {
         context.go(homeRoute);
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text('Notifications')),
-        body: const Center(
+        appBar: AppBar(title: Text(l10n.notifications)),
+        body: Center(
           child: Padding(
-            padding: EdgeInsets.all(16),
-            child: Text('No notifications yet.'),
+            padding: const EdgeInsets.all(16),
+            child: Text(l10n.noNotificationsYet),
           ),
         ),
         bottomNavigationBar: AppSectionBottomNavigationBar(

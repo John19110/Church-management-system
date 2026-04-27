@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/app_localizations.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
 import '../../features/auth/utils/auth_role_utils.dart';
@@ -258,7 +259,9 @@ final routerProvider = Provider<GoRouter>((ref) {
     ],
 
     errorBuilder: (context, state) => Scaffold(
-      body: Center(child: Text('Page not found: ${state.error}')),
+      body: Center(
+        child: Text('${AppLocalizations.of(context).pageNotFound} ${state.error}'),
+      ),
     ),
   );
 });
@@ -272,10 +275,10 @@ class _MissingRouteDataScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(title)),
-      body: const Center(
+      body: Center(
         child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Text('Missing required data for this screen.'),
+          padding: const EdgeInsets.all(16),
+          child: Text(AppLocalizations.of(context).missingRequiredData),
         ),
       ),
     );

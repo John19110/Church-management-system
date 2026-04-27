@@ -18,9 +18,9 @@ class ClassroomDetailScreen extends ConsumerWidget {
 
     if (classroomId == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Classroom')),
-        body: const Center(
-          child: Text('Invalid classroom: missing id.'),
+        appBar: AppBar(title: Text(l10n.classroom)),
+        body: Center(
+          child: Text(l10n.classroomInvalidMissingId),
         ),
       );
     }
@@ -29,7 +29,7 @@ class ClassroomDetailScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(classroom.name ?? 'Classroom'),
+        title: Text(classroom.name ?? l10n.classroom),
       ),
 
       // ✅ FAB pushed higher (120)
@@ -54,13 +54,17 @@ class ClassroomDetailScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Age group: ${classroom.ageOfMembers ?? '—'}',
+                  l10n.ageGroupLabel
+                      .replaceAll('{age}', classroom.ageOfMembers ?? '—'),
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${classroom.totalMembersCount ?? 0} members · '
-                      '${classroom.pastAttendanceSessionsCount ?? 0} past attendance sessions',
+                  '${classroom.totalMembersCount ?? 0} ${l10n.members} · '
+                  '${l10n.pastAttendanceSessions.replaceAll(
+                    '{count}',
+                    (classroom.pastAttendanceSessionsCount ?? 0).toString(),
+                  )}',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -68,7 +72,10 @@ class ClassroomDetailScreen extends ConsumerWidget {
                 if (classroom.servantNames.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Text(
-                    'Servants: ${classroom.servantNames.join(', ')}',
+                    l10n.servantsLabel.replaceAll(
+                      '{names}',
+                      classroom.servantNames.join(', '),
+                    ),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
@@ -79,7 +86,7 @@ class ClassroomDetailScreen extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
-              'Members',
+              l10n.membersHeading,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -106,13 +113,13 @@ class ClassroomDetailScreen extends ConsumerWidget {
                 error: (e, _) => ListView(
                   padding: const EdgeInsets.all(24),
                   children: [
-                    Text('Could not load members: $e'),
+                    Text('${l10n.couldNotLoadMembers} $e'),
                     const SizedBox(height: 16),
                     FilledButton(
                       onPressed: () => ref.invalidate(
                         membersByClassroomProvider(classroomId),
                       ),
-                      child: const Text('Retry'),
+                      child: Text(l10n.retry),
                     ),
                   ],
                 ),
@@ -120,8 +127,8 @@ class ClassroomDetailScreen extends ConsumerWidget {
                   if (members.isEmpty) {
                     return ListView(
                       padding: const EdgeInsets.all(24),
-                      children: const [
-                        Text('No members in this classroom yet.'),
+                      children: [
+                        Text(l10n.noMembersInClassroomYet),
                       ],
                     );
                   }
@@ -140,7 +147,10 @@ class ClassroomDetailScreen extends ConsumerWidget {
                       final m = members[index];
                       final name = m.fullName?.trim().isNotEmpty == true
                           ? m.fullName!
-                          : 'Member #${m.id}';
+                          : l10n.memberNumber.replaceAll(
+                              '{id}',
+                              (m.id ?? '').toString(),
+                            );
 
                       return Card(
                         clipBehavior: Clip.antiAlias,
@@ -218,7 +228,7 @@ class ClassroomDetailScreen extends ConsumerWidget {
                     '${AppRoutes.attendanceHistory}/$classroomId?classroomName=${Uri.encodeComponent(classroom.name ?? '')}',
                   ),
                   icon: const Icon(Icons.history),
-                  label: const Text('Attendance history'),
+                  label: Text(l10n.attendanceHistory),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),

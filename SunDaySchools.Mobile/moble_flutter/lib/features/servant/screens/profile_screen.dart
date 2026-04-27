@@ -29,7 +29,7 @@ class ProfileScreen extends ConsumerWidget {
     final isArabic = locale.languageCode == 'ar';
 
     return Scaffold(
-      appBar: showAppBar ? AppBar(title: const Text('Profile')) : null,
+      appBar: showAppBar ? AppBar(title: Text(l10n.profile)) : null,
       bottomNavigationBar: AppSectionBottomNavigationBar(
         currentIndex: 3,
         homeRoute: homeRoute,
@@ -98,8 +98,8 @@ class ProfileScreen extends ConsumerWidget {
                       const Divider(height: 0),
                       ListTile(
                         leading: const Icon(Icons.language),
-                        title: const Text('Language'),
-                        subtitle: Text(isArabic ? 'العربية' : 'English'),
+                        title: Text(l10n.language),
+                        subtitle: Text(isArabic ? l10n.arabic : l10n.english),
                         trailing: TextButton(
                           onPressed: () =>
                               ref.read(localeProvider.notifier).toggle(),
@@ -116,19 +116,19 @@ class ProfileScreen extends ConsumerWidget {
                     children: [
                       ListTile(
                         leading: const Icon(Icons.church_outlined),
-                        title: const Text('Church'),
+                        title: Text(l10n.churchName),
                         subtitle: Text(church),
                       ),
                       const Divider(height: 0),
                       ListTile(
                         leading: const Icon(Icons.groups_outlined),
-                        title: const Text('Meeting'),
+                        title: Text(l10n.meetingName),
                         subtitle: Text(meeting),
                       ),
                       const Divider(height: 0),
                       ListTile(
                         leading: const Icon(Icons.class_outlined),
-                        title: const Text('Classrooms'),
+                        title: Text(l10n.classrooms),
                         subtitle: Text(classrooms),
                       ),
                     ],
@@ -140,19 +140,19 @@ class ProfileScreen extends ConsumerWidget {
                     children: [
                       ListTile(
                         leading: const Icon(Icons.cake_outlined),
-                        title: const Text('Birth date'),
+                        title: Text(l10n.birthDate),
                         subtitle: Text(p.birthDate ?? '-'),
                       ),
                       const Divider(height: 0),
                       ListTile(
                         leading: const Icon(Icons.event_available_outlined),
-                        title: const Text('Joining date'),
+                        title: Text(l10n.joiningDate),
                         subtitle: Text(p.joiningDate ?? '-'),
                       ),
                       const Divider(height: 0),
                       ListTile(
                         leading: const Icon(Icons.auto_awesome_outlined),
-                        title: const Text('Spiritual birth date'),
+                        title: Text(l10n.spiritualDateOfBirth),
                         subtitle: Text(p.spiritualBirthDate ?? '-'),
                       ),
                     ],
@@ -165,7 +165,7 @@ class ProfileScreen extends ConsumerWidget {
                     ref.invalidate(servantProfileProvider);
                   },
                   icon: const Icon(Icons.edit),
-                  label: const Text('Edit'),
+                  label: Text(l10n.editProfile),
                 ),
               ],
             ),

@@ -60,7 +60,9 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
   Future<void> _createMeeting() async {
     final weekly = _selectedTime;
     if (weekly == null) {
-      throw const FormatException('Weekly appointment time is required.');
+      throw FormatException(
+        AppLocalizations.of(context).weeklyAppointmentTimeRequired,
+      );
     }
 
     await ref.read(superAdminRepositoryProvider).createMeeting(
@@ -86,7 +88,7 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
           builder: (dialogBuilderContext, setDialogState) {
             final l10n = AppLocalizations.of(dialogBuilderContext);
             return AlertDialog(
-              title: const Text('Add Meeting'),
+              title: Text(l10n.addMeeting),
               content: SingleChildScrollView(
                 child: Form(
                   key: _meetingFormKey,
@@ -95,13 +97,13 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
                     children: [
                       TextFormField(
                         controller: _nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Meeting Name',
-                          hintText: 'Enter meeting name',
+                        decoration: InputDecoration(
+                          labelText: l10n.meetingNameLabel,
+                          hintText: l10n.enterMeetingNameHint,
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'Meeting name is required';
+                            return l10n.meetingNameRequiredGeneric;
                           }
                           return null;
                         },
@@ -109,8 +111,8 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
                       const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
                         value: _selectedDay,
-                        decoration: const InputDecoration(
-                          labelText: 'Day of week',
+                        decoration: InputDecoration(
+                          labelText: l10n.meetingDayOfWeek,
                         ),
                         items: [
                           DropdownMenuItem(
@@ -150,15 +152,15 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
                                 setDialogState(() => _selectedDay = v);
                               },
                         validator: (v) => (v == null || v.trim().isEmpty)
-                            ? 'Day of week is required'
+                            ? l10n.dayOfWeekRequired
                             : null,
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _timeController,
                         readOnly: true,
-                        decoration: const InputDecoration(
-                          labelText: 'Weekly appointment time',
+                        decoration: InputDecoration(
+                          labelText: l10n.weeklyAppointmentTime,
                           hintText: 'HH:mm',
                         ),
                         onTap: isSubmitting
@@ -177,7 +179,7 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
                                 });
                               },
                         validator: (_) => _selectedTime == null
-                            ? 'Weekly appointment time is required'
+                            ? l10n.weeklyAppointmentTimeRequired
                             : null,
                       ),
                     ],
@@ -189,7 +191,7 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
                   onPressed: isSubmitting
                       ? null
                       : () => Navigator.of(dialogContext).pop(),
-                  child: const Text('Cancel'),
+                  child: Text(l10n.cancel),
                 ),
                 ElevatedButton(
                   onPressed: isSubmitting
@@ -204,7 +206,7 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
                             Navigator.of(dialogContext).pop();
                             showSuccessSnackbar(
                               context,
-                              'Meeting added successfully.',
+                              l10n.meetingAddedSuccessfully,
                             );
                           } catch (e) {
                             if (!mounted) return;
@@ -221,7 +223,7 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
                           height: 16,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Add'),
+                      : Text(l10n.add),
                 ),
               ],
             );
@@ -257,8 +259,9 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (dialogBuilderContext, setDialogState) {
+            final l10n = AppLocalizations.of(dialogBuilderContext);
             return AlertDialog(
-              title: const Text('Add Classroom'),
+              title: Text(l10n.addClassroom),
               content: SingleChildScrollView(
                 child: Form(
                   key: _classroomFormKey,
@@ -267,13 +270,13 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
                     children: [
                       TextFormField(
                         controller: _classroomNameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Classroom Name',
-                          hintText: 'Enter classroom name',
+                        decoration: InputDecoration(
+                          labelText: l10n.classroomNameLabel,
+                          hintText: l10n.enterClassroomNameHint,
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'Classroom name is required';
+                            return l10n.classroomNameRequiredGeneric;
                           }
                           return null;
                         },
@@ -281,13 +284,13 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _classroomAgeController,
-                        decoration: const InputDecoration(
-                          labelText: 'Age of Members',
-                          hintText: 'Enter age range',
+                        decoration: InputDecoration(
+                          labelText: l10n.ageOfMembersLabel,
+                          hintText: l10n.enterAgeRangeHint,
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'Age of members is required';
+                            return l10n.ageOfMembersRequiredGeneric;
                           }
                           return null;
                         },
@@ -295,8 +298,8 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
                       const SizedBox(height: 12),
                       EndpointSelectDropdown(
                         endpoint: SelectionEndpoints.meetings,
-                        label: 'Meeting (optional)',
-                        hintText: 'Select meeting',
+                        label: '${l10n.meetingLabel} (${l10n.optional})',
+                        hintText: l10n.selectMeeting,
                         value: _selectedMeetingIdForClassroom,
                         enabled: !isSubmitting,
                         onChanged: (v) => setDialogState(
@@ -311,7 +314,7 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
                   onPressed: isSubmitting
                       ? null
                       : () => Navigator.of(dialogContext).pop(),
-                  child: const Text('Cancel'),
+                  child: Text(l10n.cancel),
                 ),
                 ElevatedButton(
                   onPressed: isSubmitting
@@ -330,7 +333,7 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
                             Navigator.of(dialogContext).pop();
                             showSuccessSnackbar(
                               context,
-                              'Classroom added successfully.',
+                              l10n.classroomAddedSuccessfully,
                             );
                           } catch (e) {
                             if (!mounted) return;
@@ -347,7 +350,7 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
                           height: 16,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Add'),
+                      : Text(l10n.add),
                 ),
               ],
             );
@@ -372,16 +375,22 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (dialogBuilderContext, setDialogState) {
+            final l10n = AppLocalizations.of(dialogBuilderContext);
             return AlertDialog(
-              title: Text('Edit Meeting: ${meeting.name ?? meetingId}'),
+              title: Text(
+                l10n.editMeetingTitle.replaceAll(
+                  '{meeting}',
+                  (meeting.name ?? meetingId.toString()),
+                ),
+              ),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     EndpointSelectDropdown(
                       endpoint: SelectionEndpoints.servants,
-                      label: 'Leader Servant (optional)',
-                      hintText: 'Select servant',
+                      label: l10n.leaderServantOptional,
+                      hintText: l10n.selectServant,
                       value: selectedLeaderId,
                       enabled: !isSubmitting,
                       onChanged: (v) =>
@@ -395,7 +404,7 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
                   onPressed: isSubmitting
                       ? null
                       : () => Navigator.of(dialogContext).pop(),
-                  child: const Text('Cancel'),
+                  child: Text(l10n.cancel),
                 ),
                 ElevatedButton(
                   onPressed: isSubmitting
@@ -410,7 +419,7 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
                             ref.invalidate(visibleMeetingsProvider);
                             if (!mounted || !dialogBuilderContext.mounted) return;
                             Navigator.of(dialogContext).pop();
-                            showSuccessSnackbar(context, 'Meeting updated.');
+                            showSuccessSnackbar(context, l10n.meetingUpdated);
                           } catch (e) {
                             if (!mounted) return;
                             showErrorSnackbar(context, e.toString());
@@ -426,7 +435,7 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
                           height: 16,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Save'),
+                      : Text(l10n.saveLabel),
                 ),
               ],
             );
@@ -438,21 +447,22 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final meetingsAsync = ref.watch(visibleMeetingsProvider);
     final pendingAdminsAsync = ref.watch(pendingAdminsProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Super Admin Home'),
+        title: Text(l10n.superAdminHome),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            tooltip: 'Add Meeting',
+            tooltip: l10n.addMeeting,
             onPressed: _showAddMeetingDialog,
           ),
           IconButton(
             icon: const Icon(Icons.class_),
-            tooltip: 'Add Classroom',
+            tooltip: l10n.addClassroom,
             onPressed: _showAddClassroomDialog,
           ),
           IconButton(
@@ -475,27 +485,32 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
                 Card(
                   child: ListTile(
                     leading: const Icon(Icons.admin_panel_settings),
-                    title: const Text('Pending Admins'),
+                    title: Text(l10n.pendingAdmins),
                     subtitle: pendingAdminsAsync.when(
-                      data: (list) => Text('${list.length} pending'),
-                      loading: () => const Text('Loading...'),
-                      error: (e, _) => Text('Error: $e'),
+                      data: (list) => Text(
+                        l10n.pendingCount.replaceAll(
+                          '{count}',
+                          list.length.toString(),
+                        ),
+                      ),
+                      loading: () => Text(l10n.loadingLabel),
+                      error: (e, _) => Text('${l10n.errorLabel} $e'),
                     ),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () => context.push(AppRoutes.pendingAdmins),
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'Visible Meetings',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Text(
+                  l10n.visibleMeetings,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 if (meetings.isEmpty)
-                  const Card(
+                  Card(
                     child: Padding(
-                      padding: EdgeInsets.all(16),
-                      child: Text('No visible meetings found.'),
+                      padding: const EdgeInsets.all(16),
+                      child: Text(l10n.noVisibleMeetingsFound),
                     ),
                   )
                 else
@@ -512,7 +527,10 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
                           children: [
                             IconButton(
                               icon: const Icon(Icons.edit),
-                              tooltip: 'Edit meeting',
+                              tooltip: l10n.editMeetingTitle.replaceAll(
+                                '{meeting}',
+                                (m.name ?? ''),
+                              ),
                               onPressed: () => _showEditMeetingDialog(m),
                             ),
                             const Icon(Icons.chevron_right),
@@ -541,20 +559,25 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
               Card(
                 child: ListTile(
                   leading: const Icon(Icons.admin_panel_settings),
-                  title: const Text('Pending Admins'),
+                  title: Text(l10n.pendingAdmins),
                   subtitle: pendingAdminsAsync.when(
-                    data: (list) => Text('${list.length} pending'),
-                    loading: () => const Text('Loading...'),
-                    error: (e, _) => Text('Error: $e'),
+                    data: (list) => Text(
+                      l10n.pendingCount.replaceAll(
+                        '{count}',
+                        list.length.toString(),
+                      ),
+                    ),
+                    loading: () => Text(l10n.loadingLabel),
+                    error: (e, _) => Text('${l10n.errorLabel} $e'),
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push(AppRoutes.pendingAdmins),
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Visible Meetings',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Text(
+                l10n.visibleMeetings,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               const Padding(
@@ -569,26 +592,31 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
               Card(
                 child: ListTile(
                   leading: const Icon(Icons.admin_panel_settings),
-                  title: const Text('Pending Admins'),
+                  title: Text(l10n.pendingAdmins),
                   subtitle: pendingAdminsAsync.when(
-                    data: (list) => Text('${list.length} pending'),
-                    loading: () => const Text('Loading...'),
-                    error: (err, _) => Text('Error: $err'),
+                    data: (list) => Text(
+                      l10n.pendingCount.replaceAll(
+                        '{count}',
+                        list.length.toString(),
+                      ),
+                    ),
+                    loading: () => Text(l10n.loadingLabel),
+                    error: (err, _) => Text('${l10n.errorLabel} $err'),
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push(AppRoutes.pendingAdmins),
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Visible Meetings',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Text(
+                l10n.visibleMeetings,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
-                  child: Text('Failed to load visible meetings: $e'),
+                  child: Text('${l10n.failedToLoadVisibleMeetings} $e'),
                 ),
               ),
             ],

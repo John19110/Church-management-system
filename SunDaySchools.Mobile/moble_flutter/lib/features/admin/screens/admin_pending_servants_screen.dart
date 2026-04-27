@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/l10n/app_localizations.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../providers/admin_providers.dart';
 import '../../../shared/widgets/endpoint_select_fields.dart';
@@ -13,6 +14,7 @@ class AdminPendingServantsScreen extends ConsumerWidget {
     WidgetRef ref, {
     required int servantId,
   }) async {
+    final l10n = AppLocalizations.of(context);
     int? selectedClassroomId;
 
     if (!context.mounted) return;
@@ -23,23 +25,23 @@ class AdminPendingServantsScreen extends ConsumerWidget {
         return StatefulBuilder(
           builder: (dialogContext, setState) {
             return AlertDialog(
-              title: const Text('Assign classroom'),
+              title: Text(l10n.assignClassroom),
               content: EndpointSelectDropdown(
                 endpoint: SelectionEndpoints.classrooms,
-                label: 'Classroom',
-                hintText: 'Select classroom',
+                label: l10n.classroom,
+                hintText: l10n.selectClassroom,
                 value: selectedClassroomId,
                 onChanged: (v) => setState(() => selectedClassroomId = v),
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(ctx).pop(),
-                  child: const Text('Cancel'),
+                  child: Text(l10n.cancel),
                 ),
                 ElevatedButton(
                   onPressed: () async {
                     if (selectedClassroomId == null) {
-                      cw.showErrorSnackbar(ctx, 'Please select a classroom.');
+                      cw.showErrorSnackbar(ctx, l10n.pleaseSelectClassroom);
                       return;
                     }
                     try {
@@ -49,13 +51,13 @@ class AdminPendingServantsScreen extends ConsumerWidget {
                           );
                       if (ctx.mounted) Navigator.of(ctx).pop();
                       if (context.mounted) {
-                        cw.showSuccessSnackbar(context, 'Class assigned.');
+                        cw.showSuccessSnackbar(context, l10n.classAssigned);
                       }
                     } catch (e) {
                       if (ctx.mounted) cw.showErrorSnackbar(ctx, e.toString());
                     }
                   },
-                  child: const Text('Assign'),
+                  child: Text(l10n.assign),
                 ),
               ],
             );
@@ -67,10 +69,11 @@ class AdminPendingServantsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final pendingAsync = ref.watch(pendingServantsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Pending Servants')),
+      appBar: AppBar(title: Text(l10n.pendingServants)),
       body: pendingAsync.when(
         loading: () => const cw.LoadingWidget(),
         error: (e, _) => cw.AppErrorWidget(
@@ -79,8 +82,8 @@ class AdminPendingServantsScreen extends ConsumerWidget {
         ),
         data: (list) {
           if (list.isEmpty) {
-            return const cw.EmptyWidget(
-              message: 'No pending servants.',
+            return cw.EmptyWidget(
+              message: l10n.noPendingServants,
               icon: Icons.pending_actions,
             );
           }
@@ -95,15 +98,16 @@ class AdminPendingServantsScreen extends ConsumerWidget {
                 return Card(
                   child: ListTile(
                     leading: const Icon(Icons.person_outline),
-                    title: Text(u.name.isEmpty ? '(no name)' : u.name),
-                    subtitle:
-                        Text(u.phoneNumber.isEmpty ? '(no phone)' : u.phoneNumber),
+                    title: Text(u.name.isEmpty ? l10n.noName : u.name),
+                    subtitle: Text(
+                      u.phoneNumber.isEmpty ? l10n.noPhone : u.phoneNumber,
+                    ),
                     isThreeLine: true,
                     trailing: Wrap(
                       spacing: 8,
                       children: [
                         IconButton(
-                          tooltip: 'Approve',
+                          tooltip: l10n.approve,
                           icon: const Icon(Icons.check, color: Colors.green),
                           onPressed: () async {
                             try {
@@ -114,7 +118,7 @@ class AdminPendingServantsScreen extends ConsumerWidget {
                               if (context.mounted) {
                                 cw.showSuccessSnackbar(
                                   context,
-                                  'Approved ${u.name}.',
+                                  '${l10n.approvedUser} ${u.name}.',
                                 );
                               }
                             } catch (e) {
@@ -125,15 +129,15 @@ class AdminPendingServantsScreen extends ConsumerWidget {
                           },
                         ),
                         IconButton(
-                          tooltip: 'Reject',
+                          tooltip: l10n.reject,
                           icon: const Icon(Icons.close, color: Colors.red),
                           onPressed: () async {
                             final ok = await cw.showConfirmDialog(
                               context,
-                              title: 'Reject servant?',
+                              title: l10n.rejectServantTitle,
                               content:
-                                  'This will reject ${u.name.isEmpty ? 'this user' : u.name}.',
-                              confirmText: 'Reject',
+                                  'This will reject ${u.name.isEmpty ? l10n.rejectThisUser : u.name}.',
+                              confirmText: l10n.reject,
                             );
                             if (!ok) return;
                             try {
@@ -144,7 +148,7 @@ class AdminPendingServantsScreen extends ConsumerWidget {
                               if (context.mounted) {
                                 cw.showSuccessSnackbar(
                                   context,
-                                  'Rejected ${u.name}.',
+                                  '${l10n.rejectedUser} ${u.name}.',
                                 );
                               }
                             } catch (e) {
@@ -155,7 +159,7 @@ class AdminPendingServantsScreen extends ConsumerWidget {
                           },
                         ),
                         IconButton(
-                          tooltip: 'Assign class',
+                          tooltip: l10n.assignClassTooltip,
                           icon: const Icon(Icons.class_),
                           onPressed: servantId == null
                               ? null

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/app_localizations.dart';
 import '../../../core/routing/app_router.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_session.dart';
@@ -12,17 +13,21 @@ class AdminHomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final roleAsync = ref.watch(currentUserRoleProvider);
 
     return DefaultTabController(
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Admin'),
-          bottom: const TabBar(
+          title: Text(l10n.admin),
+          bottom: TabBar(
             tabs: [
-              Tab(icon: Icon(Icons.class_), text: 'Classrooms'),
-              Tab(icon: Icon(Icons.pending_actions), text: 'Pending Servants'),
+              Tab(icon: const Icon(Icons.class_), text: l10n.classrooms),
+              Tab(
+                icon: const Icon(Icons.pending_actions),
+                text: l10n.pendingServants,
+              ),
             ],
           ),
           actions: [
@@ -43,11 +48,11 @@ class AdminHomeScreen extends ConsumerWidget {
               );
             }
             if (role == null) {
-              return const Center(
+              return Center(
                 child: Padding(
-                  padding: EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(16),
                   child: Text(
-                    'No role found in your session. Please log out and sign in again.',
+                    l10n.noRoleFoundPleaseRelogin,
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -57,7 +62,7 @@ class AdminHomeScreen extends ConsumerWidget {
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  'This screen is for Admin users only.',
+                  l10n.adminOnlyScreen,
                   style: Theme.of(context).textTheme.titleMedium,
                   textAlign: TextAlign.center,
                 ),
@@ -69,7 +74,7 @@ class AdminHomeScreen extends ConsumerWidget {
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
-                'Could not verify your role: $e',
+                '${l10n.couldNotVerifyRole} $e',
                 textAlign: TextAlign.center,
               ),
             ),
@@ -85,6 +90,7 @@ class _PendingServantsRouteShim extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     // Uses a dedicated route/screen so it can also be opened directly.
     return Center(
       child: Padding(
@@ -92,7 +98,7 @@ class _PendingServantsRouteShim extends StatelessWidget {
         child: ElevatedButton.icon(
           onPressed: () => context.go(AppRoutes.pendingServants),
           icon: const Icon(Icons.open_in_new),
-          label: const Text('Open Pending Servants'),
+          label: Text(l10n.openPendingServants),
         ),
       ),
     );

@@ -171,6 +171,124 @@ class AppLocalizations {
   String get records => _t('records');
   String get lightMode => _t('lightMode');
   String get darkMode => _t('darkMode');
+  String get language => _t('language');
+  String get english => _t('english');
+  String get arabic => _t('arabic');
+
+  // ── Roles / Admin ─────────────────────────────────────────────────────────
+  String get admin => _t('admin');
+  String get superAdmin => _t('superAdmin');
+  String get pendingServants => _t('pendingServants');
+  String get pendingAdmins => _t('pendingAdmins');
+  String get openPendingServants => _t('openPendingServants');
+  String get approve => _t('approve');
+  String get reject => _t('reject');
+  String get assign => _t('assign');
+  String get assignClass => _t('assignClass');
+  String get assignClassroom => _t('assignClassroom');
+  String get classroom => _t('classroom');
+  String get selectClassroom => _t('selectClassroom');
+  String get pleaseSelectClassroom => _t('pleaseSelectClassroom');
+  String get classAssigned => _t('classAssigned');
+  String get noPendingServants => _t('noPendingServants');
+  String get noPendingAdmins => _t('noPendingAdmins');
+  String get noName => _t('noName');
+  String get noPhone => _t('noPhone');
+  String get rejectServantTitle => _t('rejectServantTitle');
+  String get rejectAdminTitle => _t('rejectAdminTitle');
+  String get rejectThisUser => _t('rejectThisUser');
+  String get approvedUser => _t('approvedUser');
+  String get rejectedUser => _t('rejectedUser');
+  String get assignClassTooltip => _t('assignClassTooltip');
+  String get couldNotVerifyRole => _t('couldNotVerifyRole');
+  String get adminOnlyScreen => _t('adminOnlyScreen');
+  String get noRoleFoundPleaseRelogin => _t('noRoleFoundPleaseRelogin');
+
+  // ── Meetings (Super Admin dialogs) ────────────────────────────────────────
+  String get addMeeting => _t('addMeeting');
+  String get add => _t('add');
+  String get meetingAddedSuccessfully => _t('meetingAddedSuccessfully');
+  String get meetingNameLabel => _t('meetingNameLabel');
+  String get enterMeetingNameHint => _t('enterMeetingNameHint');
+  String get meetingNameRequiredGeneric => _t('meetingNameRequiredGeneric');
+  String get dayOfWeekRequired => _t('dayOfWeekRequired');
+  String get weeklyAppointmentTime => _t('weeklyAppointmentTime');
+  String get weeklyAppointmentTimeRequired => _t('weeklyAppointmentTimeRequired');
+
+  // ── Servant ───────────────────────────────────────────────────────────────
+  String get servant => _t('servant');
+  String get servantOnlyScreen => _t('servantOnlyScreen');
+
+  // ── Notifications ─────────────────────────────────────────────────────────
+  String get notifications => _t('notifications');
+  String get noNotificationsYet => _t('noNotificationsYet');
+
+  // ── Classrooms ────────────────────────────────────────────────────────────
+  String get classroomsHome => _t('classroomsHome');
+  String get classroomsTitleWithMeeting => _t('classroomsTitleWithMeeting');
+  String get addClassroom => _t('addClassroom');
+  String get classroomNameLabel => _t('classroomNameLabel');
+  String get enterClassroomNameHint => _t('enterClassroomNameHint');
+  String get classroomNameRequiredGeneric => _t('classroomNameRequiredGeneric');
+  String get ageOfMembersLabel => _t('ageOfMembersLabel');
+  String get enterAgeRangeHint => _t('enterAgeRangeHint');
+  String get ageOfMembersRequiredGeneric => _t('ageOfMembersRequiredGeneric');
+  String get classroomAddedSuccessfully => _t('classroomAddedSuccessfully');
+  String get visibleClassrooms => _t('visibleClassrooms');
+  String get noVisibleClassroomsFound => _t('noVisibleClassroomsFound');
+  String get attendanceHistory => _t('attendanceHistory');
+
+  // ── Members / Common actions ──────────────────────────────────────────────
+  String get retry => _t('retry');
+  String get couldNotLoadMembers => _t('couldNotLoadMembers');
+  String get noMembersInClassroomYet => _t('noMembersInClassroomYet');
+  String get memberNumber => _t('memberNumber');
+  String get classroomInvalidMissingId => _t('classroomInvalidMissingId');
+  String get membersHeading => _t('membersHeading');
+  String get ageGroupLabel => _t('ageGroupLabel');
+  String get pastAttendanceSessions => _t('pastAttendanceSessions');
+  String get servantsLabel => _t('servantsLabel');
+
+  // ── Meetings detail ───────────────────────────────────────────────────────
+  String get meetingDetails => _t('meetingDetails');
+  String get nameLabel => _t('nameLabel');
+  String get dayOfWeekLabel => _t('dayOfWeekLabel');
+  String get weeklyAppointmentLabel => _t('weeklyAppointmentLabel');
+  String get servantsCountLabel => _t('servantsCountLabel');
+  String get membersCountLabel => _t('membersCountLabel');
+  String get addUpdateRemoveMembers => _t('addUpdateRemoveMembers');
+  String get manageServants => _t('manageServants');
+
+  // ── Profile / Forms ───────────────────────────────────────────────────────
+  String get profile => _t('profile');
+  String get editProfile => _t('editProfile');
+  String get saveLabel => _t('saveLabel');
+  String get done => _t('done');
+  String get select => _t('select');
+  String get failedToLoadOptions => _t('failedToLoadOptions');
+  String get failedToLoadProfile => _t('failedToLoadProfile');
+  String get profileUpdated => _t('profileUpdated');
+  String get churchIdLabel => _t('churchIdLabel');
+  String get meetingLabel => _t('meetingLabel');
+  String get selectMeeting => _t('selectMeeting');
+  String get classroomsLabel => _t('classroomsLabel');
+  String get selectClassrooms => _t('selectClassrooms');
+  String get superAdminHome => _t('superAdminHome');
+  String get loadingLabel => _t('loadingLabel');
+  String get errorLabel => _t('errorLabel');
+  String get pendingCount => _t('pendingCount');
+  String get noVisibleMeetingsFound => _t('noVisibleMeetingsFound');
+  String get failedToLoadVisibleMeetings => _t('failedToLoadVisibleMeetings');
+  String get failedToLoadVisibleClassrooms => _t('failedToLoadVisibleClassrooms');
+  String get failedToLoadClassrooms => _t('failedToLoadClassrooms');
+  String get editMeetingTitle => _t('editMeetingTitle');
+  String get pageNotFound => _t('pageNotFound');
+  String get missingRequiredData => _t('missingRequiredData');
+  String get optional => _t('optional');
+  String get visibleMeetings => _t('visibleMeetings');
+  String get leaderServantOptional => _t('leaderServantOptional');
+  String get selectServant => _t('selectServant');
+  String get meetingUpdated => _t('meetingUpdated');
 
   // ── Common ────────────────────────────────────────────────────────────────
   String get loading => _t('loading');
@@ -325,6 +443,125 @@ class AppLocalizations {
       'records': 'Records',
       'lightMode': 'Light mode',
       'darkMode': 'Dark mode',
+      'language': 'Language',
+      'english': 'English',
+      'arabic': 'Arabic',
+
+      // Roles / Admin
+      'admin': 'Admin',
+      'superAdmin': 'Super Admin',
+      'pendingServants': 'Pending Servants',
+      'pendingAdmins': 'Pending Admins',
+      'openPendingServants': 'Open Pending Servants',
+      'approve': 'Approve',
+      'reject': 'Reject',
+      'assign': 'Assign',
+      'assignClass': 'Assign class',
+      'assignClassroom': 'Assign classroom',
+      'classroom': 'Classroom',
+      'selectClassroom': 'Select classroom',
+      'pleaseSelectClassroom': 'Please select a classroom.',
+      'classAssigned': 'Class assigned.',
+      'noPendingServants': 'No pending servants.',
+      'noPendingAdmins': 'No pending admins.',
+      'noName': '(no name)',
+      'noPhone': '(no phone)',
+      'rejectServantTitle': 'Reject servant?',
+      'rejectAdminTitle': 'Reject admin?',
+      'rejectThisUser': 'this user',
+      'approvedUser': 'Approved',
+      'rejectedUser': 'Rejected',
+      'assignClassTooltip': 'Assign class',
+      'couldNotVerifyRole': 'Could not verify your role:',
+      'adminOnlyScreen': 'This screen is for Admin users only.',
+      'noRoleFoundPleaseRelogin':
+          'No role found in your session. Please log out and sign in again.',
+
+      // Meetings (Super Admin dialogs)
+      'addMeeting': 'Add Meeting',
+      'add': 'Add',
+      'meetingAddedSuccessfully': 'Meeting added successfully.',
+      'meetingNameLabel': 'Meeting Name',
+      'enterMeetingNameHint': 'Enter meeting name',
+      'meetingNameRequiredGeneric': 'Meeting name is required',
+      'dayOfWeekRequired': 'Day of week is required',
+      'weeklyAppointmentTime': 'Weekly appointment time',
+      'weeklyAppointmentTimeRequired': 'Weekly appointment time is required',
+
+      // Servant
+      'servant': 'Servant',
+      'servantOnlyScreen': 'This screen is for Servant users only.',
+
+      // Notifications
+      'notifications': 'Notifications',
+      'noNotificationsYet': 'No notifications yet.',
+
+      // Classrooms
+      'classroomsHome': 'Classrooms Home',
+      'classroomsTitleWithMeeting': 'Classrooms — {meetingName}',
+      'addClassroom': 'Add Classroom',
+      'classroomNameLabel': 'Classroom Name',
+      'enterClassroomNameHint': 'Enter classroom name',
+      'classroomNameRequiredGeneric': 'Classroom name is required',
+      'ageOfMembersLabel': 'Age of Members',
+      'enterAgeRangeHint': 'Enter age range',
+      'ageOfMembersRequiredGeneric': 'Age of members is required',
+      'classroomAddedSuccessfully': 'Classroom added successfully.',
+      'visibleClassrooms': 'Visible Classrooms',
+      'noVisibleClassroomsFound': 'No visible classrooms found.',
+      'attendanceHistory': 'Attendance history',
+
+      // Members / Common actions
+      'retry': 'Retry',
+      'couldNotLoadMembers': 'Could not load members:',
+      'noMembersInClassroomYet': 'No members in this classroom yet.',
+      'memberNumber': 'Member #{id}',
+      'classroomInvalidMissingId': 'Invalid classroom: missing id.',
+      'membersHeading': 'Members',
+      'ageGroupLabel': 'Age group: {age}',
+      'pastAttendanceSessions': '{count} past attendance sessions',
+      'servantsLabel': 'Servants: {names}',
+
+      // Meetings detail
+      'meetingDetails': 'Meeting Details',
+      'nameLabel': 'Name',
+      'dayOfWeekLabel': 'Day of week',
+      'weeklyAppointmentLabel': 'Weekly appointment',
+      'servantsCountLabel': 'Servants count',
+      'membersCountLabel': 'Members count',
+      'addUpdateRemoveMembers': 'Add/Update/Remove Members',
+      'manageServants': 'Manage Servants',
+
+      // Profile / Forms
+      'profile': 'Profile',
+      'editProfile': 'Edit profile',
+      'saveLabel': 'Save',
+      'done': 'Done',
+      'select': 'Select',
+      'failedToLoadOptions': 'Failed to load options:',
+      'failedToLoadProfile': 'Failed to load profile:',
+      'profileUpdated': 'Profile updated.',
+      'churchIdLabel': 'Church id',
+      'meetingLabel': 'Meeting',
+      'selectMeeting': 'Select meeting',
+      'classroomsLabel': 'Classrooms',
+      'selectClassrooms': 'Select classrooms',
+      'superAdminHome': 'Super Admin Home',
+      'loadingLabel': 'Loading...',
+      'errorLabel': 'Error:',
+      'pendingCount': '{count} pending',
+      'noVisibleMeetingsFound': 'No visible meetings found.',
+      'failedToLoadVisibleMeetings': 'Failed to load visible meetings:',
+      'failedToLoadVisibleClassrooms': 'Failed to load visible classrooms:',
+      'failedToLoadClassrooms': 'Failed to load classrooms:',
+      'editMeetingTitle': 'Edit Meeting: {meeting}',
+      'pageNotFound': 'Page not found:',
+      'missingRequiredData': 'Missing required data for this screen.',
+      'optional': 'optional',
+      'visibleMeetings': 'Visible Meetings',
+      'leaderServantOptional': 'Leader Servant (optional)',
+      'selectServant': 'Select servant',
+      'meetingUpdated': 'Meeting updated.',
       // Common
       'loading': 'Loading...',
       'error': 'Error',
@@ -381,7 +618,6 @@ class AppLocalizations {
       'address': 'العنوان',
       'dateOfBirth': 'تاريخ الميلاد',
       'joiningDate': 'تاريخ الانضمام',
-      'classroom': ' الفصل',
       'phoneNumbers': 'أرقام الهاتف',
       'relation': 'صلة القرابة',
       'phone': 'الهاتف',
@@ -473,6 +709,125 @@ class AppLocalizations {
       'records': 'السجلات',
       'lightMode': 'الوضع الفاتح',
       'darkMode': 'الوضع الداكن',
+      'language': 'اللغة',
+      'english': 'الإنجليزية',
+      'arabic': 'العربية',
+
+      // Roles / Admin
+      'admin': 'مسؤول',
+      'superAdmin': 'مسؤول عام',
+      'pendingServants': 'الخدام المعلّقون',
+      'pendingAdmins': 'المسؤولون المعلّقون',
+      'openPendingServants': 'فتح الخدام المعلّقين',
+      'approve': 'قبول',
+      'reject': 'رفض',
+      'assign': 'تعيين',
+      'assignClass': 'تعيين فصل',
+      'assignClassroom': 'تعيين فصل',
+      'classroom': 'الفصل',
+      'selectClassroom': 'اختر الفصل',
+      'pleaseSelectClassroom': 'يرجى اختيار فصل.',
+      'classAssigned': 'تم تعيين الفصل.',
+      'noPendingServants': 'لا يوجد خدام معلّقون.',
+      'noPendingAdmins': 'لا يوجد مسؤولون معلّقون.',
+      'noName': '(بدون اسم)',
+      'noPhone': '(بدون رقم)',
+      'rejectServantTitle': 'رفض الخادم؟',
+      'rejectAdminTitle': 'رفض المسؤول؟',
+      'rejectThisUser': 'هذا المستخدم',
+      'approvedUser': 'تم القبول',
+      'rejectedUser': 'تم الرفض',
+      'assignClassTooltip': 'تعيين فصل',
+      'couldNotVerifyRole': 'تعذر التحقق من الدور:',
+      'adminOnlyScreen': 'هذه الصفحة خاصة بالمشرفين فقط.',
+      'noRoleFoundPleaseRelogin':
+          'لم يتم العثور على دور في جلستك. يرجى تسجيل الخروج ثم تسجيل الدخول مرة أخرى.',
+
+      // Meetings (Super Admin dialogs)
+      'addMeeting': 'إضافة اجتماع',
+      'add': 'إضافة',
+      'meetingAddedSuccessfully': 'تمت إضافة الاجتماع بنجاح.',
+      'meetingNameLabel': 'اسم الاجتماع',
+      'enterMeetingNameHint': 'أدخل اسم الاجتماع',
+      'meetingNameRequiredGeneric': 'اسم الاجتماع مطلوب',
+      'dayOfWeekRequired': 'يوم الأسبوع مطلوب',
+      'weeklyAppointmentTime': 'وقت الموعد الأسبوعي',
+      'weeklyAppointmentTimeRequired': 'وقت الموعد الأسبوعي مطلوب',
+
+      // Servant
+      'servant': 'خادم',
+      'servantOnlyScreen': 'هذه الصفحة خاصة بالخدام فقط.',
+
+      // Notifications
+      'notifications': 'الإشعارات',
+      'noNotificationsYet': 'لا توجد إشعارات بعد.',
+
+      // Classrooms
+      'classroomsHome': 'صفحة الفصول',
+      'classroomsTitleWithMeeting': 'الفصول — {meetingName}',
+      'addClassroom': 'إضافة فصل',
+      'classroomNameLabel': 'اسم الفصل',
+      'enterClassroomNameHint': 'أدخل اسم الفصل',
+      'classroomNameRequiredGeneric': 'اسم الفصل مطلوب',
+      'ageOfMembersLabel': 'أعمار الأعضاء',
+      'enterAgeRangeHint': 'أدخل نطاق الأعمار',
+      'ageOfMembersRequiredGeneric': 'أعمار الأعضاء مطلوبة',
+      'classroomAddedSuccessfully': 'تمت إضافة الفصل بنجاح.',
+      'visibleClassrooms': 'الفصول الظاهرة',
+      'noVisibleClassroomsFound': 'لم يتم العثور على فصول ظاهرة.',
+      'attendanceHistory': 'سجل الحضور',
+
+      // Members / Common actions
+      'retry': 'إعادة المحاولة',
+      'couldNotLoadMembers': 'تعذر تحميل الأعضاء:',
+      'noMembersInClassroomYet': 'لا يوجد أعضاء في هذا الفصل بعد.',
+      'memberNumber': 'عضو رقم {id}',
+      'classroomInvalidMissingId': 'فصل غير صالح: المعرف مفقود.',
+      'membersHeading': 'الأعضاء',
+      'ageGroupLabel': 'الفئة العمرية: {age}',
+      'pastAttendanceSessions': '{count} سجلات حضور سابقة',
+      'servantsLabel': 'الخدام: {names}',
+
+      // Meetings detail
+      'meetingDetails': 'تفاصيل الاجتماع',
+      'nameLabel': 'الاسم',
+      'dayOfWeekLabel': 'يوم الأسبوع',
+      'weeklyAppointmentLabel': 'الموعد الأسبوعي',
+      'servantsCountLabel': 'عدد الخدام',
+      'membersCountLabel': 'عدد الأعضاء',
+      'addUpdateRemoveMembers': 'إضافة/تعديل/حذف أعضاء',
+      'manageServants': 'إدارة الخدام',
+
+      // Profile / Forms
+      'profile': 'الملف الشخصي',
+      'editProfile': 'تعديل الملف الشخصي',
+      'saveLabel': 'حفظ',
+      'done': 'تم',
+      'select': 'اختر',
+      'failedToLoadOptions': 'تعذر تحميل الخيارات:',
+      'failedToLoadProfile': 'تعذر تحميل الملف الشخصي:',
+      'profileUpdated': 'تم تحديث الملف الشخصي.',
+      'churchIdLabel': 'معرف الكنيسة',
+      'meetingLabel': 'الاجتماع',
+      'selectMeeting': 'اختر الاجتماع',
+      'classroomsLabel': 'الفصول',
+      'selectClassrooms': 'اختر الفصول',
+      'superAdminHome': 'صفحة المسؤول العام',
+      'loadingLabel': 'جار التحميل...',
+      'errorLabel': 'خطأ:',
+      'pendingCount': '{count} معلّق',
+      'noVisibleMeetingsFound': 'لم يتم العثور على اجتماعات ظاهرة.',
+      'failedToLoadVisibleMeetings': 'تعذر تحميل الاجتماعات الظاهرة:',
+      'failedToLoadVisibleClassrooms': 'تعذر تحميل الفصول الظاهرة:',
+      'failedToLoadClassrooms': 'تعذر تحميل الفصول:',
+      'editMeetingTitle': 'تعديل الاجتماع: {meeting}',
+      'pageNotFound': 'الصفحة غير موجودة:',
+      'missingRequiredData': 'بيانات مطلوبة مفقودة لهذه الصفحة.',
+      'optional': 'اختياري',
+      'visibleMeetings': 'الاجتماعات الظاهرة',
+      'leaderServantOptional': 'الخادم المسؤول (اختياري)',
+      'selectServant': 'اختر خادماً',
+      'meetingUpdated': 'تم تحديث الاجتماع.',
       // Common
       'loading': 'جار التحميل...',
       'error': 'خطأ',
