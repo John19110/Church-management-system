@@ -394,18 +394,35 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     decoration: InputDecoration(
                       labelText: l10n.meetingDayOfWeek,
                     ),
-                    items: const [
+                    items: [
                       DropdownMenuItem(
-                          value: 'Saturday', child: Text('Saturday')),
-                      DropdownMenuItem(value: 'Sunday', child: Text('Sunday')),
-                      DropdownMenuItem(value: 'Monday', child: Text('Monday')),
+                        value: 'Saturday',
+                        child: Text(l10n.weekdaySaturday),
+                      ),
                       DropdownMenuItem(
-                          value: 'Tuesday', child: Text('Tuesday')),
+                        value: 'Sunday',
+                        child: Text(l10n.weekdaySunday),
+                      ),
                       DropdownMenuItem(
-                          value: 'Wednesday', child: Text('Wednesday')),
+                        value: 'Monday',
+                        child: Text(l10n.weekdayMonday),
+                      ),
                       DropdownMenuItem(
-                          value: 'Thursday', child: Text('Thursday')),
-                      DropdownMenuItem(value: 'Friday', child: Text('Friday')),
+                        value: 'Tuesday',
+                        child: Text(l10n.weekdayTuesday),
+                      ),
+                      DropdownMenuItem(
+                        value: 'Wednesday',
+                        child: Text(l10n.weekdayWednesday),
+                      ),
+                      DropdownMenuItem(
+                        value: 'Thursday',
+                        child: Text(l10n.weekdayThursday),
+                      ),
+                      DropdownMenuItem(
+                        value: 'Friday',
+                        child: Text(l10n.weekdayFriday),
+                      ),
                     ],
                     onChanged: (v) => setState(() => _selectedMeetingDay = v!),
                     validator: (v) => (v == null || v.trim().isEmpty)

@@ -106,6 +106,13 @@ class AppLocalizations {
   String get weeklyAppointmentHint => _t('weeklyAppointmentHint');
   String get invalidWeeklyAppointment => _t('invalidWeeklyAppointment');
   String get meetingDayOfWeek => _t('meetingDayOfWeek');
+  String get weekdaySaturday => _t('weekdaySaturday');
+  String get weekdaySunday => _t('weekdaySunday');
+  String get weekdayMonday => _t('weekdayMonday');
+  String get weekdayTuesday => _t('weekdayTuesday');
+  String get weekdayWednesday => _t('weekdayWednesday');
+  String get weekdayThursday => _t('weekdayThursday');
+  String get weekdayFriday => _t('weekdayFriday');
 
   // ── Servants ──────────────────────────────────────────────────────────────
   String get noServants => _t('noServants');
@@ -255,6 +262,13 @@ class AppLocalizations {
           'Time only, e.g. 09:00',
       'invalidWeeklyAppointment': 'Enter a valid time',
       'meetingDayOfWeek': 'Day of week',
+      'weekdaySaturday': 'Saturday',
+      'weekdaySunday': 'Sunday',
+      'weekdayMonday': 'Monday',
+      'weekdayTuesday': 'Tuesday',
+      'weekdayWednesday': 'Wednesday',
+      'weekdayThursday': 'Thursday',
+      'weekdayFriday': 'Friday',
       // Servants
       'noServants': 'No servants found.',
       'addServant': 'Add Servant',
@@ -367,7 +381,7 @@ class AppLocalizations {
       'address': 'العنوان',
       'dateOfBirth': 'تاريخ الميلاد',
       'joiningDate': 'تاريخ الانضمام',
-      'classroomId': 'معرف الفصل',
+      'classroom': ' الفصل',
       'phoneNumbers': 'أرقام الهاتف',
       'relation': 'صلة القرابة',
       'phone': 'الهاتف',
@@ -393,10 +407,17 @@ class AppLocalizations {
       'lastAttendanceDate': 'تاريخ آخر حضور',
       'totalDaysAttended': 'إجمالي أيام الحضور',
       'discipline': 'علم انضباط',
-      'classroomIdsOptional': 'معرفات الفصول (مفصولة بفاصلة، اختياري)',
+      'classroomIdsOptional': ' الفصول (مفصولة بفاصلة، اختياري)',
       'weeklyAppointmentHint': 'وقت فقط، مثال 09:00',
       'invalidWeeklyAppointment': 'أدخل وقتاً صحيحاً',
       'meetingDayOfWeek': 'يوم الأسبوع',
+      'weekdaySaturday': 'السبت',
+      'weekdaySunday': 'الأحد',
+      'weekdayMonday': 'الإثنين',
+      'weekdayTuesday': 'الثلاثاء',
+      'weekdayWednesday': 'الأربعاء',
+      'weekdayThursday': 'الخميس',
+      'weekdayFriday': 'الجمعة',
       // Servants
       'noServants': 'لا يوجد خدام.',
       'addServant': 'إضافة خادم',
@@ -409,12 +430,12 @@ class AppLocalizations {
       'servantUpdatedSuccessfully': 'تم تحديث الخادم بنجاح',
       'servantDeletedSuccessfully': 'تم حذف الخادم',
       // Registration
-      'churchId': 'معرف الكنيسة',
-      'enterChurchId': 'أدخل معرف كنيستك',
-      'churchIdRequired': 'معرف الكنيسة مطلوب',
-      'meetingId': 'معرف الاجتماع',
-      'enterMeetingId': 'أدخل معرف الاجتماع',
-      'meetingIdRequired': 'معرف الاجتماع مطلوب',
+      'churchId': 'كود الكنيسه (اطلبه من الراعي)',
+      'enterChurchId': 'أدخل كود كنيستك',
+      'churchIdRequired': 'كود الكنيسة مطلوب',
+      'meetingId': 'كود الاجتماع',
+      'enterMeetingId': 'أدخل كود الاجتماع',
+      'meetingIdRequired': 'كود الاجتماع مطلوب',
       'churchName': 'اسم الكنيسة',
       'enterChurchName': 'أدخل اسم الكنيسة',
       'churchNameRequired': 'اسم الكنيسة مطلوب',
@@ -443,10 +464,10 @@ class AppLocalizations {
       'sessionId': 'الجلسة',
       'load': 'تحميل',
       'markAllPresent': 'تحديد الكل حاضر',
-      'enterClassroomAndLoad': 'أدخل معرف الفصل واضغط تحميل\nلعرض الأعضاء.',
+      'enterClassroomAndLoad': 'أدخل  الفصل واضغط تحميل\nلعرض الأعضاء.',
       'attendanceSaved': 'تم حفظ الحضور!',
       'loadMembersFirst': 'قم بتحميل الأعضاء أولاً',
-      'enterClassroomId': 'أدخل معرف الفصل',
+      'enterClassroomId': 'أدخل  الفصل',
       'sessionInfo': 'معلومات الجلسة',
       'date': 'التاريخ',
       'records': 'السجلات',
