@@ -32,8 +32,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   void initState() {
     super.initState();
-
-    // ✅ DEFAULT TEST PASSWORD
     _passwordController.text = "TestPassword@12345";
   }
 
@@ -87,129 +85,154 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final l10n = AppLocalizations.of(context);
     final themeMode = ref.watch(themeModeProvider);
     final locale = ref.watch(localeProvider);
+
     final isDark = themeMode == ThemeMode.dark;
     final isArabic = locale.languageCode == 'ar';
 
     return Scaffold(
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                mainAxisAlignment: MainAxisAlignment.center,
+        child: Column(
+          children: [
+            /// 🔥 HEADER BAR WITH FLAGS
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        TextButton(
-                          onPressed: () =>
-                              ref.read(localeProvider.notifier).toggle(),
-                          child: Text(isArabic ? 'EN' : 'ع'),
-                        ),
-                        IconButton(
-                          tooltip: isDark ? l10n.lightMode : l10n.darkMode,
-                          icon: Icon(
-                            isDark ? Icons.light_mode : Icons.dark_mode,
+                  const SizedBox(),
+
+                  Row(
+                    children: [
+                      /// 🌐 FLAG LANGUAGE SWITCH
+                      GestureDetector(
+                        onTap: () =>
+                            ref.read(localeProvider.notifier).toggle(),
+                        child: CircleAvatar(
+                          radius: 16,
+                          backgroundImage: AssetImage(
+                            isArabic
+                                ? 'assets/flags/uk.png' // show target language
+                                : 'assets/flags/eg.png',
                           ),
-                          onPressed: () =>
-                              ref.read(themeModeProvider.notifier).toggle(),
                         ),
-                      ],
-                    ),
-                  ),
-                  const Icon(
-                    Icons.church,
-                    size: 80,
-                    color: Color(0xFF2B6CB0),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // ✅ CHANGED: SundaySchool → Church
-                  Text(
-                    "Church",
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context)
-                        .textTheme
-                        .headlineMedium
-                        ?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF2B6CB0),
-                    ),
-                  ),
-
-                  Text(
-                    l10n.managementSystem,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(color: Colors.grey[600]),
-                  ),
-
-                  const SizedBox(height: 40),
-
-                  AppTextField(
-                    controller: _phoneController,
-                    label: l10n.phoneNumber,
-                    hint: l10n.enterPhoneNumber,
-                    keyboardType: TextInputType.phone,
-                    validator: (v) =>
-                    (v == null || v.trim().isEmpty)
-                        ? l10n.phoneRequired
-                        : null,
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  AppTextField(
-                    controller: _passwordController,
-                    label: l10n.password,
-                    hint: l10n.enterPassword,
-
-                    // ✅ default password already set in initState
-
-                    obscureText: _obscurePassword,
-                    validator: (v) =>
-                    (v == null || v.isEmpty)
-                        ? l10n.passwordRequired
-                        : null,
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility
-                            : Icons.visibility_off,
                       ),
-                      onPressed: () => setState(
-                            () => _obscurePassword = !_obscurePassword,
+
+                      const SizedBox(width: 12),
+
+                      /// 🌙 THEME SWITCH
+                      IconButton(
+                        tooltip: isDark ? l10n.lightMode : l10n.darkMode,
+                        icon: Icon(
+                          isDark ? Icons.light_mode : Icons.dark_mode,
+                        ),
+                        onPressed: () =>
+                            ref.read(themeModeProvider.notifier).toggle(),
                       ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  _loading
-                      ? const Center(child: CircularProgressIndicator())
-                      : ElevatedButton(
-                    onPressed: _login,
-                    child: Text(l10n.login),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  TextButton(
-                    onPressed: () => context.go('/register'),
-                    child: Text(l10n.dontHaveAccount),
+                    ],
                   ),
                 ],
               ),
             ),
-          ),
+
+            /// 🔽 CONTENT
+            Expanded(
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.church,
+                          size: 80,
+                          color: Color(0xFF2B6CB0),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        Text(
+                          "Church",
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineMedium
+                              ?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF2B6CB0),
+                          ),
+                        ),
+
+                        Text(
+                          l10n.managementSystem,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(color: Colors.grey[600]),
+                        ),
+
+                        const SizedBox(height: 40),
+
+                        AppTextField(
+                          controller: _phoneController,
+                          label: l10n.phoneNumber,
+                          hint: l10n.enterPhoneNumber,
+                          keyboardType: TextInputType.phone,
+                          validator: (v) =>
+                          (v == null || v.trim().isEmpty)
+                              ? l10n.phoneRequired
+                              : null,
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        AppTextField(
+                          controller: _passwordController,
+                          label: l10n.password,
+                          hint: l10n.enterPassword,
+                          obscureText: _obscurePassword,
+                          validator: (v) =>
+                          (v == null || v.isEmpty)
+                              ? l10n.passwordRequired
+                              : null,
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                            ),
+                            onPressed: () => setState(
+                                  () => _obscurePassword = !_obscurePassword,
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        _loading
+                            ? const Center(
+                            child: CircularProgressIndicator())
+                            : ElevatedButton(
+                          onPressed: _login,
+                          child: Text(l10n.login),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        TextButton(
+                          onPressed: () => context.go('/register'),
+                          child: Text(l10n.dontHaveAccount),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
