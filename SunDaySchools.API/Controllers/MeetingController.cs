@@ -47,9 +47,12 @@ namespace SunDaySchools.API.Controllers
 
         [HttpPut("{id:int}")]
         //[Authorize(Roles = "SuperAdmin")]
-        public async Task<IActionResult> UpdateMeeting(int id, [FromBody] MeetingUpdateDto dto)
+        public async Task<IActionResult> UpdateMeeting(
+            int id,
+            [FromBody] MeetingUpdateDto dto,
+            [FromQuery] bool generate = false)
         {
-            await _meetingManager.UpdateMeeting(id, dto);
+            await _meetingManager.UpdateMeeting(id, dto, generateDefaults: generate);
             return NoContent();
         }
 

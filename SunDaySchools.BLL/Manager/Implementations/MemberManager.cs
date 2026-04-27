@@ -7,6 +7,7 @@ using SunDaySchools.BLL.DTOS;
 using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Interfaces;
 using SunDaySchools.DAL.Repository.Interfaces;
+using SunDaySchools.DAL.Models;
 using SunDaySchools.Models;
 using SunDaySchoolsDAL.Models;
 using System;
@@ -144,7 +145,40 @@ namespace SunDaySchools.BLL.Manager.Implementations
             if (existing == null)
                 throw new NotFoundException($"Member with id {memberUpdateDto.Id} not found.");
 
-            _mapper.Map(memberUpdateDto, existing);
+            // Partial update: only apply provided fields.
+            if (memberUpdateDto.Name1 != null) existing.Name1 = memberUpdateDto.Name1;
+            if (memberUpdateDto.Name2 != null) existing.Name2 = memberUpdateDto.Name2;
+            if (memberUpdateDto.Name3 != null) existing.Name3 = memberUpdateDto.Name3;
+            if (memberUpdateDto.Gender != null) existing.Gender = memberUpdateDto.Gender;
+            if (memberUpdateDto.Address != null) existing.Address = memberUpdateDto.Address;
+
+            if (memberUpdateDto.DateOfBirth.HasValue) existing.DateOfBirth = memberUpdateDto.DateOfBirth.Value;
+            if (memberUpdateDto.JoiningDate.HasValue) existing.JoiningDate = memberUpdateDto.JoiningDate.Value;
+            if (memberUpdateDto.LastAttendanceDate.HasValue) existing.LastAttendanceDate = memberUpdateDto.LastAttendanceDate.Value;
+            if (memberUpdateDto.SpiritualDateOfBirth.HasValue) existing.SpiritualDateOfBirth = memberUpdateDto.SpiritualDateOfBirth;
+
+            if (memberUpdateDto.IsDiscipline.HasValue) existing.IsDiscipline = memberUpdateDto.IsDiscipline.Value;
+            if (memberUpdateDto.TotalNumberOfDaysAttended.HasValue) existing.TotalNumberOfDaysAttended = memberUpdateDto.TotalNumberOfDaysAttended.Value;
+
+            if (memberUpdateDto.HaveBrothers.HasValue) existing.HaveBrothers = memberUpdateDto.HaveBrothers;
+            if (memberUpdateDto.BrothersNames != null) existing.BrothersNames = memberUpdateDto.BrothersNames;
+            if (memberUpdateDto.Notes != null) existing.Notes = memberUpdateDto.Notes;
+            if (memberUpdateDto.PhoneNumbers != null)
+                existing.PhoneNumbers = _mapper.Map<List<MemberContact>>(memberUpdateDto.PhoneNumbers);
+
+            if (memberUpdateDto.ClassroomId.HasValue) existing.ClassroomId = memberUpdateDto.ClassroomId;
+            await _memberRepository.UpdateAsync(existing);
+        }
+
+        public async Task UpdateImageAsync(int id, string imageFileName, string imageUrl)
+        {
+            var existing = await _memberRepository.GetByIdAsync(id);
+            if (existing == null)
+                throw new NotFoundException($"Member with id {id} not found.");
+
+            existing.ImageFileName = imageFileName;
+            existing.ImageUrl = imageUrl;
+
             await _memberRepository.UpdateAsync(existing);
         }
 

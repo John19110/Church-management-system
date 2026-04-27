@@ -155,7 +155,7 @@ class MembersRepository {
       }
 
       await _dio.put(
-        '${AppConstants.membersEndpoint}/$id',
+        '${AppConstants.membersEndpoint}/$id/form',
         data: FormData.fromMap(map),
       );
     });

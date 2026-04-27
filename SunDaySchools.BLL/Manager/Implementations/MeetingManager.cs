@@ -214,7 +214,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             await  _meetingRepository.AddAsync(model);
         }
 
-        public async Task UpdateMeeting(int id, MeetingUpdateDto dto)
+        public async Task UpdateMeeting(int id, MeetingUpdateDto dto, bool generateDefaults = false)
         {
             if (id <= 0)
                 throw new ValidationException(new Dictionary<string, string[]>
@@ -226,6 +226,18 @@ namespace SunDaySchools.BLL.Manager.Implementations
             if (meeting == null)
                 throw new NotFoundException($"Meeting with id {id} not found.");
 
+            if (dto.Name != null)
+                meeting.Name = dto.Name.Trim();
+            else if (generateDefaults && string.IsNullOrWhiteSpace(meeting.Name))
+                meeting.Name = $"Meeting {meeting.Id}";
+
+            if (dto.WeeklyAppointment.HasValue)
+                meeting.Weekly_appointment = dto.WeeklyAppointment.Value;
+
+            if (dto.DayOfWeek != null)
+                meeting.DayOfWeek = dto.DayOfWeek.Trim();
+
+            // allow explicitly clearing leader by setting null
             meeting.LeaderServantId = dto.LeaderServantId;
 
             await _meetingRepository.UpdateAsync(meeting);

@@ -40,6 +40,16 @@ namespace SunDaySchools.API.Controllers
             return Ok();
         }
 
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> Update(
+            int id,
+            [FromBody] ClassroomUpdateDTO dto,
+            [FromQuery] bool generate = false)
+        {
+            await _classroomManager.UpdateAsync(id, dto, generateDefaults: generate);
+            return NoContent();
+        }
+
         [HttpGet("visible")]
         public async Task<IActionResult> GetVisibleClassrooms([FromQuery] int? meetingId = null)
         {
