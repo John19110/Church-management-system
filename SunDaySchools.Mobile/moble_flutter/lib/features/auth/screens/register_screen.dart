@@ -11,6 +11,7 @@ import '../../meeting/providers/meeting_providers.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/error/app_exception.dart';
 
 enum _RegisterType { servant, churchAdmin, meetingAdmin }
 
@@ -162,7 +163,29 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         );
       }
     } catch (e) {
-      if (mounted) showErrorSnackbar(context, e.toString());
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context);
+
+      // Names can repeat; phone must be unique (login identifier).
+      if (e is ApiException) {
+        final msg = e.message.toLowerCase();
+        final isPhoneDuplicate = (e.statusCode == 409 || e.statusCode == 400) &&
+            (msg.contains('phone') ||
+                msg.contains('phonenumber') ||
+                msg.contains('mobile')) &&
+            (msg.contains('exist') ||
+                msg.contains('already') ||
+                msg.contains('duplicate') ||
+                msg.contains('taken') ||
+                msg.contains('use'));
+
+        if (isPhoneDuplicate) {
+          showErrorSnackbar(context, l10n.phoneAlreadyUsed);
+          return;
+        }
+      }
+
+      showErrorSnackbar(context, e.toString());
     } finally {
       if (mounted) setState(() => _loading = false);
     }
