@@ -11,6 +11,8 @@ import '../../meeting/providers/meeting_providers.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/providers/locale_provider.dart';
+import '../../../core/providers/theme_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -83,6 +85,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final themeMode = ref.watch(themeModeProvider);
+    final locale = ref.watch(localeProvider);
+    final isDark = themeMode == ThemeMode.dark;
+    final isArabic = locale.languageCode == 'ar';
 
     return Scaffold(
       body: SafeArea(
@@ -95,6 +101,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextButton(
+                          onPressed: () =>
+                              ref.read(localeProvider.notifier).toggle(),
+                          child: Text(isArabic ? 'EN' : 'ع'),
+                        ),
+                        IconButton(
+                          tooltip: isDark ? l10n.lightMode : l10n.darkMode,
+                          icon: Icon(
+                            isDark ? Icons.light_mode : Icons.dark_mode,
+                          ),
+                          onPressed: () =>
+                              ref.read(themeModeProvider.notifier).toggle(),
+                        ),
+                      ],
+                    ),
+                  ),
                   const Icon(
                     Icons.church,
                     size: 80,

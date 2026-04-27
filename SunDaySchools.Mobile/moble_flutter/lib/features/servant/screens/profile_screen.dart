@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/app_localizations.dart';
+import '../../../core/providers/locale_provider.dart';
+import '../../../core/providers/theme_provider.dart';
 import '../../../core/routing/app_router.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
@@ -16,9 +19,14 @@ class ProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final profileAsync = ref.watch(servantProfileProvider);
     final role = ref.watch(currentUserRoleProvider).resolvedRoleOrNull;
     final homeRoute = AuthRoleUtils.routeForRole(role);
+    final themeMode = ref.watch(themeModeProvider);
+    final locale = ref.watch(localeProvider);
+    final isDark = themeMode == ThemeMode.dark;
+    final isArabic = locale.languageCode == 'ar';
 
     return Scaffold(
       appBar: showAppBar ? AppBar(title: const Text('Profile')) : null,
@@ -74,6 +82,34 @@ class ProfileScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 4),
                 Center(child: Text(p.phoneNumber ?? '-')),
+                const SizedBox(height: 16),
+                Card(
+                  child: Column(
+                    children: [
+                      SwitchListTile(
+                        secondary: Icon(
+                          isDark ? Icons.dark_mode : Icons.light_mode,
+                        ),
+                        title: Text(isDark ? l10n.darkMode : l10n.lightMode),
+                        value: isDark,
+                        onChanged: (_) =>
+                            ref.read(themeModeProvider.notifier).toggle(),
+                      ),
+                      const Divider(height: 0),
+                      ListTile(
+                        leading: const Icon(Icons.language),
+                        title: const Text('Language'),
+                        subtitle: Text(isArabic ? 'العربية' : 'English'),
+                        trailing: TextButton(
+                          onPressed: () =>
+                              ref.read(localeProvider.notifier).toggle(),
+                          child: Text(isArabic ? 'EN' : 'ع'),
+                        ),
+                        onTap: () => ref.read(localeProvider.notifier).toggle(),
+                      ),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 16),
                 Card(
                   child: Column(

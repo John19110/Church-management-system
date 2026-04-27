@@ -24,10 +24,7 @@ class DashboardScreen extends ConsumerWidget {
         actions: [
           // Language toggle
           TextButton(
-            onPressed: () {
-              ref.read(localeProvider.notifier).state =
-                  isArabic ? const Locale('en') : const Locale('ar');
-            },
+            onPressed: () => ref.read(localeProvider.notifier).toggle(),
             child: Text(
               isArabic ? 'EN' : 'ع',
               style: const TextStyle(
@@ -41,10 +38,7 @@ class DashboardScreen extends ConsumerWidget {
           IconButton(
             icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
             tooltip: isDark ? l10n.lightMode : l10n.darkMode,
-            onPressed: () {
-              ref.read(themeModeProvider.notifier).state =
-                  isDark ? ThemeMode.light : ThemeMode.dark;
-            },
+            onPressed: () => ref.read(themeModeProvider.notifier).toggle(),
           ),
           IconButton(
             icon: const Icon(Icons.logout),
