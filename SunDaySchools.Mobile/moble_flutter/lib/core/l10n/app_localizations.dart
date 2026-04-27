@@ -289,6 +289,8 @@ class AppLocalizations {
   String get leaderServantOptional => _t('leaderServantOptional');
   String get selectServant => _t('selectServant');
   String get meetingUpdated => _t('meetingUpdated');
+  String get attendanceSessionsCount => _t('attendanceSessionsCount');
+  String get ageLabel => _t('ageLabel');
 
   // ── Common ────────────────────────────────────────────────────────────────
   String get loading => _t('loading');
@@ -562,6 +564,8 @@ class AppLocalizations {
       'leaderServantOptional': 'Leader Servant (optional)',
       'selectServant': 'Select servant',
       'meetingUpdated': 'Meeting updated.',
+      'attendanceSessionsCount': '{count} attendance sessions',
+      'ageLabel': 'Age: {age}',
       // Common
       'loading': 'Loading...',
       'error': 'Error',
@@ -828,6 +832,8 @@ class AppLocalizations {
       'leaderServantOptional': 'الخادم المسؤول (اختياري)',
       'selectServant': 'اختر خادماً',
       'meetingUpdated': 'تم تحديث الاجتماع.',
+      'attendanceSessionsCount': '{count} جلسات حضور',
+      'ageLabel': 'العمر: {age}',
       // Common
       'loading': 'جار التحميل...',
       'error': 'خطأ',
