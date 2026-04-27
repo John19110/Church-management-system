@@ -229,5 +229,147 @@ namespace SunDaySchools.BLL.Manager.Implementations
             await _classroomRepository.SaveAsync();
         }
 
+        public async Task UpdateAsync(int id, ClassroomUpdateDTO dto, bool generateDefaults = false)
+        {
+            if (id <= 0)
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["ClassroomId"] = new[] { "Classroom id must be a positive integer." }
+                });
+
+            if (dto == null)
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["Classroom"] = new[] { "The request body cannot be empty." }
+                });
+
+            if (dto.Id != 0 && dto.Id != id)
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["Id"] = new[] { "The ID in the URL does not match the ID in the request body." }
+                });
+
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null)
+                throw new UnauthorizedAccessException("User is not authenticated.");
+
+            var churchClaim = user.FindFirst("ChurchId");
+            if (churchClaim == null)
+                throw new UnauthorizedAccessException("ChurchId claim is missing.");
+
+            var churchId = int.Parse(churchClaim.Value);
+
+            var classroom = await _classroomRepository.GetByIdAsync(id);
+            if (classroom == null)
+                throw new NotFoundException($"Classroom with id {id} not found.");
+
+            // Ensure tenant scope
+            if (classroom.ChurchId != churchId)
+                throw new UnauthorizedAccessException("This classroom does not belong to your church.");
+
+            if (dto.Name != null)
+                classroom.Name = dto.Name.Trim();
+            else if (generateDefaults && string.IsNullOrWhiteSpace(classroom.Name))
+                classroom.Name = $"Classroom {classroom.Id}";
+
+            if (dto.AgeOfMembers != null)
+                classroom.AgeOfMembers = dto.AgeOfMembers.Trim();
+
+            // Meeting can be moved (SuperAdmin) or fixed (Admin)
+            if (user.IsInRole("Admin"))
+            {
+                // Admin cannot change meeting; keep as-is
+            }
+            else if (user.IsInRole("SuperAdmin"))
+            {
+                if (dto.MeetingId.HasValue)
+                {
+                    if (dto.MeetingId.Value <= 0)
+                        throw new ValidationException(new Dictionary<string, string[]>
+                        {
+                            ["MeetingId"] = new[] { "Meeting id must be a positive integer." }
+                        });
+
+                    var meeting = await _meetingRepository.GetByIdAsync(dto.MeetingId.Value);
+                    if (meeting == null)
+                        throw new NotFoundException($"Meeting with id {dto.MeetingId.Value} not found.");
+                    if (meeting.ChurchId != churchId)
+                        throw new UnauthorizedAccessException("This meeting does not belong to your church.");
+
+                    classroom.MeetingId = dto.MeetingId.Value;
+                }
+                else if (dto.MeetingId == null)
+                {
+                    // allow clearing meeting only when explicitly set to null? dto.MeetingId can't signal "clear" vs "no change".
+                    // We'll treat null as "no change" for safety.
+                }
+            }
+            else
+            {
+                throw new UnauthorizedAccessException("Only Admin or SuperAdmin can update classrooms.");
+            }
+
+            if (dto.LeaderServantId.HasValue)
+            {
+                if (dto.LeaderServantId.Value <= 0)
+                    throw new ValidationException(new Dictionary<string, string[]>
+                    {
+                        ["LeaderServantId"] = new[] { "Leader servant id must be a positive integer." }
+                    });
+                var leader = await _servantRepo.GetByIdAsync(dto.LeaderServantId.Value);
+                if (leader == null)
+                    throw new NotFoundException($"Servant with id {dto.LeaderServantId.Value} not found.");
+
+                classroom.LeaderServantId = dto.LeaderServantId.Value;
+            }
+
+            // Replace servant assignments (ClassroomServants join table)
+            if (dto.ServantIds is not null)
+            {
+                var desired = dto.ServantIds.Where(x => x > 0).Distinct().ToHashSet();
+
+                classroom.ClassroomServants ??= new List<ClassroomServant>();
+                var existing = classroom.ClassroomServants.Select(cs => cs.ServantId).ToHashSet();
+
+                var toRemove = classroom.ClassroomServants.Where(cs => !desired.Contains(cs.ServantId)).ToList();
+                foreach (var cs in toRemove)
+                    classroom.ClassroomServants.Remove(cs);
+
+                foreach (var sid in desired)
+                {
+                    if (existing.Contains(sid)) continue;
+                    classroom.ClassroomServants.Add(new ClassroomServant { ClassroomId = classroom.Id, ServantId = sid });
+                }
+            }
+
+            // Replace members (FK ClassroomId)
+            if (dto.MemberIds is not null)
+            {
+                var desired = dto.MemberIds.Where(x => x > 0).Distinct().ToHashSet();
+                var members = await _memberRepo.GetByIdsAsync(desired.ToList());
+                var found = members.Select(m => m.Id).ToHashSet();
+                var missing = desired.Where(x => !found.Contains(x)).ToList();
+                if (missing.Any())
+                    throw new ValidationException(new Dictionary<string, string[]>
+                    {
+                        ["MemberIds"] = missing.Select(x => $"Member with id {x} was not found.").ToArray()
+                    });
+
+                // Remove members no longer desired
+                var currentMembers = classroom.Members?.Select(m => m.Id).ToHashSet() ?? new HashSet<int>();
+                if (classroom.Members != null)
+                {
+                    foreach (var m in classroom.Members.Where(m => !desired.Contains(m.Id)).ToList())
+                        m.ClassroomId = null;
+                }
+
+                // Add desired members
+                foreach (var m in members)
+                    m.ClassroomId = classroom.Id;
+            }
+
+            await _classroomRepository.UpdateAsync(classroom);
+        }
+
     }
 }

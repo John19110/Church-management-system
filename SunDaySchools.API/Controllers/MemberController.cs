@@ -112,6 +112,56 @@ namespace SunDaySchools.API.Controllers
             return NoContent();
         }
 
+        [HttpPut("{id:int}/form")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UpdateWithForm(int id, [FromForm] MemberFormRequest form, CancellationToken ct)
+        {
+            if (id <= 0)
+                return BadRequest("Member id must be a positive integer.");
+
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+
+            var existing = await _memberManager.GetByIdAsync(id);
+            if (existing == null)
+                throw new NotFoundException($"Member with id {id} not found.");
+
+            // Map form => update DTO (partial updates allowed by nulls)
+            var dto = new MemberUpdateDTO
+            {
+                Id = id,
+                Name1 = form.Name1,
+                Name2 = form.Name2,
+                Name3 = form.Name3,
+                Gender = form.Gender,
+                Address = form.Address,
+                DateOfBirth = form.DateOfBirth,
+                JoiningDate = form.JoiningDate,
+                SpiritualDateOfBirth = form.SpiritualDateOfBirth,
+                LastAttendanceDate = form.LastAttendanceDate,
+                IsDiscipline = form.IsDiscipline,
+                TotalNumberOfDaysAttended = form.TotalNumberOfDaysAttended,
+                Notes = form.Notes,
+                BrothersNames = form.BrothersNames,
+                HaveBrothers = form.HaveBrothers,
+                PhoneNumbers = form.PhoneNumbers,
+                ClassroomId = form.ClassroomId,
+            };
+
+            // Allow image update
+            if (form.Image is not null && form.Image.Length > 0)
+            {
+                var key = await _fileStorage.SaveImageAsync(form.Image, ct, "members");
+                // MemberUpdateDTO currently doesn't have image fields; manager will set entity directly later.
+                // We'll set image onto entity in manager by reading IFormFile? Not available there, so we do it here.
+                // Use repository directly through manager update mapping: we'll extend MemberManager to accept image updates via a new method.
+                await _memberManager.UpdateImageAsync(id, key, _fileStorage.GetPublicUrl(key));
+            }
+
+            await _memberManager.UpdateAsync(dto);
+            return NoContent();
+        }
+
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteById(int id)
         {

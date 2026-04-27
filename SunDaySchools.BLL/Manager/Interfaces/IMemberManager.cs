@@ -21,6 +21,8 @@ namespace SunDaySchools.BLL.Manager.Interfaces
 
         Task UpdateAsync(MemberUpdateDTO member);
 
+        Task UpdateImageAsync(int id, string imageFileName, string imageUrl);
+
         Task DeleteAsync(int id);
     }
 }
