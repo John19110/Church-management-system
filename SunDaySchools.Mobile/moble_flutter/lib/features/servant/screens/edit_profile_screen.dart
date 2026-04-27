@@ -9,6 +9,7 @@ import '../../../core/l10n/app_localizations.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../../shared/widgets/endpoint_select_fields.dart';
+import '../../../shared/widgets/app_network_avatar.dart';
 import '../providers/servants_providers.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
@@ -130,19 +131,22 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   GestureDetector(
                     onTap: _pickImage,
                     child: Center(
-                      child: CircleAvatar(
-                        radius: 48,
-                        backgroundColor: const Color(0xFFED8936),
-                        backgroundImage: _image != null
-                            ? FileImage(_image!)
-                            : (p.imageUrl != null
-                                ? NetworkImage(p.imageUrl!) as ImageProvider
-                                : null),
-                        child: (_image == null && p.imageUrl == null)
-                            ? const Icon(Icons.camera_alt,
-                                size: 36, color: Colors.white)
-                            : null,
-                      ),
+                      child: _image != null
+                          ? CircleAvatar(
+                              radius: 48,
+                              backgroundColor: const Color(0xFFED8936),
+                              backgroundImage: FileImage(_image!),
+                            )
+                          : AppNetworkAvatar(
+                              imageUrl: p.imageUrl,
+                              radius: 48,
+                              backgroundColor: const Color(0xFFED8936),
+                              placeholder: const Icon(
+                                Icons.camera_alt,
+                                size: 36,
+                                color: Colors.white,
+                              ),
+                            ),
                     ),
                   ),
                   const SizedBox(height: 16),

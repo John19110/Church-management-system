@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../providers/members_providers.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../../../core/l10n/app_localizations.dart';
+import '../../../shared/widgets/app_network_avatar.dart';
 
 class MemberDetailScreen extends ConsumerWidget {
   final int id;
@@ -69,10 +70,11 @@ class MemberDetailScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
-                child: CircleAvatar(
+                child: AppNetworkAvatar(
+                  imageUrl: member.imageUrl,
                   radius: 48,
                   backgroundColor: const Color(0xFF4299E1),
-                  child: Text(
+                  placeholder: Text(
                     (member.fullName?.isNotEmpty == true)
                         ? member.fullName![0].toUpperCase()
                         : '?',

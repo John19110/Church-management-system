@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../providers/servants_providers.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../../../core/l10n/app_localizations.dart';
+import '../../../shared/widgets/app_network_avatar.dart';
 
 class ServantDetailScreen extends ConsumerWidget {
   final int id;
@@ -69,22 +70,17 @@ class ServantDetailScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
-                child: servant.imageUrl != null
-                    ? CircleAvatar(
-                        radius: 56,
-                        backgroundImage: NetworkImage(servant.imageUrl!),
-                      )
-                    : CircleAvatar(
-                        radius: 56,
-                        backgroundColor: const Color(0xFFED8936),
-                        child: Text(
-                          (servant.name?.isNotEmpty == true)
-                              ? servant.name![0].toUpperCase()
-                              : '?',
-                          style: const TextStyle(
-                              fontSize: 40, color: Colors.white),
-                        ),
-                      ),
+                child: AppNetworkAvatar(
+                  imageUrl: servant.imageUrl,
+                  radius: 56,
+                  backgroundColor: const Color(0xFFED8936),
+                  placeholder: Text(
+                    (servant.name?.isNotEmpty == true)
+                        ? servant.name![0].toUpperCase()
+                        : '?',
+                    style: const TextStyle(fontSize: 40, color: Colors.white),
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
               Center(

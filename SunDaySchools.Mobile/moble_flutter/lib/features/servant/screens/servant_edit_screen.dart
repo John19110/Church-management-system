@@ -9,6 +9,7 @@ import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../../shared/widgets/endpoint_select_fields.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../shared/widgets/app_network_avatar.dart';
 
 class ServantEditScreen extends ConsumerStatefulWidget {
   final int id;
@@ -113,19 +114,30 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen> {
                 GestureDetector(
                   onTap: _pickImage,
                   child: Center(
-                    child: CircleAvatar(
-                      radius: 48,
-                      backgroundColor: const Color(0xFFED8936),
-                      backgroundImage: _image != null
-                          ? FileImage(_image!) as ImageProvider
-                          : (servant.imageUrl != null
-                              ? NetworkImage(servant.imageUrl!)
-                              : null),
-                      child: (_image == null && servant.imageUrl == null)
-                          ? const Icon(Icons.camera_alt,
-                              size: 36, color: Colors.white)
-                          : null,
-                    ),
+                    child: _image != null
+                        ? CircleAvatar(
+                            radius: 48,
+                            backgroundColor: const Color(0xFFED8936),
+                            backgroundImage: FileImage(_image!),
+                          )
+                        : AppNetworkAvatar(
+                            imageUrl: servant.imageUrl,
+                            radius: 48,
+                            backgroundColor: const Color(0xFFED8936),
+                            placeholder: const Icon(
+                              Icons.camera_alt,
+                              size: 36,
+                              color: Colors.white,
+                            ),
+                          ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Center(
+                  child: TextButton.icon(
+                    onPressed: _loading ? null : _pickImage,
+                    icon: const Icon(Icons.photo_library_outlined),
+                    label: Text(l10n.tapToSelectImage),
                   ),
                 ),
                 const SizedBox(height: 16),
