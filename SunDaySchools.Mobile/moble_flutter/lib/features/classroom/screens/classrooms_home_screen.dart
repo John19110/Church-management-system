@@ -289,13 +289,19 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
                                 ),
                                 const SizedBox(height: 12),
                                 Text(
-                                  'Age: ${c.ageOfMembers ?? '—'}',
+                                  l10n.ageLabel.replaceAll(
+                                    '{age}',
+                                    c.ageOfMembers ?? '—',
+                                  ),
                                   style: Theme.of(context).textTheme.bodyMedium,
                                 ),
                                 const SizedBox(height: 6),
                                 Text(
-                                  '${c.totalMembersCount ?? 0} members · '
-                                  '${c.pastAttendanceSessionsCount ?? 0} attendance sessions',
+                                  '${c.totalMembersCount ?? 0} ${l10n.members} · '
+                                  '${l10n.attendanceSessionsCount.replaceAll(
+                                    '{count}',
+                                    (c.pastAttendanceSessionsCount ?? 0).toString(),
+                                  )}',
                                   style: Theme.of(context)
                                       .textTheme
                                       .bodySmall
