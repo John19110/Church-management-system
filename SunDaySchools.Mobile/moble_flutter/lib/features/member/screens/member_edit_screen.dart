@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../models/member_models.dart';
 import '../providers/members_providers.dart';
@@ -8,6 +10,7 @@ import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../../shared/widgets/endpoint_select_fields.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../shared/widgets/app_network_avatar.dart';
 
 const _kValidGenders = ['Male', 'Female'];
 
@@ -37,6 +40,7 @@ class _MemberEditScreenState extends ConsumerState<MemberEditScreen> {
   MemberReadDto? _snapshot;
   bool _isDiscipline = false;
   bool _haveBrothers = false;
+  File? _image;
 
   final List<TextEditingController> _phoneRelation = [];
   final List<TextEditingController> _phoneNumber = [];
@@ -103,6 +107,13 @@ class _MemberEditScreenState extends ConsumerState<MemberEditScreen> {
         _notes.add(TextEditingController(text: n));
       }
     }
+  }
+
+  Future<void> _pickImage() async {
+    if (_loading) return;
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) setState(() => _image = File(picked.path));
   }
 
   void _addPhoneRow() {
@@ -176,29 +187,33 @@ class _MemberEditScreenState extends ConsumerState<MemberEditScreen> {
       final totalDays = int.tryParse(_totalDaysController.text.trim()) ??
           _snapshot?.totalNumberOfDaysAttended ??
           0;
-      await ref.read(membersRepositoryProvider).update(
-            widget.id,
-            MemberUpdateDto(
-              id: widget.id,
-              name1: _name1Controller.text.trim().nullIfEmpty,
-              name2: _name2Controller.text.trim().nullIfEmpty,
-              name3: _name3Controller.text.trim().nullIfEmpty,
-              gender: _gender,
-              address: _addressController.text.trim().nullIfEmpty,
-              dateOfBirth: _dobController.text.trim().nullIfEmpty,
-              joiningDate: _joiningController.text.trim().nullIfEmpty,
-              spiritualDateOfBirth:
-                  _spiritualDobController.text.trim().nullIfEmpty,
-              lastAttendanceDate: lastAtt.nullIfEmpty,
-              isDiscipline: _isDiscipline,
-              totalNumberOfDaysAttended: totalDays,
-              haveBrothers: _haveBrothers,
-              brothersNames: brothers.isEmpty ? null : brothers,
-              notes: noteLines.isEmpty ? null : noteLines,
-              classroomId: _selectedClassroomId,
-              phoneNumbers: phones.isEmpty ? null : phones,
-            ),
-          );
+      final dto = MemberUpdateDto(
+        id: widget.id,
+        name1: _name1Controller.text.trim().nullIfEmpty,
+        name2: _name2Controller.text.trim().nullIfEmpty,
+        name3: _name3Controller.text.trim().nullIfEmpty,
+        gender: _gender,
+        address: _addressController.text.trim().nullIfEmpty,
+        dateOfBirth: _dobController.text.trim().nullIfEmpty,
+        joiningDate: _joiningController.text.trim().nullIfEmpty,
+        spiritualDateOfBirth: _spiritualDobController.text.trim().nullIfEmpty,
+        lastAttendanceDate: lastAtt.nullIfEmpty,
+        isDiscipline: _isDiscipline,
+        totalNumberOfDaysAttended: totalDays,
+        haveBrothers: _haveBrothers,
+        brothersNames: brothers.isEmpty ? null : brothers,
+        notes: noteLines.isEmpty ? null : noteLines,
+        classroomId: _selectedClassroomId,
+        phoneNumbers: phones.isEmpty ? null : phones,
+      );
+
+      if (_image != null) {
+        await ref
+            .read(membersRepositoryProvider)
+            .updateWithImage(widget.id, dto, image: _image!);
+      } else {
+        await ref.read(membersRepositoryProvider).update(widget.id, dto);
+      }
       if (mounted) {
         showSuccessSnackbar(context, l10n.memberUpdatedSuccessfully);
         context.pop();
@@ -240,6 +255,40 @@ class _MemberEditScreenState extends ConsumerState<MemberEditScreen> {
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
+                  GestureDetector(
+                    onTap: _pickImage,
+                    child: Center(
+                      child: _image != null
+                          ? CircleAvatar(
+                              radius: 48,
+                              backgroundColor: const Color(0xFF4299E1),
+                              backgroundImage: FileImage(_image!),
+                            )
+                          : AppNetworkAvatar(
+                              imageUrl: member.imageUrl,
+                              radius: 48,
+                              backgroundColor: const Color(0xFF4299E1),
+                              placeholder: Text(
+                                (member.fullName?.isNotEmpty == true)
+                                    ? member.fullName![0].toUpperCase()
+                                    : '?',
+                                style: const TextStyle(
+                                  fontSize: 36,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Center(
+                    child: TextButton.icon(
+                      onPressed: _loading ? null : _pickImage,
+                      icon: const Icon(Icons.photo_library_outlined),
+                      label: Text(l10n.tapToSelectImage),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                   AppTextField(
                     controller: _name1Controller,
                     label: l10n.firstName,

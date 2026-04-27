@@ -100,6 +100,67 @@ class MembersRepository {
     });
   }
 
+  /// Update member with image: PUT /api/Members/{id} (multipart/form-data)
+  ///
+  /// This matches the create-member style payload and is used by the edit screen
+  /// when the user picks a new photo.
+  Future<void> updateWithImage(
+    int id,
+    MemberUpdateDto dto, {
+    required File image,
+  }) async {
+    _requireMemberId(id);
+    return apiCall(() async {
+      final map = <String, dynamic>{
+        'Id': id.toString(),
+        if (dto.name1 != null) 'Name1': dto.name1,
+        if (dto.name2 != null) 'Name2': dto.name2,
+        if (dto.name3 != null) 'Name3': dto.name3,
+        if (dto.gender != null) 'Gender': dto.gender,
+        if (dto.address != null) 'Address': dto.address,
+        if (dto.dateOfBirth != null) 'DateOfBirth': dto.dateOfBirth,
+        if (dto.joiningDate != null) 'JoiningDate': dto.joiningDate,
+        if (dto.spiritualDateOfBirth != null)
+          'SpiritualDateOfBirth': dto.spiritualDateOfBirth,
+        if (dto.lastAttendanceDate != null)
+          'LastAttendanceDate': dto.lastAttendanceDate,
+        'IsDiscipline': (dto.isDiscipline ?? false).toString(),
+        'TotalNumberOfDaysAttended':
+            (dto.totalNumberOfDaysAttended ?? 0).toString(),
+        if (dto.classroomId != null) 'ClassroomId': dto.classroomId.toString(),
+        if (dto.haveBrothers != null)
+          'HaveBrothers': dto.haveBrothers.toString(),
+        'Image': await MultipartFile.fromFile(
+          image.path,
+          filename: image.path.split('/').last,
+        ),
+      };
+
+      if (dto.notes != null) {
+        for (var i = 0; i < dto.notes!.length; i++) {
+          map['Notes[$i]'] = dto.notes![i];
+        }
+      }
+      if (dto.brothersNames != null) {
+        for (var i = 0; i < dto.brothersNames!.length; i++) {
+          map['BrothersNames[$i]'] = dto.brothersNames![i];
+        }
+      }
+      if (dto.phoneNumbers != null) {
+        for (var i = 0; i < dto.phoneNumbers!.length; i++) {
+          map['PhoneNumbers[$i].Relation'] = dto.phoneNumbers![i].relation ?? '';
+          map['PhoneNumbers[$i].PhoneNumber'] =
+              dto.phoneNumbers![i].phoneNumber ?? '';
+        }
+      }
+
+      await _dio.put(
+        '${AppConstants.membersEndpoint}/$id',
+        data: FormData.fromMap(map),
+      );
+    });
+  }
+
   Future<void> delete(int id) async {
     _requireMemberId(id);
     return apiCall(() async {
