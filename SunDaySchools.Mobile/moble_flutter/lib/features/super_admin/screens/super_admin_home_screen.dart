@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/l10n/app_localizations.dart';
 import '../../../core/routing/app_router.dart';
 import '../../auth/utils/auth_session.dart';
 import '../../../shared/widgets/common_widgets.dart';
@@ -83,6 +84,7 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (dialogBuilderContext, setDialogState) {
+            final l10n = AppLocalizations.of(dialogBuilderContext);
             return AlertDialog(
               title: const Text('Add Meeting'),
               content: SingleChildScrollView(
@@ -110,21 +112,35 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
                         decoration: const InputDecoration(
                           labelText: 'Day of week',
                         ),
-                        items: const [
+                        items: [
                           DropdownMenuItem(
-                              value: 'Saturday', child: Text('Saturday')),
+                            value: 'Saturday',
+                            child: Text(l10n.weekdaySaturday),
+                          ),
                           DropdownMenuItem(
-                              value: 'Sunday', child: Text('Sunday')),
+                            value: 'Sunday',
+                            child: Text(l10n.weekdaySunday),
+                          ),
                           DropdownMenuItem(
-                              value: 'Monday', child: Text('Monday')),
+                            value: 'Monday',
+                            child: Text(l10n.weekdayMonday),
+                          ),
                           DropdownMenuItem(
-                              value: 'Tuesday', child: Text('Tuesday')),
+                            value: 'Tuesday',
+                            child: Text(l10n.weekdayTuesday),
+                          ),
                           DropdownMenuItem(
-                              value: 'Wednesday', child: Text('Wednesday')),
+                            value: 'Wednesday',
+                            child: Text(l10n.weekdayWednesday),
+                          ),
                           DropdownMenuItem(
-                              value: 'Thursday', child: Text('Thursday')),
+                            value: 'Thursday',
+                            child: Text(l10n.weekdayThursday),
+                          ),
                           DropdownMenuItem(
-                              value: 'Friday', child: Text('Friday')),
+                            value: 'Friday',
+                            child: Text(l10n.weekdayFriday),
+                          ),
                         ],
                         onChanged: isSubmitting
                             ? null
