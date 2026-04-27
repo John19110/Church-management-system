@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using SunDaySchools.BLL.DTOS.AccountDtos;
-using SunDaySchools.BLL.Exceptions;          // <-- Add this
+using SunDaySchools.BLL.Exceptions;         
 using SunDaySchools.BLL.Manager.Interfaces;
 using SunDaySchools.DAL.Models;
 using SunDaySchools.DAL.Repository.Interfaces;
@@ -243,8 +243,9 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 throw new PassordsMissMatchException();
 
 
-            // Check if user already exists
-            var existingUser = await _userManager.FindByNameAsync(registerMeetingAdminDTO.Name);
+            var existingUser = await _userManager.Users
+                     .FirstOrDefaultAsync(u => u.PhoneNumber == registerMeetingAdminDTO.PhoneNumber);
+
             if (existingUser != null)
                 throw new UserAlreadyExistsException();
 
@@ -252,11 +253,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             var existingChurch = await _churchRepo.GetByNameAsync(registerMeetingAdminDTO.ChurchName);
             if (existingChurch != null)
                 throw new ChurchAlreadyExistsException();
-
-            // Check if meeting already exists
-            var existingMeeting = await _meetingRepo.GetByNameAsync(registerMeetingAdminDTO.MeetingName);
-            if (existingMeeting != null)
-                throw new MeetingAlreadyExistsException();
+           
 
             await _unitOfWork.BeginTransactionAsync();
 
