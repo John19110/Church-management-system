@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/l10n/app_localizations.dart';
 import '../../core/routing/app_router.dart';
 
 class AppSectionBottomNavigationBar extends StatelessWidget {
@@ -15,6 +16,7 @@ class AppSectionBottomNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return NavigationBar(
       selectedIndex: currentIndex,
       onDestinationSelected: (index) {
@@ -34,19 +36,19 @@ class AppSectionBottomNavigationBar extends StatelessWidget {
             break;
         }
       },
-      destinations: const [
-        NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home'),
+      destinations: [
+        NavigationDestination(icon: const Icon(Icons.home_outlined), label: l10n.home),
         NavigationDestination(
-          icon: Icon(Icons.notifications_outlined),
-          label: 'Notifications',
+          icon: const Icon(Icons.notifications_outlined),
+          label: l10n.notifications,
         ),
         NavigationDestination(
-          icon: Icon(Icons.people_outline),
-          label: 'Servants',
+          icon: const Icon(Icons.people_outline),
+          label: l10n.servants,
         ),
         NavigationDestination(
-          icon: Icon(Icons.person_outline),
-          label: 'Profile',
+          icon: const Icon(Icons.person_outline),
+          label: l10n.profile,
         ),
       ],
     );

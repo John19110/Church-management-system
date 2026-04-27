@@ -258,6 +258,7 @@ class AppLocalizations {
   String get membersCountLabel => _t('membersCountLabel');
   String get addUpdateRemoveMembers => _t('addUpdateRemoveMembers');
   String get manageServants => _t('manageServants');
+  String get home => _t('home');
 
   // ── Profile / Forms ───────────────────────────────────────────────────────
   String get profile => _t('profile');
@@ -533,6 +534,7 @@ class AppLocalizations {
       'membersCountLabel': 'Members count',
       'addUpdateRemoveMembers': 'Add/Update/Remove Members',
       'manageServants': 'Manage Servants',
+      'home': 'Home',
 
       // Profile / Forms
       'profile': 'Profile',
@@ -801,6 +803,7 @@ class AppLocalizations {
       'membersCountLabel': 'عدد الأعضاء',
       'addUpdateRemoveMembers': 'إضافة/تعديل/حذف أعضاء',
       'manageServants': 'إدارة الخدام',
+      'home': 'الرئيسية',
 
       // Profile / Forms
       'profile': 'الملف الشخصي',
