@@ -81,6 +81,7 @@ builder.Services.AddScoped<IAttendanceManager, AttendanceManager>();
 builder.Services.AddScoped<IAccountManager, AccountManager>();
 
 builder.Services.AddScoped<IChurchRepository, ChurchRepository>();
+builder.Services.AddScoped<IChurchManager, ChurchManager>();
 
 builder.Services.AddScoped<IClassroomManager, ClassroomManager>();
 builder.Services.AddScoped<IClassroomRepository, ClassroomRepository>();

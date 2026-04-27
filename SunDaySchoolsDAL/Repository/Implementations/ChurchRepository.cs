@@ -45,6 +45,12 @@ namespace SunDaySchools.DAL.Repository.Implementations
                 .FirstOrDefaultAsync(c => c.Name == churchName);
         }
 
+        public async Task UpdateAsync(Church church)
+        {
+            _context.Churches.Update(church);
+            await _context.SaveChangesAsync();
+        }
+
 
 
     }
