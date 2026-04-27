@@ -11,6 +11,7 @@ import '../../auth/utils/auth_role_utils.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
 import '../providers/servants_providers.dart';
+import '../../../shared/widgets/app_network_avatar.dart';
 
 class ProfileScreen extends ConsumerWidget {
   final bool showAppBar;
@@ -53,23 +54,18 @@ class ProfileScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(16),
               children: [
                 Center(
-                  child: CircleAvatar(
+                  child: AppNetworkAvatar(
+                    imageUrl: p.imageUrl,
                     radius: 56,
                     backgroundColor: const Color(0xFFED8936),
-                    backgroundImage:
-                        p.imageUrl != null ? NetworkImage(p.imageUrl!) : null,
-                    child: p.imageUrl == null
-                        ? Text(
-                            (p.name?.isNotEmpty == true)
-                                ? p.name![0].toUpperCase()
-                                : '?',
-                            style: const TextStyle(
-                              fontSize: 32,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          )
-                        : null,
+                    placeholder: Text(
+                      (p.name?.isNotEmpty == true) ? p.name![0].toUpperCase() : '?',
+                      style: const TextStyle(
+                        fontSize: 32,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),

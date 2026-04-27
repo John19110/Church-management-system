@@ -7,6 +7,7 @@ import '../providers/members_providers.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../shared/widgets/app_network_avatar.dart';
 
 class MembersListScreen extends ConsumerWidget {
   const MembersListScreen({super.key});
@@ -55,14 +56,17 @@ class MembersListScreen extends ConsumerWidget {
                 itemCount: members.length,
                 itemBuilder: (context, index) {
                   final member = members[index];
+                  final initial = (member.fullName?.isNotEmpty == true)
+                      ? member.fullName![0].toUpperCase()
+                      : '?';
                   return Card(
                     child: ListTile(
-                      leading: CircleAvatar(
+                      leading: AppNetworkAvatar(
+                        imageUrl: member.imageUrl,
+                        radius: 20,
                         backgroundColor: const Color(0xFF4299E1),
-                        child: Text(
-                          (member.fullName?.isNotEmpty == true)
-                              ? member.fullName![0].toUpperCase()
-                              : '?',
+                        placeholder: Text(
+                          initial,
                           style: const TextStyle(color: Colors.white),
                         ),
                       ),

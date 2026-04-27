@@ -7,6 +7,7 @@ import '../providers/servants_providers.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../shared/widgets/app_network_avatar.dart';
 
 class ServantsListScreen extends ConsumerWidget {
   const ServantsListScreen({super.key});
@@ -47,21 +48,20 @@ class ServantsListScreen extends ConsumerWidget {
                 itemCount: servants.length,
                 itemBuilder: (context, index) {
                   final servant = servants[index];
+                  final initial = (servant.name?.isNotEmpty == true)
+                      ? servant.name![0].toUpperCase()
+                      : '?';
                   return Card(
                     child: ListTile(
-                      leading: servant.imageUrl != null
-                          ? CircleAvatar(
-                              backgroundImage: NetworkImage(servant.imageUrl!),
-                            )
-                          : CircleAvatar(
-                              backgroundColor: const Color(0xFFED8936),
-                              child: Text(
-                                (servant.name?.isNotEmpty == true)
-                                    ? servant.name![0].toUpperCase()
-                                    : '?',
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                            ),
+                      leading: AppNetworkAvatar(
+                        imageUrl: servant.imageUrl,
+                        radius: 20,
+                        backgroundColor: const Color(0xFFED8936),
+                        placeholder: Text(
+                          initial,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
                       title: Text(servant.name ?? 'Unknown'),
                       subtitle: Text(servant.phoneNumber ?? ''),
                       trailing: const Icon(Icons.chevron_right),
