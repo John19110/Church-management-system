@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../core/l10n/app_localizations.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../../shared/widgets/endpoint_select_fields.dart';
@@ -87,7 +88,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           );
 
       if (!mounted) return;
-      showSuccessSnackbar(context, 'Profile updated.');
+      showSuccessSnackbar(context, AppLocalizations.of(context).profileUpdated);
       context.pop();
     } catch (e) {
       if (!mounted) return;
@@ -99,13 +100,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final profileAsync = ref.watch(servantProfileProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit profile')),
+      appBar: AppBar(title: Text(l10n.editProfile)),
       body: profileAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Failed to load profile: $e')),
+        error: (e, _) => Center(child: Text('${l10n.failedToLoadProfile} $e')),
         data: (p) {
           // Pre-fill once when controllers are empty (first build).
           if (_nameController.text.isEmpty && _phoneController.text.isEmpty) {
@@ -146,25 +148,25 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   const SizedBox(height: 16),
                   AppTextField(
                     controller: _nameController,
-                    label: 'Name',
+                    label: l10n.name,
                   ),
                   const SizedBox(height: 12),
                   AppTextField(
                     controller: _phoneController,
-                    label: 'Phone number',
+                    label: l10n.phoneNumber,
                     keyboardType: TextInputType.phone,
                   ),
                   const SizedBox(height: 12),
                   AppTextField(
                     controller: _churchIdController,
-                    label: 'Church id',
+                    label: l10n.churchIdLabel,
                     keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 12),
                   EndpointSelectDropdown(
                     endpoint: SelectionEndpoints.meetings,
-                    label: 'Meeting',
-                    hintText: 'Select meeting',
+                    label: l10n.meetingLabel,
+                    hintText: l10n.selectMeeting,
                     value: _meetingId,
                     enabled: !_loading,
                     onChanged: (v) => setState(() => _meetingId = v),
@@ -172,29 +174,29 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   const SizedBox(height: 12),
                   EndpointMultiSelectField(
                     endpoint: SelectionEndpoints.classrooms,
-                    label: 'Classrooms',
-                    hintText: 'Select classrooms',
+                    label: l10n.classroomsLabel,
+                    hintText: l10n.selectClassrooms,
                     selectedIds: _classroomIds,
                     onChanged: (ids) => setState(() => _classroomIds = ids),
                   ),
                   const SizedBox(height: 12),
                   AppTextField(
                     controller: _birthController,
-                    label: 'Birth date',
+                    label: l10n.birthDate,
                     readOnly: true,
                     onTap: () => _pickDate(_birthController),
                   ),
                   const SizedBox(height: 12),
                   AppTextField(
                     controller: _joiningController,
-                    label: 'Joining date',
+                    label: l10n.joiningDate,
                     readOnly: true,
                     onTap: () => _pickDate(_joiningController),
                   ),
                   const SizedBox(height: 12),
                   AppTextField(
                     controller: _spiritualBirthController,
-                    label: 'Spiritual birth date',
+                    label: l10n.spiritualDateOfBirth,
                     readOnly: true,
                     onTap: () => _pickDate(_spiritualBirthController),
                   ),
@@ -203,7 +205,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       ? const Center(child: CircularProgressIndicator())
                       : ElevatedButton(
                           onPressed: _save,
-                          child: const Text('Save'),
+                          child: Text(l10n.saveLabel),
                         ),
                 ],
               ),

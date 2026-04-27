@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/l10n/app_localizations.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_session.dart';
 import 'profile_screen.dart';
@@ -10,11 +11,12 @@ class ServantHomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final roleAsync = ref.watch(currentUserRoleProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Servant'),
+        title: Text(l10n.servant),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -28,11 +30,11 @@ class ServantHomeScreen extends ConsumerWidget {
             return const ProfileScreen(showAppBar: false);
           }
           if (role == null) {
-            return const Center(
+            return Center(
               child: Padding(
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 child: Text(
-                  'No role found in your session. Please log out and sign in again.',
+                  l10n.noRoleFoundPleaseRelogin,
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -42,7 +44,7 @@ class ServantHomeScreen extends ConsumerWidget {
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
-                'This screen is for Servant users only.',
+                l10n.servantOnlyScreen,
                 style: Theme.of(context).textTheme.titleMedium,
                 textAlign: TextAlign.center,
               ),
@@ -54,7 +56,7 @@ class ServantHomeScreen extends ConsumerWidget {
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Text(
-              'Could not verify your role: $e',
+              '${l10n.couldNotVerifyRole} $e',
               textAlign: TextAlign.center,
             ),
           ),

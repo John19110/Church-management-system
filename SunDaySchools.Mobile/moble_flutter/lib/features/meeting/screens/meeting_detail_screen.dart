@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/l10n/app_localizations.dart';
 import '../../../core/routing/app_router.dart';
 import '../models/meeting_models.dart';
 
@@ -10,28 +11,29 @@ class MeetingDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final appointment = meeting.weeklyAppointment ?? '-';
     final day = meeting.dayOfWeek ?? '-';
 
     return Scaffold(
-      appBar: AppBar(title: Text(meeting.name ?? 'Meeting Details')),
+      appBar: AppBar(title: Text(meeting.name ?? l10n.meetingDetails)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _InfoTile(label: 'Name', value: meeting.name ?? '-'),
-          _InfoTile(label: 'Day of week', value: day),
-          _InfoTile(label: 'Weekly appointment', value: appointment),
+          _InfoTile(label: l10n.nameLabel, value: meeting.name ?? '-'),
+          _InfoTile(label: l10n.dayOfWeekLabel, value: day),
+          _InfoTile(label: l10n.weeklyAppointmentLabel, value: appointment),
           _InfoTile(
-            label: 'Servants count',
+            label: l10n.servantsCountLabel,
             value: meeting.servantsCount.toString(),
           ),
           _InfoTile(
-            label: 'Members count',
+            label: l10n.membersCountLabel,
             value: meeting.membersCount.toString(),
           ),
           const SizedBox(height: 16),
           Text(
-            'Servants',
+            l10n.servants,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -40,7 +42,7 @@ class MeetingDetailScreen extends StatelessWidget {
           ..._buildNameList(meeting.servantNames),
           const SizedBox(height: 16),
           Text(
-            'Members',
+            l10n.membersHeading,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -51,13 +53,13 @@ class MeetingDetailScreen extends StatelessWidget {
           ElevatedButton.icon(
             onPressed: () => context.push(AppRoutes.member),
             icon: const Icon(Icons.group_add),
-            label: const Text('Add/Update/Remove Members'),
+            label: Text(l10n.addUpdateRemoveMembers),
           ),
           const SizedBox(height: 12),
           OutlinedButton.icon(
             onPressed: () => context.push(AppRoutes.servants),
             icon: const Icon(Icons.person_add_alt_1),
-            label: const Text('Manage Servants'),
+            label: Text(l10n.manageServants),
           ),
         ],
       ),

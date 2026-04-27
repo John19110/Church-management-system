@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/l10n/app_localizations.dart';
 import '../../core/models/select_option.dart';
 
 class SelectOptionDropdown extends StatelessWidget {
@@ -67,6 +68,7 @@ class SelectOptionMultiSelectField extends StatefulWidget {
 
 class _SelectOptionMultiSelectFieldState extends State<SelectOptionMultiSelectField> {
   Future<void> _openPicker() async {
+    final l10n = AppLocalizations.of(context);
     final current = widget.selectedIds.toSet();
     final selected = await showModalBottomSheet<Set<int>>(
       context: context,
@@ -91,7 +93,7 @@ class _SelectOptionMultiSelectFieldState extends State<SelectOptionMultiSelectFi
                         ),
                         TextButton(
                           onPressed: () => Navigator.of(ctx).pop(temp),
-                          child: const Text('Done'),
+                          child: Text(l10n.done),
                         ),
                       ],
                     ),
@@ -132,13 +134,14 @@ class _SelectOptionMultiSelectFieldState extends State<SelectOptionMultiSelectFi
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final selectedNames = widget.options
         .where((o) => widget.selectedIds.contains(o.id))
         .map((o) => o.name.isEmpty ? '#${o.id}' : o.name)
         .toList();
 
     final text = selectedNames.isEmpty
-        ? (widget.hintText ?? 'Select')
+        ? (widget.hintText ?? l10n.select)
         : selectedNames.join(', ');
 
     return InkWell(

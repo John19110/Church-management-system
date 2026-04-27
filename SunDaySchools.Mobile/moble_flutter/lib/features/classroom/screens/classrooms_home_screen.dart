@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/l10n/app_localizations.dart';
 import '../../../core/routing/app_router.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
@@ -76,8 +77,9 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (dialogBuilderContext, setDialogState) {
+            final l10n = AppLocalizations.of(dialogBuilderContext);
             return AlertDialog(
-              title: const Text('Add Classroom'),
+              title: Text(l10n.addClassroom),
               content: SingleChildScrollView(
                 child: Form(
                   key: _classroomFormKey,
@@ -86,13 +88,13 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
                     children: [
                       TextFormField(
                         controller: _nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Classroom Name',
-                          hintText: 'Enter classroom name',
+                        decoration: InputDecoration(
+                          labelText: l10n.classroomNameLabel,
+                          hintText: l10n.enterClassroomNameHint,
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'Classroom name is required';
+                            return l10n.classroomNameRequiredGeneric;
                           }
                           return null;
                         },
@@ -100,13 +102,13 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _ageController,
-                        decoration: const InputDecoration(
-                          labelText: 'Age of Members',
-                          hintText: 'Enter age range',
+                        decoration: InputDecoration(
+                          labelText: l10n.ageOfMembersLabel,
+                          hintText: l10n.enterAgeRangeHint,
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'Age of members is required';
+                            return l10n.ageOfMembersRequiredGeneric;
                           }
                           return null;
                         },
@@ -120,7 +122,7 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
                   onPressed: isSubmitting
                       ? null
                       : () => Navigator.of(dialogContext).pop(),
-                  child: const Text('Cancel'),
+                  child: Text(l10n.cancel),
                 ),
                 ElevatedButton(
                   onPressed: isSubmitting
@@ -135,7 +137,7 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
                             Navigator.of(dialogContext).pop();
                             showSuccessSnackbar(
                               context,
-                              'Classroom added successfully.',
+                              l10n.classroomAddedSuccessfully,
                             );
                           } catch (e) {
                             if (!mounted) return;
@@ -152,7 +154,7 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
                           height: 16,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Add'),
+                      : Text(l10n.add),
                 ),
               ],
             );
@@ -164,6 +166,7 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final roleAsync = ref.watch(currentUserRoleProvider);
     final classroomsAsync = widget.meetingId != null
         ? ref.watch(visibleClassroomsByMeetingProvider(widget.meetingId))
@@ -173,8 +176,8 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
     final currentLocation = GoRouterState.of(context).matchedLocation;
     final canAddClassroom = role == 'admin';
     final title = widget.meetingName?.trim().isNotEmpty == true
-        ? 'Classrooms — ${widget.meetingName}'
-        : 'Classrooms Home';
+        ? '${l10n.classrooms} — ${widget.meetingName}'
+        : l10n.classroomsHome;
 
     return PopScope(
       canPop: currentLocation == homeRoute,
@@ -191,7 +194,7 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
                   if (canAddClassroom)
                     IconButton(
                       icon: const Icon(Icons.add),
-                      tooltip: 'Add Classroom',
+                      tooltip: l10n.addClassroom,
                       onPressed: _showAddClassroomDialog,
                     ),
                   IconButton(
@@ -204,7 +207,7 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
         floatingActionButton: !widget.showAppBar && canAddClassroom
             ? FloatingActionButton(
                 onPressed: _showAddClassroomDialog,
-                tooltip: 'Add Classroom',
+                tooltip: l10n.addClassroom,
                 child: const Icon(Icons.add),
               )
             : null,
@@ -226,15 +229,15 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
                 ),
                 children: [
                   Text(
-                    'Visible Classrooms',
+                    l10n.visibleClassrooms,
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   if (filtered.isEmpty)
-                    const Card(
+                    Card(
                       child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Text('No visible classrooms found.'),
+                        padding: const EdgeInsets.all(16),
+                        child: Text(l10n.noVisibleClassroomsFound),
                       ),
                     )
                   else
@@ -338,15 +341,15 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
                 !widget.showAppBar && canAddClassroom ? 88 : 16,
               ),
               children: [
-                const Text(
-                  'Visible Classrooms',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Text(
+                  l10n.visibleClassrooms,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 Card(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
-                    child: Text('Failed to load visible classrooms: $e'),
+                    child: Text('${l10n.failedToLoadVisibleClassrooms} $e'),
                   ),
                 ),
               ],

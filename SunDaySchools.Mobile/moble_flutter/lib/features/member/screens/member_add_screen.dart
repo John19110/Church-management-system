@@ -262,7 +262,7 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
                 ),
                 error: (e, _) => Padding(
                   padding: const EdgeInsets.only(top: 8),
-                  child: Text('Failed to load classrooms: $e'),
+                  child: Text('${l10n.failedToLoadClassrooms} $e'),
                 ),
                 data: (options) => SelectOptionDropdown(
                   label: l10n.classroomId,
