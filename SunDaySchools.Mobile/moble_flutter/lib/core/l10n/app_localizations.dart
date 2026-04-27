@@ -145,6 +145,7 @@ class AppLocalizations {
   String get registerTypeMeetingAdmin => _t('registerTypeMeetingAdmin');
   String get weeklyAppointment => _t('weeklyAppointment');
   String get weeklyAppointmentRequired => _t('weeklyAppointmentRequired');
+  String get phoneAlreadyUsed => _t('phoneAlreadyUsed');
 
   // ── Attendance ────────────────────────────────────────────────────────────
   String get takeAttendance => _t('takeAttendance');
@@ -420,6 +421,7 @@ class AppLocalizations {
       'registerTypeMeetingAdmin': 'Meeting Admin',
       'weeklyAppointment': 'Weekly Appointment',
       'weeklyAppointmentRequired': 'Weekly appointment is required',
+      'phoneAlreadyUsed': 'This phone number is already in use. Please sign in or use a different number.',
       // Attendance
       'takeAttendance': 'Take Attendance',
       'viewAttendance': 'View Attendance',
@@ -690,6 +692,7 @@ class AppLocalizations {
       'registerTypeMeetingAdmin': 'مشرف اجتماع',
       'weeklyAppointment': 'الموعد الأسبوعي',
       'weeklyAppointmentRequired': 'الموعد الأسبوعي مطلوب',
+      'phoneAlreadyUsed': 'رقم الهاتف مستخدم بالفعل. يرجى تسجيل الدخول أو استخدام رقم آخر.',
       // Attendance
       'takeAttendance': 'تسجيل الحضور',
       'viewAttendance': 'عرض الحضور',
