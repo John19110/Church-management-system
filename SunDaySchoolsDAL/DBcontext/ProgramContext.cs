@@ -12,10 +12,7 @@ namespace SunDaySchoolsDAL.DBcontext
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ProgramContext(
-            DbContextOptions<ProgramContext> options,
-            IHttpContextAccessor httpContextAccessor
-        ) : base(options)
+        public ProgramContext(DbContextOptions<ProgramContext> options,IHttpContextAccessor httpContextAccessor ) : base(options)
         {
             _httpContextAccessor = httpContextAccessor;
         }
