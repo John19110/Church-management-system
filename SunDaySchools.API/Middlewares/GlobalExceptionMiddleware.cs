@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using SunDaySchools.API.Json;
 using SunDaySchools.BLL.Exceptions;
 using System;
 using System.Net;
@@ -13,7 +14,7 @@ public class GlobalExceptionMiddleware
     private readonly ILogger<GlobalExceptionMiddleware> _logger;
     private readonly IHostEnvironment _env;
 
-    private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web);
+    private static readonly JsonSerializerOptions _jsonOptions = ApiJsonSerializerOptions.Create();
 
     public GlobalExceptionMiddleware(
         RequestDelegate next,
