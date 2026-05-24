@@ -9,8 +9,21 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+    <!-- EF tooling runs against the startup (composition root) project -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
 
+  <ItemGroup>
     <ProjectReference Include="..\SunDaySchools.BLL\SunDaySchools.BLL.csproj" />
+    <!-- Direct reference so EF tools and the host can resolve DbContext/migrations assembly -->
+    <ProjectReference Include="..\SunDaySchoolsDAL\SunDaySchools.DAL.csproj" />
   </ItemGroup>
 
   <ItemGroup>
