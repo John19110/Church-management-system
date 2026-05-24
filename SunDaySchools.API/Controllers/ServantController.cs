@@ -8,7 +8,11 @@ using SunDaySchools.API.Services.Interfaces;
 using SunDaySchools.BLL.DTOS.AccountDtos;
 using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Implementations;
+using SunDaySchools.BLL.DTOS.UnifiedForms;
 using SunDaySchools.BLL.Manager.Interfaces;
+using SunDaySchools.BLL.Services.UnifiedForms;
+using SunDaySchools.DAL.Models.CustomFields;
+using System.Net.Mime;
 using SunDaySchoolsDAL.DBcontext;
 using SunDaySchoolsDAL.Models;
 using System.IdentityModel.Tokens.Jwt;
@@ -25,6 +29,7 @@ namespace SunDaySchools.API.Controllers
         private readonly IWebHostEnvironment _env;
         private readonly ProgramContext _db;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IUnifiedEntityFormManager _unifiedFormManager;
 
 
         public ServantController(
@@ -32,13 +37,15 @@ namespace SunDaySchools.API.Controllers
             IFileStorage fileStorage,
             IWebHostEnvironment env,
             ProgramContext db,
-            UserManager<ApplicationUser> userManager)
+            UserManager<ApplicationUser> userManager,
+            IUnifiedEntityFormManager unifiedFormManager)
         {
             _servantManager = servantManager;
             _fileStorage = fileStorage;
             _env = env;
             _db = db;
             _userManager = userManager;
+            _unifiedFormManager = unifiedFormManager;
         }
 
         // Add servant
@@ -65,6 +72,37 @@ namespace SunDaySchools.API.Controllers
         {
             var servants = await _servantManager.GetAllAsync();
             return Ok(servants);
+        }
+
+        [HttpGet("form-schema")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<EntityFormSchemaDto>> GetFormSchema([FromQuery] string mode = "Edit")
+        {
+            var formMode = Enum.TryParse<EntityFormMode>(mode, ignoreCase: true, out var parsed)
+                ? parsed : EntityFormMode.Edit;
+            return Ok(await _unifiedFormManager.GetFormSchemaAsync(CustomFieldEntityNames.Servant, formMode));
+        }
+
+        [HttpGet("{id:int}/form-data")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<EntityFormDataDto>> GetFormData(int id)
+        {
+            if (id <= 0) return BadRequest("Servant id must be a positive integer.");
+            return Ok(await _unifiedFormManager.GetFormDataAsync(CustomFieldEntityNames.Servant, id));
+        }
+
+        [HttpPut("{id:int}/form-data")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        public async Task<IActionResult> SaveFormData(int id, [FromBody] SaveEntityFormDto request)
+        {
+            if (id <= 0) return BadRequest("Servant id must be a positive integer.");
+            if (request == null)
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    [""] = new[] { "Request body is required." }
+                });
+            await _unifiedFormManager.SaveFormDataAsync(CustomFieldEntityNames.Servant, id, request);
+            return Ok(new { message = "Form saved." });
         }
 
         [HttpGet("{id:int}")]

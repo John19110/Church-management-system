@@ -1,17 +1,18 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import '../models/servant_models.dart';
+
 import '../providers/servants_providers.dart';
-import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/common_widgets.dart';
-import '../../../shared/widgets/endpoint_select_fields.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../shared/widgets/app_network_avatar.dart';
-import '../../custom_field/models/custom_field_models.dart';
-import '../../custom_field/widgets/dynamic_custom_fields_form.dart';
+import '../../unified_form/models/unified_form_models.dart';
+import '../../unified_form/providers/unified_form_providers.dart';
+import '../../unified_form/utils/unified_form_controller.dart';
+import '../../unified_form/widgets/unified_entity_form.dart';
 
 class ServantEditScreen extends ConsumerStatefulWidget {
   final int id;
@@ -23,64 +24,39 @@ class ServantEditScreen extends ConsumerStatefulWidget {
 
 class _ServantEditScreenState extends ConsumerState<ServantEditScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _joiningController = TextEditingController();
-  final _birthController = TextEditingController();
-  int? _selectedClassroomId;
+  final _formController = UnifiedFormController();
   File? _image;
   bool _loading = false;
   bool _initialized = false;
-  final _customFieldsController = DynamicCustomFieldsController();
 
   @override
   void dispose() {
-    _customFieldsController.dispose();
-    _nameController.dispose();
-    _phoneController.dispose();
-    _joiningController.dispose();
-    _birthController.dispose();
+    _formController.dispose();
     super.dispose();
   }
 
-  void _initFromServant(ServantReadDto servant) {
-    if (_initialized) return;
-    _initialized = true;
-    _nameController.text = servant.name ?? '';
-    _phoneController.text = servant.phoneNumber ?? '';
-    _joiningController.text = servant.joiningDate ?? '';
-    _birthController.text = servant.birthDate ?? '';
-    _selectedClassroomId =
-        servant.classrooms.isNotEmpty ? servant.classrooms.first.id : null;
-  }
-
   Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery);
+    final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (picked != null) setState(() => _image = File(picked.path));
   }
 
-  Future<void> _submit() async {
+  Future<void> _submit(List<UnifiedFieldDefinitionDto> fields) async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
     final l10n = AppLocalizations.of(context);
     try {
-      await ref.read(servantsRepositoryProvider).update(
+      await ref.read(unifiedFormRepositoryProvider).saveFormData(
+            UnifiedEntityNames.servant,
             widget.id,
-            name: _nameController.text.trim().nullIfEmpty,
-            phoneNumber: _phoneController.text.trim().nullIfEmpty,
-            joiningDate: _joiningController.text.trim().nullIfEmpty,
-            birthDate: _birthController.text.trim().nullIfEmpty,
-            classroomId: _selectedClassroomId,
-            image: _image,
+            _formController.buildSavePayload(fields),
           );
 
-      await saveCustomFieldsForEntity(
-        ref: ref,
-        entityName: CustomFieldEntityNames.servant,
-        entityId: widget.id,
-        controller: _customFieldsController,
-      );
+      if (_image != null) {
+        await ref.read(servantsRepositoryProvider).update(
+              widget.id,
+              image: _image,
+            );
+      }
 
       if (mounted) {
         showSuccessSnackbar(context, l10n.servantUpdatedSuccessfully);
@@ -96,28 +72,29 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    if (widget.id <= 0) {
-      return Scaffold(
-        appBar: AppBar(title: Text(l10n.editServant)),
-        body: AppErrorWidget(
-          message: 'Invalid servant id.',
-          onRetry: () {
-            if (context.mounted) context.pop();
-          },
-        ),
-      );
-    }
-
-    final servantAsync = ref.watch(servantDetailProvider(widget.id));
+    final formAsync = ref.watch(
+      entityFormDataProvider((entity: UnifiedEntityNames.servant, id: widget.id)),
+    );
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.editServant)),
-      body: SafeArea(
-        child: servantAsync.when(
+      body: formAsync.when(
         loading: () => const LoadingWidget(),
         error: (e, _) => AppErrorWidget(message: e.toString()),
-        data: (servant) {
-          _initFromServant(servant);
+        data: (formData) {
+          if (!_initialized) {
+            _formController.initializeFromFields(
+              formData.fields,
+              withValues: formData.fields,
+            );
+            _initialized = true;
+          }
+
+          final imageUrl = formData.fields
+              .where((f) => f.fieldKey == 'imageUrl')
+              .map((f) => f.value)
+              .firstOrNull;
+
           return Form(
             key: _formKey,
             child: ListView(
@@ -127,68 +104,24 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen> {
                   onTap: _pickImage,
                   child: Center(
                     child: _image != null
-                        ? CircleAvatar(
-                            radius: 48,
-                            backgroundColor: const Color(0xFFED8936),
-                            backgroundImage: FileImage(_image!),
-                          )
+                        ? CircleAvatar(radius: 48, backgroundImage: FileImage(_image!))
                         : AppNetworkAvatar(
-                            imageUrl: servant.imageUrl,
+                            imageUrl: imageUrl,
                             radius: 48,
-                            backgroundColor: const Color(0xFFED8936),
-                            placeholder: const Icon(
-                              Icons.camera_alt,
-                              size: 36,
-                              color: Colors.white,
-                            ),
+                            placeholder: const Icon(Icons.camera_alt, size: 36),
                           ),
                   ),
                 ),
-                const SizedBox(height: 8),
-                Center(
-                  child: TextButton.icon(
-                    onPressed: _loading ? null : _pickImage,
-                    icon: const Icon(Icons.photo_library_outlined),
-                    label: Text(l10n.tapToSelectImage),
-                  ),
-                ),
                 const SizedBox(height: 16),
-                AppTextField(
-                  controller: _nameController,
-                  label: l10n.name,
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? l10n.nameRequired : null,
-                ),
-                const SizedBox(height: 12),
-                AppTextField(
-                  controller: _phoneController,
-                  label: l10n.phoneNumber,
-                  keyboardType: TextInputType.phone,
-                ),
-                const SizedBox(height: 12),
-                AppDateField(
-                    controller: _joiningController, label: l10n.joiningDate),
-                const SizedBox(height: 12),
-                AppDateField(
-                    controller: _birthController, label: l10n.birthDate),
-                const SizedBox(height: 12),
-                EndpointSelectDropdown(
-                  endpoint: SelectionEndpoints.classrooms,
-                  label: l10n.classroomId,
-                  hintText: l10n.classroomId,
-                  value: _selectedClassroomId,
-                  onChanged: (v) => setState(() => _selectedClassroomId = v),
-                ),
-                DynamicCustomFieldsForm(
-                  entityName: CustomFieldEntityNames.servant,
-                  entityId: widget.id,
-                  controller: _customFieldsController,
+                UnifiedEntityForm(
+                  fields: formData.fields,
+                  controller: _formController,
                 ),
                 const SizedBox(height: 24),
                 _loading
                     ? const Center(child: CircularProgressIndicator())
                     : ElevatedButton(
-                        onPressed: _submit,
+                        onPressed: () => _submit(formData.fields),
                         child: Text(l10n.save),
                       ),
               ],
@@ -196,11 +129,6 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen> {
           );
         },
       ),
-      ),
     );
   }
-}
-
-extension _StringExt on String {
-  String? get nullIfEmpty => isEmpty ? null : this;
 }

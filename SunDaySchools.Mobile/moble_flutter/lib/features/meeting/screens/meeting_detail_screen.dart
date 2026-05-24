@@ -4,8 +4,9 @@ import 'package:go_router/go_router.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/routing/app_router.dart';
 import '../../auth/providers/auth_providers.dart';
-import '../../custom_field/models/custom_field_models.dart';
-import '../../custom_field/widgets/custom_fields_detail_section.dart';
+import '../../unified_form/models/unified_form_models.dart';
+import '../../unified_form/providers/unified_form_providers.dart';
+import '../../unified_form/widgets/unified_entity_form.dart';
 import '../models/meeting_models.dart';
 
 class MeetingDetailScreen extends ConsumerWidget {
@@ -20,6 +21,11 @@ class MeetingDetailScreen extends ConsumerWidget {
     final day = meeting.dayOfWeek ?? '-';
     final meetingId = meeting.id;
     final role = ref.watch(currentUserRoleProvider).resolvedRoleOrNull;
+    final formAsync = meetingId != null
+        ? ref.watch(
+            entityFormDataProvider((entity: UnifiedEntityNames.meeting, id: meetingId)),
+          )
+        : null;
 
     return Scaffold(
       appBar: AppBar(
@@ -55,10 +61,11 @@ class MeetingDetailScreen extends ConsumerWidget {
             label: l10n.membersCountLabel,
             value: meeting.membersCount.toString(),
           ),
-          if (meetingId != null)
-            CustomFieldsDetailSection(
-              entityName: CustomFieldEntityNames.meeting,
-              entityId: meetingId,
+          if (formAsync != null)
+            formAsync.when(
+              loading: () => const SizedBox.shrink(),
+              error: (_, __) => const SizedBox.shrink(),
+              data: (form) => UnifiedEntityDetailFields(fields: form.fields),
             ),
           const SizedBox(height: 16),
           Text(

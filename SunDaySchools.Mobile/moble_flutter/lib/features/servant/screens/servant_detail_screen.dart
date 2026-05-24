@@ -5,8 +5,9 @@ import '../providers/servants_providers.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../../../core/l10n/app_localizations.dart';
 import '../../../shared/widgets/app_network_avatar.dart';
-import '../../custom_field/models/custom_field_models.dart';
-import '../../custom_field/widgets/custom_fields_detail_section.dart';
+import '../../unified_form/models/unified_form_models.dart';
+import '../../unified_form/providers/unified_form_providers.dart';
+import '../../unified_form/widgets/unified_entity_form.dart';
 
 class ServantDetailScreen extends ConsumerWidget {
   final int id;
@@ -15,20 +16,10 @@ class ServantDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    if (id <= 0) {
-      return Scaffold(
-        appBar: AppBar(title: Text(l10n.servantDetails)),
-        body: cw.AppErrorWidget(
-          message:
-              'Invalid servant id. Open this screen from the list after the API returns real ids.',
-          onRetry: () {
-            if (context.mounted) context.pop();
-          },
-        ),
-      );
-    }
-
     final servantAsync = ref.watch(servantDetailProvider(id));
+    final formAsync = ref.watch(
+      entityFormDataProvider((entity: UnifiedEntityNames.servant, id: id)),
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -39,26 +30,7 @@ class ServantDetailScreen extends ConsumerWidget {
             onPressed: () async {
               await context.push('/servants/$id/edit');
               ref.invalidate(servantDetailProvider(id));
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete, color: Colors.red),
-            onPressed: () async {
-              final confirmed = await cw.showConfirmDialog(
-                context,
-                title: l10n.deleteServant,
-                content: l10n.confirmDeleteServant,
-              );
-              if (!confirmed) return;
-              try {
-                await ref.read(servantsRepositoryProvider).delete(id);
-                if (context.mounted) {
-                  cw.showSuccessSnackbar(context, l10n.servantDeletedSuccessfully);
-                  context.pop();
-                }
-              } catch (e) {
-                if (context.mounted) cw.showErrorSnackbar(context, e.toString());
-              }
+              ref.invalidate(entityFormDataProvider((entity: UnifiedEntityNames.servant, id: id)));
             },
           ),
         ],
@@ -66,16 +38,16 @@ class ServantDetailScreen extends ConsumerWidget {
       body: servantAsync.when(
         loading: () => const cw.LoadingWidget(),
         error: (e, _) => cw.AppErrorWidget(message: e.toString()),
-        data: (servant) => SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: AppNetworkAvatar(
+        data: (servant) => formAsync.when(
+          loading: () => const cw.LoadingWidget(),
+          error: (e, _) => cw.AppErrorWidget(message: e.toString()),
+          data: (formData) => SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                AppNetworkAvatar(
                   imageUrl: servant.imageUrl,
                   radius: 56,
-                  backgroundColor: const Color(0xFFED8936),
                   placeholder: Text(
                     (servant.name?.isNotEmpty == true)
                         ? servant.name![0].toUpperCase()
@@ -83,65 +55,17 @@ class ServantDetailScreen extends ConsumerWidget {
                     style: const TextStyle(fontSize: 40, color: Colors.white),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              Center(
-                child: Text(
+                const SizedBox(height: 12),
+                Text(
                   servant.name ?? 'Unknown',
-                  style: Theme.of(context)
-                      .textTheme
-                      .headlineSmall
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.headlineSmall,
                 ),
-              ),
-              const SizedBox(height: 24),
-              _InfoTile(label: l10n.phone, value: servant.phoneNumber),
-              _InfoTile(label: l10n.birthDate, value: servant.birthDate),
-              _InfoTile(label: l10n.joiningDate, value: servant.joiningDate),
-              if (servant.classrooms.isNotEmpty)
-                _InfoTile(
-                  label: l10n.classroomId,
-                  value: servant.classrooms
-                      .map((c) => c.name ?? c.id.toString())
-                      .join(', '),
-                ),
-              CustomFieldsDetailSection(
-                entityName: CustomFieldEntityNames.servant,
-                entityId: id,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _InfoTile extends StatelessWidget {
-  final String label;
-  final String? value;
-
-  const _InfoTile({required this.label, this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    if (value == null || value!.isEmpty) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              '$label:',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(fontWeight: FontWeight.w600),
+                const SizedBox(height: 16),
+                UnifiedEntityDetailFields(fields: formData.fields),
+              ],
             ),
           ),
-          Expanded(child: Text(value!)),
-        ],
+        ),
       ),
     );
   }
