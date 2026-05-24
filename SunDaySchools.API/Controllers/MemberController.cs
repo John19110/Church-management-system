@@ -6,7 +6,11 @@ using SunDaySchools.API.Requests;
 using SunDaySchools.API.Services.Interfaces;
 using SunDaySchools.BLL.DTOS;
 using SunDaySchools.BLL.Exceptions;
+using SunDaySchools.BLL.DTOS.UnifiedForms;
 using SunDaySchools.BLL.Manager.Interfaces;
+using SunDaySchools.BLL.Services.UnifiedForms;
+using SunDaySchools.DAL.Models.CustomFields;
+using System.Net.Mime;
 
 namespace SunDaySchools.API.Controllers
 {
@@ -17,11 +21,16 @@ namespace SunDaySchools.API.Controllers
     {
         private readonly IMemberManager _memberManager;
         private readonly IFileStorage _fileStorage;
+        private readonly IUnifiedEntityFormManager _unifiedFormManager;
 
-        public MemberController(IMemberManager memberManager, IFileStorage fileStorage)
+        public MemberController(
+            IMemberManager memberManager,
+            IFileStorage fileStorage,
+            IUnifiedEntityFormManager unifiedFormManager)
         {
             _memberManager = memberManager;
             _fileStorage = fileStorage;
+            _unifiedFormManager = unifiedFormManager;
         }
 
 
@@ -63,6 +72,43 @@ namespace SunDaySchools.API.Controllers
         }
 
         /// <summary>Returns members for a classroom. 200 with an empty array if the classroom exists but has no members; 404 only if the classroom does not exist.</summary>
+        /// <summary>Unified form schema: built-in + custom fields in one list.</summary>
+        [HttpGet("form-schema")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<EntityFormSchemaDto>> GetFormSchema(
+            [FromQuery] string mode = "Edit")
+        {
+            var formMode = Enum.TryParse<EntityFormMode>(mode, ignoreCase: true, out var parsed)
+                ? parsed
+                : EntityFormMode.Edit;
+            return Ok(await _unifiedFormManager.GetFormSchemaAsync(
+                CustomFieldEntityNames.Member, formMode));
+        }
+
+        [HttpGet("{id:int}/form-data")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<EntityFormDataDto>> GetFormData(int id)
+        {
+            if (id <= 0) return BadRequest("Member id must be a positive integer.");
+            return Ok(await _unifiedFormManager.GetFormDataAsync(CustomFieldEntityNames.Member, id));
+        }
+
+        [HttpPut("{id:int}/form-data")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [Produces(MediaTypeNames.Application.Json)]
+        public async Task<IActionResult> SaveFormData(int id, [FromBody] SaveEntityFormDto request)
+        {
+            if (id <= 0) return BadRequest("Member id must be a positive integer.");
+            if (request == null)
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    [""] = new[] { "Request body is required." }
+                });
+
+            await _unifiedFormManager.SaveFormDataAsync(CustomFieldEntityNames.Member, id, request);
+            return Ok(new { message = "Form saved." });
+        }
+
         [HttpGet("classroom/{classroomId}")]
         public async Task<ActionResult<IEnumerable<MemberReadDTO>>> GetMembersByClassroom(int classroomId)
         {

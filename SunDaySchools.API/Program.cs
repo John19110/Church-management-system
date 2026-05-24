@@ -108,6 +108,8 @@ builder.Services.AddScoped<ICustomFieldManager, CustomFieldManager>();
 builder.Services.AddScoped<ICustomFieldValidator, CustomFieldValidator>();
 builder.Services.AddScoped<CustomFieldHelper>();
 
+builder.Services.AddScoped<IUnifiedEntityFormManager, UnifiedEntityFormManager>();
+
 builder.Services.AddScoped<IUnitOfWork,UnitOfWork>();
 
 builder.Services.AddCustomFieldAuthorization();
