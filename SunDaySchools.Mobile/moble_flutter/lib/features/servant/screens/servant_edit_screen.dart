@@ -10,6 +10,8 @@ import '../../../shared/widgets/common_widgets.dart';
 import '../../../shared/widgets/endpoint_select_fields.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../shared/widgets/app_network_avatar.dart';
+import '../../custom_field/models/custom_field_models.dart';
+import '../../custom_field/widgets/dynamic_custom_fields_form.dart';
 
 class ServantEditScreen extends ConsumerStatefulWidget {
   final int id;
@@ -29,9 +31,11 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen> {
   File? _image;
   bool _loading = false;
   bool _initialized = false;
+  final _customFieldsController = DynamicCustomFieldsController();
 
   @override
   void dispose() {
+    _customFieldsController.dispose();
     _nameController.dispose();
     _phoneController.dispose();
     _joiningController.dispose();
@@ -70,6 +74,14 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen> {
             classroomId: _selectedClassroomId,
             image: _image,
           );
+
+      await saveCustomFieldsForEntity(
+        ref: ref,
+        entityName: CustomFieldEntityNames.servant,
+        entityId: widget.id,
+        controller: _customFieldsController,
+      );
+
       if (mounted) {
         showSuccessSnackbar(context, l10n.servantUpdatedSuccessfully);
         context.pop();
@@ -166,6 +178,11 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen> {
                   hintText: l10n.classroomId,
                   value: _selectedClassroomId,
                   onChanged: (v) => setState(() => _selectedClassroomId = v),
+                ),
+                DynamicCustomFieldsForm(
+                  entityName: CustomFieldEntityNames.servant,
+                  entityId: widget.id,
+                  controller: _customFieldsController,
                 ),
                 const SizedBox(height: 24),
                 _loading

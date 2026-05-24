@@ -12,6 +12,8 @@ import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../../shared/widgets/select_option_fields.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../custom_field/models/custom_field_models.dart';
+import '../../custom_field/widgets/dynamic_custom_fields_form.dart';
 
 class MemberAddScreen extends ConsumerStatefulWidget {
   final int? classroomId;
@@ -41,6 +43,7 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
   final List<TextEditingController> _phoneNumber = [];
   final List<TextEditingController> _brotherNames = [];
   final List<TextEditingController> _notes = [];
+  final _customFieldsController = DynamicCustomFieldsController();
 
   @override
   void initState() {
@@ -71,6 +74,7 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
     for (final c in _notes) {
       c.dispose();
     }
+    _customFieldsController.dispose();
     super.dispose();
   }
 
@@ -140,7 +144,7 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
       final classroomId = widget.classroomId ?? (_selectedClassroomId ?? 0);
       final brothers = _nonEmptyLines(_brotherNames);
       final noteLines = _nonEmptyLines(_notes);
-      await ref.read(membersRepositoryProvider).create(
+      final memberId = await ref.read(membersRepositoryProvider).create(
             classroomId,
             MemberAddDto(
               name1: _name1Controller.text.trim().nullIfEmpty,
@@ -159,6 +163,14 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
             ),
             image: _image,
           );
+
+      await saveCustomFieldsForEntity(
+        ref: ref,
+        entityName: CustomFieldEntityNames.member,
+        entityId: memberId,
+        controller: _customFieldsController,
+      );
+
       if (mounted) {
         showSuccessSnackbar(context, l10n.memberAddedSuccessfully);
         context.pop();
@@ -391,6 +403,10 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
                   ),
                 );
               }),
+              DynamicCustomFieldsForm(
+                entityName: CustomFieldEntityNames.member,
+                controller: _customFieldsController,
+              ),
               const SizedBox(height: 24),
               _loading
                   ? const Center(child: CircularProgressIndicator())

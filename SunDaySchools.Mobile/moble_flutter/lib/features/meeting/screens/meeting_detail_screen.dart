@@ -1,22 +1,46 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/routing/app_router.dart';
+import '../../auth/providers/auth_providers.dart';
+import '../../custom_field/models/custom_field_models.dart';
+import '../../custom_field/widgets/custom_fields_detail_section.dart';
 import '../models/meeting_models.dart';
 
-class MeetingDetailScreen extends StatelessWidget {
+class MeetingDetailScreen extends ConsumerWidget {
   final MeetingReadDto meeting;
 
   const MeetingDetailScreen({super.key, required this.meeting});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final appointment = meeting.weeklyAppointment ?? '-';
     final day = meeting.dayOfWeek ?? '-';
+    final meetingId = meeting.id;
+    final role = ref.watch(currentUserRoleProvider).resolvedRoleOrNull;
 
     return Scaffold(
-      appBar: AppBar(title: Text(meeting.name ?? l10n.meetingDetails)),
+      appBar: AppBar(
+        title: Text(meeting.name ?? l10n.meetingDetails),
+        actions: [
+          if (meetingId != null)
+            IconButton(
+              icon: const Icon(Icons.edit_note),
+              tooltip: 'Edit additional fields',
+              onPressed: () => context.push(
+                '/custom-fields/values/Meeting/$meetingId',
+              ),
+            ),
+          if (role == 'admin' || role == 'superadmin')
+            IconButton(
+              icon: const Icon(Icons.tune),
+              tooltip: 'Manage custom fields',
+              onPressed: () => context.push('/custom-fields/Meeting'),
+            ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -31,6 +55,11 @@ class MeetingDetailScreen extends StatelessWidget {
             label: l10n.membersCountLabel,
             value: meeting.membersCount.toString(),
           ),
+          if (meetingId != null)
+            CustomFieldsDetailSection(
+              entityName: CustomFieldEntityNames.meeting,
+              entityId: meetingId,
+            ),
           const SizedBox(height: 16),
           Text(
             l10n.servants,

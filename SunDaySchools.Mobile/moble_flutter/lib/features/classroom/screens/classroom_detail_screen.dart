@@ -5,6 +5,10 @@ import '../../../core/l10n/app_localizations.dart';
 import '../../../core/routing/app_router.dart';
 import '../../member/providers/members_providers.dart';
 import '../models/classroom_models.dart';
+import '../../auth/providers/auth_providers.dart';
+import '../../custom_field/models/custom_field_models.dart';
+import '../../custom_field/providers/custom_field_providers.dart';
+import '../../custom_field/widgets/custom_fields_detail_section.dart';
 
 class ClassroomDetailScreen extends ConsumerWidget {
   final ClassroomReadDto classroom;
@@ -26,10 +30,36 @@ class ClassroomDetailScreen extends ConsumerWidget {
     }
 
     final membersAsync = ref.watch(membersByClassroomProvider(classroomId));
+    final role = ref.watch(currentUserRoleProvider).resolvedRoleOrNull;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(classroom.name ?? l10n.classroom),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit_note),
+            tooltip: 'Edit additional fields',
+            onPressed: () async {
+              final updated = await context.push<bool>(
+                '/custom-fields/values/Classroom/$classroomId',
+              );
+              if (updated == true) {
+                ref.invalidate(
+                  entityCustomFieldsProvider((
+                    entity: CustomFieldEntityNames.classroom,
+                    id: classroomId,
+                  )),
+                );
+              }
+            },
+          ),
+          if (role == 'admin' || role == 'superadmin')
+            IconButton(
+              icon: const Icon(Icons.tune),
+              tooltip: 'Manage custom fields',
+              onPressed: () => context.push('/custom-fields/Classroom'),
+            ),
+        ],
       ),
 
       // ✅ FAB pushed higher (120)
@@ -81,6 +111,11 @@ class ClassroomDetailScreen extends ConsumerWidget {
                 ],
               ],
             ),
+          ),
+
+          CustomFieldsDetailSection(
+            entityName: CustomFieldEntityNames.classroom,
+            entityId: classroomId,
           ),
 
           Padding(

@@ -30,6 +30,10 @@ import '../../features/admin/screens/admin_home_screen.dart';
 import '../../features/admin/screens/admin_pending_servants_screen.dart';
 import '../../features/servant/screens/servant_home_screen.dart';
 import '../../features/notifications/screens/notifications_screen.dart';
+import '../../features/custom_field/screens/custom_field_definitions_screen.dart';
+import '../../features/custom_field/screens/custom_field_definition_form_screen.dart';
+import '../../features/custom_field/screens/entity_custom_fields_edit_screen.dart';
+import '../../features/custom_field/models/custom_field_models.dart';
 import '../../core/storage/token_storage.dart';
 
 class AppRoutes {
@@ -193,6 +197,42 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, state) => MemberDetailScreen(
           id: int.parse(state.pathParameters['id']!),
         ),
+      ),
+
+      GoRoute(
+        path: '/custom-fields/:entityName',
+        builder: (_, state) => CustomFieldDefinitionsScreen(
+          entityName: state.pathParameters['entityName']!,
+        ),
+      ),
+      GoRoute(
+        path: '/custom-fields/:entityName/new',
+        builder: (_, state) => CustomFieldDefinitionFormScreen(
+          entityName: state.pathParameters['entityName']!,
+        ),
+      ),
+      GoRoute(
+        path: '/custom-fields/:entityName/edit/:id',
+        builder: (_, state) {
+          final existing = state.extra;
+          return CustomFieldDefinitionFormScreen(
+            entityName: state.pathParameters['entityName']!,
+            existing: existing is CustomFieldDefinitionReadDto ? existing : null,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/custom-fields/values/:entityName/:entityId',
+        builder: (_, state) {
+          final entityId = int.tryParse(state.pathParameters['entityId'] ?? '');
+          if (entityId == null || entityId <= 0) {
+            return const _MissingRouteDataScreen(title: 'Custom field values');
+          }
+          return EntityCustomFieldsEditScreen(
+            entityName: state.pathParameters['entityName']!,
+            entityId: entityId,
+          );
+        },
       ),
 
       GoRoute(

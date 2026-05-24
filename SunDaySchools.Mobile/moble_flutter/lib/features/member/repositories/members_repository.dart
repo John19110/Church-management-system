@@ -50,7 +50,7 @@ class MembersRepository {
 
   /// Create member: POST /api/classrooms/{classroomId}/members (multipart/form-data)
   /// [classroomId] is passed as a URL path parameter.
-  Future<void> create(int classroomId, MemberAddDto dto, {File? image}) async {
+  Future<int> create(int classroomId, MemberAddDto dto, {File? image}) async {
     return apiCall(() async {
       final map = <String, dynamic>{
         if (dto.name1 != null) 'Name1': dto.name1,
@@ -85,10 +85,17 @@ class MembersRepository {
               dto.phoneNumbers![i].phoneNumber ?? '';
         }
       }
-      await _dio.post(
+      final response = await _dio.post(
         '${AppConstants.classroomMembersBasePath}/$classroomId/members',
         data: FormData.fromMap(map),
       );
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        final id = data['id'] ?? data['Id'];
+        if (id is int) return id;
+        if (id is num) return id.toInt();
+      }
+      throw const FormatException('Create member response did not include id.');
     });
   }
 

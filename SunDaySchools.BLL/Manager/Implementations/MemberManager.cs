@@ -68,7 +68,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             return _mapper.Map<IEnumerable<MemberReadDTO>>(members);
         }
 
-        public async Task AddAsync(MemberAddDTO memberDto, int classroomId)
+        public async Task<int> AddAsync(MemberAddDTO memberDto, int classroomId)
         {
             var user = _httpContextAccessor.HttpContext?.User;
             if (user == null)
@@ -126,7 +126,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             model.ClassroomId = classroomId;
 
             await _memberRepository.AddAsync(model);
-            await _memberRepository.SaveAsync();
+            return model.Id;
         }
         public async Task<List<SelectOptionDTO>> GetMembersForSelection()
         {
