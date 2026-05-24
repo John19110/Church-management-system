@@ -38,8 +38,12 @@ namespace SunDaySchools.API.Controllers
                 throw new ValidationException(errors);
             }
 
-            await _memberManager.AddAsync(memberDto, classroomId);
-            return StatusCode(201, new { message = "Created Successfully" });
+            var id = await _memberManager.AddAsync(memberDto, classroomId);
+            return StatusCode(201, new MemberCreatedResponseDto
+            {
+                Id = id,
+                Message = "Created successfully."
+            });
         }
 
         [HttpGet]

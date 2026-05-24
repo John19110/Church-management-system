@@ -456,6 +456,11 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
         title: Text(l10n.superAdminHome),
         actions: [
           IconButton(
+            icon: const Icon(Icons.tune),
+            tooltip: 'Meeting custom fields',
+            onPressed: () => context.push('/custom-fields/Meeting'),
+          ),
+          IconButton(
             icon: const Icon(Icons.add),
             tooltip: l10n.addMeeting,
             onPressed: _showAddMeetingDialog,

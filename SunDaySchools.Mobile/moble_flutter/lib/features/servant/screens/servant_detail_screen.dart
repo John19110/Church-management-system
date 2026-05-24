@@ -5,6 +5,8 @@ import '../providers/servants_providers.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../../../core/l10n/app_localizations.dart';
 import '../../../shared/widgets/app_network_avatar.dart';
+import '../../custom_field/models/custom_field_models.dart';
+import '../../custom_field/widgets/custom_fields_detail_section.dart';
 
 class ServantDetailScreen extends ConsumerWidget {
   final int id;
@@ -103,6 +105,10 @@ class ServantDetailScreen extends ConsumerWidget {
                       .map((c) => c.name ?? c.id.toString())
                       .join(', '),
                 ),
+              CustomFieldsDetailSection(
+                entityName: CustomFieldEntityNames.servant,
+                entityId: id,
+              ),
             ],
           ),
         ),

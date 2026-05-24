@@ -191,6 +191,12 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
             ? AppBar(
                 title: Text(title),
                 actions: [
+                  if (role == 'admin' || role == 'superadmin')
+                    IconButton(
+                      icon: const Icon(Icons.tune),
+                      tooltip: 'Custom fields',
+                      onPressed: () => context.push('/custom-fields/Classroom'),
+                    ),
                   if (canAddClassroom)
                     IconButton(
                       icon: const Icon(Icons.add),
