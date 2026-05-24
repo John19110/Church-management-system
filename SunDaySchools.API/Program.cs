@@ -34,6 +34,7 @@ builder.Services.AddProblemDetails();
 builder.Services.AddControllers()
     .AddJsonOptions(o =>
     {
+        ApiJsonSerializerOptions.Configure(o.JsonSerializerOptions);
         o.JsonSerializerOptions.Converters.Add(new TimeOnlyJsonConverter());
     });
 
