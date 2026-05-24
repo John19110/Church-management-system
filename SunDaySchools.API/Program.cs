@@ -17,7 +17,9 @@ using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchoolsDAL.Models;
 using System.Diagnostics;
 using System.Text;
+using SunDaySchools.API.Authorization;
 using SunDaySchools.API.Json;
+using SunDaySchools.BLL.Services.CustomFields;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -100,8 +102,14 @@ builder.Services.AddScoped<IServantRepository, ServantRepository>();
 builder.Services.AddScoped<ISuperAdminRepository, SuperAdminRepository>();
 builder.Services.AddScoped<ISuperAdminManager, SuperAdminManager>();
 
+builder.Services.AddScoped<ICustomFieldRepository, CustomFieldRepository>();
+builder.Services.AddScoped<ICustomFieldManager, CustomFieldManager>();
+builder.Services.AddScoped<ICustomFieldValidator, CustomFieldValidator>();
+builder.Services.AddScoped<CustomFieldHelper>();
 
 builder.Services.AddScoped<IUnitOfWork,UnitOfWork>();
+
+builder.Services.AddCustomFieldAuthorization();
 
 
 
@@ -153,7 +161,9 @@ builder.Services.AddDbContext<ProgramContext>(options =>
             "Set it in appsettings.Production.json or as an environment variable in the hosting environment.");
     }
 
-    options.UseSqlServer(cs);
+    // Migrations live in the DAL project (SunDaySchools.DAL), not in the API host.
+    options.UseSqlServer(cs, sql =>
+        sql.MigrationsAssembly(typeof(ProgramContext).Assembly.GetName().Name));
 });
 
 
