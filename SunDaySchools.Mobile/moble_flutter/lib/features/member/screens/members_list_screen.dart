@@ -27,7 +27,17 @@ class MembersListScreen extends ConsumerWidget {
         context.go(homeRoute);
       },
       child: Scaffold(
-        appBar: AppBar(title: Text(l10n.members)),
+        appBar: AppBar(
+          title: Text(l10n.members),
+          actions: [
+            if (role == 'admin' || role == 'superadmin')
+              IconButton(
+                icon: const Icon(Icons.tune),
+                tooltip: 'Custom fields',
+                onPressed: () => context.push('/custom-fields/Member'),
+              ),
+          ],
+        ),
         floatingActionButton: FloatingActionButton(
           onPressed: () async {
             await context.push('/members/add');

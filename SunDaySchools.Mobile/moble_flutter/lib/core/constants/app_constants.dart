@@ -31,6 +31,9 @@ class AppConstants {
   // SuperAdmin endpoints
   static const String superAdminEndpoint = '/api/SuperAdmin';
 
+  // Custom fields
+  static const String customFieldEndpoint = '/api/CustomField';
+
   // AttendanceSession endpoints
   static const String attendanceEndpoint = '/api/AttendanceSession';
   static const String attendanceByClassroomEndpoint =

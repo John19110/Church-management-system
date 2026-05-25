@@ -1,0 +1,8 @@
+flowchart LR
+  Admin[Admin / SuperAdmin] --> API[CustomField API]
+  Servant[Servant] --> API
+  API --> Mgr[CustomFieldManager]
+  Mgr --> Val[CustomFieldValidator]
+  Mgr --> Repo[CustomFieldRepository]
+  Repo --> EF[ProgramContext + global filters]
+  Flutter[Flutter dynamic UI] --> API

@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using SunDaySchools.DAL.Models;
+using SunDaySchools.DAL.Models.CustomFields;
 using SunDaySchools.Models;
+using SunDaySchoolsDAL.Configurations;
 using SunDaySchoolsDAL.Models;
 using System.Reflection;
 
@@ -32,6 +34,10 @@ namespace SunDaySchoolsDAL.DBcontext
         public DbSet<Church> Churches { get; set; }
         public DbSet<Meeting> Meetings { get; set; }
 
+        public DbSet<CustomFieldDefinition> CustomFieldDefinitions { get; set; }
+        public DbSet<CustomFieldOption> CustomFieldOptions { get; set; }
+        public DbSet<CustomFieldValue> CustomFieldValues { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -49,6 +55,21 @@ namespace SunDaySchoolsDAL.DBcontext
                 .WithMany(m => m.PhoneNumbers)
                 .HasForeignKey(mc => mc.MemberId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.ApplyConfiguration(new CustomFieldDefinitionConfiguration());
+            builder.ApplyConfiguration(new CustomFieldOptionConfiguration());
+            builder.ApplyConfiguration(new CustomFieldValueConfiguration());
+
+            // Tenant isolation for custom field dependents (definition is ChurchEntity-filtered).
+            builder.Entity<CustomFieldOption>()
+                .HasQueryFilter(o =>
+                    (!CurrentChurchId.HasValue || o.Definition!.ChurchId == CurrentChurchId) &&
+                    (!CurrentMeetingId.HasValue || o.Definition!.MeetingId == CurrentMeetingId));
+
+            builder.Entity<CustomFieldValue>()
+                .HasQueryFilter(v =>
+                    (!CurrentChurchId.HasValue || v.Definition!.ChurchId == CurrentChurchId) &&
+                    (!CurrentMeetingId.HasValue || v.Definition!.MeetingId == CurrentMeetingId));
 
             // PhoneCall ↔ MemberContact (required)
             builder.Entity<PhoneCall>()
