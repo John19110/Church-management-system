@@ -37,4 +37,8 @@ class AuthRoleUtils {
     if (role == 'servant') return '/classrooms-home';
     return '/dashboard';
   }
+
+  /// Admin and SuperAdmin can define custom field attributes per entity.
+  static bool canManageCustomFields(String? role) =>
+      role == 'admin' || role == 'superadmin';
 }

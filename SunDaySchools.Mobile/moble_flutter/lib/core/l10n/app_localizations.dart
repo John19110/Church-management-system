@@ -345,6 +345,12 @@ class AppLocalizations {
   String get manageCustomFields => _t('manageCustomFields');
   String get editEntityFields => _t('editEntityFields');
   String get changesSaved => _t('changesSaved');
+  String get entityFieldsNotConfigured => _t('entityFieldsNotConfigured');
+  String configureEntityAttributesTitle(String entityName) =>
+      _t('configureEntityAttributesTitle')
+          .replaceAll('{entity}', entityDisplayName(entityName));
+  String get customFieldsAdminDescription => _t('customFieldsAdminDescription');
+  String get recommendedSyncKeysHint => _t('recommendedSyncKeysHint');
 
   // ── Translation tables ────────────────────────────────────────────────────
   static const Map<String, Map<String, String>> _translations = {
@@ -663,6 +669,13 @@ class AppLocalizations {
       'cfdt_singleSelect': 'Single choice',
       'cfdt_multiSelect': 'Multiple choice',
       'changesSaved': 'Changes saved.',
+      'entityFieldsNotConfigured':
+          'An admin must define which attributes to store for this entity (Custom Fields).',
+      'configureEntityAttributesTitle': 'Configure {entity} attributes',
+      'customFieldsAdminDescription':
+          'Original model fields are listed here. Deactivate any you do not need; add more fields anytime. All active fields appear on create, edit, and detail screens.',
+      'recommendedSyncKeysHint':
+          'Tip: use internal keys like name, ageOfMembers, or leaderServantId (classroom) to also update list titles when auto-generated from display names.',
     },
     'ar': {
       // Auth
@@ -975,6 +988,13 @@ class AppLocalizations {
       'cfdt_singleSelect': 'اختيار واحد',
       'cfdt_multiSelect': 'اختيار متعدد',
       'changesSaved': 'تم حفظ التغييرات.',
+      'entityFieldsNotConfigured':
+          'يجب على المسؤول تحديد السمات التي تُخزَّن لهذا الكيان (الحقول المخصصة).',
+      'configureEntityAttributesTitle': 'إعداد سمات {entity}',
+      'customFieldsAdminDescription':
+          'حقول النموذج الأصلية مدرجة هنا. عطّل ما لا تحتاجه؛ أضف حقولاً جديدة في أي وقت. الحقول النشطة تظهر في الإنشاء والتعديل والتفاصيل.',
+      'recommendedSyncKeysHint':
+          'نصيحة: المفاتيح الداخلية مثل name أو ageOfMembers أو leaderServantId (للفصل) تحدّث أيضاً عناوين القوائم عند توليدها من الاسم المعروض.',
     },
   };
 }

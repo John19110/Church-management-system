@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../models/unified_form_models.dart';
 import '../utils/unified_form_validator.dart';
 
-/// Holds editable values for a unified form (built-in + custom, same storage).
+/// Holds editable values for a unified form (admin-defined custom fields).
 class UnifiedFormController {
   final Map<String, TextEditingController> _text = {};
   final Map<String, bool> _bools = {};
@@ -15,9 +15,17 @@ class UnifiedFormController {
     for (final c in _text.values) {
       c.dispose();
     }
+    _text.clear();
+    _bools.clear();
+    _multi.clear();
   }
 
-  void initializeFromFields(List<UnifiedFieldDefinitionDto> fields, {List<UnifiedFieldDto>? withValues}) {
+  /// Rebuilds controllers when the field list changes (e.g. after admin adds attributes).
+  void initializeFromFields(
+    List<UnifiedFieldDefinitionDto> fields, {
+    List<UnifiedFieldDto>? withValues,
+  }) {
+    final visible = fields.where((f) => !f.isHidden).toList();
     final valueMap = <String, String?>{};
     if (withValues != null) {
       for (final f in withValues) {
@@ -25,16 +33,38 @@ class UnifiedFormController {
       }
     }
 
-    for (final field in fields.where((f) => !f.isHidden)) {
+    final keys = visible.map((f) => f.fieldKey).toSet();
+
+    for (final key in _text.keys.toList()) {
+      if (!keys.contains(key)) {
+        _text[key]!.dispose();
+        _text.remove(key);
+        _bools.remove(key);
+        _multi.remove(key);
+      }
+    }
+
+    for (final field in visible) {
       final initial = valueMap[field.fieldKey] ?? field.defaultValue ?? '';
 
-      if (field.dataType == UnifiedFieldDataType.boolean) {
-        _bools[field.fieldKey] = _parseBool(initial);
-      } else if (field.dataType == UnifiedFieldDataType.multiSelect) {
-        _multi[field.fieldKey] = _parseMulti(initial);
-        _text.putIfAbsent(field.fieldKey, TextEditingController.new);
-      } else {
-        _text.putIfAbsent(field.fieldKey, () => TextEditingController(text: initial));
+      switch (field.dataType) {
+        case UnifiedFieldDataType.boolean:
+          _bools[field.fieldKey] = _parseBool(initial);
+          break;
+        case UnifiedFieldDataType.multiSelect:
+          _multi[field.fieldKey] = _parseMulti(initial);
+          if (_text.containsKey(field.fieldKey)) {
+            _text[field.fieldKey]!.text = initial;
+          } else {
+            _text[field.fieldKey] = TextEditingController(text: initial);
+          }
+          break;
+        default:
+          if (_text.containsKey(field.fieldKey)) {
+            _text[field.fieldKey]!.text = initial;
+          } else {
+            _text[field.fieldKey] = TextEditingController(text: initial);
+          }
       }
     }
   }
@@ -51,9 +81,6 @@ class UnifiedFormController {
   void setMulti(String fieldKey, List<String> values) => _multi[fieldKey] = values;
 
   String? valueFor(UnifiedFieldDefinitionDto field) {
-    if (field.isReadOnly && field.fieldKey == 'imageUrl') {
-      return _text[field.fieldKey]?.text;
-    }
     switch (field.dataType) {
       case UnifiedFieldDataType.boolean:
         return boolFor(field.fieldKey) ? 'true' : 'false';
@@ -70,7 +97,6 @@ class UnifiedFormController {
     final items = <UnifiedFieldValueDto>[];
     for (final field in fields) {
       if (field.isHidden || field.isReadOnly) continue;
-      if (field.fieldKey == 'imageUrl') continue;
       items.add(UnifiedFieldValueDto(
         fieldKey: field.fieldKey,
         value: valueFor(field),

@@ -20,7 +20,9 @@ using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using SunDaySchools.API.Authorization;
 using SunDaySchools.API.Json;
+using SunDaySchools.API.Filters;
 using SunDaySchools.API.Middlewares;
+using System.Text.Json.Serialization;
 using SunDaySchools.BLL.Services.CustomFields;
 
 
@@ -33,10 +35,14 @@ builder.Services.AddScoped<IFileStorage, LocalFileStorage>();
 builder.Services.AddProblemDetails();
 
 // Add services to the container.
-builder.Services.AddControllers()
+builder.Services.AddControllers(options =>
+    {
+        options.Filters.Add<FormDataExceptionFilter>();
+    })
     .AddJsonOptions(o =>
     {
         ApiJsonSerializerOptions.Configure(o.JsonSerializerOptions);
+        o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
         o.JsonSerializerOptions.Converters.Add(new TimeOnlyJsonConverter());
     });
 

@@ -7,9 +7,11 @@ import '../../member/models/member_models.dart';
 import '../../member/providers/members_providers.dart';
 import '../models/classroom_models.dart';
 import '../../auth/providers/auth_providers.dart';
+import '../../auth/utils/auth_role_utils.dart';
 import '../../unified_form/models/unified_form_models.dart';
 import '../../custom_field/providers/custom_field_cache_providers.dart';
 import '../../unified_form/providers/unified_form_providers.dart';
+import '../../unified_form/widgets/entity_fields_empty_state.dart';
 import '../../unified_form/widgets/unified_entity_form.dart';
 
 /// Approximate height of the fixed bottom action bar (two buttons + spacing).
@@ -67,7 +69,7 @@ class ClassroomDetailScreen extends ConsumerWidget {
               }
             },
           ),
-          if (role == 'admin' || role == 'superadmin')
+          if (AuthRoleUtils.canManageCustomFields(role))
             IconButton(
               icon: const Icon(Icons.tune),
               tooltip: l10n.manageCustomFields,
@@ -155,7 +157,16 @@ class ClassroomDetailScreen extends ConsumerWidget {
                           ),
                         ),
                         error: (_, __) => const SizedBox.shrink(),
-                        data: (form) => UnifiedEntityDetailFields(fields: form.fields),
+                        data: (form) {
+                          if (form.fields.isEmpty) {
+                            return EntityFieldsEmptyState(
+                              entityName: UnifiedEntityNames.classroom,
+                              canManageDefinitions:
+                                  role == 'admin' || role == 'superadmin',
+                            );
+                          }
+                          return UnifiedEntityDetailFields(fields: form.fields);
+                        },
                       ),
                     ),
                   ),

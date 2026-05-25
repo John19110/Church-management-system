@@ -86,7 +86,7 @@ class UnifiedFieldDefinitionDto {
     this.description,
     required this.dataType,
     this.isRequired = false,
-    this.isBuiltIn = true,
+    this.isBuiltIn = false,
     this.isReadOnly = false,
     this.isHidden = false,
     this.sortOrder = 0,
@@ -175,18 +175,26 @@ class EntityFormSchemaDto {
   final String entityName;
   final String formMode;
   final List<UnifiedFieldDefinitionDto> fields;
+  final String? configurationHint;
+  final List<String> recommendedSyncFieldKeys;
 
   const EntityFormSchemaDto({
     required this.entityName,
     required this.formMode,
     this.fields = const [],
+    this.configurationHint,
+    this.recommendedSyncFieldKeys = const [],
   });
 
   factory EntityFormSchemaDto.fromJson(Map<String, dynamic> json) {
     final list = json['fields'] as List<dynamic>? ?? [];
+    final syncKeys = json['recommendedSyncFieldKeys'] as List<dynamic>? ?? [];
     return EntityFormSchemaDto(
       entityName: json['entityName'] as String? ?? '',
       formMode: json['formMode'] as String? ?? 'Edit',
+      configurationHint: json['configurationHint'] as String?,
+      recommendedSyncFieldKeys:
+          syncKeys.map((e) => e.toString()).toList(),
       fields: list
           .map((e) =>
               UnifiedFieldDefinitionDto.fromJson(e as Map<String, dynamic>))

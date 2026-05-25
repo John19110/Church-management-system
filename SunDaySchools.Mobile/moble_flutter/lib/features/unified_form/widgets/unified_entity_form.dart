@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/unified_form_models.dart';
 import '../utils/unified_form_controller.dart';
+import 'entity_fields_empty_state.dart';
 import 'unified_form_field_widget.dart';
 
 /// Single form renderer: iterates one field list (built-in + custom).
@@ -12,6 +13,9 @@ class UnifiedEntityForm extends ConsumerStatefulWidget {
   final bool readOnly;
   final List<Widget>? leading;
   final List<Widget>? trailing;
+  final String? entityName;
+  final String? configurationHint;
+  final bool canManageDefinitions;
 
   const UnifiedEntityForm({
     super.key,
@@ -20,6 +24,9 @@ class UnifiedEntityForm extends ConsumerStatefulWidget {
     this.readOnly = false,
     this.leading,
     this.trailing,
+    this.entityName,
+    this.configurationHint,
+    this.canManageDefinitions = false,
   });
 
   @override
@@ -31,6 +38,21 @@ class _UnifiedEntityFormState extends ConsumerState<UnifiedEntityForm> {
   Widget build(BuildContext context) {
     final visible = widget.fields.where((f) => !f.isHidden).toList()
       ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+
+    if (visible.isEmpty && widget.entityName != null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (widget.leading != null) ...widget.leading!,
+          EntityFieldsEmptyState(
+            entityName: widget.entityName!,
+            configurationHint: widget.configurationHint,
+            canManageDefinitions: widget.canManageDefinitions,
+          ),
+          if (widget.trailing != null) ...widget.trailing!,
+        ],
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -60,9 +82,7 @@ class UnifiedEntityDetailFields extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final visible = fields
-        .where((f) => !f.isHidden && (f.value?.isNotEmpty ?? false))
-        .toList()
+    final visible = fields.where((f) => !f.isHidden).toList()
       ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
 
     if (visible.isEmpty) return const SizedBox.shrink();
@@ -81,7 +101,7 @@ class UnifiedEntityDetailFields extends StatelessWidget {
                 dense: true,
                 contentPadding: EdgeInsets.zero,
                 title: Text(f.displayName),
-                subtitle: Text(_formatValue(f)),
+                subtitle: Text(_formatValue(f, context)),
               ),
             ),
           ],
@@ -90,10 +110,13 @@ class UnifiedEntityDetailFields extends StatelessWidget {
     );
   }
 
-  String _formatValue(UnifiedFieldDto f) {
-    if (f.dataType == UnifiedFieldDataType.boolean) {
-      return f.value?.toLowerCase() == 'true' ? 'Yes' : 'No';
+  String _formatValue(UnifiedFieldDto f, BuildContext context) {
+    if (f.value == null || f.value!.trim().isEmpty) {
+      return '—';
     }
-    return f.value ?? '';
+    if (f.dataType == UnifiedFieldDataType.boolean) {
+      return f.value!.toLowerCase() == 'true' ? 'Yes' : 'No';
+    }
+    return f.value!;
   }
 }

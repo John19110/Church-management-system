@@ -10,6 +10,12 @@ namespace SunDaySchools.DAL.Repository.Interfaces
 
         Task<Member?> GetByIdAsync(int id);
 
+        /// <summary>Member row without navigation includes (safe for unified form SQL merge).</summary>
+        Task<Member?> GetByIdForFormAsync(int id);
+
+        /// <summary>Phone contacts for form JSON; avoids Member.PhoneNumbers include + filter issues.</summary>
+        Task<IReadOnlyList<(string? Relation, string? PhoneNumber)>> GetContactPhonesForFormAsync(int memberId);
+
         Task<List<Member>> GetByIdsAsync(List<int> ids);
 
         Task<List<(int Id, string Name)>> GetMembersForSelection();

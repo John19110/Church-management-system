@@ -1,47 +1,36 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
 
-import '../providers/servants_providers.dart';
-import '../../../shared/widgets/common_widgets.dart';
-import '../../../core/l10n/app_localizations.dart';
-import '../../../shared/widgets/app_network_avatar.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
 import '../../custom_field/providers/custom_field_cache_providers.dart';
+import '../../../core/l10n/app_localizations.dart';
+import '../../../shared/widgets/common_widgets.dart';
 import '../../unified_form/models/unified_form_models.dart';
 import '../../unified_form/providers/unified_form_providers.dart';
 import '../../unified_form/utils/unified_form_controller.dart';
 import '../../unified_form/utils/unified_form_screen_mixin.dart';
 import '../../unified_form/widgets/unified_entity_form.dart';
+import '../providers/classroom_providers.dart';
 
-class ServantEditScreen extends ConsumerStatefulWidget {
-  final int id;
-  const ServantEditScreen({super.key, required this.id});
+class ClassroomAddScreen extends ConsumerStatefulWidget {
+  const ClassroomAddScreen({super.key});
 
   @override
-  ConsumerState<ServantEditScreen> createState() => _ServantEditScreenState();
+  ConsumerState<ClassroomAddScreen> createState() => _ClassroomAddScreenState();
 }
 
-class _ServantEditScreenState extends ConsumerState<ServantEditScreen>
+class _ClassroomAddScreenState extends ConsumerState<ClassroomAddScreen>
     with UnifiedFormScreenMixin {
   final _formKey = GlobalKey<FormState>();
   final _formController = UnifiedFormController();
-  File? _image;
   bool _loading = false;
 
   @override
   void dispose() {
     _formController.dispose();
     super.dispose();
-  }
-
-  Future<void> _pickImage() async {
-    final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (picked != null) setState(() => _image = File(picked.path));
   }
 
   Future<void> _submit(List<UnifiedFieldDefinitionDto> fields) async {
@@ -57,26 +46,16 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen>
     setState(() => _loading = true);
     final l10n = AppLocalizations.of(context);
     try {
-      await ref.read(unifiedFormRepositoryProvider).saveFormData(
-            UnifiedEntityNames.servant,
-            widget.id,
+      final id = await ref.read(unifiedFormRepositoryProvider).createFromForm(
+            UnifiedEntityNames.classroom,
             _formController.buildSavePayload(fields),
           );
 
-      if (_image != null) {
-        await ref.read(servantsRepositoryProvider).update(
-              widget.id,
-              image: _image,
-            );
-      }
-
-      ref.invalidate(
-        entityFormDataProvider((entity: UnifiedEntityNames.servant, id: widget.id)),
-      );
+      ref.invalidate(visibleClassroomsProvider);
 
       if (mounted) {
-        showSuccessSnackbar(context, l10n.servantUpdatedSuccessfully);
-        context.pop(true);
+        showSuccessSnackbar(context, l10n.classroomAddedSuccessfully);
+        context.pop(id);
       }
     } catch (e) {
       if (mounted) showErrorSnackbar(context, e.toString());
@@ -86,11 +65,11 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen>
   }
 
   Future<void> _openFieldSettings() async {
-    await context.push('/custom-fields/Servant');
+    await context.push('/custom-fields/Classroom');
     if (mounted) {
-      refreshEntityFormsAfterDefinitionChange(ref, UnifiedEntityNames.servant);
+      refreshEntityFormsAfterDefinitionChange(ref, UnifiedEntityNames.classroom);
       ref.invalidate(
-        entityFormDataProvider((entity: UnifiedEntityNames.servant, id: widget.id)),
+        entityFormSchemaProvider((entity: UnifiedEntityNames.classroom, mode: 'Create')),
       );
       resetFormSignature();
     }
@@ -100,17 +79,17 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen>
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final roleAsync = ref.watch(currentUserRoleProvider);
-    final formAsync = ref.watch(
-      entityFormDataProvider((entity: UnifiedEntityNames.servant, id: widget.id)),
+    final schemaAsync = ref.watch(
+      entityFormSchemaProvider((entity: UnifiedEntityNames.classroom, mode: 'Create')),
     );
 
     return roleAsync.when(
       loading: () => Scaffold(
-        appBar: AppBar(title: Text(l10n.editServant)),
+        appBar: AppBar(title: Text(l10n.addClassroom)),
         body: const LoadingWidget(),
       ),
       error: (e, _) => Scaffold(
-        appBar: AppBar(title: Text(l10n.editServant)),
+        appBar: AppBar(title: Text(l10n.addClassroom)),
         body: AppErrorWidget(message: e.toString()),
       ),
       data: (role) {
@@ -118,7 +97,7 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen>
 
         return Scaffold(
           appBar: AppBar(
-            title: Text(l10n.editServant),
+            title: Text(l10n.addClassroom),
             actions: [
               if (canManage)
                 IconButton(
@@ -128,56 +107,32 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen>
                 ),
             ],
           ),
-          body: formAsync.when(
+          body: schemaAsync.when(
             loading: () => const LoadingWidget(),
             error: (e, _) => AppErrorWidget(message: e.toString()),
-            data: (formData) {
-              syncFormController(
-                _formController,
-                formData.fields,
-                withValues: formData.fields,
-              );
-
-              final imageUrl = formData.fields
-                  .where((f) => f.fieldKey == 'imageUrl')
-                  .map((f) => f.value)
-                  .firstOrNull;
+            data: (schema) {
+              syncFormController(_formController, schema.fields);
 
               return Form(
                 key: _formKey,
                 child: ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
-                    GestureDetector(
-                      onTap: _pickImage,
-                      child: Center(
-                        child: _image != null
-                            ? CircleAvatar(
-                                radius: 48,
-                                backgroundImage: FileImage(_image!),
-                              )
-                            : AppNetworkAvatar(
-                                imageUrl: imageUrl,
-                                radius: 48,
-                                placeholder: const Icon(Icons.camera_alt, size: 36),
-                              ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
                     UnifiedEntityForm(
-                      fields: formData.fields,
+                      fields: schema.fields,
                       controller: _formController,
-                      entityName: UnifiedEntityNames.servant,
+                      entityName: UnifiedEntityNames.classroom,
+                      configurationHint: schema.configurationHint,
                       canManageDefinitions: canManage,
                     ),
                     const SizedBox(height: 24),
                     _loading
                         ? const Center(child: CircularProgressIndicator())
                         : FilledButton(
-                            onPressed: formData.fields.isEmpty
+                            onPressed: schema.fields.isEmpty
                                 ? null
-                                : () => _submit(formData.fields),
-                            child: Text(l10n.save),
+                                : () => _submit(schema.fields),
+                            child: Text(l10n.add),
                           ),
                   ],
                 ),

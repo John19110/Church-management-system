@@ -1,12 +1,15 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SunDaySchools.API.Json;
 using SunDaySchools.BLL.Exceptions;
 using System;
 using System.Net;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace SunDaySchools.API.Middlewares
 {
@@ -15,17 +18,20 @@ namespace SunDaySchools.API.Middlewares
         private readonly RequestDelegate _next;
         private readonly ILogger<GlobalExceptionMiddleware> _logger;
         private readonly IHostEnvironment _env;
+        private readonly IConfiguration _configuration;
 
         private static readonly JsonSerializerOptions _jsonOptions = ApiJsonSerializerOptions.Create();
 
         public GlobalExceptionMiddleware(
             RequestDelegate next,
             ILogger<GlobalExceptionMiddleware> logger,
-            IHostEnvironment env)
+            IHostEnvironment env,
+            IConfiguration configuration)
         {
             _next = next;
             _logger = logger;
             _env = env;
+            _configuration = configuration;
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -42,12 +48,7 @@ namespace SunDaySchools.API.Middlewares
 
         private async Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
-            _logger.LogError(
-                exception,
-                "Unhandled exception occurred. Method={Method}, Path={Path}, TraceId={TraceId}",
-                context.Request.Method,
-                context.Request.Path,
-                context.TraceIdentifier);
+            LogExceptionChain(exception, context);
 
             if (context.Response.HasStarted)
             {
@@ -61,13 +62,18 @@ namespace SunDaySchools.API.Middlewares
 
             context.Response.StatusCode = statusCode;
 
+            var showDevelopmentDetails = ShouldExposeDetails();
+
             var response = new ApiErrorResponse
             {
                 Success = false,
                 ErrorCode = errorCode,
-                Message = _env.IsDevelopment() && exception is not ValidationException
-                    ? exception.ToString()
-                    : message
+                Message = showDevelopmentDetails && exception is not ValidationException
+                    ? BuildDevelopmentErrorMessage(exception)
+                    : message,
+                ExceptionType = showDevelopmentDetails ? exception.GetType().FullName : null,
+                StackTrace = showDevelopmentDetails ? exception.StackTrace : null,
+                InnerException = showDevelopmentDetails ? exception.InnerException?.Message : null
             };
 
             if (exception is ValidationException validationException)
@@ -86,12 +92,67 @@ namespace SunDaySchools.API.Middlewares
             await context.Response.WriteAsync(json);
         }
 
+        private bool ShouldExposeDetails() =>
+            _env.IsDevelopment()
+            || _configuration.GetValue<bool>("DetailedErrors")
+            || string.Equals(
+                Environment.GetEnvironmentVariable("SUN_DAYSCHOOLS_DETAILED_ERRORS"),
+                "true",
+                StringComparison.OrdinalIgnoreCase);
+
+        private void LogExceptionChain(Exception exception, HttpContext context)
+        {
+            var depth = 0;
+            for (var ex = exception; ex != null; ex = ex.InnerException, depth++)
+            {
+                _logger.LogError(
+                    ex,
+                    "Unhandled exception (depth={Depth}). Type={ExceptionType}, Message={Message}, Method={Method}, Path={Path}, TraceId={TraceId}",
+                    depth,
+                    ex.GetType().FullName,
+                    ex.Message,
+                    context.Request.Method,
+                    context.Request.Path,
+                    context.TraceIdentifier);
+
+                if (!string.IsNullOrWhiteSpace(ex.StackTrace))
+                {
+                    _logger.LogError(
+                        "StackTrace depth={Depth}: {StackTrace}",
+                        depth,
+                        ex.StackTrace);
+                }
+            }
+        }
+
+        private static string BuildDevelopmentErrorMessage(Exception exception)
+        {
+            var sb = new StringBuilder();
+            var depth = 0;
+            for (var ex = exception; ex != null; ex = ex.InnerException, depth++)
+            {
+                if (depth > 0)
+                    sb.AppendLine($"--- Inner exception #{depth} ---");
+
+                sb.AppendLine($"[{ex.GetType().Name}] {ex.Message}");
+                if (!string.IsNullOrWhiteSpace(ex.StackTrace))
+                    sb.AppendLine(ex.StackTrace);
+            }
+
+            return sb.ToString();
+        }
+
         private static (int StatusCode, string ErrorCode, string Message) MapException(Exception exception)
         {
+            var root = exception;
+            while (root.InnerException != null)
+                root = root.InnerException;
+
             return exception switch
             {
-                ArgumentException => ((int)HttpStatusCode.BadRequest, "BAD_REQUEST", "Invalid argument"),
                 ValidationException => ((int)HttpStatusCode.BadRequest, "VALIDATION_ERROR", "Validation error"),
+                ArgumentException argEx => ((int)HttpStatusCode.BadRequest, "BAD_REQUEST", argEx.Message),
+                InvalidOperationException opEx => ((int)HttpStatusCode.BadRequest, "INVALID_OPERATION", opEx.Message),
 
                 UnauthorizedAccessException => ((int)HttpStatusCode.Unauthorized, "UNAUTHORIZED", "Unauthorized"),
                 InvalidCredentialsException => ((int)HttpStatusCode.Unauthorized, "AUTH_FAILED", "Authentication failed"),
@@ -100,7 +161,7 @@ namespace SunDaySchools.API.Middlewares
                 AccountNotApprovedException => ((int)HttpStatusCode.Forbidden, "FORBIDDEN", "Forbidden"),
                 ProfileNotCompletedException => ((int)HttpStatusCode.Forbidden, "FORBIDDEN", "Forbidden"),
 
-                NotFoundException => ((int)HttpStatusCode.NotFound, "NOT_FOUND", "Not found"),
+                NotFoundException notFound => ((int)HttpStatusCode.NotFound, "NOT_FOUND", notFound.Message),
 
                 UserAlreadyExistsException => ((int)HttpStatusCode.Conflict, "CONFLICT", "Conflict"),
                 ServantAlreayAssigned => ((int)HttpStatusCode.Conflict, "CONFLICT", "Conflict"),
@@ -108,7 +169,17 @@ namespace SunDaySchools.API.Middlewares
                 MeetingAlreadyExistsException => ((int)HttpStatusCode.Conflict, "CONFLICT", "Conflict"),
                 PassordsMissMatchException => ((int)HttpStatusCode.Conflict, "CONFLICT", "Conflict"),
 
-                _ => ((int)HttpStatusCode.InternalServerError, "SERVER_ERROR", "An unexpected error occurred")
+                DbUpdateException dbEx => (
+                    (int)HttpStatusCode.InternalServerError,
+                    "DATABASE_ERROR",
+                    root.Message),
+
+                AutoMapper.AutoMapperMappingException mapEx => (
+                    (int)HttpStatusCode.InternalServerError,
+                    "MAPPING_ERROR",
+                    mapEx.Message),
+
+                _ => ((int)HttpStatusCode.InternalServerError, "SERVER_ERROR", root.Message)
             };
         }
 
@@ -117,6 +188,9 @@ namespace SunDaySchools.API.Middlewares
             public bool Success { get; set; }
             public string Message { get; set; } = "";
             public string ErrorCode { get; set; } = "";
+            public string? ExceptionType { get; set; }
+            public string? StackTrace { get; set; }
+            public string? InnerException { get; set; }
             public IDictionary<string, string[]>? Errors { get; set; }
         }
     }

@@ -25,6 +25,7 @@ import '../../features/meeting/models/meeting_models.dart';
 import '../../features/meeting/screens/meeting_detail_screen.dart';
 import '../../features/classroom/models/classroom_models.dart';
 import '../../features/classroom/screens/classroom_detail_screen.dart';
+import '../../features/classroom/screens/classroom_add_screen.dart';
 import '../../features/classroom/screens/classrooms_home_screen.dart';
 import '../../features/admin/screens/admin_home_screen.dart';
 import '../../features/admin/screens/admin_pending_servants_screen.dart';
@@ -169,6 +170,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           }
           return ClassroomDetailScreen(classroom: classroom);
         },
+      ),
+
+      GoRoute(
+        path: '/classrooms/add',
+        builder: (_, __) => const ClassroomAddScreen(),
       ),
 
       // Members

@@ -61,15 +61,20 @@ namespace SunDaySchoolsDAL.DBcontext
             builder.ApplyConfiguration(new CustomFieldValueConfiguration());
 
             // Tenant isolation for custom field dependents (definition is ChurchEntity-filtered).
+            // Church-level definitions often have null MeetingId; allow those when a meeting scope is set.
             builder.Entity<CustomFieldOption>()
                 .HasQueryFilter(o =>
                     (!CurrentChurchId.HasValue || o.Definition!.ChurchId == CurrentChurchId) &&
-                    (!CurrentMeetingId.HasValue || o.Definition!.MeetingId == CurrentMeetingId));
+                    (!CurrentMeetingId.HasValue ||
+                     o.Definition!.MeetingId == null ||
+                     o.Definition!.MeetingId == CurrentMeetingId));
 
             builder.Entity<CustomFieldValue>()
                 .HasQueryFilter(v =>
                     (!CurrentChurchId.HasValue || v.Definition!.ChurchId == CurrentChurchId) &&
-                    (!CurrentMeetingId.HasValue || v.Definition!.MeetingId == CurrentMeetingId));
+                    (!CurrentMeetingId.HasValue ||
+                     v.Definition!.MeetingId == null ||
+                     v.Definition!.MeetingId == CurrentMeetingId));
 
             // PhoneCall ↔ MemberContact (required)
             builder.Entity<PhoneCall>()
@@ -279,7 +284,8 @@ namespace SunDaySchoolsDAL.DBcontext
                     if (churchId.HasValue)
                         entry.Entity.ChurchId = churchId.Value;
                     else
-                        throw new Exception("ChurchId is missing from the request.");
+                        throw new InvalidOperationException(
+                            "ChurchId is missing from the request. Ensure the JWT includes a ChurchId claim.");
                 }
             }
         }
