@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/error/app_exception.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../../core/models/select_option.dart';
 import '../models/servant_models.dart';
@@ -19,10 +20,18 @@ final servantDetailProvider =
 
 final servantsForSelectionProvider = FutureProvider<List<SelectOption>>((ref) async {
   ref.watch(authSessionEpochProvider);
-  return ref.watch(servantsRepositoryProvider).getForSelection();
+  ref.watch(authStateProvider);
+  return whenAuthenticated(
+    () => ref.watch(servantsRepositoryProvider).getForSelection(),
+    ifLoggedOut: const [],
+  );
 });
 
 final servantProfileProvider = FutureProvider<ServantProfileDto>((ref) async {
   ref.watch(authSessionEpochProvider);
+  ref.watch(authStateProvider);
+  if (!await hasStoredAuthToken()) {
+    throw const UnauthorizedException();
+  }
   return ref.watch(servantsRepositoryProvider).getProfile();
 });

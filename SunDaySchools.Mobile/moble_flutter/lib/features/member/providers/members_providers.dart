@@ -24,5 +24,9 @@ final membersByClassroomProvider =
 
 final membersForSelectionProvider = FutureProvider<List<SelectOption>>((ref) async {
   ref.watch(authSessionEpochProvider);
-  return ref.watch(membersRepositoryProvider).getForSelection();
+  ref.watch(authStateProvider);
+  return whenAuthenticated(
+    () => ref.watch(membersRepositoryProvider).getForSelection(),
+    ifLoggedOut: const [],
+  );
 });

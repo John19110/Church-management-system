@@ -11,17 +11,29 @@ final classroomRepositoryProvider = Provider((ref) {
 final visibleClassroomsProvider =
     FutureProvider<List<ClassroomReadDto>>((ref) async {
   ref.watch(authSessionEpochProvider);
-  return ref.watch(classroomRepositoryProvider).getVisible();
+  ref.watch(authStateProvider);
+  return whenAuthenticated(
+    () => ref.watch(classroomRepositoryProvider).getVisible(),
+    ifLoggedOut: const [],
+  );
 });
 
 final visibleClassroomsByMeetingProvider =
     FutureProvider.family<List<ClassroomReadDto>, int?>((ref, meetingId) async {
   ref.watch(authSessionEpochProvider);
-  return ref.watch(classroomRepositoryProvider).getVisible(meetingId: meetingId);
+  ref.watch(authStateProvider);
+  return whenAuthenticated(
+    () => ref.watch(classroomRepositoryProvider).getVisible(meetingId: meetingId),
+    ifLoggedOut: const [],
+  );
 });
 
 final classroomsForSelectionProvider =
     FutureProvider<List<SelectOption>>((ref) async {
   ref.watch(authSessionEpochProvider);
-  return ref.watch(classroomRepositoryProvider).getForSelection();
+  ref.watch(authStateProvider);
+  return whenAuthenticated(
+    () => ref.watch(classroomRepositoryProvider).getForSelection(),
+    ifLoggedOut: const [],
+  );
 });

@@ -13,6 +13,7 @@ import '../../../shared/widgets/common_widgets.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/providers/locale_provider.dart';
 import '../../../core/providers/theme_provider.dart';
+import '../../../core/error/app_exception.dart';
 import '../../../core/routing/app_router.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -98,7 +99,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           );
           return;
         }
-        showErrorSnackbar(context, e.toString());
+        showErrorSnackbar(context, userFriendlyMessage(e));
       }
     } finally {
       if (mounted) setState(() => _loading = false);

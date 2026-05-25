@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/error/app_exception.dart';
 import '../../../core/routing/app_router.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/common_widgets.dart';
@@ -68,7 +69,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
       _startTimer(cooldown);
       if (mounted) showSuccessSnackbar(context, 'Reset code sent.');
     } catch (e) {
-      if (mounted) showErrorSnackbar(context, e.toString());
+      if (mounted) showErrorSnackbar(context, userFriendlyMessage(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -102,7 +103,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
         context.go(AppRoutes.login);
       }
     } catch (e) {
-      if (mounted) showErrorSnackbar(context, e.toString());
+      if (mounted) showErrorSnackbar(context, userFriendlyMessage(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
