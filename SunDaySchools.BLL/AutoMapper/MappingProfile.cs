@@ -3,8 +3,10 @@ using SunDaySchools.BLL.DTOS;
 using SunDaySchools.BLL.DTOS.AccountDtos;
 using SunDaySchools.BLL.DTOS.ClsssroomDtos;
 using SunDaySchools.BLL.DTOS.Meeting;
+using SunDaySchools.BLL.DTOS.CustomFields;
 using SunDaySchools.BLL.DTOS.MeetingDtos;
 using SunDaySchools.DAL.Models;
+using SunDaySchools.DAL.Models.CustomFields;
 using SunDaySchools.Models;
 using System;
 using System.Linq;
@@ -102,6 +104,26 @@ namespace SunDaySchools.BLL.AutoMapper
 
             CreateMap<Meeting, MeetingReadDTO>()
                 .ForMember(d => d.WeeklyAppointment, o => o.MapFrom(s => s.Weekly_appointment));
+
+            // =========================
+            // Custom fields
+            // =========================
+            CreateMap<CustomFieldOption, CustomFieldOptionDto>();
+            CreateMap<CustomFieldOptionDto, CustomFieldOption>()
+                .ForMember(d => d.Id, o => o.Ignore())
+                .ForMember(d => d.Definition, o => o.Ignore());
+
+            CreateMap<CustomFieldDefinition, CustomFieldDefinitionReadDto>();
+            CreateMap<CustomFieldDefinitionCreateDto, CustomFieldDefinition>()
+                .ForMember(d => d.Id, o => o.Ignore())
+                .ForMember(d => d.Options, o => o.Ignore())
+                .ForMember(d => d.Values, o => o.Ignore())
+                .ForMember(d => d.CreatedAt, o => o.Ignore())
+                .ForMember(d => d.UpdatedAt, o => o.Ignore())
+                .ForMember(d => d.CreatedBy, o => o.Ignore())
+                .ForMember(d => d.IsActive, o => o.Ignore())
+                .ForMember(d => d.ChurchId, o => o.Ignore())
+                .ForMember(d => d.MeetingId, o => o.Ignore());
         }
     }
 }
