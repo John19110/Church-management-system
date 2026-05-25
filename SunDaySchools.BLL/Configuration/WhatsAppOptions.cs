@@ -8,8 +8,8 @@ namespace SunDaySchools.BLL.Configuration
         public string AccessToken { get; set; } = string.Empty;
         public string PhoneNumberId { get; set; } = string.Empty;
         public string ApiVersion { get; set; } = "v21.0";
-        /// <summary>Display / business number (e.g. 01031177365).</summary>
-        public string SenderDisplayNumber { get; set; } = "01031177365";
+        /// <summary>Meta WhatsApp business display number (e.g. +1 555 654 1489).</summary>
+        public string SenderDisplayNumber { get; set; } = "+15556541489";
         public string DefaultCountryCode { get; set; } = "20";
     }
 }
