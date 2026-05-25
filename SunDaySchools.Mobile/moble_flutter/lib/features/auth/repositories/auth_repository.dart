@@ -16,24 +16,35 @@ class AuthRepository {
     return '$hh:$mm:00';
   }
 
-  /// Login: POST /api/Account/login
-  /// Response body: { "token": "<jwt>" }
-  Future<String> login(LoginDto dto) async {
+  AuthFlowResult _parseAuthResponse(Map<String, dynamic> data) {
+    if (data['requiresPhoneVerification'] == true) {
+      return AuthFlowResult(
+        requiresPhoneVerification: true,
+        phoneNumber: data['phoneNumber'] as String?,
+        message: data['message'] as String?,
+      );
+    }
+
+    final token = data['token'] as String?;
+    return AuthFlowResult(token: token);
+  }
+
+  Future<AuthFlowResult> login(LoginDto dto) async {
     return apiCall(() async {
       final response = await _dio.post(
         AppConstants.loginEndpoint,
         data: dto.toJson(),
       );
-      final token =
-          (response.data as Map<String, dynamic>)['token'] as String;
-      await TokenStorage.saveToken(token);
-      return token;
+      final data = Map<String, dynamic>.from(response.data as Map);
+      final result = _parseAuthResponse(data);
+      if (result.hasToken) {
+        await TokenStorage.saveToken(result.token!);
+      }
+      return result;
     });
   }
 
-  /// Servant self-registration: POST /api/Account/register-servant
-  /// Multipart/form-data — response body: { "token": "<jwt>" }
-  Future<String> registerServant(RegisterServantDto dto) async {
+  Future<AuthFlowResult> registerServant(RegisterServantDto dto) async {
     return apiCall(() async {
       final map = <String, dynamic>{
         'Name': dto.name,
@@ -45,8 +56,10 @@ class AuthRepository {
         if (dto.birthDate != null) 'BirthDate': dto.birthDate,
         if (dto.joiningDate != null) 'JoiningDate': dto.joiningDate,
         if (dto.image != null)
-          'Image': await MultipartFile.fromFile(dto.image!.path,
-              filename: dto.image!.path.split('/').last),
+          'Image': await MultipartFile.fromFile(
+            dto.image!.path,
+            filename: dto.image!.path.split('/').last,
+          ),
         if (dto.classroomsIds != null)
           for (var i = 0; i < dto.classroomsIds!.length; i++)
             'classroomsIds[$i]': dto.classroomsIds![i].toString(),
@@ -55,17 +68,16 @@ class AuthRepository {
         AppConstants.registerServantEndpoint,
         data: FormData.fromMap(map),
       );
-      final token =
-          (response.data as Map<String, dynamic>)['token'] as String;
-      await TokenStorage.saveToken(token);
-      return token;
+      final data = Map<String, dynamic>.from(response.data as Map);
+      final result = _parseAuthResponse(data);
+      if (result.hasToken) {
+        await TokenStorage.saveToken(result.token!);
+      }
+      return result;
     });
   }
 
-  /// Church super-admin registration:
-  /// POST /api/Account/register-church-superadmin
-  /// Multipart/form-data — response body: { "token": "<jwt>" }
-  Future<String> registerChurchSuperAdmin(
+  Future<AuthFlowResult> registerChurchSuperAdmin(
       RegisterChurchSuperAdminDto dto) async {
     return apiCall(() async {
       final map = <String, dynamic>{
@@ -77,24 +89,25 @@ class AuthRepository {
         if (dto.birthDate != null) 'BirthDate': dto.birthDate,
         if (dto.joiningDate != null) 'JoiningDate': dto.joiningDate,
         if (dto.image != null)
-          'Image': await MultipartFile.fromFile(dto.image!.path,
-              filename: dto.image!.path.split('/').last),
+          'Image': await MultipartFile.fromFile(
+            dto.image!.path,
+            filename: dto.image!.path.split('/').last,
+          ),
       };
       final response = await _dio.post(
         AppConstants.registerChurchSuperAdminEndpoint,
         data: FormData.fromMap(map),
       );
-      final token =
-          (response.data as Map<String, dynamic>)['token'] as String;
-      await TokenStorage.saveToken(token);
-      return token;
+      final data = Map<String, dynamic>.from(response.data as Map);
+      final result = _parseAuthResponse(data);
+      if (result.hasToken) {
+        await TokenStorage.saveToken(result.token!);
+      }
+      return result;
     });
   }
 
-  /// Meeting-admin registration:
-  /// POST /api/Account/register-meeting-admin-new-church
-  /// Multipart/form-data — response body: { "token": "<jwt>" }
-  Future<String> registerMeetingAdmin(RegisterMeetingAdminDto dto) async {
+  Future<AuthFlowResult> registerMeetingAdmin(RegisterMeetingAdminDto dto) async {
     return apiCall(() async {
       final map = <String, dynamic>{
         'Name': dto.name,
@@ -103,31 +116,70 @@ class AuthRepository {
         'ConfirmPassword': dto.confirmPassword,
         'ChurchName': dto.churchName,
         'MeetingName': dto.meetingName,
-        // Backend meeting model expects time-only for weekly appointment.
         'Weekly_appointment': _formatTimeOfDay(dto.weeklyAppointment),
-        // Backend meeting model also includes a weekday string.
-        // Send both casings to be resilient to binder naming differences.
         'DayOfWeek': dto.dayOfWeek,
         'dayOfWeek': dto.dayOfWeek,
         if (dto.birthDate != null) 'BirthDate': dto.birthDate,
         if (dto.joiningDate != null) 'JoiningDate': dto.joiningDate,
         if (dto.image != null)
-          'Image': await MultipartFile.fromFile(dto.image!.path,
-              filename: dto.image!.path.split('/').last),
+          'Image': await MultipartFile.fromFile(
+            dto.image!.path,
+            filename: dto.image!.path.split('/').last,
+          ),
       };
       final response = await _dio.post(
         AppConstants.registerMeetingAdminEndpoint,
         data: FormData.fromMap(map),
       );
-      final token =
-          (response.data as Map<String, dynamic>)['token'] as String;
-      await TokenStorage.saveToken(token);
-      return token;
+      final data = Map<String, dynamic>.from(response.data as Map);
+      final result = _parseAuthResponse(data);
+      if (result.hasToken) {
+        await TokenStorage.saveToken(result.token!);
+      }
+      return result;
     });
   }
 
-  /// Calls POST /api/Account/logout with the current Bearer token, then removes the token locally.
-  /// Local storage is always cleared so the user is signed out even when offline or on 401/500.
+  Future<int> sendWhatsAppOtp(PhoneOtpDto dto) async {
+    return apiCall(() async {
+      final response = await _dio.post(
+        AppConstants.sendWhatsAppOtpEndpoint,
+        data: dto.toJson(),
+      );
+      final data = response.data as Map<String, dynamic>;
+      return data['resendCooldownSeconds'] as int? ?? 60;
+    });
+  }
+
+  Future<void> verifyWhatsAppOtp(VerifyOtpDto dto) async {
+    return apiCall(() async {
+      await _dio.post(
+        AppConstants.verifyWhatsAppOtpEndpoint,
+        data: dto.toJson(),
+      );
+    });
+  }
+
+  Future<int> forgotPassword(PhoneOtpDto dto) async {
+    return apiCall(() async {
+      final response = await _dio.post(
+        AppConstants.forgotPasswordEndpoint,
+        data: dto.toJson(),
+      );
+      final data = response.data as Map<String, dynamic>;
+      return data['resendCooldownSeconds'] as int? ?? 60;
+    });
+  }
+
+  Future<void> resetPassword(ResetPasswordDto dto) async {
+    return apiCall(() async {
+      await _dio.post(
+        AppConstants.resetPasswordEndpoint,
+        data: dto.toJson(),
+      );
+    });
+  }
+
   Future<void> logout() async {
     try {
       await _dio.post(AppConstants.logoutEndpoint);
@@ -137,4 +189,18 @@ class AuthRepository {
       await TokenStorage.deleteToken();
     }
   }
+}
+
+/// Thrown when login succeeds but phone OTP is still required.
+class PhoneVerificationRequiredException implements Exception {
+  final String phoneNumber;
+  final String? message;
+
+  PhoneVerificationRequiredException({
+    required this.phoneNumber,
+    this.message,
+  });
+
+  @override
+  String toString() => message ?? 'Phone verification required.';
 }

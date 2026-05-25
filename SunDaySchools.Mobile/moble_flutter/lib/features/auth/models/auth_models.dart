@@ -1,6 +1,52 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 
+/// Result from login/register — JWT or phone verification required.
+class AuthFlowResult {
+  final String? token;
+  final bool requiresPhoneVerification;
+  final String? phoneNumber;
+  final String? message;
+
+  const AuthFlowResult({
+    this.token,
+    this.requiresPhoneVerification = false,
+    this.phoneNumber,
+    this.message,
+  });
+
+  bool get hasToken => token != null && token!.isNotEmpty;
+}
+
+class PhoneOtpDto {
+  final String phoneNumber;
+  const PhoneOtpDto({required this.phoneNumber});
+  Map<String, dynamic> toJson() => {'phoneNumber': phoneNumber};
+}
+
+class VerifyOtpDto {
+  final String phoneNumber;
+  final String code;
+  const VerifyOtpDto({required this.phoneNumber, required this.code});
+  Map<String, dynamic> toJson() => {'phoneNumber': phoneNumber, 'code': code};
+}
+
+class ResetPasswordDto {
+  final String phoneNumber;
+  final String code;
+  final String newPassword;
+  const ResetPasswordDto({
+    required this.phoneNumber,
+    required this.code,
+    required this.newPassword,
+  });
+  Map<String, dynamic> toJson() => {
+        'phoneNumber': phoneNumber,
+        'code': code,
+        'newPassword': newPassword,
+      };
+}
+
 class LoginDto {
   final String phoneNumber;
   final String password;

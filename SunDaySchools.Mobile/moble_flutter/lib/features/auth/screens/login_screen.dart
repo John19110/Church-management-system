@@ -13,6 +13,7 @@ import '../../../shared/widgets/common_widgets.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/providers/locale_provider.dart';
 import '../../../core/providers/theme_provider.dart';
+import '../../../core/routing/app_router.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -48,12 +49,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _loading = true);
 
     try {
-      final token = await ref.read(authRepositoryProvider).login(
+      final result = await ref.read(authRepositoryProvider).login(
         LoginDto(
           phoneNumber: _phoneController.text.trim(),
           password: _passwordController.text,
         ),
       );
+
+      if (result.requiresPhoneVerification) {
+        if (mounted) {
+          final phone = result.phoneNumber ?? _phoneController.text.trim();
+          context.go(
+            '${AppRoutes.verifyPhone}?phone=${Uri.encodeComponent(phone)}',
+          );
+        }
+        return;
+      }
+
+      final token = result.token;
+      if (token == null || token.isEmpty) {
+        throw Exception('Login did not return a token.');
+      }
 
       final role = AuthRoleUtils.extractPrimaryRole(token);
 
@@ -74,7 +90,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       if (mounted) context.go(AuthRoleUtils.routeForRole(role));
     } catch (e) {
-      if (mounted) showErrorSnackbar(context, e.toString());
+      if (mounted) {
+        final msg = e.toString().toLowerCase();
+        if (msg.contains('phone verification') || msg.contains('not verified')) {
+          context.go(
+            '${AppRoutes.verifyPhone}?phone=${Uri.encodeComponent(_phoneController.text.trim())}',
+          );
+          return;
+        }
+        showErrorSnackbar(context, e.toString());
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -220,7 +245,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           child: Text(l10n.login),
                         ),
 
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 8),
+
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: _loading
+                                ? null
+                                : () => context.push(AppRoutes.forgotPassword),
+                            child: const Text('Forgot password?'),
+                          ),
+                        ),
+
+                        const SizedBox(height: 8),
 
                         TextButton(
                           onPressed: () => context.go('/register'),

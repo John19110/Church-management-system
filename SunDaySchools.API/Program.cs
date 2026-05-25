@@ -24,12 +24,19 @@ using SunDaySchools.API.Filters;
 using SunDaySchools.API.Middlewares;
 using System.Text.Json.Serialization;
 using SunDaySchools.BLL.Services.CustomFields;
+using SunDaySchools.BLL.Configuration;
+using SunDaySchools.BLL.Services.Auth.Interfaces;
+using SunDaySchools.BLL.Services.Auth.Implementations;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<ServantProfileOptions>(
     builder.Configuration.GetSection(ServantProfileOptions.SectionName));
+builder.Services.Configure<WhatsAppOptions>(
+    builder.Configuration.GetSection(WhatsAppOptions.SectionName));
+builder.Services.Configure<OtpOptions>(
+    builder.Configuration.GetSection(OtpOptions.SectionName));
 
 builder.Services.AddScoped<IFileStorage, LocalFileStorage>();
 builder.Services.AddProblemDetails();
@@ -110,6 +117,10 @@ builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
 builder.Services.AddScoped<IAttendanceManager, AttendanceManager>();
 
 builder.Services.AddScoped<IAccountManager, AccountManager>();
+builder.Services.AddScoped<IOtpRepository, OtpRepository>();
+builder.Services.AddScoped<IAuthOtpManager, AuthOtpManager>();
+builder.Services.AddScoped<IWhatsAppMessagingService, WhatsAppCloudMessagingService>();
+builder.Services.AddHttpClient("WhatsApp");
 
 builder.Services.AddScoped<IChurchRepository, ChurchRepository>();
 builder.Services.AddScoped<IChurchManager, ChurchManager>();

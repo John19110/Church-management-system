@@ -22,6 +22,9 @@ namespace SunDaySchoolsDAL.Models
         // admin approval system
         public bool IsApproved { get; set; } = false;
 
+        /// <summary>True after WhatsApp OTP phone verification succeeds.</summary>
+        public bool IsPhoneVerified { get; set; }
+
         // auditing
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }

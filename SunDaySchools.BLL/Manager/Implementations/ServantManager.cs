@@ -59,19 +59,16 @@ namespace SunDaySchools.BLL.Manager.Implementations
             if (!int.TryParse(claim.Value, out var churchId)) throw new UnauthorizedAccessException("Invalid ChurchId");
             registerDTO.ChurchId = churchId;
 
-            // ✅ Pass webRootPath here
-            var createdUserToken = await _accountManager.RegisterServant(registerDTO, webRootPath);
+            await _accountManager.RegisterServant(registerDTO, webRootPath);
 
-            var handler = new JwtSecurityTokenHandler();
-            var jwtToken = handler.ReadJwtToken(createdUserToken);
-
-            var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub)?.Value;
-            if (string.IsNullOrEmpty(userId))
-                throw new InvalidOperationException("Issued token is missing sub (user id) claim.");
-
-            var user = await _userManager.FindByIdAsync(userId);
+            var phone = registerDTO.PhoneNumber.Trim().Replace(" ", "");
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phone);
+            if (user == null)
+                throw new InvalidOperationException("Servant user was not created.");
 
             user.IsApproved = true;
+            user.IsPhoneVerified = true;
+            user.PhoneNumberConfirmed = true;
             await _userManager.UpdateAsync(user);
 
             // Optional: assign classrooms

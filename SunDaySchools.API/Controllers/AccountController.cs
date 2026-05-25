@@ -23,29 +23,29 @@ namespace SunDaySchools.API.Controllers
         [HttpPost("login")]
         public async Task<ActionResult> Login([FromBody] LoginDTO loginDto)
         {
-            var token = await _accountManager.Login(loginDto);
-            return Ok(new { token });
+            var result = await _accountManager.Login(loginDto);
+            return result.ToActionResult();
         }
 
         [HttpPost("register-church-superadmin")]
         public async Task<ActionResult> RegisterChurchSuperAdmin([FromForm] RegisterChurchAdminDTO dto)
         {
-            var token = await _accountManager.RegisterChurchSuperAdmin(dto, _env.WebRootPath);
-            return Ok(new { token });
+            var result = await _accountManager.RegisterChurchSuperAdmin(dto, _env.WebRootPath);
+            return result.ToActionResult();
         }
 
         [HttpPost("register-meeting-admin-new-church")]
         public async Task<ActionResult> RegisterMeetingAdminNewChurch([FromForm] RegisterMeetingAdminNewChurchDTO dto)
         {
-            var token = await _accountManager.RegisterMeetingAdminNewChurch(dto, _env.WebRootPath);
-            return Ok(new { token });
+            var result = await _accountManager.RegisterMeetingAdminNewChurch(dto, _env.WebRootPath);
+            return result.ToActionResult();
         }
 
         [HttpPost("register-servant")]
         public async Task<ActionResult> RegisterServant([FromForm] RegisterServantDTO dto)
         {
-            var token = await _accountManager.RegisterServant(dto, _env.WebRootPath);
-            return Ok(new { token });
+            var result = await _accountManager.RegisterServant(dto, _env.WebRootPath);
+            return result.ToActionResult();
         }
 
         /// <summary>
