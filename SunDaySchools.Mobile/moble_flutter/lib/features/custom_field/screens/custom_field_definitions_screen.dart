@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/app_localizations.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../models/custom_field_models.dart';
 import '../providers/custom_field_providers.dart';
+import '../utils/custom_field_l10n.dart';
 import '../../../shared/widgets/common_widgets.dart';
 
 /// Admin/SuperAdmin screen to list and manage custom field definitions.
@@ -22,13 +24,14 @@ class _CustomFieldDefinitionsScreenState
     extends ConsumerState<CustomFieldDefinitionsScreen> {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final role = ref.watch(currentUserRoleProvider).resolvedRoleOrNull;
     final canManage = role == 'admin' || role == 'superadmin';
 
     if (!canManage) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Custom fields')),
-        body: const Center(child: Text('Not authorized')),
+        appBar: AppBar(title: Text(l10n.customFields)),
+        body: Center(child: Text(l10n.notAuthorized)),
       );
     }
 
@@ -38,7 +41,7 @@ class _CustomFieldDefinitionsScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('${widget.entityName} custom fields'),
+        title: Text(l10n.customFieldsForEntity(widget.entityName)),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
@@ -56,7 +59,7 @@ class _CustomFieldDefinitionsScreenState
         error: (e, _) => AppErrorWidget(message: e.toString()),
         data: (defs) {
           if (defs.isEmpty) {
-            return const Center(child: Text('No custom fields yet.'));
+            return Center(child: Text(l10n.noCustomFieldsYet));
           }
           return RefreshIndicator(
             onRefresh: () async {
@@ -68,7 +71,7 @@ class _CustomFieldDefinitionsScreenState
                 final def = defs[i];
                 return ListTile(
                   title: Text(def.displayName),
-                  subtitle: Text('${def.name} · ${def.dataType.name}'),
+                  subtitle: Text(l10n.labelForDataType(def.dataType)),
                   trailing: Icon(
                     def.isActive ? Icons.check_circle : Icons.cancel,
                     color: def.isActive ? Colors.green : Colors.grey,
@@ -95,12 +98,12 @@ class _CustomFieldDefinitionsScreenState
   }
 
   Future<void> _confirmDeactivate(CustomFieldDefinitionReadDto def) async {
+    final l10n = AppLocalizations.of(context);
     final ok = await showConfirmDialog(
       context,
-      title: 'Deactivate field',
-      content:
-          'Deactivate "${def.displayName}"? Existing values are preserved.',
-      confirmText: 'Deactivate',
+      title: l10n.deactivateField,
+      content: l10n.deactivateFieldConfirm(def.displayName),
+      confirmText: l10n.deactivate,
       confirmColor: Colors.orange,
     );
     if (ok != true) return;
@@ -108,7 +111,7 @@ class _CustomFieldDefinitionsScreenState
     await ref.read(customFieldRepositoryProvider).deactivateDefinition(def.id);
     ref.invalidate(customFieldDefinitionsProvider(widget.entityName));
     if (mounted) {
-      showSuccessSnackbar(context, 'Field deactivated');
+      showSuccessSnackbar(context, l10n.fieldDeactivated);
     }
   }
 }

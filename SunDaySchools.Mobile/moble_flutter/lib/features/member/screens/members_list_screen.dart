@@ -33,7 +33,7 @@ class MembersListScreen extends ConsumerWidget {
             if (role == 'admin' || role == 'superadmin')
               IconButton(
                 icon: const Icon(Icons.tune),
-                tooltip: 'Custom fields',
+                tooltip: l10n.manageCustomFields,
                 onPressed: () => context.push('/custom-fields/Member'),
               ),
           ],

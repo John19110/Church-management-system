@@ -1,6 +1,7 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using SunDaySchools.BLL.Authorization;
 using SunDaySchools.BLL.DTOS.CustomFields;
 using SunDaySchools.BLL.Exceptions;
@@ -20,19 +21,22 @@ namespace SunDaySchools.BLL.Manager.Implementations
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ILogger<CustomFieldManager> _logger;
 
         public CustomFieldManager(
             ICustomFieldRepository repository,
             ICustomFieldValidator validator,
             IMapper mapper,
             IHttpContextAccessor httpContextAccessor,
-            UserManager<ApplicationUser> userManager)
+            UserManager<ApplicationUser> userManager,
+            ILogger<CustomFieldManager> logger)
         {
             _repository = repository;
             _validator = validator;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
             _userManager = userManager;
+            _logger = logger;
         }
 
         public async Task<IReadOnlyList<CustomFieldDefinitionReadDto>> GetDefinitionsByEntityAsync(
@@ -53,7 +57,19 @@ namespace SunDaySchools.BLL.Manager.Implementations
         {
             EnsureCanManageDefinitions();
             EnsureEntityName(dto.EntityName);
-            ValidateDefinitionName(dto.Name);
+
+            if (string.IsNullOrWhiteSpace(dto.DisplayName))
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["displayName"] = new[] { "Display name is required." }
+                });
+            }
+
+            var fieldName = string.IsNullOrWhiteSpace(dto.Name)
+                ? await GenerateUniqueFieldNameAsync(dto.EntityName, dto.DisplayName)
+                : dto.Name.Trim();
+            ValidateDefinitionName(fieldName);
 
             if (RequiresOptions(dto.DataType) &&
                 (dto.Options == null || dto.Options.Count == 0))
@@ -76,7 +92,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 }
             }
 
-            var existing = await _repository.GetDefinitionByNameAsync(dto.EntityName, dto.Name.Trim());
+            var existing = await _repository.GetDefinitionByNameAsync(dto.EntityName, fieldName);
             if (existing != null)
             {
                 throw new ValidationException(new Dictionary<string, string[]>
@@ -86,7 +102,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             }
 
             var entity = _mapper.Map<CustomFieldDefinition>(dto);
-            entity.Name = dto.Name.Trim();
+            entity.Name = fieldName;
             entity.DisplayName = dto.DisplayName.Trim();
             entity.EntityName = dto.EntityName.Trim();
             entity.CreatedAt = DateTime.UtcNow;
@@ -266,7 +282,9 @@ namespace SunDaySchools.BLL.Manager.Implementations
             };
         }
 
-        public async Task SaveEntityValuesAsync(SaveCustomFieldValuesDto dto)
+        public async Task SaveEntityValuesAsync(
+            SaveCustomFieldValuesDto dto,
+            bool requireAllRequiredFields = true)
         {
             EnsureAuthenticated();
             EnsureEntityName(dto.EntityName);
@@ -321,21 +339,51 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 });
             }
 
-            // Required fields not included in payload
-            foreach (var definition in definitions.Values.Where(d => d.IsRequired && !d.IsHidden))
-            {
-                var submitted = dto.Values.Any(v => v.CustomFieldDefinitionId == definition.Id);
-                var existing = await _repository.GetValueAsync(definition.Id, dto.EntityName, dto.EntityId);
-                var hasValue = existing?.Value != null && existing.Value != "";
+            var submittedDefinitionIds = dto.Values
+                .Select(v => v.CustomFieldDefinitionId)
+                .ToHashSet();
 
-                if (!submitted && !hasValue && string.IsNullOrWhiteSpace(definition.DefaultValue))
+            if (requireAllRequiredFields)
+            {
+                foreach (var definition in definitions.Values.Where(d => d.IsRequired && !d.IsHidden))
                 {
-                    errors[definition.Name] = new[] { $"{definition.DisplayName} is required." };
+                    var submitted = submittedDefinitionIds.Contains(definition.Id);
+                    var existing = await _repository.GetValueAsync(definition.Id, dto.EntityName, dto.EntityId);
+                    var hasValue = existing?.Value != null && existing.Value != "";
+
+                    if (!submitted && !hasValue && string.IsNullOrWhiteSpace(definition.DefaultValue))
+                    {
+                        errors[definition.Name] = new[] { $"{definition.DisplayName} is required." };
+                    }
+                }
+            }
+            else
+            {
+                foreach (var item in dto.Values)
+                {
+                    if (!definitions.TryGetValue(item.CustomFieldDefinitionId, out var definition))
+                        continue;
+
+                    if (!definition.IsRequired || definition.IsHidden)
+                        continue;
+
+                    if (string.IsNullOrWhiteSpace(item.Value) &&
+                        string.IsNullOrWhiteSpace(definition.DefaultValue))
+                    {
+                        errors[definition.Name] = new[] { $"{definition.DisplayName} is required." };
+                    }
                 }
             }
 
             if (errors.Count > 0)
+            {
+                _logger.LogWarning(
+                    "Custom field validation failed for {Entity} id={EntityId}. Errors={@Errors}",
+                    dto.EntityName,
+                    dto.EntityId,
+                    errors);
                 throw new ValidationException(errors);
+            }
 
             if (rows.Count > 0)
                 await _repository.UpsertValuesAsync(rows);
@@ -410,6 +458,14 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     ["entityName"] = new[] { $"Entity '{entityName}' is not supported for custom fields." }
                 });
             }
+        }
+
+        private async Task<string> GenerateUniqueFieldNameAsync(string entityName, string displayName)
+        {
+            var definitions = await _repository.GetDefinitionsByEntityAsync(entityName, includeInactive: true);
+            var existing = definitions.Select(d => d.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var baseName = CustomFieldNameGenerator.GenerateBaseName(displayName);
+            return CustomFieldNameGenerator.EnsureUnique(baseName, existing);
         }
 
         private static void ValidateDefinitionName(string name)

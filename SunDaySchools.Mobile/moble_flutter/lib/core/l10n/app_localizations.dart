@@ -301,6 +301,51 @@ class AppLocalizations {
   String get required => _t('required');
   String get tapToSelectImage => _t('tapToSelectImage');
 
+  // ── Custom fields (admin) ─────────────────────────────────────────────────
+  String get customFields => _t('customFields');
+  String customFieldsForEntity(String entityName) =>
+      _t('customFieldsForEntity').replaceAll('{entity}', entityDisplayName(entityName));
+  String entityDisplayName(String entityName) {
+    switch (entityName) {
+      case 'Member':
+        return _t('entityMember');
+      case 'Classroom':
+        return _t('entityClassroom');
+      case 'Servant':
+        return _t('entityServant');
+      case 'Meeting':
+        return _t('entityMeeting');
+      default:
+        return entityName;
+    }
+  }
+  String get notAuthorized => _t('notAuthorized');
+  String get noCustomFieldsYet => _t('noCustomFieldsYet');
+  String get editCustomField => _t('editCustomField');
+  String get newCustomField => _t('newCustomField');
+  String get displayNameLabel => _t('displayNameLabel');
+  String get displayNameRequired => _t('displayNameRequired');
+  String get fieldTypeLabel => _t('fieldTypeLabel');
+  String get fieldRequiredLabel => _t('fieldRequiredLabel');
+  String get fieldReadOnlyLabel => _t('fieldReadOnlyLabel');
+  String get customFieldOptions => _t('customFieldOptions');
+  String get addOption => _t('addOption');
+  String get optionValueLabel => _t('optionValueLabel');
+  String get optionLabelLabel => _t('optionLabelLabel');
+  String get createField => _t('createField');
+  String get deactivateField => _t('deactivateField');
+  String deactivateFieldConfirm(String name) =>
+      _t('deactivateFieldConfirm').replaceAll('{name}', name);
+  String get deactivate => _t('deactivate');
+  String get fieldDeactivated => _t('fieldDeactivated');
+  String get fieldActive => _t('fieldActive');
+  String get fieldInactive => _t('fieldInactive');
+  String get selectOptionsRequired => _t('selectOptionsRequired');
+  String customFieldDataTypeLabel(String typeKey) => _t('cfdt_$typeKey');
+  String get manageCustomFields => _t('manageCustomFields');
+  String get editEntityFields => _t('editEntityFields');
+  String get changesSaved => _t('changesSaved');
+
   // ── Translation tables ────────────────────────────────────────────────────
   static const Map<String, Map<String, String>> _translations = {
     'en': {
@@ -576,6 +621,48 @@ class AppLocalizations {
       'success': 'Success',
       'required': 'This field is required',
       'tapToSelectImage': 'Tap to select image',
+      // Custom fields
+      'customFields': 'Custom fields',
+      'customFieldsForEntity': '{entity} custom fields',
+      'entityMember': 'Member',
+      'entityClassroom': 'Classroom',
+      'entityServant': 'Servant',
+      'entityMeeting': 'Meeting',
+      'notAuthorized': 'Not authorized',
+      'noCustomFieldsYet': 'No custom fields yet.',
+      'editCustomField': 'Edit custom field',
+      'newCustomField': 'New custom field',
+      'displayNameLabel': 'Display name',
+      'displayNameRequired': 'Display name is required',
+      'fieldTypeLabel': 'Field type',
+      'fieldRequiredLabel': 'Required',
+      'fieldReadOnlyLabel': 'Read only',
+      'customFieldOptions': 'Options',
+      'addOption': 'Add option',
+      'optionValueLabel': 'Stored value',
+      'optionLabelLabel': 'Shown label',
+      'createField': 'Create field',
+      'deactivateField': 'Deactivate field',
+      'deactivateFieldConfirm':
+          'Deactivate "{name}"? Existing values are preserved.',
+      'deactivate': 'Deactivate',
+      'fieldDeactivated': 'Field deactivated',
+      'fieldActive': 'Active',
+      'fieldInactive': 'Inactive',
+      'selectOptionsRequired': 'Add at least one option for this field type.',
+      'manageCustomFields': 'Manage custom fields',
+      'editEntityFields': 'Edit fields',
+      'cfdt_text': 'Short text',
+      'cfdt_longText': 'Long text',
+      'cfdt_number': 'Whole number',
+      'cfdt_decimal': 'Decimal number',
+      'cfdt_boolean': 'Yes / No',
+      'cfdt_date': 'Date',
+      'cfdt_dateTime': 'Date and time',
+      'cfdt_json': 'Structured data',
+      'cfdt_singleSelect': 'Single choice',
+      'cfdt_multiSelect': 'Multiple choice',
+      'changesSaved': 'Changes saved.',
     },
     'ar': {
       // Auth
@@ -846,6 +933,48 @@ class AppLocalizations {
       'success': 'نجاح',
       'required': 'هذا الحقل مطلوب',
       'tapToSelectImage': 'اضغط لاختيار صورة',
+      // Custom fields
+      'customFields': 'الحقول المخصصة',
+      'customFieldsForEntity': 'حقول مخصصة — {entity}',
+      'entityMember': 'العضو',
+      'entityClassroom': 'الفصل',
+      'entityServant': 'الخادم',
+      'entityMeeting': 'الاجتماع',
+      'notAuthorized': 'غير مصرح',
+      'noCustomFieldsYet': 'لا توجد حقول مخصصة بعد.',
+      'editCustomField': 'تعديل حقل مخصص',
+      'newCustomField': 'حقل مخصص جديد',
+      'displayNameLabel': 'الاسم المعروض',
+      'displayNameRequired': 'الاسم المعروض مطلوب',
+      'fieldTypeLabel': 'نوع الحقل',
+      'fieldRequiredLabel': 'إلزامي',
+      'fieldReadOnlyLabel': 'للقراءة فقط',
+      'customFieldOptions': 'الخيارات',
+      'addOption': 'إضافة خيار',
+      'optionValueLabel': 'القيمة المخزنة',
+      'optionLabelLabel': 'النص المعروض',
+      'createField': 'إنشاء الحقل',
+      'deactivateField': 'إلغاء تفعيل الحقل',
+      'deactivateFieldConfirm':
+          'إلغاء تفعيل "{name}"؟ القيم الحالية تبقى محفوظة.',
+      'deactivate': 'إلغاء التفعيل',
+      'fieldDeactivated': 'تم إلغاء تفعيل الحقل',
+      'fieldActive': 'مفعّل',
+      'fieldInactive': 'غير مفعّل',
+      'selectOptionsRequired': 'أضف خياراً واحداً على الأقل لهذا النوع.',
+      'manageCustomFields': 'إدارة الحقول المخصصة',
+      'editEntityFields': 'تعديل الحقول',
+      'cfdt_text': 'نص قصير',
+      'cfdt_longText': 'نص طويل',
+      'cfdt_number': 'عدد صحيح',
+      'cfdt_decimal': 'عدد عشري',
+      'cfdt_boolean': 'نعم / لا',
+      'cfdt_date': 'تاريخ',
+      'cfdt_dateTime': 'تاريخ ووقت',
+      'cfdt_json': 'بيانات منظمة',
+      'cfdt_singleSelect': 'اختيار واحد',
+      'cfdt_multiSelect': 'اختيار متعدد',
+      'changesSaved': 'تم حفظ التغييرات.',
     },
   };
 }

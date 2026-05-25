@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+using SunDaySchools.BLL.Json;
 using SunDaySchools.DAL.Models.CustomFields;
 
 namespace SunDaySchools.BLL.DTOS.UnifiedForms
@@ -64,6 +66,9 @@ namespace SunDaySchools.BLL.DTOS.UnifiedForms
     public class UnifiedFieldValueDto
     {
         public string FieldKey { get; set; } = string.Empty;
+
+        /// <summary>Coerced from string, number, or bool in JSON (e.g. leaderServantId: 20).</summary>
+        [JsonConverter(typeof(FlexibleFormValueJsonConverter))]
         public string? Value { get; set; }
     }
 }

@@ -20,6 +20,12 @@ namespace SunDaySchools.BLL.Manager.Interfaces
 
         Task<EntityCustomFieldsReadDto> GetEntityFieldsAsync(string entityName, int entityId);
 
-        Task SaveEntityValuesAsync(SaveCustomFieldValuesDto dto);
+        /// <param name="requireAllRequiredFields">
+        /// When false, only validates required rules for definitions included in <paramref name="dto"/>.Values
+        /// (unified form partial save). When true, every required definition for the entity must be present or stored.
+        /// </param>
+        Task SaveEntityValuesAsync(
+            SaveCustomFieldValuesDto dto,
+            bool requireAllRequiredFields = true);
     }
 }

@@ -17,8 +17,10 @@ using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchoolsDAL.Models;
 using System.Diagnostics;
 using System.Text;
+using Microsoft.AspNetCore.Mvc;
 using SunDaySchools.API.Authorization;
 using SunDaySchools.API.Json;
+using SunDaySchools.API.Middlewares;
 using SunDaySchools.BLL.Services.CustomFields;
 
 
@@ -37,6 +39,26 @@ builder.Services.AddControllers()
         ApiJsonSerializerOptions.Configure(o.JsonSerializerOptions);
         o.JsonSerializerOptions.Converters.Add(new TimeOnlyJsonConverter());
     });
+
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var errors = context.ModelState
+            .Where(e => e.Value?.Errors.Count > 0)
+            .ToDictionary(
+                e => e.Key,
+                e => e.Value!.Errors.Select(x => x.ErrorMessage).ToArray());
+
+        return new BadRequestObjectResult(new
+        {
+            success = false,
+            errorCode = "MODEL_BINDING_ERROR",
+            message = "One or more fields failed model binding or validation.",
+            errors
+        });
+    };
+});
 
 builder.Services.AddHttpContextAccessor();
 

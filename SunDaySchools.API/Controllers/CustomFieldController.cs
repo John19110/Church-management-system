@@ -45,7 +45,8 @@ namespace SunDaySchools.API.Controllers
 
         /// <summary>
         /// Create a custom field definition. Body must be JSON (camelCase properties, string enums).
-        /// Example: { "name": "baptism_date", "displayName": "Baptism", "entityName": "Member", "dataType": "Date" }
+        /// Example: { "displayName": "Baptism date", "entityName": "Member", "dataType": "Date", "isRequired": false }
+        /// Internal <c>name</c> is optional; when omitted it is generated from <c>displayName</c>.
         /// </summary>
         [HttpPost("definitions")]
         [Consumes(MediaTypeNames.Application.Json)]

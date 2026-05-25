@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/app_localizations.dart';
 import '../models/custom_field_models.dart';
 import '../providers/custom_field_providers.dart';
+import '../utils/custom_field_l10n.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/common_widgets.dart';
 
@@ -25,13 +27,10 @@ class CustomFieldDefinitionFormScreen extends ConsumerStatefulWidget {
 class _CustomFieldDefinitionFormScreenState
     extends ConsumerState<CustomFieldDefinitionFormScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
   final _displayNameController = TextEditingController();
-  final _descriptionController = TextEditingController();
   CustomFieldDataType _dataType = CustomFieldDataType.text;
   bool _isRequired = false;
   bool _isReadOnly = false;
-  bool _isHidden = false;
   bool _loading = false;
 
   final List<({TextEditingController value, TextEditingController label})>
@@ -45,11 +44,9 @@ class _CustomFieldDefinitionFormScreenState
     final e = widget.existing;
     if (e != null) {
       _displayNameController.text = e.displayName;
-      _descriptionController.text = e.description ?? '';
       _dataType = e.dataType;
       _isRequired = e.isRequired;
       _isReadOnly = e.isReadOnly;
-      _isHidden = e.isHidden;
       for (final o in e.options) {
         _options.add((
           value: TextEditingController(text: o.value),
@@ -61,9 +58,7 @@ class _CustomFieldDefinitionFormScreenState
 
   @override
   void dispose() {
-    _nameController.dispose();
     _displayNameController.dispose();
-    _descriptionController.dispose();
     for (final o in _options) {
       o.value.dispose();
       o.label.dispose();
@@ -73,48 +68,32 @@ class _CustomFieldDefinitionFormScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEdit ? 'Edit custom field' : 'New custom field'),
+        title: Text(_isEdit ? l10n.editCustomField : l10n.newCustomField),
       ),
       body: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            if (!_isEdit)
-              AppTextField(
-                controller: _nameController,
-                label: 'Internal name',
-                hint: 'e.g. baptism_date',
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Required';
-                  if (!RegExp(r'^[a-zA-Z][a-zA-Z0-9_]*$').hasMatch(v.trim())) {
-                    return 'Letters, numbers, underscore only';
-                  }
-                  return null;
-                },
-              ),
             AppTextField(
               controller: _displayNameController,
-              label: 'Display name',
+              label: l10n.displayNameLabel,
               validator: (v) =>
-                  v == null || v.trim().isEmpty ? 'Required' : null,
-            ),
-            AppTextField(
-              controller: _descriptionController,
-              label: 'Description',
-              maxLines: 2,
+                  v == null || v.trim().isEmpty ? l10n.displayNameRequired : null,
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<CustomFieldDataType>(
               value: _dataType,
-              decoration: const InputDecoration(labelText: 'Field type'),
+              decoration: InputDecoration(labelText: l10n.fieldTypeLabel),
               items: CustomFieldDataType.values
                   .where((t) => t != CustomFieldDataType.unknown)
                   .map((t) => DropdownMenuItem(
                         value: t,
-                        child: Text(t.name),
+                        child: Text(l10n.labelForDataType(t)),
                       ))
                   .toList(),
               onChanged: _isEdit
@@ -122,37 +101,35 @@ class _CustomFieldDefinitionFormScreenState
                   : (v) => setState(() => _dataType = v ?? _dataType),
             ),
             SwitchListTile(
-              title: const Text('Required'),
+              title: Text(l10n.fieldRequiredLabel),
               value: _isRequired,
               onChanged: (v) => setState(() => _isRequired = v),
             ),
             SwitchListTile(
-              title: const Text('Read only'),
+              title: Text(l10n.fieldReadOnlyLabel),
               value: _isReadOnly,
               onChanged: (v) => setState(() => _isReadOnly = v),
-            ),
-            SwitchListTile(
-              title: const Text('Hidden'),
-              value: _isHidden,
-              onChanged: (v) => setState(() => _isHidden = v),
             ),
             if (_dataType == CustomFieldDataType.singleSelect ||
                 _dataType == CustomFieldDataType.multiSelect) ...[
               const SizedBox(height: 8),
-              Text('Options', style: Theme.of(context).textTheme.titleSmall),
+              Text(
+                l10n.customFieldOptions,
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
               ..._options.map((o) => Row(
                     children: [
                       Expanded(
                         child: AppTextField(
                           controller: o.value,
-                          label: 'Value',
+                          label: l10n.optionValueLabel,
                         ),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: AppTextField(
                           controller: o.label,
-                          label: 'Label',
+                          label: l10n.optionLabelLabel,
                         ),
                       ),
                     ],
@@ -165,7 +142,7 @@ class _CustomFieldDefinitionFormScreenState
                   ));
                 }),
                 icon: const Icon(Icons.add),
-                label: const Text('Add option'),
+                label: Text(l10n.addOption),
               ),
             ],
             const SizedBox(height: 24),
@@ -177,7 +154,7 @@ class _CustomFieldDefinitionFormScreenState
                       width: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : Text(_isEdit ? 'Save' : 'Create'),
+                  : Text(_isEdit ? l10n.saveLabel : l10n.createField),
             ),
           ],
         ),
@@ -187,36 +164,39 @@ class _CustomFieldDefinitionFormScreenState
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+
+    final l10n = AppLocalizations.of(context);
+    final options = _buildOptions();
+    if ((_dataType == CustomFieldDataType.singleSelect ||
+            _dataType == CustomFieldDataType.multiSelect) &&
+        (options == null || options.isEmpty)) {
+      showErrorSnackbar(context, l10n.selectOptionsRequired);
+      return;
+    }
+
     setState(() => _loading = true);
 
     try {
       final repo = ref.read(customFieldRepositoryProvider);
       if (_isEdit) {
-        final options = _buildOptions();
         await repo.updateDefinition(
           widget.existing!.id,
           CustomFieldDefinitionUpdateDto(
             displayName: _displayNameController.text.trim(),
             isRequired: _isRequired,
             isReadOnly: _isReadOnly,
-            isHidden: _isHidden,
             options: options,
           ),
         );
       } else {
         await repo.createDefinition(
           CustomFieldDefinitionCreateDto(
-            name: _nameController.text.trim(),
             displayName: _displayNameController.text.trim(),
-            description: _descriptionController.text.trim().isEmpty
-                ? null
-                : _descriptionController.text.trim(),
             entityName: widget.entityName,
             dataType: customFieldDataTypeToApi(_dataType),
             isRequired: _isRequired,
             isReadOnly: _isReadOnly,
-            isHidden: _isHidden,
-            options: _buildOptions(),
+            options: options,
           ),
         );
       }
