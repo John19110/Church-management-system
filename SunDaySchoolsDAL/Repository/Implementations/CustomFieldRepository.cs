@@ -20,33 +20,47 @@ namespace SunDaySchools.DAL.Repository.Implementations
         {
             var query = _context.CustomFieldDefinitions
                 .AsNoTracking()
-                .Include(d => d.Options.OrderBy(o => o.SortOrder))
                 .Where(d => d.EntityName == entityName);
 
             if (!includeInactive)
                 query = query.Where(d => d.IsActive);
 
-            return await query
+            var definitions = await query
                 .OrderBy(d => d.SortOrder)
                 .ThenBy(d => d.DisplayName)
                 .ToListAsync();
+
+            if (definitions.Count == 0)
+                return definitions;
+
+            await AttachOptionsAsync(definitions);
+            return definitions;
         }
 
         public async Task<CustomFieldDefinition?> GetDefinitionByIdAsync(int id, bool includeOptions = true)
         {
-            IQueryable<CustomFieldDefinition> query = _context.CustomFieldDefinitions;
+            var definition = await _context.CustomFieldDefinitions
+                .AsNoTracking()
+                .FirstOrDefaultAsync(d => d.Id == id);
 
-            if (includeOptions)
-                query = query.Include(d => d.Options.OrderBy(o => o.SortOrder));
+            if (definition == null || !includeOptions)
+                return definition;
 
-            return await query.FirstOrDefaultAsync(d => d.Id == id);
+            await AttachOptionsAsync(new[] { definition });
+            return definition;
         }
 
         public async Task<CustomFieldDefinition?> GetDefinitionByNameAsync(string entityName, string name)
         {
-            return await _context.CustomFieldDefinitions
-                .Include(d => d.Options)
+            var definition = await _context.CustomFieldDefinitions
+                .AsNoTracking()
                 .FirstOrDefaultAsync(d => d.EntityName == entityName && d.Name == name);
+
+            if (definition == null)
+                return null;
+
+            await AttachOptionsAsync(new[] { definition });
+            return definition;
         }
 
         public async Task AddDefinitionAsync(CustomFieldDefinition definition)
@@ -62,9 +76,10 @@ namespace SunDaySchools.DAL.Repository.Implementations
 
         public async Task<IReadOnlyList<CustomFieldValue>> GetValuesAsync(string entityName, int entityId)
         {
+            // Do not Include(Definition): global filters on values/options use Definition navigation
+            // and can cause translation/runtime failures; values only need definition id + payload.
             return await _context.CustomFieldValues
                 .AsNoTracking()
-                .Include(v => v.Definition)
                 .Where(v => v.EntityName == entityName && v.EntityId == entityId)
                 .ToListAsync();
         }
@@ -129,6 +144,46 @@ namespace SunDaySchools.DAL.Repository.Implementations
                 CustomFieldEntityNames.Meeting => await _context.Meetings.AnyAsync(m => m.Id == entityId),
                 _ => false
             };
+        }
+
+        /// <summary>
+        /// Loads options in a second query to avoid filtered Include + OrderBy issues on CustomFieldOption.
+        /// </summary>
+        private async Task AttachOptionsAsync(IReadOnlyList<CustomFieldDefinition>? definitions)
+        {
+            if (definitions == null || definitions.Count == 0)
+                return;
+
+            var ids = definitions
+                .Where(d => d != null)
+                .Select(d => d.Id)
+                .ToList();
+
+            if (ids.Count == 0)
+                return;
+            var options = await _context.CustomFieldOptions
+                .AsNoTracking()
+                .Where(o => ids.Contains(o.CustomFieldDefinitionId))
+                .OrderBy(o => o.SortOrder)
+                .ToListAsync();
+
+            var byDefinition = options
+                .GroupBy(o => o.CustomFieldDefinitionId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            foreach (var definition in definitions)
+            {
+                if (definition == null)
+                    continue;
+
+                definition.Options ??= new List<CustomFieldOption>();
+                definition.Options.Clear();
+                if (byDefinition.TryGetValue(definition.Id, out var list))
+                {
+                    foreach (var option in list)
+                        definition.Options.Add(option);
+                }
+            }
         }
     }
 }

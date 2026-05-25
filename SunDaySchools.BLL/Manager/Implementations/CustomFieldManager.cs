@@ -7,6 +7,7 @@ using SunDaySchools.BLL.DTOS.CustomFields;
 using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Interfaces;
 using SunDaySchools.BLL.Services.CustomFields;
+using SunDaySchools.BLL.Services.UnifiedForms;
 using SunDaySchools.DAL.Models.CustomFields;
 using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchoolsDAL.Models;
@@ -43,8 +44,37 @@ namespace SunDaySchools.BLL.Manager.Implementations
             string entityName, bool includeInactive = false)
         {
             EnsureEntityName(entityName);
-            var definitions = await _repository.GetDefinitionsByEntityAsync(entityName, includeInactive);
-            return _mapper.Map<List<CustomFieldDefinitionReadDto>>(definitions);
+
+            try
+            {
+                await EntityDefaultFieldProvisioner.EnsureDefaultsAsync(
+                    _repository,
+                    entityName,
+                    _logger,
+                    _httpContextAccessor);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "Default field provisioning failed for {EntityName}; continuing with existing definitions.",
+                    entityName);
+            }
+
+            try
+            {
+                var definitions = await _repository.GetDefinitionsByEntityAsync(entityName, includeInactive)
+                    ?? Array.Empty<CustomFieldDefinition>();
+                return CustomFieldDefinitionReadMapper.ToReadDtoList(definitions);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "GetDefinitionsByEntityAsync failed for {EntityName}",
+                    entityName);
+                throw;
+            }
         }
 
         public async Task<CustomFieldDefinitionReadDto?> GetDefinitionByIdAsync(int id)
