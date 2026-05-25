@@ -5,6 +5,7 @@ import '../../../core/l10n/app_localizations.dart';
 import '../../../core/routing/app_router.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../unified_form/models/unified_form_models.dart';
+import '../../custom_field/providers/custom_field_cache_providers.dart';
 import '../../unified_form/providers/unified_form_providers.dart';
 import '../../unified_form/widgets/unified_entity_form.dart';
 import '../models/meeting_models.dart';
@@ -43,7 +44,15 @@ class MeetingDetailScreen extends ConsumerWidget {
             IconButton(
               icon: const Icon(Icons.tune),
               tooltip: l10n.manageCustomFields,
-              onPressed: () => context.push('/custom-fields/Meeting'),
+              onPressed: () async {
+                await context.push('/custom-fields/Meeting');
+                if (context.mounted) {
+                  refreshEntityFormsAfterDefinitionChange(
+                    ref,
+                    UnifiedEntityNames.meeting,
+                  );
+                }
+              },
             ),
         ],
       ),

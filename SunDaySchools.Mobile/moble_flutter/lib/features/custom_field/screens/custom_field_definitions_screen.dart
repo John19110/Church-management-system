@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../models/custom_field_models.dart';
+import '../providers/custom_field_cache_providers.dart';
 import '../providers/custom_field_providers.dart';
 import '../utils/custom_field_l10n.dart';
 import '../../../shared/widgets/common_widgets.dart';
@@ -49,7 +50,7 @@ class _CustomFieldDefinitionsScreenState
             '/custom-fields/${widget.entityName}/new',
           );
           if (created == true) {
-            ref.invalidate(customFieldDefinitionsProvider(widget.entityName));
+            refreshEntityFormsAfterDefinitionChange(ref, widget.entityName);
           }
         },
         child: const Icon(Icons.add),
@@ -63,7 +64,7 @@ class _CustomFieldDefinitionsScreenState
           }
           return RefreshIndicator(
             onRefresh: () async {
-              ref.invalidate(customFieldDefinitionsProvider(widget.entityName));
+              refreshEntityFormsAfterDefinitionChange(ref, widget.entityName);
             },
             child: ListView.builder(
               itemCount: defs.length,
@@ -82,8 +83,9 @@ class _CustomFieldDefinitionsScreenState
                       extra: def,
                     );
                     if (updated == true) {
-                      ref.invalidate(
-                        customFieldDefinitionsProvider(widget.entityName),
+                      refreshEntityFormsAfterDefinitionChange(
+                        ref,
+                        widget.entityName,
                       );
                     }
                   },
@@ -109,7 +111,7 @@ class _CustomFieldDefinitionsScreenState
     if (ok != true) return;
 
     await ref.read(customFieldRepositoryProvider).deactivateDefinition(def.id);
-    ref.invalidate(customFieldDefinitionsProvider(widget.entityName));
+    refreshEntityFormsAfterDefinitionChange(ref, widget.entityName);
     if (mounted) {
       showSuccessSnackbar(context, l10n.fieldDeactivated);
     }

@@ -11,6 +11,8 @@ import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
 import '../providers/super_admin_providers.dart';
 import '../../classroom/models/classroom_models.dart';
 import '../../classroom/providers/classroom_providers.dart';
+import '../../custom_field/providers/custom_field_cache_providers.dart';
+import '../../unified_form/models/unified_form_models.dart';
 import '../../../shared/widgets/endpoint_select_fields.dart';
 
 class SuperAdminHomeScreen extends ConsumerStatefulWidget {
@@ -458,7 +460,15 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen> {
           IconButton(
             icon: const Icon(Icons.tune),
             tooltip: l10n.manageCustomFields,
-            onPressed: () => context.push('/custom-fields/Meeting'),
+            onPressed: () async {
+              await context.push('/custom-fields/Meeting');
+              if (context.mounted) {
+                refreshEntityFormsAfterDefinitionChange(
+                  ref,
+                  UnifiedEntityNames.meeting,
+                );
+              }
+            },
           ),
           IconButton(
             icon: const Icon(Icons.add),

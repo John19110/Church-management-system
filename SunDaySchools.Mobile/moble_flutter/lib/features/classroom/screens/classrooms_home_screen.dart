@@ -9,6 +9,8 @@ import '../../auth/utils/auth_session.dart';
 import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../models/classroom_models.dart';
+import '../../custom_field/providers/custom_field_cache_providers.dart';
+import '../../unified_form/models/unified_form_models.dart';
 import '../providers/classroom_providers.dart';
 
 class ClassroomsHomeScreen extends ConsumerStatefulWidget {
@@ -195,7 +197,15 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
                     IconButton(
                       icon: const Icon(Icons.tune),
                       tooltip: l10n.manageCustomFields,
-                      onPressed: () => context.push('/custom-fields/Classroom'),
+                      onPressed: () async {
+                        await context.push('/custom-fields/Classroom');
+                        if (context.mounted) {
+                          refreshEntityFormsAfterDefinitionChange(
+                            ref,
+                            UnifiedEntityNames.classroom,
+                          );
+                        }
+                      },
                     ),
                   if (canAddClassroom)
                     IconButton(
