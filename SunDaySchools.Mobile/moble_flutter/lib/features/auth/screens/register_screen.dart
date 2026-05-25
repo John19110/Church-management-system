@@ -202,7 +202,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         }
       }
 
-      showErrorSnackbar(context, e.toString());
+      showErrorSnackbar(context, userFriendlyMessage(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }

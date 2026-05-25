@@ -17,6 +17,21 @@ final authStateProvider = StateProvider<bool>((ref) => false);
 /// Avoids stale [FutureProvider] cache when switching accounts on the same device.
 final authSessionEpochProvider = StateProvider<int>((ref) => 0);
 
+/// True when a non-empty JWT is stored locally.
+Future<bool> hasStoredAuthToken() async {
+  final token = await TokenStorage.getToken();
+  return token != null && token.isNotEmpty;
+}
+
+/// Skips protected API calls when there is no stored token (e.g. right after logout).
+Future<T> whenAuthenticated<T>(
+  Future<T> Function() fetch, {
+  required T ifLoggedOut,
+}) async {
+  if (!await hasStoredAuthToken()) return ifLoggedOut;
+  return fetch();
+}
+
 final currentUserRoleProvider = FutureProvider<String?>((ref) async {
   ref.watch(authSessionEpochProvider);
   final token = await TokenStorage.getToken();

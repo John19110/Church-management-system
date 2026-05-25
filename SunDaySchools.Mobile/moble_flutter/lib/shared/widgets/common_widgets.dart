@@ -92,46 +92,18 @@ class EmptyWidget extends StatelessWidget {
   }
 }
 
-/// Floating snackbars sit in the overlay; add bottom inset so they clear the
-/// system safe area and typical [BottomNavigationBar] height.
-EdgeInsets _snackBarMargin(BuildContext context) {
-  final padding = MediaQuery.paddingOf(context);
-  final bottom = padding.bottom + kBottomNavigationBarHeight + 12;
-  return EdgeInsets.fromLTRB(16, 0, 16, bottom);
-}
-
 /// Shows a snackbar with an error message.
-/// Uses [SnackBarBehavior.floating] with [SnackBar.margin] only — do not set
-/// [SnackBar.width] at the same time (Flutter forbids width + margin together).
 void showErrorSnackbar(BuildContext context, String message) {
-  final messenger = ScaffoldMessenger.of(context);
-  messenger.clearSnackBars();
-  messenger.showSnackBar(
-    SnackBar(
-      content: Text(message),
-      backgroundColor: Colors.red,
-      behavior: SnackBarBehavior.floating,
-      margin: _snackBarMargin(context),
-    ),
-  );
+  showErrorSnackbarFixed(context, message);
 }
 
 /// Shows a snackbar with a success message.
 void showSuccessSnackbar(BuildContext context, String message) {
-  final messenger = ScaffoldMessenger.of(context);
-  messenger.clearSnackBars();
-  messenger.showSnackBar(
-    SnackBar(
-      content: Text(message),
-      backgroundColor: Colors.green,
-      behavior: SnackBarBehavior.floating,
-      margin: _snackBarMargin(context),
-    ),
-  );
+  showSuccessSnackbarFixed(context, message);
 }
 
 /// Fixed snackbars reserve layout space and won't render off-screen with
-/// bottom navigation bars.
+/// bottom navigation bars or the keyboard.
 void showErrorSnackbarFixed(BuildContext context, String message) {
   final messenger = ScaffoldMessenger.of(context);
   messenger.clearSnackBars();

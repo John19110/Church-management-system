@@ -9,6 +9,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 namespace SunDaySchools.API.Middlewares
@@ -205,18 +206,40 @@ namespace SunDaySchools.API.Middlewares
                 MeetingAlreadyExistsException => ((int)HttpStatusCode.Conflict, "CONFLICT", "Conflict"),
                 PassordsMissMatchException => ((int)HttpStatusCode.Conflict, "CONFLICT", "Conflict"),
 
-                DbUpdateException dbEx => (
+                DbUpdateException => (
                     (int)HttpStatusCode.InternalServerError,
                     "DATABASE_ERROR",
-                    root.Message),
+                    FriendlyDatabaseMessage),
 
-                AutoMapper.AutoMapperMappingException mapEx => (
+                AutoMapper.AutoMapperMappingException => (
                     (int)HttpStatusCode.InternalServerError,
                     "MAPPING_ERROR",
-                    mapEx.Message),
+                    "A server error occurred while processing your request."),
 
-                _ => ((int)HttpStatusCode.InternalServerError, "SERVER_ERROR", root.Message)
+                _ when IsDatabaseException(exception) => (
+                    (int)HttpStatusCode.InternalServerError,
+                    "DATABASE_ERROR",
+                    FriendlyDatabaseMessage),
+
+                _ => ((int)HttpStatusCode.InternalServerError, "SERVER_ERROR", FriendlyServerMessage)
             };
+        }
+
+        private const string FriendlyDatabaseMessage =
+            "A database error occurred. Please try again later or contact support.";
+
+        private const string FriendlyServerMessage =
+            "An unexpected error occurred. Please try again later.";
+
+        private static bool IsDatabaseException(Exception exception)
+        {
+            for (var ex = exception; ex != null; ex = ex.InnerException)
+            {
+                if (ex is SqlException or DbUpdateException)
+                    return true;
+            }
+
+            return false;
         }
 
         private sealed class ApiErrorResponse
