@@ -31,6 +31,25 @@ AppException mapDioException(DioException e) {
   }
   final statusCode = e.response?.statusCode;
   if (statusCode == 401) return const UnauthorizedException();
+
+  final data = e.response?.data;
+  if (data is Map<String, dynamic>) {
+    if (data['errorCode'] == 'PHONE_NOT_VERIFIED' &&
+        data['requiresPhoneVerification'] == true) {
+      final phone = data['phoneNumber']?.toString() ?? '';
+      return ApiException(
+        data['message']?.toString() ?? 'Phone verification required.',
+        statusCode: 403,
+      );
+    }
+    if (data['message'] != null) {
+      return ApiException(
+        data['message'].toString(),
+        statusCode: statusCode,
+      );
+    }
+  }
+
   final message = e.response?.data?.toString() ?? e.message ?? 'An error occurred';
   return ApiException(message, statusCode: statusCode);
 }

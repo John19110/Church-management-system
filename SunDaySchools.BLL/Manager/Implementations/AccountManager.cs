@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using SunDaySchools.BLL.DTOS.AccountDtos;
 using SunDaySchools.BLL.Exceptions;         
 using SunDaySchools.BLL.Manager.Interfaces;
+using SunDaySchools.BLL.Services.Auth.Interfaces;
 using SunDaySchools.DAL.Models;
 using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchools.Models;
@@ -29,11 +30,13 @@ namespace SunDaySchools.BLL.Manager.Implementations
         private readonly IMeetingRepository _meetingRepo;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IFileManager _fileManager;
+        private readonly IAuthOtpManager _authOtpManager;
 
 
         public AccountManager(UserManager<ApplicationUser>usermagaer, IConfiguration configuration,
             IServantRepository servantRepo, IChurchRepository churchRepo, IAdminRepository adminRepo,
-            IMeetingRepository meetingRepo, IUnitOfWork unitOfWork,IFileManager fileManager)
+            IMeetingRepository meetingRepo, IUnitOfWork unitOfWork,IFileManager fileManager,
+            IAuthOtpManager authOtpManager)
         {
 
             _churchRepo = churchRepo;
@@ -44,9 +47,10 @@ namespace SunDaySchools.BLL.Manager.Implementations
             _meetingRepo = meetingRepo;
             _unitOfWork = unitOfWork;
             _fileManager = fileManager;
+            _authOtpManager = authOtpManager;
         }
 
-        public async Task<string> Login(LoginDTO loginDto)
+        public async Task<AuthFlowResultDto> Login(LoginDTO loginDto)
         {
             if (loginDto == null)
             {
@@ -78,14 +82,17 @@ namespace SunDaySchools.BLL.Manager.Implementations
             if (!existingUser.IsApproved)
                 throw new AccountNotApprovedException();
 
+            if (!existingUser.IsPhoneVerified)
+                throw new PhoneNotVerifiedException(phoneNumber);
+
             var check = await _userManager.CheckPasswordAsync(existingUser, loginDto.Password);
             if (!check)
                 throw new InvalidCredentialsException();
 
             var claims = await BuildJwtClaims(existingUser);
-            return GenerateToken(claims);
+            return AuthFlowResultDto.Success(GenerateToken(claims));
         }
-        public async Task<string> RegisterChurchSuperAdmin(RegisterChurchAdminDTO dto, string webRootPath)
+        public async Task<AuthFlowResultDto> RegisterChurchSuperAdmin(RegisterChurchAdminDTO dto, string webRootPath)
         {
             if (dto == null)
             {
@@ -160,6 +167,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     UserName = dto.Name,
                     PhoneNumber = phoneNumber,
                     IsApproved = true,
+                    IsPhoneVerified = false,
                     ChurchId = church.Id
                 };
 
@@ -222,8 +230,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
                 await _unitOfWork.CommitAsync();
 
-                var claims = await BuildJwtClaims(user);
-                return GenerateToken(claims);
+                await _authOtpManager.SendPhoneVerificationAfterRegistrationAsync(phoneNumber);
+                return AuthFlowResultDto.RequiresVerification(phoneNumber);
             }
             catch
             {
@@ -231,7 +239,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 throw;
             }
         }
-        public async Task<string> RegisterMeetingAdminNewChurch(RegisterMeetingAdminNewChurchDTO registerMeetingAdminDTO,string webRootPath)
+        public async Task<AuthFlowResultDto> RegisterMeetingAdminNewChurch(RegisterMeetingAdminNewChurchDTO registerMeetingAdminDTO,string webRootPath)
         {
             if (registerMeetingAdminDTO == null)
                 throw new ValidationException(new Dictionary<string, string[]>
@@ -285,11 +293,13 @@ namespace SunDaySchools.BLL.Manager.Implementations
                // church.Meetings.Add(meeting); entity framwork alreadt do that 
 
                 // Create the user
+                var meetingPhone = registerMeetingAdminDTO.PhoneNumber.Trim().Replace(" ", "");
                 var user = new ApplicationUser
             {
                 UserName = registerMeetingAdminDTO.Name,
-                PhoneNumber = registerMeetingAdminDTO.PhoneNumber,
+                PhoneNumber = meetingPhone,
                 IsApproved = true,
+                IsPhoneVerified = false,
                 ChurchId = church.Id,
                 MeetingId = meeting.Id
 
@@ -353,8 +363,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
                 await _unitOfWork.CommitAsync();
 
-                var claims = await BuildJwtClaims(user);
-                return GenerateToken(claims);
+                await _authOtpManager.SendPhoneVerificationAfterRegistrationAsync(meetingPhone);
+                return AuthFlowResultDto.RequiresVerification(meetingPhone);
 
             }
             catch
@@ -364,7 +374,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             }
         }
     
-        public async Task<string> RegisterServant(RegisterServantDTO registerDto, string webRootPath)
+        public async Task<AuthFlowResultDto> RegisterServant(RegisterServantDTO registerDto, string webRootPath)
         {
             if (registerDto == null)
                 throw new ValidationException(new Dictionary<string, string[]>
@@ -401,11 +411,13 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
 
                 // Create user
+                var servantPhone = registerDto.PhoneNumber.Trim().Replace(" ", "");
                 var user = new ApplicationUser
             {
                 UserName = registerDto.Name,
-                PhoneNumber = registerDto.PhoneNumber,
+                PhoneNumber = servantPhone,
                 IsApproved = false,
+                IsPhoneVerified = false,
                 ChurchId = registerDto.ChurchId,
                 MeetingId= registerDto.MeetingId
 
@@ -460,8 +472,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
                 await _unitOfWork.CommitAsync();
 
-                var claims = await BuildJwtClaims(user);
-            return GenerateToken(claims);
+                await _authOtpManager.SendPhoneVerificationAfterRegistrationAsync(servantPhone);
+                return AuthFlowResultDto.RequiresVerification(servantPhone);
 
         }
             catch

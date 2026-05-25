@@ -5,6 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../l10n/app_localizations.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
+import '../../features/auth/screens/otp_verification_screen.dart';
+import '../../features/auth/screens/forgot_password_screen.dart';
+import '../../features/auth/screens/reset_password_screen.dart';
 import '../../features/auth/utils/auth_role_utils.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
 import '../../features/member/screens/members_list_screen.dart';
@@ -40,6 +43,9 @@ import '../../core/storage/token_storage.dart';
 class AppRoutes {
   static const login = '/login';
   static const register = '/register';
+  static const verifyPhone = '/verify-phone';
+  static const forgotPassword = '/forgot-password';
+  static const resetPassword = '/reset-password';
   static const dashboard = '/dashboard';
   static const superAdminHome = '/super-admin-home';
   static const adminHome = '/admin-home';
@@ -65,8 +71,12 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) async {
       final hasToken = await TokenStorage.hasToken();
 
-      final onAuthPage = state.matchedLocation == AppRoutes.login ||
-          state.matchedLocation == AppRoutes.register;
+      final loc = state.matchedLocation;
+      final onAuthPage = loc == AppRoutes.login ||
+          loc == AppRoutes.register ||
+          loc.startsWith(AppRoutes.verifyPhone) ||
+          loc == AppRoutes.forgotPassword ||
+          loc.startsWith(AppRoutes.resetPassword);
 
       if (!hasToken && !onAuthPage) {
         return AppRoutes.login;
@@ -87,6 +97,24 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(path: AppRoutes.login, builder: (_, __) => const LoginScreen()),
       GoRoute(path: AppRoutes.register, builder: (_, __) => const RegisterScreen()),
+      GoRoute(
+        path: AppRoutes.verifyPhone,
+        builder: (_, state) {
+          final phone = state.uri.queryParameters['phone'] ?? '';
+          return OtpVerificationScreen(phoneNumber: phone);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.forgotPassword,
+        builder: (_, __) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.resetPassword,
+        builder: (_, state) {
+          final phone = state.uri.queryParameters['phone'] ?? '';
+          return ResetPasswordScreen(phoneNumber: phone);
+        },
+      ),
       GoRoute(path: AppRoutes.dashboard, builder: (_, __) => const DashboardScreen()),
 
       GoRoute(

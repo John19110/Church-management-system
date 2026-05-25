@@ -37,6 +37,7 @@ namespace SunDaySchoolsDAL.DBcontext
         public DbSet<CustomFieldDefinition> CustomFieldDefinitions { get; set; }
         public DbSet<CustomFieldOption> CustomFieldOptions { get; set; }
         public DbSet<CustomFieldValue> CustomFieldValues { get; set; }
+        public DbSet<OtpVerification> OtpVerifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -122,6 +123,19 @@ namespace SunDaySchoolsDAL.DBcontext
             builder.Entity<Servant>()
                 .HasIndex(s => s.ApplicationUserId)
                 .IsUnique();
+
+            builder.Entity<OtpVerification>(entity =>
+            {
+                entity.ToTable("OtpVerifications");
+                entity.Property(o => o.PhoneNumber).HasMaxLength(32).IsRequired();
+                entity.Property(o => o.Code).HasMaxLength(128).IsRequired();
+                entity.Property(o => o.Purpose).HasConversion<int>();
+                entity.HasIndex(o => new { o.PhoneNumber, o.Purpose, o.CreatedAt });
+            });
+
+            builder.Entity<ApplicationUser>()
+                .Property(u => u.IsPhoneVerified)
+                .HasDefaultValue(true);
 
             // Exam relations
             builder.Entity<ExamResult>()

@@ -12,6 +12,7 @@ import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/error/app_exception.dart';
+import '../../../core/routing/app_router.dart';
 
 enum _RegisterType { servant, churchAdmin, meetingAdmin }
 
@@ -92,10 +93,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     }
     setState(() => _loading = true);
     try {
-      String? token;
+      AuthFlowResult result;
       switch (_selectedType) {
         case _RegisterType.servant:
-          token = await ref.read(authRepositoryProvider).registerServant(
+          result = await ref.read(authRepositoryProvider).registerServant(
             RegisterServantDto(
               name: _nameController.text.trim(),
               phoneNumber: _phoneController.text.trim(),
@@ -111,7 +112,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           break;
 
         case _RegisterType.churchAdmin:
-          token = await ref.read(authRepositoryProvider)
+          result = await ref.read(authRepositoryProvider)
               .registerChurchSuperAdmin(
             RegisterChurchSuperAdminDto(
               name: _nameController.text.trim(),
@@ -127,7 +128,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           break;
 
         case _RegisterType.meetingAdmin:
-          token = await ref.read(authRepositoryProvider).registerMeetingAdmin(
+          result = await ref.read(authRepositoryProvider).registerMeetingAdmin(
             RegisterMeetingAdminDto(
               name: _nameController.text.trim(),
               phoneNumber: _phoneController.text.trim(),
@@ -145,8 +146,26 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           break;
       }
 
-      final role =
-          token != null ? AuthRoleUtils.extractPrimaryRole(token) : null;
+      if (result.requiresPhoneVerification) {
+        if (mounted) {
+          final phone = result.phoneNumber ?? _phoneController.text.trim();
+          showSuccessSnackbar(
+            context,
+            result.message ?? 'Check WhatsApp for your verification code.',
+          );
+          context.go(
+            '${AppRoutes.verifyPhone}?phone=${Uri.encodeComponent(phone)}',
+          );
+        }
+        return;
+      }
+
+      final token = result.token;
+      if (token == null || token.isEmpty) {
+        throw Exception('Registration did not return a token.');
+      }
+
+      final role = AuthRoleUtils.extractPrimaryRole(token);
 
       if (role == 'superadmin') {
         await ref.read(meetingRepositoryProvider).getVisibleMeetings();
@@ -158,9 +177,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       ref.read(authStateProvider.notifier).state = true;
 
       if (mounted) {
-        context.go(
-          role == null ? '/dashboard' : AuthRoleUtils.routeForRole(role),
-        );
+        context.go(AuthRoleUtils.routeForRole(role));
       }
     } catch (e) {
       if (!mounted) return;

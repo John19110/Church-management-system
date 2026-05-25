@@ -88,6 +88,35 @@ namespace SunDaySchools.API.Middlewares
                 }
             }
 
+            if (exception is PhoneNotVerifiedException phoneEx)
+            {
+                var payload = new
+                {
+                    success = false,
+                    errorCode = "PHONE_NOT_VERIFIED",
+                    message = phoneEx.Message,
+                    requiresPhoneVerification = true,
+                    phoneNumber = phoneEx.PhoneNumber
+                };
+                var jsonPhone = JsonSerializer.Serialize(payload, _jsonOptions);
+                await context.Response.WriteAsync(jsonPhone);
+                return;
+            }
+
+            if (exception is OtpRateLimitException rateEx)
+            {
+                var payload = new
+                {
+                    success = false,
+                    errorCode = "OTP_RATE_LIMIT",
+                    message = rateEx.Message,
+                    retryAfterSeconds = rateEx.RetryAfterSeconds
+                };
+                var jsonRate = JsonSerializer.Serialize(payload, _jsonOptions);
+                await context.Response.WriteAsync(jsonRate);
+                return;
+            }
+
             var json = JsonSerializer.Serialize(response, _jsonOptions);
             await context.Response.WriteAsync(json);
         }
@@ -160,6 +189,13 @@ namespace SunDaySchools.API.Middlewares
                 ServantProfileMissingException => ((int)HttpStatusCode.Forbidden, "FORBIDDEN", "Forbidden"),
                 AccountNotApprovedException => ((int)HttpStatusCode.Forbidden, "FORBIDDEN", "Forbidden"),
                 ProfileNotCompletedException => ((int)HttpStatusCode.Forbidden, "FORBIDDEN", "Forbidden"),
+                PhoneNotVerifiedException phoneEx => (
+                    (int)HttpStatusCode.Forbidden,
+                    "PHONE_NOT_VERIFIED",
+                    phoneEx.Message),
+
+                InvalidOtpException otpEx => ((int)HttpStatusCode.BadRequest, "INVALID_OTP", otpEx.Message),
+                OtpRateLimitException rateEx => ((int)HttpStatusCode.TooManyRequests, "OTP_RATE_LIMIT", rateEx.Message),
 
                 NotFoundException notFound => ((int)HttpStatusCode.NotFound, "NOT_FOUND", notFound.Message),
 
