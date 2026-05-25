@@ -41,7 +41,7 @@ class ClassroomDetailScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit_note),
-            tooltip: 'Edit additional fields',
+            tooltip: l10n.editEntityFields,
             onPressed: () async {
               final updated = await context.push<bool>(
                 '/custom-fields/values/Classroom/$classroomId',
@@ -59,7 +59,7 @@ class ClassroomDetailScreen extends ConsumerWidget {
           if (role == 'admin' || role == 'superadmin')
             IconButton(
               icon: const Icon(Icons.tune),
-              tooltip: 'Manage custom fields',
+              tooltip: l10n.manageCustomFields,
               onPressed: () => context.push('/custom-fields/Classroom'),
             ),
         ],

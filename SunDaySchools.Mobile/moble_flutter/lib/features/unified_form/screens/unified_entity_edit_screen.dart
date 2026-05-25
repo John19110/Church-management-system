@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/app_localizations.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../models/unified_form_models.dart';
 import '../providers/unified_form_providers.dart';
@@ -40,6 +41,7 @@ class _UnifiedEntityEditScreenState extends ConsumerState<UnifiedEntityEditScree
 
   Future<void> _save(List<UnifiedFieldDefinitionDto> fields) async {
     if (!_formKey.currentState!.validate()) return;
+    final l10n = AppLocalizations.of(context);
     setState(() => _loading = true);
     try {
       await ref.read(unifiedFormRepositoryProvider).saveFormData(
@@ -51,7 +53,7 @@ class _UnifiedEntityEditScreenState extends ConsumerState<UnifiedEntityEditScree
         entityFormDataProvider((entity: widget.entityName, id: widget.entityId)),
       );
       if (mounted) {
-        showSuccessSnackbar(context, 'Saved');
+        showSuccessSnackbar(context, l10n.changesSaved);
         context.pop(true);
       }
     } catch (e) {
@@ -63,12 +65,18 @@ class _UnifiedEntityEditScreenState extends ConsumerState<UnifiedEntityEditScree
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final formAsync = ref.watch(
       entityFormDataProvider((entity: widget.entityName, id: widget.entityId)),
     );
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title ?? '${widget.entityName} fields')),
+      appBar: AppBar(
+        title: Text(
+          widget.title ??
+              l10n.customFieldsForEntity(widget.entityName),
+        ),
+      ),
       body: formAsync.when(
         loading: () => const LoadingWidget(),
         error: (e, _) => AppErrorWidget(message: e.toString()),
@@ -88,7 +96,7 @@ class _UnifiedEntityEditScreenState extends ConsumerState<UnifiedEntityEditScree
                     ? const Center(child: CircularProgressIndicator())
                     : FilledButton(
                         onPressed: () => _save(data.fields),
-                        child: const Text('Save'),
+                        child: Text(l10n.saveLabel),
                       ),
               ],
             ),

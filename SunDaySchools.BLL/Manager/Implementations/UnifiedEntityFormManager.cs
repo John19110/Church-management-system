@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.Extensions.Logging;
 using SunDaySchools.BLL.DTOS;
 using SunDaySchools.BLL.DTOS.ClsssroomDtos;
 using SunDaySchools.BLL.DTOS.CustomFields;
@@ -26,6 +27,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
         private readonly IMeetingManager _meetingManager;
         private readonly IMeetingRepository _meetingRepository;
         private readonly IMapper _mapper;
+        private readonly ILogger<UnifiedEntityFormManager> _logger;
 
         public UnifiedEntityFormManager(
             ICustomFieldRepository customFieldRepository,
@@ -38,7 +40,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
             IClassroomRepository classroomRepository,
             IMeetingManager meetingManager,
             IMeetingRepository meetingRepository,
-            IMapper mapper)
+            IMapper mapper,
+            ILogger<UnifiedEntityFormManager> logger)
         {
             _customFieldRepository = customFieldRepository;
             _customFieldManager = customFieldManager;
@@ -51,6 +54,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             _meetingManager = meetingManager;
             _meetingRepository = meetingRepository;
             _mapper = mapper;
+            _logger = logger;
         }
 
         public async Task<EntityFormSchemaDto> GetFormSchemaAsync(
@@ -159,10 +163,26 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     ["entityId"] = new[] { "Entity id must be positive." }
                 });
 
+            if (dto.Fields == null || dto.Fields.Count == 0)
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["fields"] = new[] { "At least one field must be provided." }
+                });
+            }
+
             var schema = await GetFormSchemaAsync(entityName, EntityFormMode.Edit);
             var fieldMap = schema.Fields.ToDictionary(f => f.FieldKey, StringComparer.OrdinalIgnoreCase);
-            var submitted = dto.Fields.ToDictionary(f => f.FieldKey, f => f.Value, StringComparer.OrdinalIgnoreCase);
+            var submitted = FormValueNormalizer.BuildSubmittedMap(
+                dto.Fields.Select(f => (f.FieldKey, f.Value)));
 
+            _logger.LogInformation(
+                "SaveFormData {Entity} id={EntityId} submittedKeys={Keys}",
+                entityName,
+                entityId,
+                string.Join(", ", submitted.Keys));
+
+            var validationErrors = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
             var builtInValues = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
             var customItems = new List<CustomFieldValueItemDto>();
 
@@ -170,14 +190,26 @@ namespace SunDaySchools.BLL.Manager.Implementations
             {
                 if (!fieldMap.TryGetValue(key, out var meta))
                 {
-                    throw new ValidationException(new Dictionary<string, string[]>
+                    _logger.LogWarning(
+                        "SaveFormData rejected unknown field key '{FieldKey}' for {Entity} id={EntityId}",
+                        key,
+                        entityName,
+                        entityId);
+                    validationErrors[key] = new[]
                     {
-                        [key] = new[] { "Unknown field." }
-                    });
+                        "Unknown field. Define it in custom field definitions or use a built-in field key from form-schema."
+                    };
+                    continue;
                 }
 
                 if (meta.IsReadOnly)
                     continue;
+
+                if (meta.IsRequired && string.IsNullOrWhiteSpace(value))
+                {
+                    validationErrors[key] = new[] { $"{meta.DisplayName} is required." };
+                    continue;
+                }
 
                 if (meta.IsBuiltIn)
                     builtInValues[key] = value;
@@ -189,16 +221,42 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     });
             }
 
-            await ApplyBuiltInValuesAsync(entityName, entityId, builtInValues);
-
-            if (customItems.Count > 0)
+            if (validationErrors.Count > 0)
             {
-                await _customFieldManager.SaveEntityValuesAsync(new SaveCustomFieldValuesDto
+                _logger.LogWarning(
+                    "SaveFormData validation failed for {Entity} id={EntityId}. Errors={@Errors}",
+                    entityName,
+                    entityId,
+                    validationErrors);
+                throw new ValidationException(validationErrors);
+            }
+
+            try
+            {
+                if (builtInValues.Count > 0)
+                    await ApplyBuiltInValuesAsync(entityName, entityId, builtInValues);
+
+                if (customItems.Count > 0)
                 {
-                    EntityName = entityName,
-                    EntityId = entityId,
-                    Values = customItems
-                });
+                    await _customFieldManager.SaveEntityValuesAsync(
+                        new SaveCustomFieldValuesDto
+                        {
+                            EntityName = entityName,
+                            EntityId = entityId,
+                            Values = customItems
+                        },
+                        requireAllRequiredFields: false);
+                }
+            }
+            catch (ValidationException ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "SaveFormData persistence validation failed for {Entity} id={EntityId}. Errors={@Errors}",
+                    entityName,
+                    entityId,
+                    ex.Errors);
+                throw;
             }
         }
 

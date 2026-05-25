@@ -34,7 +34,7 @@ class MeetingDetailScreen extends ConsumerWidget {
           if (meetingId != null)
             IconButton(
               icon: const Icon(Icons.edit_note),
-              tooltip: 'Edit additional fields',
+              tooltip: l10n.editEntityFields,
               onPressed: () => context.push(
                 '/custom-fields/values/Meeting/$meetingId',
               ),
@@ -42,7 +42,7 @@ class MeetingDetailScreen extends ConsumerWidget {
           if (role == 'admin' || role == 'superadmin')
             IconButton(
               icon: const Icon(Icons.tune),
-              tooltip: 'Manage custom fields',
+              tooltip: l10n.manageCustomFields,
               onPressed: () => context.push('/custom-fields/Meeting'),
             ),
         ],

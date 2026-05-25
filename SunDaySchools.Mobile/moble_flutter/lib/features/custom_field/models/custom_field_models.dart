@@ -134,7 +134,8 @@ class CustomFieldDefinitionReadDto {
 }
 
 class CustomFieldDefinitionCreateDto {
-  final String name;
+  /// Optional; server generates from [displayName] when omitted.
+  final String? name;
   final String displayName;
   final String? description;
   final String entityName;
@@ -150,7 +151,7 @@ class CustomFieldDefinitionCreateDto {
   final List<CustomFieldOptionDto>? options;
 
   const CustomFieldDefinitionCreateDto({
-    required this.name,
+    this.name,
     required this.displayName,
     this.description,
     required this.entityName,
@@ -167,7 +168,7 @@ class CustomFieldDefinitionCreateDto {
   });
 
   Map<String, dynamic> toJson() => {
-        'name': name,
+        if (name != null && name!.trim().isNotEmpty) 'name': name!.trim(),
         'displayName': displayName,
         if (description != null) 'description': description,
         'entityName': entityName,
