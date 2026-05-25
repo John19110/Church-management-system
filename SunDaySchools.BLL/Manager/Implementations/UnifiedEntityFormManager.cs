@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using SunDaySchools.BLL.DTOS;
 using SunDaySchools.BLL.DTOS.ClsssroomDtos;
@@ -28,6 +29,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
         private readonly IMeetingRepository _meetingRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<UnifiedEntityFormManager> _logger;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public UnifiedEntityFormManager(
             ICustomFieldRepository customFieldRepository,
@@ -41,7 +43,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
             IMeetingManager meetingManager,
             IMeetingRepository meetingRepository,
             IMapper mapper,
-            ILogger<UnifiedEntityFormManager> logger)
+            ILogger<UnifiedEntityFormManager> logger,
+            IHttpContextAccessor httpContextAccessor)
         {
             _customFieldRepository = customFieldRepository;
             _customFieldManager = customFieldManager;
@@ -55,6 +58,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             _meetingRepository = meetingRepository;
             _mapper = mapper;
             _logger = logger;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<EntityFormSchemaDto> GetFormSchemaAsync(
@@ -63,42 +67,46 @@ namespace SunDaySchools.BLL.Manager.Implementations
         {
             EnsureEntity(entityName);
 
-            var builtIn = EntityFormSchemaRegistry.GetBuiltInFields(entityName, mode);
-            var custom = await _customFieldRepository.GetDefinitionsByEntityAsync(entityName);
-
-            var fields = new List<UnifiedFieldDefinitionDto>(builtIn);
-            foreach (var def in custom.Where(d => !d.IsHidden))
+            try
             {
-                fields.Add(new UnifiedFieldDefinitionDto
-                {
-                    FieldKey = def.Name,
-                    DisplayName = def.DisplayName,
-                    Description = def.Description,
-                    DataType = def.DataType,
-                    IsRequired = def.IsRequired,
-                    IsBuiltIn = false,
-                    IsReadOnly = def.IsReadOnly,
-                    IsHidden = def.IsHidden,
-                    SortOrder = def.SortOrder + 1000,
-                    AllowMultipleValues = def.AllowMultipleValues,
-                    DefaultValue = def.DefaultValue,
-                    Placeholder = def.Placeholder,
-                    ValidationRegex = def.ValidationRegex,
-                    CustomFieldDefinitionId = def.Id,
-                    Options = def.Options.Select(o => new UnifiedFieldOptionDto
-                    {
-                        Value = o.Value,
-                        DisplayText = o.DisplayText,
-                        SortOrder = o.SortOrder
-                    }).ToList()
-                });
+                await EntityDefaultFieldProvisioner.EnsureDefaultsAsync(
+                    _customFieldRepository,
+                    entityName,
+                    _logger,
+                    _httpContextAccessor);
             }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "Default field provisioning failed for {Entity}; continuing with existing definitions.",
+                    entityName);
+            }
+
+            var custom = await _customFieldRepository.GetDefinitionsByEntityAsync(entityName)
+                ?? Array.Empty<CustomFieldDefinition>();
+
+            var fields = EntityFormSchemaRegistry.FilterForMode(
+                custom
+                    .Where(d => d.IsActive && !d.IsHidden)
+                    .Select(SafeToUnifiedField)
+                    .Where(f => f != null)
+                    .Cast<UnifiedFieldDefinitionDto>()
+                    .OrderBy(f => f.SortOrder)
+                    .ThenBy(f => f.DisplayName)
+                    .ToList(),
+                entityName,
+                mode).ToList();
 
             return new EntityFormSchemaDto
             {
                 EntityName = entityName,
                 FormMode = mode.ToString(),
-                Fields = fields.OrderBy(f => f.SortOrder).ThenBy(f => f.DisplayName).ToList()
+                Fields = fields,
+                ConfigurationHint = fields.Count == 0
+                    ? "No attributes configured yet. An admin can add fields or restore defaults under Manage custom fields."
+                    : null,
+                RecommendedSyncFieldKeys = EntityColumnSyncRegistry.GetRecommendedFieldKeys(entityName).ToList()
             };
         }
 
@@ -111,47 +119,99 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     ["entityId"] = new[] { "Entity id must be positive." }
                 });
 
-            var schema = await GetFormSchemaAsync(entityName, EntityFormMode.Edit);
-            var valuesByKey = await LoadBuiltInValuesAsync(entityName, entityId);
-            var customValues = await _customFieldRepository.GetValuesAsync(entityName, entityId);
-            var customByDefId = customValues.ToDictionary(v => v.CustomFieldDefinitionId, v => v.Value);
+            _logger.LogInformation(
+                "GetFormData starting for {Entity} id={EntityId}",
+                entityName,
+                entityId);
 
-            var fields = schema.Fields.Select(def =>
+            try
             {
-                var field = new UnifiedFieldDto
+                var schema = await GetFormSchemaAsync(entityName, EntityFormMode.Edit);
+                var activeDefIds = schema.Fields
+                    .Where(f => f.CustomFieldDefinitionId.HasValue)
+                    .Select(f => f.CustomFieldDefinitionId!.Value)
+                    .ToHashSet();
+
+                var customValues = await _customFieldRepository.GetValuesAsync(entityName, entityId);
+                var customByDefId = FormCustomValuesLookup.FromValues(
+                    customValues.Where(v => activeDefIds.Contains(v.CustomFieldDefinitionId)));
+
+                IReadOnlyDictionary<string, string?> builtInValues;
+                try
                 {
-                    FieldKey = def.FieldKey,
-                    DisplayName = def.DisplayName,
-                    Description = def.Description,
-                    DataType = def.DataType,
-                    IsRequired = def.IsRequired,
-                    IsBuiltIn = def.IsBuiltIn,
-                    IsReadOnly = def.IsReadOnly,
-                    IsHidden = def.IsHidden,
-                    SortOrder = def.SortOrder,
-                    AllowMultipleValues = def.AllowMultipleValues,
-                    DefaultValue = def.DefaultValue,
-                    Placeholder = def.Placeholder,
-                    ValidationRegex = def.ValidationRegex,
-                    LookupEndpoint = def.LookupEndpoint,
-                    CustomFieldDefinitionId = def.CustomFieldDefinitionId,
-                    Options = def.Options
+                    builtInValues = await LoadBuiltInValuesAsync(entityName, entityId);
+                }
+                catch (NotFoundException)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(
+                        ex,
+                        "Built-in SQL values unavailable for {Entity} id={EntityId}; returning custom fields only.",
+                        entityName,
+                        entityId);
+                    builtInValues = new Dictionary<string, string?>();
+                }
+
+                var fields = schema.Fields.Select(def =>
+                {
+                    string? value = null;
+                    if (def.CustomFieldDefinitionId is int defId)
+                        customByDefId.TryGetValue(defId, out value);
+
+                    if (string.IsNullOrWhiteSpace(value)
+                        && builtInValues.TryGetValue(def.FieldKey, out var sqlValue))
+                    {
+                        value = sqlValue;
+                    }
+
+                    return new UnifiedFieldDto
+                    {
+                        FieldKey = def.FieldKey,
+                        DisplayName = def.DisplayName,
+                        Description = def.Description,
+                        DataType = def.DataType,
+                        IsRequired = def.IsRequired,
+                        IsBuiltIn = def.IsBuiltIn,
+                        IsReadOnly = def.IsReadOnly,
+                        IsHidden = def.IsHidden,
+                        SortOrder = def.SortOrder,
+                        AllowMultipleValues = def.AllowMultipleValues,
+                        DefaultValue = def.DefaultValue,
+                        Placeholder = def.Placeholder,
+                        ValidationRegex = def.ValidationRegex,
+                        LookupEndpoint = def.LookupEndpoint,
+                        CustomFieldDefinitionId = def.CustomFieldDefinitionId,
+                        Options = def.Options ?? new List<UnifiedFieldOptionDto>(),
+                        Value = value
+                    };
+                }).Where(f => !f.IsHidden).ToList();
+
+                _logger.LogInformation(
+                    "GetFormData completed for {Entity} id={EntityId} fieldCount={Count}",
+                    entityName,
+                    entityId,
+                    fields.Count);
+
+                return new EntityFormDataDto
+                {
+                    EntityName = entityName,
+                    EntityId = entityId,
+                    Fields = fields
                 };
-
-                if (def.IsBuiltIn)
-                    field.Value = valuesByKey.GetValueOrDefault(def.FieldKey);
-                else if (def.CustomFieldDefinitionId.HasValue)
-                    field.Value = customByDefId.GetValueOrDefault(def.CustomFieldDefinitionId.Value);
-
-                return field;
-            }).Where(f => !f.IsHidden).ToList();
-
-            return new EntityFormDataDto
+            }
+            catch (Exception ex)
             {
-                EntityName = entityName,
-                EntityId = entityId,
-                Fields = fields
-            };
+                _logger.LogError(
+                    ex,
+                    "GetFormData failed for {Entity} id={EntityId}. Message={Message}",
+                    entityName,
+                    entityId,
+                    ex.Message);
+                throw;
+            }
         }
 
         public async Task SaveFormDataAsync(string entityName, int entityId, SaveEntityFormDto dto)
@@ -183,8 +243,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 string.Join(", ", submitted.Keys));
 
             var validationErrors = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
-            var builtInValues = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
             var customItems = new List<CustomFieldValueItemDto>();
+            var columnSyncValues = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var (key, value) in submitted)
             {
@@ -197,7 +257,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                         entityId);
                     validationErrors[key] = new[]
                     {
-                        "Unknown field. Define it in custom field definitions or use a built-in field key from form-schema."
+                        "Unknown field. Add it under Custom Fields for this entity type first."
                     };
                     continue;
                 }
@@ -211,14 +271,17 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     continue;
                 }
 
-                if (meta.IsBuiltIn)
-                    builtInValues[key] = value;
-                else if (meta.CustomFieldDefinitionId.HasValue)
+                if (meta.CustomFieldDefinitionId.HasValue)
+                {
                     customItems.Add(new CustomFieldValueItemDto
                     {
                         CustomFieldDefinitionId = meta.CustomFieldDefinitionId.Value,
                         Value = value
                     });
+
+                    if (EntityColumnSyncRegistry.CanSyncToEntityTable(entityName, key))
+                        columnSyncValues[key] = value;
+                }
             }
 
             if (validationErrors.Count > 0)
@@ -233,9 +296,6 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             try
             {
-                if (builtInValues.Count > 0)
-                    await ApplyBuiltInValuesAsync(entityName, entityId, builtInValues);
-
                 if (customItems.Count > 0)
                 {
                     await _customFieldManager.SaveEntityValuesAsync(
@@ -247,6 +307,9 @@ namespace SunDaySchools.BLL.Manager.Implementations
                         },
                         requireAllRequiredFields: false);
                 }
+
+                if (columnSyncValues.Count > 0)
+                    await ApplyBuiltInValuesAsync(entityName, entityId, columnSyncValues);
             }
             catch (ValidationException ex)
             {
@@ -260,7 +323,67 @@ namespace SunDaySchools.BLL.Manager.Implementations
             }
         }
 
-        private async Task<Dictionary<string, string?>> LoadBuiltInValuesAsync(string entityName, int entityId)
+        public async Task<int> CreateEntityWithFormDataAsync(
+            string entityName,
+            SaveEntityFormDto dto,
+            int? classroomIdForMember = null)
+        {
+            EnsureEntity(entityName);
+
+            var entityId = entityName switch
+            {
+                CustomFieldEntityNames.Member => await CreateMemberShellAsync(dto, classroomIdForMember),
+                CustomFieldEntityNames.Classroom => await CreateClassroomShellAsync(dto),
+                _ => throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["entityName"] = new[] { $"Create-from-form is not supported for '{entityName}'." }
+                })
+            };
+
+            await SaveFormDataAsync(entityName, entityId, dto);
+            return entityId;
+        }
+
+        private async Task<int> CreateMemberShellAsync(SaveEntityFormDto dto, int? classroomId)
+        {
+            if (!classroomId.HasValue || classroomId.Value <= 0)
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["classroomId"] = new[] { "Classroom is required to create a member." }
+                });
+            }
+
+            var displayName = ExtractFirstTextValue(dto) ?? "Member";
+            var addDto = new MemberAddDTO { Name1 = displayName };
+            return await _memberManager.AddAsync(addDto, classroomId.Value);
+        }
+
+        private async Task<int> CreateClassroomShellAsync(SaveEntityFormDto dto)
+        {
+            var name = ExtractFirstTextValue(dto) ?? "Classroom";
+            var addDto = new ClassroomAddDTO
+            {
+                Name = name,
+                AgeOfMembers = "-"
+            };
+
+            return await _classroomManager.AddAsync(addDto);
+        }
+
+        private static string? ExtractFirstTextValue(SaveEntityFormDto dto)
+        {
+            foreach (var item in dto.Fields)
+            {
+                if (!string.IsNullOrWhiteSpace(item.Value))
+                    return item.Value!.Trim();
+            }
+            return null;
+        }
+
+        private async Task<IReadOnlyDictionary<string, string?>> LoadBuiltInValuesAsync(
+            string entityName,
+            int entityId)
         {
             return entityName switch
             {
@@ -272,39 +395,10 @@ namespace SunDaySchools.BLL.Manager.Implementations
             };
         }
 
-        private async Task<Dictionary<string, string?>> LoadMemberValuesAsync(int id)
-        {
-            var m = await _memberRepository.GetByIdAsync(id)
-                ?? throw new NotFoundException($"Member with id {id} not found.");
+        private Task<IReadOnlyDictionary<string, string?>> LoadMemberValuesAsync(int id) =>
+            MemberFormBuiltInValuesLoader.LoadAsync(_memberRepository, id);
 
-            return new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
-            {
-                ["name1"] = m.Name1,
-                ["name2"] = m.Name2,
-                ["name3"] = m.Name3,
-                ["gender"] = m.Gender,
-                ["address"] = m.Address,
-                ["dateOfBirth"] = m.DateOfBirth.ToString("yyyy-MM-dd"),
-                ["joiningDate"] = m.JoiningDate.ToString("yyyy-MM-dd"),
-                ["spiritualDateOfBirth"] = m.SpiritualDateOfBirth?.ToString("yyyy-MM-dd"),
-                ["lastAttendanceDate"] = m.LastAttendanceDate.ToString("yyyy-MM-dd"),
-                ["isDiscipline"] = m.IsDiscipline.ToString().ToLowerInvariant(),
-                ["totalNumberOfDaysAttended"] = m.TotalNumberOfDaysAttended.ToString(),
-                ["haveBrothers"] = (m.HaveBrothers ?? false).ToString().ToLowerInvariant(),
-                ["brothersNames"] = EntityFormValueSerializer.ToJson(m.BrothersNames),
-                ["notes"] = EntityFormValueSerializer.ToJson(m.Notes),
-                ["phoneNumbers"] = EntityFormValueSerializer.ToJson(
-                    m.PhoneNumbers?.Select(p => new MemberContactDTO
-                    {
-                        Relation = p.Relation,
-                        PhoneNumber = p.PhoneNumber
-                    }).ToList()),
-                ["classroomId"] = m.ClassroomId?.ToString(),
-                ["imageUrl"] = m.ImageUrl
-            };
-        }
-
-        private async Task<Dictionary<string, string?>> LoadClassroomValuesAsync(int id)
+        private async Task<IReadOnlyDictionary<string, string?>> LoadClassroomValuesAsync(int id)
         {
             var c = await _classroomRepository.GetByIdAsync(id)
                 ?? throw new NotFoundException($"Classroom with id {id} not found.");
@@ -317,7 +411,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             };
         }
 
-        private async Task<Dictionary<string, string?>> LoadServantValuesAsync(int id)
+        private async Task<IReadOnlyDictionary<string, string?>> LoadServantValuesAsync(int id)
         {
             var s = await _servantRepository.GetByIdAsync(id)
                 ?? throw new NotFoundException($"Servant with id {id} not found.");
@@ -333,7 +427,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             };
         }
 
-        private async Task<Dictionary<string, string?>> LoadMeetingValuesAsync(int id)
+        private async Task<IReadOnlyDictionary<string, string?>> LoadMeetingValuesAsync(int id)
         {
             var m = await _meetingRepository.GetByIdAsync(id)
                 ?? throw new NotFoundException($"Meeting with id {id} not found.");
@@ -426,6 +520,23 @@ namespace SunDaySchools.BLL.Manager.Implementations
             if (values.TryGetValue("leaderServantId", out v)) update.LeaderServantId = EntityFormValueSerializer.ParseInt(v);
 
             await _meetingManager.UpdateMeeting(id, update);
+        }
+
+        private UnifiedFieldDefinitionDto? SafeToUnifiedField(CustomFieldDefinition def)
+        {
+            try
+            {
+                return CustomFieldDefinitionMapper.ToUnifiedField(def);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "Skipping invalid custom field definition id={DefinitionId} name={Name}",
+                    def.Id,
+                    def.Name);
+                return null;
+            }
         }
 
         private static void EnsureEntity(string entityName)
