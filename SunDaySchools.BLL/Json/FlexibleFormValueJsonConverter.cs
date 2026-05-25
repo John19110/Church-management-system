@@ -11,24 +11,32 @@ namespace SunDaySchools.BLL.Json
     {
         public override string? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            return reader.TokenType switch
+            switch (reader.TokenType)
             {
-                JsonTokenType.Null => null,
-                JsonTokenType.String => reader.GetString(),
-                JsonTokenType.Number when reader.TryGetInt64(out var l) =>
-                    l.ToString(CultureInfo.InvariantCulture),
-                JsonTokenType.Number when reader.TryGetDecimal(out var d) =>
-                    d.ToString(CultureInfo.InvariantCulture),
-                JsonTokenType.True => "true",
-                JsonTokenType.False => "false",
-                JsonTokenType.StartObject or JsonTokenType.StartArray =>
-                {
-                    using var doc = JsonDocument.ParseValue(ref reader);
-                    return doc.RootElement.GetRawText();
-                },
-                _ => throw new JsonException(
-                    $"Unsupported JSON token '{reader.TokenType}' for form field value.")
-            };
+                case JsonTokenType.Null:
+                    return null;
+                case JsonTokenType.String:
+                    return reader.GetString();
+                case JsonTokenType.Number:
+                    if (reader.TryGetInt64(out var l))
+                        return l.ToString(CultureInfo.InvariantCulture);
+                    if (reader.TryGetDecimal(out var d))
+                        return d.ToString(CultureInfo.InvariantCulture);
+                    return reader.GetDouble().ToString(CultureInfo.InvariantCulture);
+                case JsonTokenType.True:
+                    return "true";
+                case JsonTokenType.False:
+                    return "false";
+                case JsonTokenType.StartObject:
+                case JsonTokenType.StartArray:
+                    using (var doc = JsonDocument.ParseValue(ref reader))
+                    {
+                        return doc.RootElement.GetRawText();
+                    }
+                default:
+                    throw new JsonException(
+                        $"Unsupported JSON token '{reader.TokenType}' for form field value.");
+            }
         }
 
         public override void Write(Utf8JsonWriter writer, string? value, JsonSerializerOptions options)

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
+import '../../custom_field/providers/custom_field_cache_providers.dart';
+import '../../unified_form/models/unified_form_models.dart';
 import '../providers/servants_providers.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
@@ -34,7 +36,15 @@ class ServantsListScreen extends ConsumerWidget {
               IconButton(
                 icon: const Icon(Icons.tune),
                 tooltip: l10n.manageCustomFields,
-                onPressed: () => context.push('/custom-fields/Servant'),
+                onPressed: () async {
+                  await context.push('/custom-fields/Servant');
+                  if (context.mounted) {
+                    refreshEntityFormsAfterDefinitionChange(
+                      ref,
+                      UnifiedEntityNames.servant,
+                    );
+                  }
+                },
               ),
           ],
         ),

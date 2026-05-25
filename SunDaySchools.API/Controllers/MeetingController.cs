@@ -76,6 +76,8 @@ namespace SunDaySchools.API.Controllers
         public async Task<IActionResult> SaveFormData(int id, [FromBody] SaveEntityFormDto request)
         {
             if (id <= 0) return BadRequest("Meeting id must be a positive integer.");
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
             if (request == null)
                 throw new ValidationException(new Dictionary<string, string[]>
                 {

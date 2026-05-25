@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../auth/providers/auth_providers.dart';
+import '../../custom_field/providers/custom_field_revision_provider.dart';
 import '../models/unified_form_models.dart';
 import '../repositories/unified_form_repository.dart';
 
@@ -12,6 +13,7 @@ final entityFormSchemaProvider =
     FutureProvider.family<EntityFormSchemaDto, ({String entity, String mode})>(
   (ref, params) async {
     ref.watch(authSessionEpochProvider);
+    ref.watch(customFieldDefinitionsRevisionProvider(params.entity));
     return ref.read(unifiedFormRepositoryProvider).getFormSchema(
           params.entity,
           mode: params.mode,
@@ -23,6 +25,7 @@ final entityFormDataProvider =
     FutureProvider.family<EntityFormDataDto, ({String entity, int id})>(
   (ref, params) async {
     ref.watch(authSessionEpochProvider);
+    ref.watch(customFieldDefinitionsRevisionProvider(params.entity));
     return ref.read(unifiedFormRepositoryProvider).getFormData(
           params.entity,
           params.id,

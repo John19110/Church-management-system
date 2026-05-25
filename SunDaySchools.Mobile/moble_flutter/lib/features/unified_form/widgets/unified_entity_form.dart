@@ -68,7 +68,7 @@ class UnifiedEntityDetailFields extends StatelessWidget {
     if (visible.isEmpty) return const SizedBox.shrink();
 
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
