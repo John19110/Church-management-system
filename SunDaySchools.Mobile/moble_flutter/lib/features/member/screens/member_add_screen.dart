@@ -3,9 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
-
 import '../../auth/providers/auth_providers.dart';
+import '../../unified_form/widgets/unified_entity_photo_picker.dart';
 import '../../auth/utils/auth_role_utils.dart';
 import '../../classroom/providers/classroom_providers.dart';
 import '../../custom_field/providers/custom_field_cache_providers.dart';
@@ -49,8 +48,8 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen>
   }
 
   Future<void> _pickImage() async {
-    final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (picked != null) setState(() => _image = File(picked.path));
+    final file = await pickUnifiedEntityPhoto();
+    if (file != null) setState(() => _image = file);
   }
 
   Future<void> _submit(List<UnifiedFieldDefinitionDto> fields) async {
@@ -182,20 +181,10 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen>
                         },
                       ),
                     if (needsClassroomPicker) const SizedBox(height: 16),
-                    GestureDetector(
-                      onTap: _pickImage,
-                      child: Center(
-                        child: CircleAvatar(
-                          radius: 48,
-                          backgroundColor:
-                              Theme.of(context).colorScheme.surfaceContainerHighest,
-                          backgroundImage:
-                              _image != null ? FileImage(_image!) : null,
-                          child: _image == null
-                              ? const Icon(Icons.camera_alt, size: 36)
-                              : null,
-                        ),
-                      ),
+                    UnifiedEntityPhotoPicker(
+                      fields: const [],
+                      pickedFile: _image,
+                      onPick: _pickImage,
                     ),
                     const SizedBox(height: 16),
                     UnifiedEntityForm(

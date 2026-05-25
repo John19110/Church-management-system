@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/unified_form_models.dart';
 import '../utils/unified_form_controller.dart';
+import '../utils/unified_form_field_utils.dart';
 import 'entity_fields_empty_state.dart';
 import 'unified_form_field_widget.dart';
 
@@ -16,6 +17,8 @@ class UnifiedEntityForm extends ConsumerStatefulWidget {
   final String? entityName;
   final String? configurationHint;
   final bool canManageDefinitions;
+  /// Keys rendered outside the form (e.g. photo picker for `imageUrl`).
+  final Set<String> excludeFieldKeys;
 
   const UnifiedEntityForm({
     super.key,
@@ -27,6 +30,7 @@ class UnifiedEntityForm extends ConsumerStatefulWidget {
     this.entityName,
     this.configurationHint,
     this.canManageDefinitions = false,
+    this.excludeFieldKeys = kUnifiedPhotoFieldKeys,
   });
 
   @override
@@ -36,8 +40,10 @@ class UnifiedEntityForm extends ConsumerStatefulWidget {
 class _UnifiedEntityFormState extends ConsumerState<UnifiedEntityForm> {
   @override
   Widget build(BuildContext context) {
-    final visible = widget.fields.where((f) => !f.isHidden).toList()
-      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+    final visible = visibleUnifiedFields(
+      widget.fields,
+      excludeFieldKeys: widget.excludeFieldKeys,
+    );
 
     if (visible.isEmpty && widget.entityName != null) {
       return Column(
@@ -76,14 +82,16 @@ class _UnifiedEntityFormState extends ConsumerState<UnifiedEntityForm> {
 
 /// Read-only detail rows from the same unified field list.
 class UnifiedEntityDetailFields extends StatelessWidget {
-  final List<UnifiedFieldDto> fields;
+  final List<UnifiedFieldDto> fields; // built-in + custom values from form-data API
 
   const UnifiedEntityDetailFields({super.key, required this.fields});
 
   @override
   Widget build(BuildContext context) {
-    final visible = fields.where((f) => !f.isHidden).toList()
-      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+    final visible = visibleUnifiedFields(
+      fields,
+      excludeFieldKeys: kUnifiedPhotoFieldKeys,
+    );
 
     if (visible.isEmpty) return const SizedBox.shrink();
 
@@ -93,18 +101,16 @@ class UnifiedEntityDetailFields extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Details', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            ...visible.map(
-              (f) => ListTile(
-                dense: true,
-                contentPadding: EdgeInsets.zero,
-                title: Text(f.displayName),
-                subtitle: Text(_formatValue(f, context)),
-              ),
-            ),
-          ],
+          children: visible
+              .map(
+                (f) => ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(f.displayName),
+                  subtitle: Text(_formatValue(f, context)),
+                ),
+              )
+              .toList(),
         ),
       ),
     );

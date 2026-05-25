@@ -11,6 +11,7 @@ import '../../auth/utils/auth_role_utils.dart';
 import '../../unified_form/models/unified_form_models.dart';
 import '../../custom_field/providers/custom_field_cache_providers.dart';
 import '../../unified_form/providers/unified_form_providers.dart';
+import '../../unified_form/utils/unified_form_field_utils.dart';
 import '../../unified_form/widgets/entity_fields_empty_state.dart';
 import '../../unified_form/widgets/unified_entity_form.dart';
 
@@ -48,12 +49,21 @@ class ClassroomDetailScreen extends ConsumerWidget {
       await ref.read(membersByClassroomProvider(classroomId).future);
     }
 
+    final appBarTitle = formAsync.maybeWhen(
+      data: (form) {
+        final title =
+            unifiedDisplayTitle(UnifiedEntityNames.classroom, form.fields);
+        return title == '—' ? (classroom.name ?? l10n.classroom) : title;
+      },
+      orElse: () => classroom.name ?? l10n.classroom,
+    );
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(classroom.name ?? l10n.classroom),
+        title: Text(appBarTitle),
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit_note),
+            icon: const Icon(Icons.edit),
             tooltip: l10n.editEntityFields,
             onPressed: () async {
               final updated = await context.push<bool>(
@@ -107,38 +117,11 @@ class ClassroomDetailScreen extends ConsumerWidget {
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            l10n.ageGroupLabel.replaceAll(
-                              '{age}',
-                              classroom.ageOfMembers ?? '—',
+                      child: Text(
+                        '${classroom.totalMembersCount ?? 0} ${l10n.members}',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
-                            style: Theme.of(context).textTheme.titleSmall,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${classroom.totalMembersCount ?? 0} ${l10n.members} · '
-                            '${l10n.pastAttendanceSessions.replaceAll(
-                              '{count}',
-                              (classroom.pastAttendanceSessionsCount ?? 0).toString(),
-                            )}',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                ),
-                          ),
-                          if (classroom.servantNames.isNotEmpty) ...[
-                            const SizedBox(height: 8),
-                            Text(
-                              l10n.servantsLabel.replaceAll(
-                                '{names}',
-                                classroom.servantNames.join(', '),
-                              ),
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ],
-                        ],
                       ),
                     ),
                   ),

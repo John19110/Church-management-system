@@ -3,12 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
-
 import '../providers/servants_providers.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../../core/l10n/app_localizations.dart';
-import '../../../shared/widgets/app_network_avatar.dart';
+import '../../unified_form/widgets/unified_entity_photo_picker.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
 import '../../custom_field/providers/custom_field_cache_providers.dart';
@@ -40,8 +38,8 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen>
   }
 
   Future<void> _pickImage() async {
-    final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (picked != null) setState(() => _image = File(picked.path));
+    final file = await pickUnifiedEntityPhoto();
+    if (file != null) setState(() => _image = file);
   }
 
   Future<void> _submit(List<UnifiedFieldDefinitionDto> fields) async {
@@ -138,30 +136,15 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen>
                 withValues: formData.fields,
               );
 
-              final imageUrl = formData.fields
-                  .where((f) => f.fieldKey == 'imageUrl')
-                  .map((f) => f.value)
-                  .firstOrNull;
-
               return Form(
                 key: _formKey,
                 child: ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
-                    GestureDetector(
-                      onTap: _pickImage,
-                      child: Center(
-                        child: _image != null
-                            ? CircleAvatar(
-                                radius: 48,
-                                backgroundImage: FileImage(_image!),
-                              )
-                            : AppNetworkAvatar(
-                                imageUrl: imageUrl,
-                                radius: 48,
-                                placeholder: const Icon(Icons.camera_alt, size: 36),
-                              ),
-                      ),
+                    UnifiedEntityPhotoPicker(
+                      fields: formData.fields,
+                      pickedFile: _image,
+                      onPick: _pickImage,
                     ),
                     const SizedBox(height: 16),
                     UnifiedEntityForm(

@@ -10,8 +10,12 @@ import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
+import '../../unified_form/models/unified_form_models.dart';
+import '../../unified_form/providers/unified_form_providers.dart';
+import '../../unified_form/widgets/entity_fields_empty_state.dart';
+import '../../unified_form/widgets/unified_entity_detail_header.dart';
+import '../../unified_form/widgets/unified_entity_form.dart';
 import '../providers/servants_providers.dart';
-import '../../../shared/widgets/app_network_avatar.dart';
 
 class ProfileScreen extends ConsumerWidget {
   final bool showAppBar;
@@ -41,43 +45,63 @@ class ProfileScreen extends ConsumerWidget {
           message: e.toString(),
           onRetry: () => ref.invalidate(servantProfileProvider),
         ),
-        data: (p) {
-          final church = p.church?.name ?? '-';
-          final meeting = p.meeting?.name ?? '-';
-          final classrooms = p.classrooms.isEmpty
-              ? '-'
-              : p.classrooms.map((c) => c.name ?? '#${c.id}').join(', ');
+        data: (profile) {
+          if (profile.id <= 0) {
+            return cw.AppErrorWidget(message: l10n.failedToLoadProfile);
+          }
+
+          final formAsync = ref.watch(
+            entityFormDataProvider((
+              entity: UnifiedEntityNames.servant,
+              id: profile.id,
+            )),
+          );
 
           return RefreshIndicator(
-            onRefresh: () async => ref.invalidate(servantProfileProvider),
+            onRefresh: () async {
+              ref.invalidate(servantProfileProvider);
+              ref.invalidate(
+                entityFormDataProvider((
+                  entity: UnifiedEntityNames.servant,
+                  id: profile.id,
+                )),
+              );
+            },
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                Center(
-                  child: AppNetworkAvatar(
-                    imageUrl: p.imageUrl,
-                    radius: 56,
-                    backgroundColor: const Color(0xFFED8936),
-                    placeholder: Text(
-                      (p.name?.isNotEmpty == true) ? p.name![0].toUpperCase() : '?',
-                      style: const TextStyle(
-                        fontSize: 32,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
+                formAsync.when(
+                  loading: () => const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24),
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                  error: (e, _) => cw.AppErrorWidget(
+                    message: e.toString(),
+                    onRetry: () => ref.invalidate(
+                      entityFormDataProvider((
+                        entity: UnifiedEntityNames.servant,
+                        id: profile.id,
+                      )),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                Center(
-                  child: Text(
-                    p.name ?? '-',
-                    style: Theme.of(context).textTheme.titleLarge,
-                    textAlign: TextAlign.center,
+                  data: (formData) => Column(
+                    children: [
+                      UnifiedEntityDetailHeader(
+                        entityName: UnifiedEntityNames.servant,
+                        fields: formData.fields,
+                        avatarRadius: 56,
+                      ),
+                      const SizedBox(height: 16),
+                      if (formData.fields.isEmpty)
+                        EntityFieldsEmptyState(
+                          entityName: UnifiedEntityNames.servant,
+                          canManageDefinitions: false,
+                        )
+                      else
+                        UnifiedEntityDetailFields(fields: formData.fields),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 4),
-                Center(child: Text(p.phoneNumber ?? '-')),
                 const SizedBox(height: 16),
                 Card(
                   child: Column(
@@ -107,58 +131,16 @@ class ProfileScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                Card(
-                  child: Column(
-                    children: [
-                      ListTile(
-                        leading: const Icon(Icons.church_outlined),
-                        title: Text(l10n.churchName),
-                        subtitle: Text(church),
-                      ),
-                      const Divider(height: 0),
-                      ListTile(
-                        leading: const Icon(Icons.groups_outlined),
-                        title: Text(l10n.meetingName),
-                        subtitle: Text(meeting),
-                      ),
-                      const Divider(height: 0),
-                      ListTile(
-                        leading: const Icon(Icons.class_outlined),
-                        title: Text(l10n.classrooms),
-                        subtitle: Text(classrooms),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Card(
-                  child: Column(
-                    children: [
-                      ListTile(
-                        leading: const Icon(Icons.cake_outlined),
-                        title: Text(l10n.birthDate),
-                        subtitle: Text(p.birthDate ?? '-'),
-                      ),
-                      const Divider(height: 0),
-                      ListTile(
-                        leading: const Icon(Icons.event_available_outlined),
-                        title: Text(l10n.joiningDate),
-                        subtitle: Text(p.joiningDate ?? '-'),
-                      ),
-                      const Divider(height: 0),
-                      ListTile(
-                        leading: const Icon(Icons.auto_awesome_outlined),
-                        title: Text(l10n.spiritualDateOfBirth),
-                        subtitle: Text(p.spiritualBirthDate ?? '-'),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
                 ElevatedButton.icon(
                   onPressed: () async {
                     await context.push(AppRoutes.profileEdit);
                     ref.invalidate(servantProfileProvider);
+                    ref.invalidate(
+                      entityFormDataProvider((
+                        entity: UnifiedEntityNames.servant,
+                        id: profile.id,
+                      )),
+                    );
                   },
                   icon: const Icon(Icons.edit),
                   label: Text(l10n.editProfile),
@@ -171,4 +153,3 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 }
-
