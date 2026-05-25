@@ -49,6 +49,14 @@ namespace SunDaySchools.BLL.DTOS.UnifiedForms
         public string EntityName { get; set; } = string.Empty;
         public string FormMode { get; set; } = "Edit";
         public List<UnifiedFieldDefinitionDto> Fields { get; set; } = new();
+
+        /// <summary>Shown when no admin-defined fields exist yet.</summary>
+        public string? ConfigurationHint { get; set; }
+
+        /// <summary>
+        /// Optional internal keys that also update legacy SQL columns when used as custom field names.
+        /// </summary>
+        public List<string> RecommendedSyncFieldKeys { get; set; } = new();
     }
 
     public class EntityFormDataDto

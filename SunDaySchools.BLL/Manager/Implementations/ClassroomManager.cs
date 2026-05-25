@@ -132,7 +132,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             }).ToList();
         }
 
-        public async Task AddAsync(ClassroomAddDTO dto)
+        public async Task<int> AddAsync(ClassroomAddDTO dto)
         {
             var user = _httpContextAccessor.HttpContext?.User;
             if (user == null)
@@ -227,6 +227,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             await _classroomRepository.AddAsync(model);
             await _classroomRepository.SaveAsync();
+            return model.Id;
         }
 
         public async Task UpdateAsync(int id, ClassroomUpdateDTO dto, bool generateDefaults = false)

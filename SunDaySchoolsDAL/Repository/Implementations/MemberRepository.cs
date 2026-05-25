@@ -40,6 +40,29 @@ namespace SunDaySchools.DAL.Repository.Implementations
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
 
+        public async Task<Member?> GetByIdForFormAsync(int id)
+        {
+            if (id <= 0)
+                return null;
+
+            return await _context.Members
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == id);
+        }
+
+        public async Task<IReadOnlyList<(string? Relation, string? PhoneNumber)>> GetContactPhonesForFormAsync(
+            int memberId)
+        {
+            if (memberId <= 0)
+                return Array.Empty<(string?, string?)>();
+
+            return await _context.MemberContacts
+                .AsNoTracking()
+                .Where(mc => mc.MemberId == memberId)
+                .Select(mc => new ValueTuple<string?, string?>(mc.Relation, mc.PhoneNumber))
+                .ToListAsync();
+        }
+
         public async Task<List<Member>> GetByIdsAsync(List<int> ids)
         {
             return await _context.Members

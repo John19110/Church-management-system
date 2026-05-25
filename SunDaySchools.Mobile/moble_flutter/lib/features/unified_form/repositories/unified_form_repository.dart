@@ -60,4 +60,24 @@ class UnifiedFormRepository {
       );
     });
   }
+
+  /// Creates entity from admin-defined fields only; returns new entity id.
+  Future<int> createFromForm(
+    String entityName,
+    SaveEntityFormDto dto, {
+    int? classroomIdForMember,
+  }) async {
+    return apiCall(() async {
+      final response = await _dio.post(
+        '${_entityBase(entityName)}/create-from-form',
+        data: dto.toJson(),
+        queryParameters: classroomIdForMember != null
+            ? {'classroomId': classroomIdForMember}
+            : null,
+        options: Options(contentType: Headers.jsonContentType),
+      );
+      final data = response.data as Map<String, dynamic>;
+      return data['id'] as int;
+    });
+  }
 }

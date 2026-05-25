@@ -93,6 +93,31 @@ namespace SunDaySchools.API.Controllers
             return Ok(await _unifiedFormManager.GetFormDataAsync(CustomFieldEntityNames.Member, id));
         }
 
+        /// <summary>
+        /// Creates a member using only admin-defined custom fields (multipart image optional via legacy create).
+        /// </summary>
+        [HttpPost("create-from-form")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [Produces(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<object>> CreateFromForm(
+            [FromQuery] int classroomId,
+            [FromBody] SaveEntityFormDto request)
+        {
+            if (classroomId <= 0) return BadRequest("Classroom id must be a positive integer.");
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            if (request == null)
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    [""] = new[] { "Request body is required." }
+                });
+
+            var id = await _unifiedFormManager.CreateEntityWithFormDataAsync(
+                CustomFieldEntityNames.Member,
+                request,
+                classroomIdForMember: classroomId);
+            return Ok(new { id, message = "Member created." });
+        }
+
         [HttpPut("{id:int}/form-data")]
         [Consumes(MediaTypeNames.Application.Json)]
         [Produces(MediaTypeNames.Application.Json)]

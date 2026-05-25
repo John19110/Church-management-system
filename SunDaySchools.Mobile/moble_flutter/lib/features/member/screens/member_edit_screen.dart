@@ -10,9 +10,13 @@ import '../providers/members_providers.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../shared/widgets/app_network_avatar.dart';
+import '../../auth/providers/auth_providers.dart';
+import '../../auth/utils/auth_role_utils.dart';
+import '../../custom_field/providers/custom_field_cache_providers.dart';
 import '../../unified_form/models/unified_form_models.dart';
 import '../../unified_form/providers/unified_form_providers.dart';
 import '../../unified_form/utils/unified_form_controller.dart';
+import '../../unified_form/utils/unified_form_screen_mixin.dart';
 import '../../unified_form/widgets/unified_entity_form.dart';
 
 class MemberEditScreen extends ConsumerStatefulWidget {
@@ -23,12 +27,12 @@ class MemberEditScreen extends ConsumerStatefulWidget {
   ConsumerState<MemberEditScreen> createState() => _MemberEditScreenState();
 }
 
-class _MemberEditScreenState extends ConsumerState<MemberEditScreen> {
+class _MemberEditScreenState extends ConsumerState<MemberEditScreen>
+    with UnifiedFormScreenMixin {
   final _formKey = GlobalKey<FormState>();
   final _formController = UnifiedFormController();
   File? _image;
   bool _loading = false;
-  bool _initialized = false;
 
   @override
   void dispose() {
@@ -43,14 +47,21 @@ class _MemberEditScreenState extends ConsumerState<MemberEditScreen> {
 
   Future<void> _submit(List<UnifiedFieldDefinitionDto> fields) async {
     if (!_formKey.currentState!.validate()) return;
+    if (fields.isEmpty) {
+      showErrorSnackbar(
+        context,
+        AppLocalizations.of(context).entityFieldsNotConfigured,
+      );
+      return;
+    }
+
     setState(() => _loading = true);
     final l10n = AppLocalizations.of(context);
     try {
-      final payload = _formController.buildSavePayload(fields);
       await ref.read(unifiedFormRepositoryProvider).saveFormData(
             UnifiedEntityNames.member,
             widget.id,
-            payload,
+            _formController.buildSavePayload(fields),
           );
 
       if (_image != null) {
@@ -61,14 +72,29 @@ class _MemberEditScreenState extends ConsumerState<MemberEditScreen> {
             );
       }
 
+      ref.invalidate(
+        entityFormDataProvider((entity: UnifiedEntityNames.member, id: widget.id)),
+      );
+
       if (mounted) {
         showSuccessSnackbar(context, l10n.memberUpdatedSuccessfully);
-        context.pop();
+        context.pop(true);
       }
     } catch (e) {
       if (mounted) showErrorSnackbar(context, e.toString());
     } finally {
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _openFieldSettings() async {
+    await context.push('/custom-fields/Member');
+    if (mounted) {
+      refreshEntityFormsAfterDefinitionChange(ref, UnifiedEntityNames.member);
+      ref.invalidate(
+        entityFormDataProvider((entity: UnifiedEntityNames.member, id: widget.id)),
+      );
+      resetFormSignature();
     }
   }
 
@@ -87,68 +113,108 @@ class _MemberEditScreenState extends ConsumerState<MemberEditScreen> {
       );
     }
 
+    final roleAsync = ref.watch(currentUserRoleProvider);
     final formAsync = ref.watch(
       entityFormDataProvider((entity: UnifiedEntityNames.member, id: widget.id)),
     );
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.editMember)),
-      body: SafeArea(
-        child: formAsync.when(
-          loading: () => const LoadingWidget(),
-          error: (e, _) => AppErrorWidget(message: e.toString()),
-          data: (formData) {
-            if (!_initialized) {
-              _formController.initializeFromFields(
-                formData.fields,
-                withValues: formData.fields,
-              );
-              _initialized = true;
-            }
-
-            final imageUrl = formData.fields
-                .where((f) => f.fieldKey == 'imageUrl')
-                .map((f) => f.value)
-                .firstOrNull;
-
-            return Form(
-              key: _formKey,
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  GestureDetector(
-                    onTap: _pickImage,
-                    child: Center(
-                      child: _image != null
-                          ? CircleAvatar(
-                              radius: 48,
-                              backgroundImage: FileImage(_image!),
-                            )
-                          : AppNetworkAvatar(
-                              imageUrl: imageUrl,
-                              radius: 48,
-                              placeholder: const Icon(Icons.camera_alt, size: 36),
-                            ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  UnifiedEntityForm(
-                    fields: formData.fields,
-                    controller: _formController,
-                  ),
-                  const SizedBox(height: 24),
-                  _loading
-                      ? const Center(child: CircularProgressIndicator())
-                      : ElevatedButton(
-                          onPressed: () => _submit(formData.fields),
-                          child: Text(l10n.save),
-                        ),
-                ],
-              ),
-            );
-          },
-        ),
+    return roleAsync.when(
+      loading: () => Scaffold(
+        appBar: AppBar(title: Text(l10n.editMember)),
+        body: const LoadingWidget(),
       ),
+      error: (e, _) => Scaffold(
+        appBar: AppBar(title: Text(l10n.editMember)),
+        body: AppErrorWidget(message: e.toString()),
+      ),
+      data: (role) {
+        final canManage = AuthRoleUtils.canManageCustomFields(role);
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(l10n.editMember),
+            actions: [
+              if (canManage)
+                IconButton(
+                  icon: const Icon(Icons.tune),
+                  tooltip: l10n.manageCustomFields,
+                  onPressed: _openFieldSettings,
+                ),
+            ],
+          ),
+          body: SafeArea(
+            child: formAsync.when(
+              loading: () => const LoadingWidget(),
+              error: (e, _) => AppErrorWidget(
+                message: e.toString(),
+                onRetry: () => ref.invalidate(
+                  entityFormDataProvider((
+                    entity: UnifiedEntityNames.member,
+                    id: widget.id,
+                  )),
+                ),
+              ),
+              data: (formData) {
+                syncFormController(
+                  _formController,
+                  formData.fields,
+                  withValues: formData.fields,
+                );
+
+                return Form(
+                  key: _formKey,
+                  child: ListView(
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      GestureDetector(
+                        onTap: _pickImage,
+                        child: Center(
+                          child: _image != null
+                              ? CircleAvatar(
+                                  radius: 48,
+                                  backgroundImage: FileImage(_image!),
+                                )
+                              : AppNetworkAvatar(
+                                  imageUrl: memberImageFromFields(formData.fields),
+                                  radius: 48,
+                                  placeholder:
+                                      const Icon(Icons.camera_alt, size: 36),
+                                ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      UnifiedEntityForm(
+                        fields: formData.fields,
+                        controller: _formController,
+                        entityName: UnifiedEntityNames.member,
+                        canManageDefinitions: canManage,
+                      ),
+                      const SizedBox(height: 24),
+                      _loading
+                          ? const Center(child: CircularProgressIndicator())
+                          : FilledButton(
+                              onPressed: formData.fields.isEmpty
+                                  ? null
+                                  : () => _submit(formData.fields),
+                              child: Text(l10n.save),
+                            ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
     );
   }
+}
+
+String? memberImageFromFields(List<UnifiedFieldDto> fields) {
+  for (final f in fields) {
+    if (f.fieldKey == 'imageUrl' && (f.value?.isNotEmpty ?? false)) {
+      return f.value;
+    }
+  }
+  return null;
 }

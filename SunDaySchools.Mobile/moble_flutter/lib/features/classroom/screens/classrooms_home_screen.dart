@@ -7,8 +7,6 @@ import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
 import '../../auth/utils/auth_session.dart';
 import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
-import '../../../shared/widgets/common_widgets.dart';
-import '../models/classroom_models.dart';
 import '../../custom_field/providers/custom_field_cache_providers.dart';
 import '../../unified_form/models/unified_form_models.dart';
 import '../providers/classroom_providers.dart';
@@ -34,22 +32,6 @@ class ClassroomsHomeScreen extends ConsumerStatefulWidget {
 }
 
 class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
-  final _classroomFormKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _ageController = TextEditingController();
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _ageController.dispose();
-    super.dispose();
-  }
-
-  void _resetAddClassroomDialog() {
-    _nameController.clear();
-    _ageController.clear();
-  }
-
   Future<void> _refresh() async {
     if (widget.meetingId != null) {
       ref.invalidate(visibleClassroomsByMeetingProvider(widget.meetingId));
@@ -60,110 +42,9 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
     }
   }
 
-  Future<void> _addClassroom() async {
-    await ref.read(classroomRepositoryProvider).add(
-          ClassroomAddDto(
-            name: _nameController.text.trim(),
-            ageOfMembers: _ageController.text.trim(),
-          ),
-        );
-    ref.invalidate(visibleClassroomsProvider);
-  }
-
-  Future<void> _showAddClassroomDialog() async {
-    _resetAddClassroomDialog();
-    var isSubmitting = false;
-
-    await showDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (dialogBuilderContext, setDialogState) {
-            final l10n = AppLocalizations.of(dialogBuilderContext);
-            return AlertDialog(
-              title: Text(l10n.addClassroom),
-              content: SingleChildScrollView(
-                child: Form(
-                  key: _classroomFormKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextFormField(
-                        controller: _nameController,
-                        decoration: InputDecoration(
-                          labelText: l10n.classroomNameLabel,
-                          hintText: l10n.enterClassroomNameHint,
-                        ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return l10n.classroomNameRequiredGeneric;
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _ageController,
-                        decoration: InputDecoration(
-                          labelText: l10n.ageOfMembersLabel,
-                          hintText: l10n.enterAgeRangeHint,
-                        ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return l10n.ageOfMembersRequiredGeneric;
-                          }
-                          return null;
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: isSubmitting
-                      ? null
-                      : () => Navigator.of(dialogContext).pop(),
-                  child: Text(l10n.cancel),
-                ),
-                ElevatedButton(
-                  onPressed: isSubmitting
-                      ? null
-                      : () async {
-                          if (!_classroomFormKey.currentState!.validate()) return;
-                          if (!dialogBuilderContext.mounted) return;
-                          setDialogState(() => isSubmitting = true);
-                          try {
-                            await _addClassroom();
-                            if (!mounted || !dialogBuilderContext.mounted) return;
-                            Navigator.of(dialogContext).pop();
-                            showSuccessSnackbar(
-                              context,
-                              l10n.classroomAddedSuccessfully,
-                            );
-                          } catch (e) {
-                            if (!mounted) return;
-                            showErrorSnackbar(context, e.toString());
-                          } finally {
-                            if (dialogBuilderContext.mounted) {
-                              setDialogState(() => isSubmitting = false);
-                            }
-                          }
-                        },
-                  child: isSubmitting
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(l10n.add),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
+  Future<void> _openAddClassroom() async {
+    await context.push('/classrooms/add');
+    await _refresh();
   }
 
   @override
@@ -211,7 +92,7 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
                     IconButton(
                       icon: const Icon(Icons.add),
                       tooltip: l10n.addClassroom,
-                      onPressed: _showAddClassroomDialog,
+                      onPressed: _openAddClassroom,
                     ),
                   IconButton(
                     icon: const Icon(Icons.logout),
@@ -222,7 +103,7 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
             : null,
         floatingActionButton: !widget.showAppBar && canAddClassroom
             ? FloatingActionButton(
-                onPressed: _showAddClassroomDialog,
+                onPressed: _openAddClassroom,
                 tooltip: l10n.addClassroom,
                 child: const Icon(Icons.add),
               )

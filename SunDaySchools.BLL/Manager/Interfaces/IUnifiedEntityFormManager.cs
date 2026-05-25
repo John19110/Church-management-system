@@ -10,5 +10,13 @@ namespace SunDaySchools.BLL.Manager.Interfaces
         Task<EntityFormDataDto> GetFormDataAsync(string entityName, int entityId);
 
         Task SaveFormDataAsync(string entityName, int entityId, SaveEntityFormDto dto);
+
+        /// <summary>
+        /// Creates a minimal entity row then persists all admin-defined custom field values.
+        /// </summary>
+        Task<int> CreateEntityWithFormDataAsync(
+            string entityName,
+            SaveEntityFormDto dto,
+            int? classroomIdForMember = null);
     }
 }

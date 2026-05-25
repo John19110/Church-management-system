@@ -18,8 +18,8 @@ class MembersListScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final membersAsync = ref.watch(membersListProvider);
-    final role = ref.watch(currentUserRoleProvider).resolvedRoleOrNull;
-    final homeRoute = AuthRoleUtils.routeForRole(role);
+    final roleAsync = ref.watch(currentUserRoleProvider);
+    final homeRoute = AuthRoleUtils.routeForRole(roleAsync.valueOrNull);
     final currentLocation = GoRouterState.of(context).matchedLocation;
 
     return PopScope(
@@ -28,11 +28,20 @@ class MembersListScreen extends ConsumerWidget {
         if (didPop) return;
         context.go(homeRoute);
       },
-      child: Scaffold(
+      child: roleAsync.when(
+        loading: () => Scaffold(
+          appBar: AppBar(title: Text(l10n.members)),
+          body: const cw.LoadingWidget(),
+        ),
+        error: (e, _) => Scaffold(
+          appBar: AppBar(title: Text(l10n.members)),
+          body: cw.AppErrorWidget(message: e.toString()),
+        ),
+        data: (role) => Scaffold(
         appBar: AppBar(
           title: Text(l10n.members),
           actions: [
-            if (role == 'admin' || role == 'superadmin')
+            if (AuthRoleUtils.canManageCustomFields(role))
               IconButton(
                 icon: const Icon(Icons.tune),
                 tooltip: l10n.manageCustomFields,
@@ -118,6 +127,7 @@ class MembersListScreen extends ConsumerWidget {
           currentIndex: 1,
           homeRoute: homeRoute,
         ),
+      ),
       ),
     );
   }
