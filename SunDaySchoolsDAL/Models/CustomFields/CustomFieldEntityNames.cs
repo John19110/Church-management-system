@@ -9,10 +9,11 @@ namespace SunDaySchools.DAL.Models.CustomFields
         public const string Classroom = "Classroom";
         public const string Servant = "Servant";
         public const string Meeting = "Meeting";
+        public const string Church = "Church";
 
         public static readonly IReadOnlySet<string> All = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            Member, Classroom, Servant, Meeting
+            Member, Classroom, Servant, Meeting, Church
         };
 
         public static bool IsSupported(string entityName) =>

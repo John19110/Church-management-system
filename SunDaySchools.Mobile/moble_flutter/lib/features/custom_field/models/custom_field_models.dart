@@ -312,8 +312,9 @@ class CustomFieldEntityNames {
   static const classroom = 'Classroom';
   static const servant = 'Servant';
   static const meeting = 'Meeting';
+  static const church = 'Church';
 
-  static const all = [member, classroom, servant, meeting];
+  static const all = [member, classroom, servant, meeting, church];
 }
 
 /// Maps enum to API string (PascalCase as returned by ASP.NET JSON enum converter).

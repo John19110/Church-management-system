@@ -27,6 +27,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
         private readonly IClassroomRepository _classroomRepository;
         private readonly IMeetingManager _meetingManager;
         private readonly IMeetingRepository _meetingRepository;
+        private readonly IChurchRepository _churchRepository;
+        private readonly IChurchManager _churchManager;
         private readonly IMapper _mapper;
         private readonly ILogger<UnifiedEntityFormManager> _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -42,6 +44,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
             IClassroomRepository classroomRepository,
             IMeetingManager meetingManager,
             IMeetingRepository meetingRepository,
+            IChurchRepository churchRepository,
+            IChurchManager churchManager,
             IMapper mapper,
             ILogger<UnifiedEntityFormManager> logger,
             IHttpContextAccessor httpContextAccessor)
@@ -56,6 +60,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
             _classroomRepository = classroomRepository;
             _meetingManager = meetingManager;
             _meetingRepository = meetingRepository;
+            _churchRepository = churchRepository;
+            _churchManager = churchManager;
             _mapper = mapper;
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
@@ -86,15 +92,15 @@ namespace SunDaySchools.BLL.Manager.Implementations
             var custom = await _customFieldRepository.GetDefinitionsByEntityAsync(entityName)
                 ?? Array.Empty<CustomFieldDefinition>();
 
+            var fromDb = custom
+                .Where(d => d.IsActive && !d.IsHidden)
+                .Select(SafeToUnifiedField)
+                .Where(f => f != null)
+                .Cast<UnifiedFieldDefinitionDto>()
+                .ToList();
+
             var fields = EntityFormSchemaRegistry.FilterForMode(
-                custom
-                    .Where(d => d.IsActive && !d.IsHidden)
-                    .Select(SafeToUnifiedField)
-                    .Where(f => f != null)
-                    .Cast<UnifiedFieldDefinitionDto>()
-                    .OrderBy(f => f.SortOrder)
-                    .ThenBy(f => f.DisplayName)
-                    .ToList(),
+                EntityFormSchemaMerger.MergeWithTemplates(fromDb, entityName, mode),
                 entityName,
                 mode).ToList();
 
@@ -278,10 +284,10 @@ namespace SunDaySchools.BLL.Manager.Implementations
                         CustomFieldDefinitionId = meta.CustomFieldDefinitionId.Value,
                         Value = value
                     });
-
-                    if (EntityColumnSyncRegistry.CanSyncToEntityTable(entityName, key))
-                        columnSyncValues[key] = value;
                 }
+
+                if (EntityColumnSyncRegistry.CanSyncToEntityTable(entityName, key))
+                    columnSyncValues[key] = value;
             }
 
             if (validationErrors.Count > 0)
@@ -460,7 +466,31 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 case CustomFieldEntityNames.Meeting:
                     await ApplyMeetingValuesAsync(entityId, values);
                     break;
+                case CustomFieldEntityNames.Church:
+                    await ApplyChurchValuesAsync(entityId, values);
+                    break;
             }
+        }
+
+        private async Task<IReadOnlyDictionary<string, string?>> LoadChurchValuesAsync(int id)
+        {
+            var church = await _churchRepository.GetByIdAsync(id)
+                ?? throw new NotFoundException($"Church with id {id} not found.");
+
+            return new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["name"] = church.Name,
+                ["pastorId"] = church.PastorId?.ToString()
+            };
+        }
+
+        private async Task ApplyChurchValuesAsync(int id, IReadOnlyDictionary<string, string?> values)
+        {
+            var update = new SunDaySchools.BLL.DTOS.ChurchDtos.ChurchUpdateDTO { Id = id };
+            if (values.TryGetValue("name", out var v)) update.Name = v;
+            if (values.TryGetValue("pastorId", out v)) update.PastorId = EntityFormValueSerializer.ParseInt(v);
+
+            await _churchManager.UpdateAsync(id, update);
         }
 
         private async Task ApplyMemberValuesAsync(int id, IReadOnlyDictionary<string, string?> values)

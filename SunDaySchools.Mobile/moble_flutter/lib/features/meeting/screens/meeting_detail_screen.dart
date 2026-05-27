@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/routing/app_router.dart';
 import '../../auth/providers/auth_providers.dart';
-import '../../unified_form/models/unified_form_models.dart';
 import '../../custom_field/providers/custom_field_cache_providers.dart';
+import '../../unified_form/models/unified_form_models.dart';
 import '../../unified_form/providers/unified_form_providers.dart';
+import '../../unified_form/widgets/unified_entity_detail_header.dart';
 import '../../unified_form/widgets/unified_entity_form.dart';
 import '../models/meeting_models.dart';
 
@@ -18,8 +20,6 @@ class MeetingDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final appointment = meeting.weeklyAppointment ?? '-';
-    final day = meeting.dayOfWeek ?? '-';
     final meetingId = meeting.id;
     final role = ref.watch(currentUserRoleProvider).resolvedRoleOrNull;
     final formAsync = meetingId != null
@@ -34,22 +34,38 @@ class MeetingDetailScreen extends ConsumerWidget {
         actions: [
           if (meetingId != null)
             IconButton(
-              icon: const Icon(Icons.edit_note),
-              tooltip: l10n.editEntityFields,
-              onPressed: () => context.push(
-                '/custom-fields/values/Meeting/$meetingId',
-              ),
+              icon: const Icon(Icons.edit),
+              tooltip: l10n.saveLabel,
+              onPressed: () async {
+                final saved = await context.push<bool>(
+                  '/meetings/$meetingId/edit',
+                );
+                if (saved == true && context.mounted) {
+                  ref.invalidate(
+                    entityFormDataProvider((
+                      entity: UnifiedEntityNames.meeting,
+                      id: meetingId,
+                    )),
+                  );
+                }
+              },
             ),
-          if (role == 'admin' || role == 'superadmin')
+          if (meetingId != null)
             IconButton(
               icon: const Icon(Icons.tune),
               tooltip: l10n.manageCustomFields,
               onPressed: () async {
-                await context.push('/custom-fields/Meeting');
+                await context.push('/custom-fields/${UnifiedEntityNames.meeting}');
                 if (context.mounted) {
                   refreshEntityFormsAfterDefinitionChange(
                     ref,
                     UnifiedEntityNames.meeting,
+                  );
+                  ref.invalidate(
+                    entityFormDataProvider((
+                      entity: UnifiedEntityNames.meeting,
+                      id: meetingId,
+                    )),
                   );
                 }
               },
@@ -59,38 +75,39 @@ class MeetingDetailScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _InfoTile(label: l10n.nameLabel, value: meeting.name ?? '-'),
-          _InfoTile(label: l10n.dayOfWeekLabel, value: day),
-          _InfoTile(label: l10n.weeklyAppointmentLabel, value: appointment),
-          _InfoTile(
-            label: l10n.servantsCountLabel,
-            value: meeting.servantsCount.toString(),
-          ),
-          _InfoTile(
-            label: l10n.membersCountLabel,
-            value: meeting.membersCount.toString(),
-          ),
           if (formAsync != null)
             formAsync.when(
-              loading: () => const SizedBox.shrink(),
+              loading: () => const Center(child: CircularProgressIndicator()),
               error: (_, __) => const SizedBox.shrink(),
-              data: (form) => UnifiedEntityDetailFields(fields: form.fields),
+              data: (form) => Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  UnifiedEntityDetailHeader(
+                    entityName: UnifiedEntityNames.meeting,
+                    fields: form.fields,
+                  ),
+                  const SizedBox(height: 16),
+                  UnifiedEntityDetailFields(fields: form.fields),
+                  const SizedBox(height: 16),
+                ],
+              ),
             ),
-          const SizedBox(height: 16),
           Text(
             l10n.servants,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium
+                ?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
           ..._buildNameList(meeting.servantNames),
           const SizedBox(height: 16),
           Text(
             l10n.membersHeading,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium
+                ?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
           ..._buildNameList(meeting.memberNames),
@@ -101,40 +118,12 @@ class MeetingDetailScreen extends ConsumerWidget {
             label: Text(l10n.addUpdateRemoveMembers),
           ),
           const SizedBox(height: 12),
-          OutlinedButton.icon(
-            onPressed: () => context.push(AppRoutes.servants),
-            icon: const Icon(Icons.person_add_alt_1),
-            label: Text(l10n.manageServants),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _InfoTile extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _InfoTile({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 150,
-            child: Text(
-              '$label:',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+          if (role == 'admin' || role == 'superadmin')
+            OutlinedButton.icon(
+              onPressed: () => context.push(AppRoutes.servants),
+              icon: const Icon(Icons.person_add_alt_1),
+              label: Text(l10n.manageServants),
             ),
-          ),
-          Expanded(child: Text(value)),
         ],
       ),
     );

@@ -20,6 +20,8 @@ class UnifiedFormRepository {
         return AppConstants.servantEndpoint;
       case UnifiedEntityNames.meeting:
         return AppConstants.meetingEndpoint;
+      case UnifiedEntityNames.church:
+        return AppConstants.churchEndpoint;
       default:
         throw ArgumentError('Unsupported entity: $entityName');
     }

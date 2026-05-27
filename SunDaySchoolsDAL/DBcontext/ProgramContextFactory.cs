@@ -16,17 +16,26 @@ namespace SunDaySchoolsDAL.DBcontext
             var apiProjectPath = Path.GetFullPath(
                 Path.Combine(Directory.GetCurrentDirectory(), "..", "SunDaySchools.API"));
 
+            var environment =
+                Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
+                ?? Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")
+                ?? "Development";
+
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(apiProjectPath)
                 .AddJsonFile("appsettings.json", optional: true)
-                .AddJsonFile("appsettings.Development.json", optional: true)
+                .AddJsonFile($"appsettings.{environment}.json", optional: true)
                 .AddEnvironmentVariables()
                 .Build();
 
-            var connectionString = configuration.GetConnectionString("cs")
-                ?? throw new InvalidOperationException(
-                    "Connection string 'cs' was not found. " +
-                    "Set ConnectionStrings:cs in SunDaySchools.API/appsettings.json.");
+            var connectionString = configuration.GetConnectionString("cs");
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new InvalidOperationException(
+                    "Connection string 'cs' is missing or empty. " +
+                    "Set ConnectionStrings:cs in SunDaySchools.API/appsettings.Development.json " +
+                    "(or User Secrets) before running update-database.");
+            }
 
             var optionsBuilder = new DbContextOptionsBuilder<ProgramContext>();
             optionsBuilder.UseSqlServer(

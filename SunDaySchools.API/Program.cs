@@ -231,6 +231,18 @@ builder.Services.AddAutoMapper(m => m.AddProfile(new MappingProfile()));
 
 var app = builder.Build();
 
+var whatsAppConfig = app.Configuration.GetSection(WhatsAppOptions.SectionName).Get<WhatsAppOptions>();
+if (whatsAppConfig == null || !whatsAppConfig.Enabled)
+{
+    app.Logger.LogWarning("WhatsApp OTP delivery is disabled (WhatsApp:Enabled = false).");
+}
+else if (string.IsNullOrWhiteSpace(whatsAppConfig.AccessToken)
+         || string.IsNullOrWhiteSpace(whatsAppConfig.PhoneNumberId))
+{
+    app.Logger.LogWarning(
+        "WhatsApp is enabled but AccessToken or PhoneNumberId is missing. Set environment variables WhatsApp__AccessToken and WhatsApp__PhoneNumberId on the host.");
+}
+
 try
 {
     using (var scope = app.Services.CreateScope())
