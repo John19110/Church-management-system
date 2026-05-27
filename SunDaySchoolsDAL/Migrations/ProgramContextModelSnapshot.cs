@@ -985,7 +985,7 @@ namespace SunDaySchools.DAL.Migrations
 
                     b.HasIndex("PhoneNumber", "Purpose", "CreatedAt");
 
-                    b.ToTable("OtpVerifications");
+                    b.ToTable("OtpVerifications", (string)null);
                 });
 
             modelBuilder.Entity("SunDaySchoolsDAL.Models.PhoneCall", b =>

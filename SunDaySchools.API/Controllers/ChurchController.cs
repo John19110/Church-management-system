@@ -1,7 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SunDaySchools.BLL.DTOS.ChurchDtos;
+using SunDaySchools.BLL.DTOS.UnifiedForms;
+using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Interfaces;
+using SunDaySchools.BLL.Services.UnifiedForms;
+using SunDaySchools.DAL.Models.CustomFields;
+using System.Net.Mime;
 
 namespace SunDaySchools.API.Controllers
 {
@@ -11,10 +16,47 @@ namespace SunDaySchools.API.Controllers
     public class ChurchController : ControllerBase
     {
         private readonly IChurchManager _churchManager;
+        private readonly IUnifiedEntityFormManager _unifiedFormManager;
 
-        public ChurchController(IChurchManager churchManager)
+        public ChurchController(
+            IChurchManager churchManager,
+            IUnifiedEntityFormManager unifiedFormManager)
         {
             _churchManager = churchManager;
+            _unifiedFormManager = unifiedFormManager;
+        }
+
+        [HttpGet("form-schema")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<EntityFormSchemaDto>> GetFormSchema([FromQuery] string mode = "Edit")
+        {
+            var formMode = Enum.TryParse<EntityFormMode>(mode, ignoreCase: true, out var parsed)
+                ? parsed : EntityFormMode.Edit;
+            return Ok(await _unifiedFormManager.GetFormSchemaAsync(CustomFieldEntityNames.Church, formMode));
+        }
+
+        [HttpGet("{id:int}/form-data")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<EntityFormDataDto>> GetFormData(int id)
+        {
+            if (id <= 0) return BadRequest("Church id must be a positive integer.");
+            return Ok(await _unifiedFormManager.GetFormDataAsync(CustomFieldEntityNames.Church, id));
+        }
+
+        [HttpPut("{id:int}/form-data")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        public async Task<IActionResult> SaveFormData(int id, [FromBody] SaveEntityFormDto request)
+        {
+            if (id <= 0) return BadRequest("Church id must be a positive integer.");
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+            if (request == null)
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    [""] = new[] { "Request body is required." }
+                });
+            await _unifiedFormManager.SaveFormDataAsync(CustomFieldEntityNames.Church, id, request);
+            return Ok(new { message = "Form saved." });
         }
 
         [HttpGet("{id:int}")]

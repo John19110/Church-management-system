@@ -37,6 +37,8 @@ String unifiedDisplayTitle(String entityName, List<UnifiedFieldDto> fields) {
     UnifiedEntityNames.member: ['name1', 'name2', 'name3'],
     UnifiedEntityNames.servant: ['name'],
     UnifiedEntityNames.classroom: ['name'],
+    UnifiedEntityNames.meeting: ['name'],
+    UnifiedEntityNames.church: ['name'],
   };
 
   final keys = titleKeysByEntity[entityName];

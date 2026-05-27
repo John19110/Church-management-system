@@ -254,4 +254,5 @@ class UnifiedEntityNames {
   static const classroom = 'Classroom';
   static const servant = 'Servant';
   static const meeting = 'Meeting';
+  static const church = 'Church';
 }

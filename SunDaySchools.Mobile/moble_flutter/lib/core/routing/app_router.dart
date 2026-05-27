@@ -26,6 +26,7 @@ import '../../features/super_admin/screens/super_admin_home_screen.dart';
 import '../../features/super_admin/screens/super_admin_pending_admins_screen.dart';
 import '../../features/meeting/models/meeting_models.dart';
 import '../../features/meeting/screens/meeting_detail_screen.dart';
+import '../../features/church/screens/church_detail_screen.dart';
 import '../../features/classroom/models/classroom_models.dart';
 import '../../features/classroom/screens/classroom_detail_screen.dart';
 import '../../features/classroom/screens/classroom_add_screen.dart';
@@ -37,6 +38,7 @@ import '../../features/notifications/screens/notifications_screen.dart';
 import '../../features/custom_field/screens/custom_field_definitions_screen.dart';
 import '../../features/custom_field/screens/custom_field_definition_form_screen.dart';
 import '../../features/unified_form/screens/unified_entity_edit_screen.dart';
+import '../../features/unified_form/models/unified_form_models.dart';
 import '../../features/custom_field/models/custom_field_models.dart';
 import '../../core/storage/token_storage.dart';
 
@@ -56,6 +58,7 @@ class AppRoutes {
   static const pendingAdmins = '/super-admin/pending-admins';
   static const pendingServants = '/admin/pending-servants';
   static const meetingDetail = '/meeting-detail';
+  static const churchSettings = '/church';
   static const classroomDetail = '/classroom-detail';
   static const member = '/member';
   static const notifications = '/notifications';
@@ -186,6 +189,58 @@ final routerProvider = Provider<GoRouter>((ref) {
             return const _MissingRouteDataScreen(title: 'Meeting details');
           }
           return MeetingDetailScreen(meeting: meeting);
+        },
+      ),
+
+      GoRoute(
+        path: '/meetings/:id/edit',
+        builder: (_, state) {
+          final id = int.tryParse(state.pathParameters['id'] ?? '');
+          if (id == null || id <= 0) {
+            return const _MissingRouteDataScreen(title: 'Edit meeting');
+          }
+          return UnifiedEntityEditScreen(
+            entityName: UnifiedEntityNames.meeting,
+            entityId: id,
+            title: 'Edit meeting',
+          );
+        },
+      ),
+
+      GoRoute(
+        path: AppRoutes.churchSettings,
+        redirect: (_, __) async {
+          final token = await TokenStorage.getToken();
+          if (token == null) return AppRoutes.login;
+          final churchId = AuthRoleUtils.extractChurchId(token);
+          if (churchId == null || churchId <= 0) return AppRoutes.dashboard;
+          return '/church/$churchId';
+        },
+      ),
+
+      GoRoute(
+        path: '/church/:id',
+        builder: (_, state) {
+          final id = int.tryParse(state.pathParameters['id'] ?? '');
+          if (id == null || id <= 0) {
+            return const _MissingRouteDataScreen(title: 'Church');
+          }
+          return ChurchDetailScreen(churchId: id);
+        },
+      ),
+
+      GoRoute(
+        path: '/church/:id/edit',
+        builder: (_, state) {
+          final id = int.tryParse(state.pathParameters['id'] ?? '');
+          if (id == null || id <= 0) {
+            return const _MissingRouteDataScreen(title: 'Edit church');
+          }
+          return UnifiedEntityEditScreen(
+            entityName: UnifiedEntityNames.church,
+            entityId: id,
+            title: 'Edit church',
+          );
         },
       ),
 

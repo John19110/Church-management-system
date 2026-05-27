@@ -34,6 +34,9 @@ class AppConstants {
   // Meeting endpoints
   static const String meetingEndpoint = '/api/Meeting';
 
+  // Church endpoints
+  static const String churchEndpoint = '/api/Church';
+
   // SuperAdmin endpoints
   static const String superAdminEndpoint = '/api/SuperAdmin';
 

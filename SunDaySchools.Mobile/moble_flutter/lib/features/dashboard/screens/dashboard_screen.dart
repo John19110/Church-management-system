@@ -124,6 +124,12 @@ class DashboardScreen extends ConsumerWidget {
                     onTap: () => context.go('/servants'),
                   ),
                   _DashboardCard(
+                    icon: Icons.church,
+                    label: l10n.churchName,
+                    color: const Color(0xFF805AD5),
+                    onTap: () => context.push(AppRoutes.churchSettings),
+                  ),
+                  _DashboardCard(
                     icon: Icons.logout,
                     label: l10n.logout,
                     color: const Color(0xFFE53E3E),
