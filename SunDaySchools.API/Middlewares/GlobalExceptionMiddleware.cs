@@ -1,13 +1,11 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SunDaySchools.API.Json;
 using SunDaySchools.BLL.Exceptions;
 using System;
 using System.Net;
-using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -18,21 +16,15 @@ namespace SunDaySchools.API.Middlewares
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<GlobalExceptionMiddleware> _logger;
-        private readonly IHostEnvironment _env;
-        private readonly IConfiguration _configuration;
 
         private static readonly JsonSerializerOptions _jsonOptions = ApiJsonSerializerOptions.Create();
 
         public GlobalExceptionMiddleware(
             RequestDelegate next,
-            ILogger<GlobalExceptionMiddleware> logger,
-            IHostEnvironment env,
-            IConfiguration configuration)
+            ILogger<GlobalExceptionMiddleware> logger)
         {
             _next = next;
             _logger = logger;
-            _env = env;
-            _configuration = configuration;
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -63,32 +55,6 @@ namespace SunDaySchools.API.Middlewares
 
             context.Response.StatusCode = statusCode;
 
-            var showDevelopmentDetails = ShouldExposeDetails();
-
-            var response = new ApiErrorResponse
-            {
-                Success = false,
-                ErrorCode = errorCode,
-                Message = showDevelopmentDetails && exception is not ValidationException
-                    ? BuildDevelopmentErrorMessage(exception)
-                    : message,
-                ExceptionType = showDevelopmentDetails ? exception.GetType().FullName : null,
-                StackTrace = showDevelopmentDetails ? exception.StackTrace : null,
-                InnerException = showDevelopmentDetails ? exception.InnerException?.Message : null
-            };
-
-            if (exception is ValidationException validationException)
-            {
-                response.Errors = validationException.Errors;
-                if (validationException.Errors.Count > 0)
-                {
-                    var first = validationException.Errors.First();
-                    response.Message = $"{first.Key}: {string.Join("; ", first.Value)}";
-                    if (validationException.Errors.Count > 1)
-                        response.Message += $" (+{validationException.Errors.Count - 1} more)";
-                }
-            }
-
             if (exception is PhoneNotVerifiedException phoneEx)
             {
                 var payload = new
@@ -118,17 +84,31 @@ namespace SunDaySchools.API.Middlewares
                 return;
             }
 
+            var response = new ApiErrorResponse
+            {
+                Success = false,
+                ErrorCode = errorCode,
+                Message = message,
+                ExceptionType = null,
+                StackTrace = null,
+                InnerException = null
+            };
+
+            if (exception is ValidationException validationException)
+            {
+                response.Errors = validationException.Errors;
+                if (validationException.Errors.Count > 0)
+                {
+                    var first = validationException.Errors.First();
+                    response.Message = $"{first.Key}: {string.Join("; ", first.Value)}";
+                    if (validationException.Errors.Count > 1)
+                        response.Message += $" (+{validationException.Errors.Count - 1} more)";
+                }
+            }
+
             var json = JsonSerializer.Serialize(response, _jsonOptions);
             await context.Response.WriteAsync(json);
         }
-
-        private bool ShouldExposeDetails() =>
-            _env.IsDevelopment()
-            || _configuration.GetValue<bool>("DetailedErrors")
-            || string.Equals(
-                Environment.GetEnvironmentVariable("SUN_DAYSCHOOLS_DETAILED_ERRORS"),
-                "true",
-                StringComparison.OrdinalIgnoreCase);
 
         private void LogExceptionChain(Exception exception, HttpContext context)
         {
@@ -153,23 +133,6 @@ namespace SunDaySchools.API.Middlewares
                         ex.StackTrace);
                 }
             }
-        }
-
-        private static string BuildDevelopmentErrorMessage(Exception exception)
-        {
-            var sb = new StringBuilder();
-            var depth = 0;
-            for (var ex = exception; ex != null; ex = ex.InnerException, depth++)
-            {
-                if (depth > 0)
-                    sb.AppendLine($"--- Inner exception #{depth} ---");
-
-                sb.AppendLine($"[{ex.GetType().Name}] {ex.Message}");
-                if (!string.IsNullOrWhiteSpace(ex.StackTrace))
-                    sb.AppendLine(ex.StackTrace);
-            }
-
-            return sb.ToString();
         }
 
         private static (int StatusCode, string ErrorCode, string Message) MapException(Exception exception)
@@ -247,9 +210,17 @@ namespace SunDaySchools.API.Middlewares
             public bool Success { get; set; }
             public string Message { get; set; } = "";
             public string ErrorCode { get; set; } = "";
+
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
             public string? ExceptionType { get; set; }
+
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
             public string? StackTrace { get; set; }
+
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
             public string? InnerException { get; set; }
+
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
             public IDictionary<string, string[]>? Errors { get; set; }
         }
     }
