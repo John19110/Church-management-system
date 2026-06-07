@@ -1,6 +1,7 @@
 using AutoMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using SunDaySchools.BLL.Abstractions;
+using SunDaySchools.DAL.Abstractions;
 using SunDaySchools.BLL.DTOS;
 using SunDaySchools.BLL.DTOS.ClsssroomDtos;
 using SunDaySchools.BLL.DTOS.CustomFields;
@@ -31,7 +32,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
         private readonly IChurchManager _churchManager;
         private readonly IMapper _mapper;
         private readonly ILogger<UnifiedEntityFormManager> _logger;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ITenantContext _tenantContext;
+        private readonly ICurrentUserContext _currentUser;
 
         public UnifiedEntityFormManager(
             ICustomFieldRepository customFieldRepository,
@@ -48,7 +50,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
             IChurchManager churchManager,
             IMapper mapper,
             ILogger<UnifiedEntityFormManager> logger,
-            IHttpContextAccessor httpContextAccessor)
+            ITenantContext tenantContext,
+            ICurrentUserContext currentUser)
         {
             _customFieldRepository = customFieldRepository;
             _customFieldManager = customFieldManager;
@@ -64,7 +67,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
             _churchManager = churchManager;
             _mapper = mapper;
             _logger = logger;
-            _httpContextAccessor = httpContextAccessor;
+            _tenantContext = tenantContext;
+            _currentUser = currentUser;
         }
 
         public async Task<EntityFormSchemaDto> GetFormSchemaAsync(
@@ -79,7 +83,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     _customFieldRepository,
                     entityName,
                     _logger,
-                    _httpContextAccessor);
+                    _tenantContext,
+                    _currentUser);
             }
             catch (Exception ex)
             {

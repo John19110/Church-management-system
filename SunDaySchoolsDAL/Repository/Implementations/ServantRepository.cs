@@ -105,6 +105,39 @@ namespace SunDaySchools.DAL.Repository.Implementations
                 .FirstOrDefaultAsync(s => s.ApplicationUserId == applicationUserId);
         }
 
+        public Task<Servant?> GetProfileByApplicationUserIdAsync(
+            string applicationUserId,
+            CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(applicationUserId))
+                return Task.FromResult<Servant?>(null);
+
+            return _context.Servants
+                .AsNoTracking()
+                .Include(s => s.ApplicationUser)
+                .Include(s => s.Church)
+                .Include(s => s.Meeting)
+                .Include(s => s.ClassroomServants)
+                    .ThenInclude(cs => cs.Classroom)
+                .FirstOrDefaultAsync(s => s.ApplicationUserId == applicationUserId, cancellationToken);
+        }
+
+        public Task<Servant?> GetTrackedProfileByApplicationUserIdAsync(
+            string applicationUserId,
+            CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(applicationUserId))
+                return Task.FromResult<Servant?>(null);
+
+            return _context.Servants
+                .Include(s => s.ApplicationUser)
+                .Include(s => s.ClassroomServants)
+                .FirstOrDefaultAsync(s => s.ApplicationUserId == applicationUserId, cancellationToken);
+        }
+
+        public Task SaveChangesAsync(CancellationToken cancellationToken = default) =>
+            _context.SaveChangesAsync(cancellationToken);
+
         public async Task<Servant?> EnsureServantProfileAsync(ApplicationUser user, bool autoCreateMissing)
         {
             if (user == null)
@@ -146,18 +179,78 @@ namespace SunDaySchools.DAL.Repository.Implementations
             await _context.SaveChangesAsync();
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<ServantDeleteOutcome> DeleteAsync(int id)
         {
             if (id <= 0)
-                return false;
+                return new ServantDeleteOutcome();
 
-            var servant = await _context.Servants.FindAsync(id);
-            if (servant == null)
-                return false;
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var servant = await _context.Servants
+                    .IgnoreQueryFilters()
+                    .FirstOrDefaultAsync(s => s.Id == id);
 
-            _context.Servants.Remove(servant);
-            await _context.SaveChangesAsync();
-            return true;
+                if (servant == null)
+                {
+                    await transaction.RollbackAsync();
+                    return new ServantDeleteOutcome();
+                }
+
+                var applicationUserId = servant.ApplicationUserId;
+
+                await _context.AttendanceSessions
+                    .IgnoreQueryFilters()
+                    .Where(s => s.TakenByServantId == id)
+                    .ExecuteUpdateAsync(s => s.SetProperty(x => x.TakenByServantId, (int?)null));
+
+                await _context.Meetings
+                    .IgnoreQueryFilters()
+                    .Where(m => m.LeaderServantId == id)
+                    .ExecuteUpdateAsync(s => s.SetProperty(x => x.LeaderServantId, (int?)null));
+
+                await _context.Classrooms
+                    .IgnoreQueryFilters()
+                    .Where(c => c.LeaderServantId == id)
+                    .ExecuteUpdateAsync(s => s.SetProperty(x => x.LeaderServantId, (int?)null));
+
+                await _context.Churches
+                    .Where(ch => ch.PastorId == id)
+                    .ExecuteUpdateAsync(s => s.SetProperty(x => x.PastorId, (int?)null));
+
+                await _context.Database.ExecuteSqlInterpolatedAsync(
+                    $"UPDATE PhoneCalls SET ServantId = NULL WHERE ServantId = {id}");
+
+                await _context.ClassroomServants
+                    .IgnoreQueryFilters()
+                    .Where(cs => cs.ServantId == id)
+                    .ExecuteDeleteAsync();
+
+                var servantRole = await _context.Roles
+                    .FirstOrDefaultAsync(r => r.Name == "Servant");
+
+                if (servantRole != null)
+                {
+                    await _context.UserRoles
+                        .Where(ur => ur.UserId == applicationUserId && ur.RoleId == servantRole.Id)
+                        .ExecuteDeleteAsync();
+                }
+
+                _context.Servants.Remove(servant);
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return new ServantDeleteOutcome
+                {
+                    Deleted = true,
+                    ApplicationUserId = applicationUserId
+                };
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
     }
 }

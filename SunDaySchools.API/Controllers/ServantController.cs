@@ -1,22 +1,17 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using SunDaySchools.API.Mapping;
 using SunDaySchools.API.Requests;
 using SunDaySchools.API.Services.Interfaces;
+using SunDaySchools.BLL.Application.Servants;
+using SunDaySchools.BLL.DTOS;
 using SunDaySchools.BLL.DTOS.AccountDtos;
-using SunDaySchools.BLL.Exceptions;
-using SunDaySchools.BLL.Manager.Implementations;
 using SunDaySchools.BLL.DTOS.UnifiedForms;
+using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Interfaces;
 using SunDaySchools.BLL.Services.UnifiedForms;
 using SunDaySchools.DAL.Models.CustomFields;
 using System.Net.Mime;
-using SunDaySchoolsDAL.DBcontext;
-using SunDaySchoolsDAL.Models;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 
 namespace SunDaySchools.API.Controllers
 {
@@ -25,30 +20,25 @@ namespace SunDaySchools.API.Controllers
     public class ServantController : ControllerBase
     {
         private readonly IServantManager _servantManager;
+        private readonly IServantProfileService _servantProfileService;
         private readonly IFileStorage _fileStorage;
         private readonly IWebHostEnvironment _env;
-        private readonly ProgramContext _db;
-        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IUnifiedEntityFormManager _unifiedFormManager;
-
 
         public ServantController(
             IServantManager servantManager,
+            IServantProfileService servantProfileService,
             IFileStorage fileStorage,
             IWebHostEnvironment env,
-            ProgramContext db,
-            UserManager<ApplicationUser> userManager,
             IUnifiedEntityFormManager unifiedFormManager)
         {
             _servantManager = servantManager;
+            _servantProfileService = servantProfileService;
             _fileStorage = fileStorage;
             _env = env;
-            _db = db;
-            _userManager = userManager;
             _unifiedFormManager = unifiedFormManager;
         }
 
-        // Add servant
         [HttpPost]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Create([FromForm(Name = "")] AdminAddServantDTO servant)
@@ -122,7 +112,6 @@ namespace SunDaySchools.API.Controllers
         }
 
         [HttpGet("select")]
-        //[Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> GetServantsForSelection()
         {
             var result = await _servantManager.GetServantsForSelection();
@@ -167,130 +156,42 @@ namespace SunDaySchools.API.Controllers
             return NoContent();
         }
 
-     //   [Authorize(Roles = "Servant")]
         [HttpGet("profile")]
         public async Task<IActionResult> GetProfile(CancellationToken ct)
         {
-            var userId =
-                User.FindFirstValue(JwtRegisteredClaimNames.Sub) ??
-                User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (string.IsNullOrWhiteSpace(userId))
-                return Unauthorized("Missing user id claim.");
-
-            var servant = await _db.Servants
-                .AsNoTracking()
-                .Include(s => s.ApplicationUser)
-                .Include(s => s.Church)
-                .Include(s => s.Meeting)
-                .Include(s => s.ClassroomServants)
-                    .ThenInclude(cs => cs.Classroom)
-                .FirstOrDefaultAsync(s => s.ApplicationUserId == userId, ct);
-
-            if (servant == null)
-                return NotFound("Servant profile not found for current user.");
-
-            return Ok(new
-            {
-                servant.Id,
-                servant.Name,
-                servant.PhoneNumber,
-                servant.ImageUrl,
-                servant.BirthDate,
-                servant.JoiningDate,
-                SpiritualBirthDate = (DateOnly?)null,
-                Church = servant.Church == null ? null : new { servant.Church.Id, servant.Church.Name },
-                Meeting = servant.Meeting == null ? null : new { servant.Meeting.Id, servant.Meeting.Name },
-                Classrooms = servant.ClassroomServants
-                    .Select(cs => cs.Classroom)
-                    .Where(c => c != null)
-                    .Select(c => new { c!.Id, c.Name, c.AgeOfMembers })
-                    .ToList()
-            });
+            var profile = await _servantProfileService.GetForCurrentUserAsync(ct);
+            return Ok(profile);
         }
 
         [Authorize(Roles = "Servant")]
         [HttpPut("profile")]
         [Consumes("multipart/form-data")]
-        public async Task<IActionResult> UpdateProfile([FromForm] ServantProfileFormRequest form, CancellationToken ct)
+        public async Task<IActionResult> UpdateProfile(
+            [FromForm] ServantProfileFormRequest form,
+            CancellationToken ct)
         {
             if (!ModelState.IsValid)
                 return ValidationProblem(ModelState);
 
-            var userId =
-                User.FindFirstValue(JwtRegisteredClaimNames.Sub) ??
-                User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (string.IsNullOrWhiteSpace(userId))
-                return Unauthorized("Missing user id claim.");
-
-            var servant = await _db.Servants
-                .Include(s => s.ApplicationUser)
-                .Include(s => s.ClassroomServants)
-                .FirstOrDefaultAsync(s => s.ApplicationUserId == userId, ct);
-
-            if (servant == null)
-                return NotFound("Servant profile not found for current user.");
-
-            // Basic fields
-            if (form.Name != null) servant.Name = form.Name.Trim();
-            if (form.PhoneNumber != null) servant.PhoneNumber = form.PhoneNumber.Trim();
-            if (form.BirthDate.HasValue) servant.BirthDate = form.BirthDate;
-            if (form.JoiningDate.HasValue) servant.JoiningDate = form.JoiningDate;
-
-            // Tenant fields (optional)
-            if (form.ChurchId.HasValue) servant.ChurchId = form.ChurchId;
-            if (form.MeetingId.HasValue) servant.MeetingId = form.MeetingId;
-
-            // Keep Identity user in sync where applicable
-            if (servant.ApplicationUser != null)
+            var command = new UpdateServantProfileCommand
             {
-                if (form.PhoneNumber != null)
-                    servant.ApplicationUser.PhoneNumber = form.PhoneNumber.Trim();
-                if (form.ChurchId.HasValue)
-                    servant.ApplicationUser.ChurchId = form.ChurchId;
-                if (form.MeetingId.HasValue)
-                    servant.ApplicationUser.MeetingId = form.MeetingId;
-            }
+                Name = form.Name,
+                PhoneNumber = form.PhoneNumber,
+                BirthDate = form.BirthDate,
+                JoiningDate = form.JoiningDate,
+                ChurchId = form.ChurchId,
+                MeetingId = form.MeetingId,
+                ClassroomIds = form.ClassroomIds
+            };
 
-            // Image
             if (form.Image is not null && form.Image.Length > 0)
             {
                 var key = await _fileStorage.SaveImageAsync(form.Image, ct, "servants");
-                servant.ImageFileName = key;
-                servant.ImageUrl = _fileStorage.GetPublicUrl(key);
+                command.ImageFileName = key;
+                command.ImageUrl = _fileStorage.GetPublicUrl(key);
             }
 
-            // Classrooms (optional replace)
-            if (form.ClassroomIds is not null)
-            {
-                var desired = form.ClassroomIds
-                    .Where(id => id > 0)
-                    .Distinct()
-                    .ToHashSet();
-
-                servant.ClassroomServants ??= new List<ClassroomServant>();
-
-                var toRemove = servant.ClassroomServants
-                    .Where(cs => !desired.Contains(cs.ClassroomId))
-                    .ToList();
-
-                foreach (var cs in toRemove)
-                    servant.ClassroomServants.Remove(cs);
-
-                var existing = servant.ClassroomServants.Select(cs => cs.ClassroomId).ToHashSet();
-                foreach (var id in desired)
-                {
-                    if (existing.Contains(id)) continue;
-                    servant.ClassroomServants.Add(new ClassroomServant
-                    {
-                        ServantId = servant.Id,
-                        ClassroomId = id
-                    });
-                }
-            }
-
-            await _db.SaveChangesAsync(ct);
+            await _servantProfileService.UpdateForCurrentUserAsync(command, ct);
             return NoContent();
         }
     }

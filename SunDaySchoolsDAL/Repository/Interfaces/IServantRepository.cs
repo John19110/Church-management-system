@@ -11,6 +11,16 @@ namespace SunDaySchools.DAL.Repository.Interfaces
 
         Task<Servant?> GetByApplicationUserIdAsync(string applicationUserId);
 
+        Task<Servant?> GetProfileByApplicationUserIdAsync(
+            string applicationUserId,
+            CancellationToken cancellationToken = default);
+
+        Task<Servant?> GetTrackedProfileByApplicationUserIdAsync(
+            string applicationUserId,
+            CancellationToken cancellationToken = default);
+
+        Task SaveChangesAsync(CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Ensures a <c>Servant</c> profile exists for the given user.
         /// If <paramref name="autoCreateMissing"/> is true, a minimal profile is created and returned.
@@ -34,7 +44,16 @@ namespace SunDaySchools.DAL.Repository.Interfaces
 
         Task UpdateAsync(Servant servant);
 
-        /// <summary>Removes the servant if it exists. Returns <c>true</c> if a row was deleted, <c>false</c> if none matched.</summary>
-        Task<bool> DeleteAsync(int id);
+        /// <summary>
+        /// Deletes a servant and dependent links (FK clears, join rows, Servant role).
+        /// Returns whether a row was deleted and the linked application user id when applicable.
+        /// </summary>
+        Task<ServantDeleteOutcome> DeleteAsync(int id);
+    }
+
+    public sealed class ServantDeleteOutcome
+    {
+        public bool Deleted { get; init; }
+        public string? ApplicationUserId { get; init; }
     }
 }

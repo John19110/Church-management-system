@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using SunDaySchools.BLL.Abstractions;
 using Microsoft.Extensions.Options;
 using SunDaySchools.BLL.Configuration;
 using SunDaySchools.BLL.DTOS;
@@ -24,18 +24,18 @@ namespace SunDaySchools.BLL.Manager.Implementations
         private readonly IServantRepository _servantRepository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IMapper _mapper;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ICurrentUserContext _currentUser;
         private readonly ServantProfileOptions _servantProfileOptions;
 
 
         public MemberManager(IMemberRepository memberRepository, IMapper mapper,
-            IHttpContextAccessor httpContextAccessor, UserManager<ApplicationUser> userManager,
+            ICurrentUserContext currentUser, UserManager<ApplicationUser> userManager,
             IClassroomRepository classroomRepository, IServantRepository servantRepository,
             IOptions<ServantProfileOptions> servantProfileOptions)
         {
             _memberRepository = memberRepository;
             _mapper = mapper;
-            _httpContextAccessor = httpContextAccessor;
+            _currentUser = currentUser;
             _userManager = userManager;
             _classroomRepository = classroomRepository;
             _servantRepository = servantRepository;
@@ -70,16 +70,10 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
         public async Task<int> AddAsync(MemberAddDTO memberDto, int classroomId)
         {
-            var user = _httpContextAccessor.HttpContext?.User;
-            if (user == null)
+            if (!_currentUser.IsAuthenticated || string.IsNullOrEmpty(_currentUser.UserId))
                 throw new UnauthorizedAccessException("User is not authenticated.");
 
-            var userIdClaim = _userManager.GetUserId(user);
-            if (string.IsNullOrEmpty(userIdClaim))
-                throw new UnauthorizedAccessException(
-                    "User identifier could not be resolved from the token.");
-
-            var appUser = await _userManager.FindByIdAsync(userIdClaim);
+            var appUser = await _userManager.FindByIdAsync(_currentUser.UserId);
             if (appUser == null)
                 throw new NotFoundException("User not found.");
 
@@ -96,14 +90,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             var isAssigned = await _classroomRepository.IsServantAssignedAsync(servant.Id, classroomId);
 
-            if (!isAssigned && user.IsInRole("Servant"))
+            if (!isAssigned && _currentUser.IsInRole("Servant"))
                 throw new UnauthorizedAccessException("This class is not assigned to you.");
-
-
-            foreach (var claim in _httpContextAccessor.HttpContext.User.Claims)
-            {
-                Console.WriteLine($"{claim.Type} = {claim.Value}");
-            }
 
             string? fileName = null;
 

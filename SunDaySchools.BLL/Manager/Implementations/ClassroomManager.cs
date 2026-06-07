@@ -1,77 +1,55 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
+using SunDaySchools.BLL.Abstractions;
 using SunDaySchools.BLL.DTOS;
 using SunDaySchools.BLL.DTOS.ClsssroomDtos;
 using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Interfaces;
-using SunDaySchools.DAL.Repository.Implementations;
+using SunDaySchools.DAL.Abstractions;
 using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchools.Models;
 using SunDaySchoolsDAL.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SunDaySchools.BLL.Manager.Implementations
 {
-   
+    public class ClassroomManager : IClassroomManager
+    {
+        private readonly IClassroomRepository _classroomRepository;
+        private readonly ICurrentUserContext _currentUser;
+        private readonly ITenantContext _tenantContext;
+        private readonly IServantRepository _servantRepo;
+        private readonly IMemberRepository _memberRepo;
+        private readonly IMapper _mapper;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IMeetingRepository _meetingRepository;
 
-        public class ClassroomManager : IClassroomManager
+        public ClassroomManager(
+            ICurrentUserContext currentUser,
+            ITenantContext tenantContext,
+            IClassroomRepository classroomRepository,
+            IMapper mapper,
+            UserManager<ApplicationUser> userManager,
+            IMemberRepository memberRepository,
+            IServantRepository servantRepository,
+            IMeetingRepository meetingRepository)
         {
-
-
-            private readonly IClassroomRepository         _classroomRepository;
-            private readonly IHttpContextAccessor         _httpContextAccessor;
-            private readonly IServantRepository           _servantRepo;
-            private readonly IMemberRepository            _memberRepo;
-            private readonly IMapper                      _mapper;
-            private readonly UserManager<ApplicationUser> _userManager;
-            private readonly IMeetingRepository           _meetingRepository;
-
-
-        public ClassroomManager(IHttpContextAccessor httpContextAccessor, 
-                IClassroomRepository classroomRepository,IMapper mapper,
-                UserManager<ApplicationUser> userManager,IMemberRepository memberRepository
-                ,IServantRepository servantRepository, IMeetingRepository meetingRepository)
-            {
             _userManager = userManager;
             _classroomRepository = classroomRepository;
-            _httpContextAccessor = httpContextAccessor;
+            _currentUser = currentUser;
+            _tenantContext = tenantContext;
             _mapper = mapper;
             _servantRepo = servantRepository;
             _memberRepo = memberRepository;
             _meetingRepository = meetingRepository;
+        }
 
-
-            }
-        // ClassroomReadDTO
         public async Task<List<ClassroomReadDTO>> GetVisibleClassrooms(int? meetingId = null)
         {
-            var user = _httpContextAccessor.HttpContext?.User;
-            if (user == null)
-                throw new UnauthorizedAccessException("User is not authenticated.");
-
-            // Resolves user id from principal (JwtBearer maps JWT "sub" to what Identity expects).
-            var userIdClaim = _userManager.GetUserId(user);
-
-            if (string.IsNullOrEmpty(userIdClaim))
-                throw new UnauthorizedAccessException(
-                    "User identifier could not be resolved from the token. Ensure the JWT includes a 'sub' claim.");
-
-            var appUser = await _userManager.FindByIdAsync(userIdClaim);
-            
-
-            if (appUser == null)
-                throw new UnauthorizedAccessException("User not found for the supplied token.");
+            var appUser = await RequireCurrentUserAsync();
 
             List<Classroom> classrooms;
 
-            if (user.IsInRole("SuperAdmin"))
+            if (_currentUser.IsInRole("SuperAdmin"))
             {
                 if (meetingId.HasValue)
                 {
@@ -90,7 +68,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     classrooms = await _classroomRepository.GetByChurchIdAsync(appUser.ChurchId);
                 }
             }
-            else if (user.IsInRole("Admin"))
+            else if (_currentUser.IsInRole("Admin"))
             {
                 if (appUser.MeetingId == null)
                     throw new ValidationException(new Dictionary<string, string[]>
@@ -100,18 +78,16 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
                 classrooms = await _classroomRepository.GetByMeetingIdAsync(appUser.MeetingId.Value);
             }
-            else if (user.IsInRole("Servant"))
+            else if (_currentUser.IsInRole("Servant"))
             {
-                 var servant = await _servantRepo.GetByApplicationUserIdAsync(userIdClaim);
+                var servant = await _servantRepo.GetByApplicationUserIdAsync(_currentUser.UserId!);
 
                 if (servant == null)
                     throw new ServantProfileMissingException(
                         "Your account has the Servant role but is not linked to a Servants table row. " +
                         "Link AspNetUsers.Id to Servants.ApplicationUserId (one row per servant user), or complete servant registration.");
 
-                classrooms = await _classroomRepository.GetByServantIdAsync(servant.Id); 
-                
-
+                classrooms = await _classroomRepository.GetByServantIdAsync(servant.Id);
             }
             else
             {
@@ -134,28 +110,23 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
         public async Task<int> AddAsync(ClassroomAddDTO dto)
         {
-            var user = _httpContextAccessor.HttpContext?.User;
-            if (user == null)
+            if (!_currentUser.IsAuthenticated)
                 throw new UnauthorizedAccessException("User is not authenticated.");
 
-            var churchClaim = user.FindFirst("ChurchId");
-            if (churchClaim == null)
-                throw new UnauthorizedAccessException("ChurchId claim is missing.");
-
-            int churchId = int.Parse(churchClaim.Value);
+            var churchId = _tenantContext.ChurchId
+                ?? throw new UnauthorizedAccessException("ChurchId claim is missing.");
 
             var model = _mapper.Map<Classroom>(dto);
             model.ChurchId = churchId;
 
-            if (user.IsInRole("Admin"))
+            if (_currentUser.IsInRole("Admin"))
             {
-                var meetingClaim = user.FindFirst("MeetingId");
-                if (meetingClaim == null)
-                    throw new UnauthorizedAccessException("MeetingId claim is missing.");
+                var meetingId = _tenantContext.MeetingId
+                    ?? throw new UnauthorizedAccessException("MeetingId claim is missing.");
 
-                model.MeetingId = int.Parse(meetingClaim.Value);
+                model.MeetingId = meetingId;
             }
-            else if (user.IsInRole("SuperAdmin"))
+            else if (_currentUser.IsInRole("SuperAdmin"))
             {
                 if (dto.MeetingId.HasValue)
                 {
@@ -178,9 +149,6 @@ namespace SunDaySchools.BLL.Manager.Implementations
             {
                 throw new UnauthorizedAccessException("Only Admin or SuperAdmin can add classrooms.");
             }
-            // edit here 
-            //model.Servants = new List<Servant>();
-            //model.Members = new List<Member>();
 
             if (dto.ServantIds != null && dto.ServantIds.Any())
             {
@@ -198,10 +166,6 @@ namespace SunDaySchools.BLL.Manager.Implementations
                             .ToArray()
                     });
                 }
-
-                // edit here 
-                //foreach (var servant in servants)
-                  //  model.Servants.Add(servant);
             }
 
             if (dto.MemberIds != null && dto.MemberIds.Any())
@@ -250,21 +214,16 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     ["Id"] = new[] { "The ID in the URL does not match the ID in the request body." }
                 });
 
-            var user = _httpContextAccessor.HttpContext?.User;
-            if (user == null)
+            if (!_currentUser.IsAuthenticated)
                 throw new UnauthorizedAccessException("User is not authenticated.");
 
-            var churchClaim = user.FindFirst("ChurchId");
-            if (churchClaim == null)
-                throw new UnauthorizedAccessException("ChurchId claim is missing.");
-
-            var churchId = int.Parse(churchClaim.Value);
+            var churchId = _tenantContext.ChurchId
+                ?? throw new UnauthorizedAccessException("ChurchId claim is missing.");
 
             var classroom = await _classroomRepository.GetByIdAsync(id);
             if (classroom == null)
                 throw new NotFoundException($"Classroom with id {id} not found.");
 
-            // Ensure tenant scope
             if (classroom.ChurchId != churchId)
                 throw new UnauthorizedAccessException("This classroom does not belong to your church.");
 
@@ -276,12 +235,11 @@ namespace SunDaySchools.BLL.Manager.Implementations
             if (dto.AgeOfMembers != null)
                 classroom.AgeOfMembers = dto.AgeOfMembers.Trim();
 
-            // Meeting can be moved (SuperAdmin) or fixed (Admin)
-            if (user.IsInRole("Admin"))
+            if (_currentUser.IsInRole("Admin"))
             {
                 // Admin cannot change meeting; keep as-is
             }
-            else if (user.IsInRole("SuperAdmin"))
+            else if (_currentUser.IsInRole("SuperAdmin"))
             {
                 if (dto.MeetingId.HasValue)
                 {
@@ -298,11 +256,6 @@ namespace SunDaySchools.BLL.Manager.Implementations
                         throw new UnauthorizedAccessException("This meeting does not belong to your church.");
 
                     classroom.MeetingId = dto.MeetingId.Value;
-                }
-                else if (dto.MeetingId == null)
-                {
-                    // allow clearing meeting only when explicitly set to null? dto.MeetingId can't signal "clear" vs "no change".
-                    // We'll treat null as "no change" for safety.
                 }
             }
             else
@@ -324,7 +277,6 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 classroom.LeaderServantId = dto.LeaderServantId.Value;
             }
 
-            // Replace servant assignments (ClassroomServants join table)
             if (dto.ServantIds is not null)
             {
                 var desired = dto.ServantIds.Where(x => x > 0).Distinct().ToHashSet();
@@ -343,7 +295,6 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 }
             }
 
-            // Replace members (FK ClassroomId)
             if (dto.MemberIds is not null)
             {
                 var desired = dto.MemberIds.Where(x => x > 0).Distinct().ToHashSet();
@@ -356,15 +307,12 @@ namespace SunDaySchools.BLL.Manager.Implementations
                         ["MemberIds"] = missing.Select(x => $"Member with id {x} was not found.").ToArray()
                     });
 
-                // Remove members no longer desired
-                var currentMembers = classroom.Members?.Select(m => m.Id).ToHashSet() ?? new HashSet<int>();
                 if (classroom.Members != null)
                 {
                     foreach (var m in classroom.Members.Where(m => !desired.Contains(m.Id)).ToList())
                         m.ClassroomId = null;
                 }
 
-                // Add desired members
                 foreach (var m in members)
                     m.ClassroomId = classroom.Id;
             }
@@ -372,5 +320,17 @@ namespace SunDaySchools.BLL.Manager.Implementations
             await _classroomRepository.UpdateAsync(classroom);
         }
 
+        private async Task<ApplicationUser> RequireCurrentUserAsync()
+        {
+            if (!_currentUser.IsAuthenticated || string.IsNullOrEmpty(_currentUser.UserId))
+                throw new UnauthorizedAccessException(
+                    "User identifier could not be resolved from the token. Ensure the JWT includes a 'sub' claim.");
+
+            var appUser = await _userManager.FindByIdAsync(_currentUser.UserId);
+            if (appUser == null)
+                throw new UnauthorizedAccessException("User not found for the supplied token.");
+
+            return appUser;
+        }
     }
 }

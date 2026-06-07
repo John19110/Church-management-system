@@ -1,5 +1,5 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using SunDaySchools.DAL.Abstractions;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 
@@ -43,7 +43,7 @@ namespace SunDaySchoolsDAL.DBcontext
                 sql => sql.MigrationsAssembly(typeof(ProgramContext).Assembly.GetName().Name));
 
             // No HTTP pipeline at design time; accessor is only used for global query filters.
-            return new ProgramContext(optionsBuilder.Options, new HttpContextAccessor());
+            return new ProgramContext(optionsBuilder.Options, new TenantContextState());
         }
     }
 }

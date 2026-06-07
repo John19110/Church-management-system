@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using SunDaySchools.DAL.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using SunDaySchools.DAL.Models;
 using SunDaySchools.DAL.Models.CustomFields;
@@ -12,11 +12,12 @@ namespace SunDaySchoolsDAL.DBcontext
 {
     public class ProgramContext : IdentityDbContext<ApplicationUser>
     {
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ITenantContext _tenantContext;
 
-        public ProgramContext(DbContextOptions<ProgramContext> options,IHttpContextAccessor httpContextAccessor ) : base(options)
+        public ProgramContext(DbContextOptions<ProgramContext> options, ITenantContext tenantContext)
+            : base(options)
         {
-            _httpContextAccessor = httpContextAccessor;
+            _tenantContext = tenantContext;
         }
 
         public DbSet<Member> Members { get; set; }
@@ -272,17 +273,14 @@ namespace SunDaySchoolsDAL.DBcontext
 
         // ================= CONTEXT VALUES =================
 
-        private int? CurrentChurchId =>
-            _httpContextAccessor.HttpContext?.Items["ChurchId"] as int?;
+        private int? CurrentChurchId => _tenantContext.ChurchId;
 
-        private int? CurrentMeetingId =>
-            _httpContextAccessor.HttpContext?.Items["MeetingId"] as int?;
+        private int? CurrentMeetingId => _tenantContext.MeetingId;
 
-        private string? CurrentScope =>
-            _httpContextAccessor.HttpContext?.Items["Scope"] as string;
+        private string? CurrentScope => _tenantContext.Scope;
 
         private List<int> CurrentClassroomIds =>
-            _httpContextAccessor.HttpContext?.Items["ClassroomIds"] as List<int> ?? new List<int>();
+            _tenantContext.ClassroomIds?.ToList() ?? new List<int>();
 
         // ================= SAVE HOOKS =================
 

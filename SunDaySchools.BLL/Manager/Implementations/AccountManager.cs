@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
+using SunDaySchools.BLL.Abstractions;
 using SunDaySchools.BLL.DTOS.AccountDtos;
 using SunDaySchools.BLL.Exceptions;         
 using SunDaySchools.BLL.Manager.Interfaces;
@@ -12,10 +11,9 @@ using SunDaySchools.Models;
 using SunDaySchoolsDAL.Models;
 using System;
 using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
-using System.Text;
+using System.IdentityModel.Tokens.Jwt;
 using System.Threading.Tasks;
 
 namespace SunDaySchools.BLL.Manager.Implementations
@@ -23,7 +21,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
     public class AccountManager : IAccountManager
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IConfiguration _configuration;
+        private readonly ITokenService _tokenService;
         private readonly IServantRepository _servantRepo;
         private readonly IChurchRepository _churchRepo;
         private readonly IAdminRepository _adminRepo;
@@ -33,7 +31,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
         private readonly IAuthOtpManager _authOtpManager;
 
 
-        public AccountManager(UserManager<ApplicationUser>usermagaer, IConfiguration configuration,
+        public AccountManager(UserManager<ApplicationUser>usermagaer, ITokenService tokenService,
             IServantRepository servantRepo, IChurchRepository churchRepo, IAdminRepository adminRepo,
             IMeetingRepository meetingRepo, IUnitOfWork unitOfWork,IFileManager fileManager,
             IAuthOtpManager authOtpManager)
@@ -41,7 +39,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             _churchRepo = churchRepo;
             _userManager = usermagaer;
-            _configuration = configuration;
+            _tokenService = tokenService;
             _servantRepo = servantRepo;
             _adminRepo = adminRepo;
             _meetingRepo = meetingRepo;
@@ -90,7 +88,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 throw new InvalidCredentialsException();
 
             var claims = await BuildJwtClaims(existingUser);
-            return AuthFlowResultDto.Success(GenerateToken(claims));
+            return AuthFlowResultDto.Success(_tokenService.CreateAccessToken(claims));
         }
         public async Task<AuthFlowResultDto> RegisterChurchSuperAdmin(RegisterChurchAdminDTO dto, string webRootPath)
         {
@@ -531,76 +529,36 @@ namespace SunDaySchools.BLL.Manager.Implementations
         //    return "Church";
         //}
 
-        private async Task<List<Claim>> BuildJwtClaims(ApplicationUser user)
+        private async Task<List<TokenClaimDescriptor>> BuildJwtClaims(ApplicationUser user)
         {
-            var claims = new List<Claim>
-    {
-        // 🔑 Identity (single source)
-        new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+            var claims = new List<TokenClaimDescriptor>
+            {
+                new() { Type = JwtRegisteredClaimNames.Sub, Value = user.Id },
+                new() { Type = ClaimTypes.Name, Value = user.ServantProfile?.Name ?? string.Empty },
+                new() { Type = ClaimTypes.MobilePhone, Value = user.PhoneNumber ?? string.Empty },
+                new() { Type = "ChurchId", Value = user.ChurchId?.ToString() ?? string.Empty },
+            };
 
-        // 👤 Display
-        new Claim(ClaimTypes.Name, user.ServantProfile?.Name ?? string.Empty),
-
-        // 📱 Login identifier
-        new Claim(ClaimTypes.MobilePhone, user.PhoneNumber ?? string.Empty),
-
-        // 🏛 Tenant
-        new Claim("ChurchId", user.ChurchId?.ToString() ?? string.Empty),
-    };
-
-            // 📌 Meeting (source of truth)
             if (user.MeetingId.HasValue)
-                claims.Add(new Claim("MeetingId", user.MeetingId.Value.ToString()));
+                claims.Add(new TokenClaimDescriptor { Type = "MeetingId", Value = user.MeetingId.Value.ToString() });
 
-            // 📌 Classrooms (source of truth)
             if (user.ServantProfile?.ClassroomServants?.Any() == true)
             {
                 var classroomIds = user.ServantProfile.ClassroomServants
                     .Select(x => x.ClassroomId)
                     .Distinct();
-
-                claims.Add(new Claim("ClassroomIds", string.Join(",", classroomIds)));
+                claims.Add(new TokenClaimDescriptor
+                {
+                    Type = "ClassroomIds",
+                    Value = string.Join(",", classroomIds)
+                });
             }
 
-            // 🎭 Roles
             var roles = await _userManager.GetRolesAsync(user);
             foreach (var role in roles)
-            {
-                claims.Add(new Claim(ClaimTypes.Role, role));
-            }
+                claims.Add(new TokenClaimDescriptor { Type = ClaimTypes.Role, Value = role });
 
             return claims;
-        }
-        private string GenerateToken(IList<Claim> claims)
-        {
-            // get secret key (string)
-            var SecretKey = _configuration.GetSection("SecretKey").Value;
-
-            // convert the secret key  from string to byte 
-            var SecretKeybyte = Encoding.UTF8.GetBytes(SecretKey);
-
-            //SecurityKey is an abstract class so we cant instiantiate it 
-            //thas why we call  SymmetricSecurityKey constructor
-            SecurityKey securityKey = new SymmetricSecurityKey(SecretKeybyte);
-
-            //3
-            //pass the security key and the algorithm to SigningCredentials to merge them
-            SigningCredentials signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-            //2
-            //expire date for the token 
-            var expire = DateTime.Now.AddDays(7);
-
-            //1
-            //generate the token 
-                JwtSecurityToken jwtSecurityToken = new JwtSecurityToken(claims: claims, expires: expire, signingCredentials: signingCredentials);
-
-            //convert back to string from jwtSecurityToken
-            JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler();
-
-            var token = handler.WriteToken(jwtSecurityToken);
-
-            return token;
         }
     }
 }
