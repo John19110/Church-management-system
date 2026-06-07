@@ -1,6 +1,7 @@
 using AutoMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using SunDaySchools.BLL.Abstractions;
+using SunDaySchools.DAL.Abstractions;
 using Microsoft.Extensions.Logging;
 using SunDaySchools.BLL.Authorization;
 using SunDaySchools.BLL.DTOS.CustomFields;
@@ -20,7 +21,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
         private readonly ICustomFieldRepository _repository;
         private readonly ICustomFieldValidator _validator;
         private readonly IMapper _mapper;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ITenantContext _tenantContext;
+        private readonly ICurrentUserContext _currentUser;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<CustomFieldManager> _logger;
 
@@ -28,14 +30,16 @@ namespace SunDaySchools.BLL.Manager.Implementations
             ICustomFieldRepository repository,
             ICustomFieldValidator validator,
             IMapper mapper,
-            IHttpContextAccessor httpContextAccessor,
+            ITenantContext tenantContext,
+            ICurrentUserContext currentUser,
             UserManager<ApplicationUser> userManager,
             ILogger<CustomFieldManager> logger)
         {
             _repository = repository;
             _validator = validator;
             _mapper = mapper;
-            _httpContextAccessor = httpContextAccessor;
+            _tenantContext = tenantContext;
+            _currentUser = currentUser;
             _userManager = userManager;
             _logger = logger;
         }
@@ -51,7 +55,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     _repository,
                     entityName,
                     _logger,
-                    _httpContextAccessor);
+                    _tenantContext,
+                    _currentUser);
             }
             catch (Exception ex)
             {
@@ -525,22 +530,14 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
         private void EnsureAuthenticated()
         {
-            if (_httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated != true)
+            if (!_currentUser.IsAuthenticated)
                 throw new UnauthorizedAccessException("User is not authenticated.");
         }
 
-        private bool CanManageDefinitions()
-        {
-            var user = _httpContextAccessor.HttpContext?.User;
-            return user != null && CustomFieldRoles.DefinitionManagers.Any(user.IsInRole);
-        }
+        private bool CanManageDefinitions() =>
+            CustomFieldRoles.DefinitionManagers.Any(_currentUser.IsInRole);
 
-        private async Task<string?> GetCurrentUserIdAsync()
-        {
-            var user = _httpContextAccessor.HttpContext?.User;
-            if (user == null)
-                return null;
-            return _userManager.GetUserId(user);
-        }
+        private Task<string?> GetCurrentUserIdAsync() =>
+            Task.FromResult(_currentUser.UserId);
     }
 }

@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using SunDaySchools.DAL.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.JsonWebTokens;
 using SunDaySchools.BLL.DTOS.AccountDtos;
@@ -25,20 +25,20 @@ namespace SunDaySchools.BLL.Manager.Implementations
     private readonly IAdminRepository _adminRepository;
     private readonly IMapper _mapper;
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ITenantContext _tenantContext;
     private readonly IAccountManager _accountManager;
     private readonly IMeetingRepository _meetingRepository;
 
 
 
         public AdminManager(IAdminRepository adminRepository,IMapper mapper
-            , UserManager<ApplicationUser> usermanager, IHttpContextAccessor httpContextAccessor
+            , UserManager<ApplicationUser> usermanager, ITenantContext tenantContext
             ,IAccountManager accountManager,IMeetingRepository meetingRepository)
         {
             _adminRepository = adminRepository;
             _mapper = mapper;
             _userManager = usermanager;
-            _httpContextAccessor = httpContextAccessor;
+            _tenantContext = tenantContext;
             _accountManager = accountManager;
             _meetingRepository = meetingRepository;
         }
@@ -98,12 +98,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
         //}
         public async Task<List<PendingServantDTO>> GetPendingServants()
         {
-            var claim = _httpContextAccessor.HttpContext?.User?.FindFirst("ChurchId");
-
-            if (claim == null)
-                throw new UnauthorizedAccessException("ChurchId claim is missing");
-
-            var churchId = int.Parse(claim.Value);
+            var churchId = _tenantContext.ChurchId
+                ?? throw new UnauthorizedAccessException("ChurchId claim is missing");
 
             var users = await _userManager.Users
                                         .Where(u => !u.IsApproved && u.ChurchId == churchId)

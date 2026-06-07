@@ -27,6 +27,11 @@ using SunDaySchools.BLL.Services.CustomFields;
 using SunDaySchools.BLL.Configuration;
 using SunDaySchools.BLL.Services.Auth.Interfaces;
 using SunDaySchools.BLL.Services.Auth.Implementations;
+using SunDaySchools.BLL.Abstractions;
+using SunDaySchools.BLL.Application.Servants;
+using SunDaySchools.DAL.Abstractions;
+using SunDaySchools.API.Infrastructure.Auth;
+using SunDaySchools.API.Infrastructure.Tenant;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -74,6 +79,13 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 });
 
 builder.Services.AddHttpContextAccessor();
+
+// Layered architecture: tenant + user context (API adapters → BLL/DAL abstractions)
+builder.Services.AddScoped<TenantContextState>();
+builder.Services.AddScoped<ITenantContext>(sp => sp.GetRequiredService<TenantContextState>());
+builder.Services.AddScoped<ICurrentUserContext, HttpCurrentUserContext>();
+builder.Services.AddScoped<ITokenService, JwtTokenService>();
+builder.Services.AddScoped<IServantProfileService, ServantProfileService>();
 
 // Swagger / OpenAPI
 builder.Services.AddEndpointsApiExplorer();
@@ -311,8 +323,7 @@ app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseMiddleware<MeetingMiddleware>();
-app.UseMiddleware<ChurchMiddleware>();
+app.UseMiddleware<TenantContextPopulationMiddleware>();
 
 app.MapControllers();
 //if (app.Environment.IsDevelopment())
