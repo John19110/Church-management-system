@@ -146,11 +146,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 });
             }
 
-            await _unitOfWork.BeginTransactionAsync();
-
-            try
+            await RunInTransactionAsync(async () =>
             {
-                // ✅ Create Church
                 var church = new Church
                 {
                     Name = dto.ChurchName.Trim()
@@ -159,7 +156,6 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 await _churchRepo.AddAsync(church);
                 await _unitOfWork.SaveChangesAsync();
 
-                // ✅ Create User
                 var user = new ApplicationUser
                 {
                     UserName = dto.Name,
@@ -195,7 +191,6 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     );
                 }
 
-                // ✅ Create Servant
                 var servant = new Servant
                 {
                     ApplicationUserId = user.Id,
@@ -204,13 +199,10 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     ChurchId = church.Id,
                     BirthDate = dto.BirthDate,
                     JoiningDate = dto.BirthDate
-
-
                 };
 
                 church.Pastor = servant;
 
-                // 🔥 Save Image
                 var (fileName, url) = await _fileManager.SaveImageAsync(
                     dto.Image,
                     webRootPath,
@@ -219,23 +211,14 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
                 servant.ImageFileName = fileName;
                 servant.ImageUrl = url;
-
-                // ✅ Link User ↔ Servant
                 user.ServantProfile = servant;
 
                 await _servantRepo.AddAsync(servant);
                 await _unitOfWork.SaveChangesAsync();
+            });
 
-                await _unitOfWork.CommitAsync();
-
-                await _authOtpManager.SendPhoneVerificationAfterRegistrationAsync(phoneNumber);
-                return AuthFlowResultDto.RequiresVerification(phoneNumber);
-            }
-            catch
-            {
-                await _unitOfWork.RollbackAsync();
-                throw;
-            }
+            await _authOtpManager.SendPhoneVerificationAfterRegistrationAsync(phoneNumber);
+            return AuthFlowResultDto.RequiresVerification(phoneNumber);
         }
         public async Task<AuthFlowResultDto> RegisterMeetingAdminNewChurch(RegisterMeetingAdminNewChurchDTO registerMeetingAdminDTO,string webRootPath)
         {
@@ -261,115 +244,81 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 throw new ChurchAlreadyExistsException();
            
 
-            await _unitOfWork.BeginTransactionAsync();
+            var meetingPhone = registerMeetingAdminDTO.PhoneNumber.Trim().Replace(" ", "");
 
-            try
+            await RunInTransactionAsync(async () =>
             {
+                var church = new Church
+                {
+                    Name = registerMeetingAdminDTO.ChurchName
+                };
+                await _churchRepo.AddAsync(church);
+                await _unitOfWork.SaveChangesAsync();
 
-                // Create the church
-            var church = new Church
-            {
-                Name = registerMeetingAdminDTO.ChurchName
-            };
-            await _churchRepo.AddAsync(church);
-            await _unitOfWork.SaveChangesAsync();
-
-
-                // Create the meeting
                 var meeting = new Meeting
                 {
                     Name = registerMeetingAdminDTO.MeetingName,
                     ChurchId = church.Id,
                     Weekly_appointment = TimeOnly.FromDateTime(registerMeetingAdminDTO.Weekly_appointment),
                     DayOfWeek = registerMeetingAdminDTO.Weekly_appointment.DayOfWeek.ToString()
-
                 };
-            await _meetingRepo.AddAsync(meeting);
-            await _unitOfWork.SaveChangesAsync();
+                await _meetingRepo.AddAsync(meeting);
+                await _unitOfWork.SaveChangesAsync();
 
-
-               // church.Meetings.Add(meeting); entity framwork alreadt do that 
-
-                // Create the user
-                var meetingPhone = registerMeetingAdminDTO.PhoneNumber.Trim().Replace(" ", "");
                 var user = new ApplicationUser
-            {
-                UserName = registerMeetingAdminDTO.Name,
-                PhoneNumber = meetingPhone,
-                IsApproved = true,
-                IsPhoneVerified = false,
-                ChurchId = church.Id,
-                MeetingId = meeting.Id
-
-            };
-
-
-            var result = await _userManager.CreateAsync(user, registerMeetingAdminDTO.Password);
-
-
-               
-                //user = await _userManager.FindByIdAsync(user.Id);
-
-                if (!result.Succeeded)
-            {
-                var errors = result.Errors
-                    .GroupBy(e => e.Code)
-                    .ToDictionary(
-                        g => g.Key,
-                        g => g.Select(e => e.Description).ToArray()
-                    );
-                throw new ValidationException(errors);
-            }
-
-                var roleResult = await _userManager.AddToRoleAsync(user, "Admin");
-
-                if (!roleResult.Succeeded)
                 {
-                    throw new Exception("Failed to assign Admin role.");
+                    UserName = registerMeetingAdminDTO.Name,
+                    PhoneNumber = meetingPhone,
+                    IsApproved = true,
+                    IsPhoneVerified = false,
+                    ChurchId = church.Id,
+                    MeetingId = meeting.Id
+                };
+
+                var result = await _userManager.CreateAsync(user, registerMeetingAdminDTO.Password);
+                if (!result.Succeeded)
+                {
+                    var errors = result.Errors
+                        .GroupBy(e => e.Code)
+                        .ToDictionary(
+                            g => g.Key,
+                            g => g.Select(e => e.Description).ToArray()
+                        );
+                    throw new ValidationException(errors);
                 }
 
-                // Create the servant
+                var roleResult = await _userManager.AddToRoleAsync(user, "Admin");
+                if (!roleResult.Succeeded)
+                    throw new Exception("Failed to assign Admin role.");
+
                 var servant = new Servant
-            {
-                ApplicationUserId = user.Id,
-                Name = registerMeetingAdminDTO.Name,
-                PhoneNumber = registerMeetingAdminDTO.PhoneNumber,
-                BirthDate = registerMeetingAdminDTO.BirthDate,
-                JoiningDate = registerMeetingAdminDTO.JoiningDate,
-                ChurchId = church.Id,
-                MeetingId = meeting.Id
+                {
+                    ApplicationUserId = user.Id,
+                    Name = registerMeetingAdminDTO.Name,
+                    PhoneNumber = registerMeetingAdminDTO.PhoneNumber,
+                    BirthDate = registerMeetingAdminDTO.BirthDate,
+                    JoiningDate = registerMeetingAdminDTO.JoiningDate,
+                    ChurchId = church.Id,
+                    MeetingId = meeting.Id
+                };
 
-            };
-                //  church.Servants.Add(servant); entity framework already do that 
-                // meeting.Servants.Add(servant); entity framework already do that
-                // 🔥 Save Image
                 var (fileName, url) = await _fileManager.SaveImageAsync(
-                registerMeetingAdminDTO.Image,
-                webRootPath,
-                "images"
-            );
+                    registerMeetingAdminDTO.Image,
+                    webRootPath,
+                    "images"
+                );
 
-            servant.ImageFileName = fileName;
-            servant.ImageUrl = url;
-
-            // Link User ↔ Servant
-            user.ServantProfile = servant;
-                // Link meeting to the admin
+                servant.ImageFileName = fileName;
+                servant.ImageUrl = url;
+                user.ServantProfile = servant;
                 meeting.LeaderServant = servant;
+
                 await _servantRepo.AddAsync(servant);
-            await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
+            });
 
-                await _unitOfWork.CommitAsync();
-
-                await _authOtpManager.SendPhoneVerificationAfterRegistrationAsync(meetingPhone);
-                return AuthFlowResultDto.RequiresVerification(meetingPhone);
-
-            }
-            catch
-            {
-                await _unitOfWork.RollbackAsync();
-                throw;
-            }
+            await _authOtpManager.SendPhoneVerificationAfterRegistrationAsync(meetingPhone);
+            return AuthFlowResultDto.RequiresVerification(meetingPhone);
         }
     
         public async Task<AuthFlowResultDto> RegisterServant(RegisterServantDTO registerDto, string webRootPath)
@@ -402,44 +351,36 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     ["MeetingId"] = new[] { "The selected meeting does not belong to the selected church." }
                 });
 
-            await _unitOfWork.BeginTransactionAsync();
+            var servantPhone = registerDto.PhoneNumber.Trim().Replace(" ", "");
 
-            try
+            await RunInTransactionAsync(async () =>
             {
-
-
-                // Create user
-                var servantPhone = registerDto.PhoneNumber.Trim().Replace(" ", "");
                 var user = new ApplicationUser
-            {
-                UserName = registerDto.Name,
-                PhoneNumber = servantPhone,
-                IsApproved = false,
-                IsPhoneVerified = false,
-                ChurchId = registerDto.ChurchId,
-                MeetingId= registerDto.MeetingId
-
+                {
+                    UserName = registerDto.Name,
+                    PhoneNumber = servantPhone,
+                    IsApproved = false,
+                    IsPhoneVerified = false,
+                    ChurchId = registerDto.ChurchId,
+                    MeetingId = registerDto.MeetingId
                 };
 
-            var result = await _userManager.CreateAsync(user, registerDto.Password);
+                var result = await _userManager.CreateAsync(user, registerDto.Password);
+                if (!result.Succeeded)
+                {
+                    var errors = result.Errors
+                        .GroupBy(e => e.Code)
+                        .ToDictionary(
+                            g => g.Key,
+                            g => g.Select(e => e.Description).ToArray()
+                        );
 
-            if (!result.Succeeded)
-            {
-                var errors = result.Errors
-                    .GroupBy(e => e.Code)
-                    .ToDictionary(
-                        g => g.Key,
-                        g => g.Select(e => e.Description).ToArray()
-                    );
+                    throw new ValidationException(errors);
+                }
 
-                throw new ValidationException(errors);
-            }
+                await _userManager.AddToRoleAsync(user, "Servant");
+                await _unitOfWork.SaveChangesAsync();
 
-            await _userManager.AddToRoleAsync(user, "Servant");
-            await _unitOfWork.SaveChangesAsync();
-
-
-                // Create servant
                 var servant = new Servant
                 {
                     ApplicationUserId = user.Id,
@@ -449,38 +390,25 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     JoiningDate = registerDto.BirthDate,
                     ChurchId = registerDto.ChurchId,
                     MeetingId = registerDto.MeetingId
-
                 };
 
-            // 🔥 Save Image using FileManager
-            var (fileName, url) = await _fileManager.SaveImageAsync(
-                registerDto.Image,
-                webRootPath,
-                "images"
-            );
+                var (fileName, url) = await _fileManager.SaveImageAsync(
+                    registerDto.Image,
+                    webRootPath,
+                    "images"
+                );
 
-            servant.ImageFileName = fileName;
-            servant.ImageUrl = url;
+                servant.ImageFileName = fileName;
+                servant.ImageUrl = url;
+                user.ServantProfile = servant;
 
-            // Link navigation property (important)
-            user.ServantProfile = servant;
+                await _servantRepo.AddAsync(servant);
+                await _unitOfWork.SaveChangesAsync();
+            });
 
-            await _servantRepo.AddAsync(servant);
-            await _unitOfWork.SaveChangesAsync();
-
-                await _unitOfWork.CommitAsync();
-
-                await _authOtpManager.SendPhoneVerificationAfterRegistrationAsync(servantPhone);
-                return AuthFlowResultDto.RequiresVerification(servantPhone);
-
+            await _authOtpManager.SendPhoneVerificationAfterRegistrationAsync(servantPhone);
+            return AuthFlowResultDto.RequiresVerification(servantPhone);
         }
-            catch
-            {
-                await _unitOfWork.RollbackAsync();
-                throw;
-            }
-
-}
         /// <summary>
         /// Users with <c>Admin</c>, <c>Servant</c>, or <c>SuperAdmin</c> must have a <c>Servants</c> row linked by <see cref="Servant.ApplicationUserId"/>.
         /// </summary>
@@ -528,6 +456,21 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
         //    return "Church";
         //}
+
+        private async Task RunInTransactionAsync(Func<Task> work)
+        {
+            await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                await work();
+                await _unitOfWork.CommitAsync();
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
 
         private async Task<List<TokenClaimDescriptor>> BuildJwtClaims(ApplicationUser user)
         {
