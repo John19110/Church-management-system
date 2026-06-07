@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using SunDaySchools.API.Json;
 using SunDaySchools.BLL.Exceptions;
 using System;
 using System.Net;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -49,14 +49,13 @@ namespace SunDaySchools.API.Middlewares
                 return;
             }
 
-            context.Response.ContentType = "application/json; charset=utf-8";
-
             var (statusCode, errorCode, message) = MapException(exception);
 
             context.Response.StatusCode = statusCode;
 
             if (exception is PhoneNotVerifiedException phoneEx)
             {
+                context.Response.ContentType = "application/json; charset=utf-8";
                 var payload = new
                 {
                     success = false,
@@ -72,6 +71,7 @@ namespace SunDaySchools.API.Middlewares
 
             if (exception is OtpRateLimitException rateEx)
             {
+                context.Response.ContentType = "application/json; charset=utf-8";
                 var payload = new
                 {
                     success = false,
@@ -84,30 +84,44 @@ namespace SunDaySchools.API.Middlewares
                 return;
             }
 
-            var response = new ApiErrorResponse
-            {
-                Success = false,
-                ErrorCode = errorCode,
-                Message = message,
-                ExceptionType = null,
-                StackTrace = null,
-                InnerException = null
-            };
+            context.Response.ContentType = "application/problem+json; charset=utf-8";
+
+            var detail = GetSafeDetail(exception, message);
 
             if (exception is ValidationException validationException)
             {
-                response.Errors = validationException.Errors;
                 if (validationException.Errors.Count > 0)
                 {
                     var first = validationException.Errors.First();
-                    response.Message = $"{first.Key}: {string.Join("; ", first.Value)}";
+                    detail = $"{first.Key}: {string.Join("; ", first.Value)}";
                     if (validationException.Errors.Count > 1)
-                        response.Message += $" (+{validationException.Errors.Count - 1} more)";
+                        detail += $" (+{validationException.Errors.Count - 1} more)";
                 }
             }
 
-            var json = JsonSerializer.Serialize(response, _jsonOptions);
+            var problem = new ProblemDetails
+            {
+                Type = errorCode,
+                Title = message,
+                Status = statusCode,
+                Detail = detail
+            };
+
+            if (exception is ValidationException validationEx && validationEx.Errors.Count > 0)
+            {
+                problem.Extensions["errors"] = validationEx.Errors;
+            }
+
+            var json = JsonSerializer.Serialize(problem, _jsonOptions);
             await context.Response.WriteAsync(json);
+        }
+
+        private static string GetSafeDetail(Exception exception, string mappedMessage)
+        {
+            if (exception is InvalidCredentialsException credEx)
+                return credEx.Message;
+
+            return mappedMessage;
         }
 
         private void LogExceptionChain(Exception exception, HttpContext context)
@@ -205,23 +219,5 @@ namespace SunDaySchools.API.Middlewares
             return false;
         }
 
-        private sealed class ApiErrorResponse
-        {
-            public bool Success { get; set; }
-            public string Message { get; set; } = "";
-            public string ErrorCode { get; set; } = "";
-
-            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-            public string? ExceptionType { get; set; }
-
-            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-            public string? StackTrace { get; set; }
-
-            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-            public string? InnerException { get; set; }
-
-            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-            public IDictionary<string, string[]>? Errors { get; set; }
-        }
     }
 }

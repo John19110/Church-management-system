@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 
+const String _defaultApiErrorMessage = 'An error occurred. Please try again.';
+
 class AppException implements Exception {
   final String message;
   final int? statusCode;
@@ -11,7 +13,19 @@ class AppException implements Exception {
 }
 
 class ApiException extends AppException {
-  const ApiException(super.message, {super.statusCode});
+  final String? errorCode;
+  final bool requiresPhoneVerification;
+  final String? phoneNumber;
+  final int? retryAfterSeconds;
+
+  const ApiException(
+    super.message, {
+    super.statusCode,
+    this.errorCode,
+    this.requiresPhoneVerification = false,
+    this.phoneNumber,
+    this.retryAfterSeconds,
+  });
 }
 
 class UnauthorizedException extends AppException {
@@ -22,6 +36,70 @@ class UnauthorizedException extends AppException {
 class NetworkException extends AppException {
   const NetworkException()
       : super('Network error. Please check your connection and try again.');
+}
+
+/// Normalized API error parsed from legacy or RFC 7807 ProblemDetails bodies.
+class ParsedApiError {
+  final String? errorCode;
+  final String message;
+  final int? status;
+  final bool requiresPhoneVerification;
+  final String? phoneNumber;
+  final int? retryAfterSeconds;
+
+  const ParsedApiError({
+    required this.message,
+    this.errorCode,
+    this.status,
+    this.requiresPhoneVerification = false,
+    this.phoneNumber,
+    this.retryAfterSeconds,
+  });
+}
+
+/// Parses legacy `{ success, errorCode, message }` and RFC 7807 ProblemDetails.
+ParsedApiError parseApiError(
+  dynamic responseBody, {
+  int? httpStatusCode,
+  String defaultMessage = _defaultApiErrorMessage,
+}) {
+  final map = _asJsonMap(responseBody);
+  if (map == null) {
+    final text = _plainTextMessage(responseBody);
+    return ParsedApiError(
+      message: text ?? defaultMessage,
+      status: httpStatusCode,
+    );
+  }
+
+  final errorCode = _errorCodeFromMap(map);
+  final status = httpStatusCode ?? _statusFromMap(map);
+  final message = _primaryMessage(map) ?? defaultMessage;
+
+  if (_isPhoneNotVerified(map, errorCode)) {
+    return ParsedApiError(
+      errorCode: 'PHONE_NOT_VERIFIED',
+      message: message,
+      status: status ?? 403,
+      requiresPhoneVerification: true,
+      phoneNumber: map['phoneNumber']?.toString(),
+    );
+  }
+
+  if (_isOtpRateLimit(map, errorCode)) {
+    return ParsedApiError(
+      errorCode: 'OTP_RATE_LIMIT',
+      message: message,
+      status: status ?? 429,
+      retryAfterSeconds: _retryAfterSecondsFromMap(map),
+    );
+  }
+
+  return ParsedApiError(
+    errorCode: errorCode,
+    message: message,
+    status: status,
+  );
 }
 
 /// User-facing text for any error thrown from repositories or UI catch blocks.
@@ -44,15 +122,80 @@ bool _looksLikeTechnicalError(String text) {
       text.length > 200;
 }
 
-String? _messageFromResponseData(dynamic data) {
-  if (data is Map<String, dynamic>) {
-    final message = data['message'];
-    if (message != null) return message.toString();
-  }
-  if (data is String && data.trim().isNotEmpty && !_looksLikeTechnicalError(data)) {
-    return data.trim();
+Map<String, dynamic>? _asJsonMap(dynamic body) {
+  if (body is Map<String, dynamic>) return body;
+  if (body is Map) {
+    try {
+      return Map<String, dynamic>.from(body);
+    } catch (_) {
+      return null;
+    }
   }
   return null;
+}
+
+String? _plainTextMessage(dynamic body) {
+  if (body is String) {
+    final trimmed = body.trim();
+    if (trimmed.isNotEmpty && !_looksLikeTechnicalError(trimmed)) {
+      return trimmed;
+    }
+  }
+  return null;
+}
+
+String? _errorCodeFromMap(Map<String, dynamic> map) {
+  final raw = map['errorCode'] ?? map['type'];
+  if (raw == null) return null;
+  final code = raw.toString().trim();
+  return code.isEmpty ? null : code;
+}
+
+int? _statusFromMap(Map<String, dynamic> map) {
+  final raw = map['status'];
+  if (raw is int) return raw;
+  if (raw == null) return null;
+  return int.tryParse(raw.toString());
+}
+
+int? _retryAfterSecondsFromMap(Map<String, dynamic> map) {
+  final raw = map['retryAfterSeconds'];
+  if (raw is int) return raw;
+  if (raw == null) return null;
+  return int.tryParse(raw.toString());
+}
+
+/// Priority: title (ProblemDetails) → message (legacy) → detail (ProblemDetails).
+String? _primaryMessage(Map<String, dynamic> map) {
+  for (final key in const ['title', 'message', 'detail']) {
+    final value = map[key];
+    if (value == null) continue;
+    final text = value.toString().trim();
+    if (text.isNotEmpty) return text;
+  }
+  return null;
+}
+
+bool _isPhoneNotVerified(Map<String, dynamic> map, String? errorCode) {
+  if (errorCode == 'PHONE_NOT_VERIFIED') return true;
+  return map['requiresPhoneVerification'] == true &&
+      (map['errorCode'] == 'PHONE_NOT_VERIFIED' || map['type'] == 'PHONE_NOT_VERIFIED');
+}
+
+bool _isOtpRateLimit(Map<String, dynamic> map, String? errorCode) {
+  if (errorCode == 'OTP_RATE_LIMIT') return true;
+  return map['errorCode'] == 'OTP_RATE_LIMIT' || map['type'] == 'OTP_RATE_LIMIT';
+}
+
+ApiException _apiExceptionFromParsed(ParsedApiError parsed) {
+  return ApiException(
+    parsed.message,
+    statusCode: parsed.status,
+    errorCode: parsed.errorCode,
+    requiresPhoneVerification: parsed.requiresPhoneVerification,
+    phoneNumber: parsed.phoneNumber,
+    retryAfterSeconds: parsed.retryAfterSeconds,
+  );
 }
 
 /// Maps a [DioException] to a user-friendly [AppException].
@@ -67,42 +210,32 @@ AppException mapDioException(DioException e) {
   final statusCode = e.response?.statusCode;
   if (statusCode == 401) return const UnauthorizedException();
 
-  final data = e.response?.data;
-  if (data is Map<String, dynamic>) {
-    if (data['errorCode'] == 'PHONE_NOT_VERIFIED' &&
-        data['requiresPhoneVerification'] == true) {
-      return ApiException(
-        data['message']?.toString() ?? 'Phone verification required.',
-        statusCode: 403,
-      );
-    }
-    if (data['errorCode'] == 'OTP_RATE_LIMIT') {
-      return ApiException(
-        data['message']?.toString() ??
-            'Too many attempts. Please wait before trying again.',
-        statusCode: 429,
-      );
-    }
-    final apiMessage = _messageFromResponseData(data);
-    if (apiMessage != null) {
-      return ApiException(apiMessage, statusCode: statusCode);
-    }
+  final parsed = parseApiError(
+    e.response?.data,
+    httpStatusCode: statusCode,
+  );
+
+  if (parsed.requiresPhoneVerification || parsed.errorCode == 'OTP_RATE_LIMIT') {
+    return _apiExceptionFromParsed(parsed);
+  }
+
+  if (parsed.message != _defaultApiErrorMessage ||
+      parsed.errorCode != null ||
+      parsed.status != null) {
+    return _apiExceptionFromParsed(parsed);
   }
 
   if (statusCode != null && statusCode >= 500) {
     return ApiException(
       'Server error. Please try again later.',
       statusCode: statusCode,
+      errorCode: parsed.errorCode ?? 'SERVER_ERROR',
     );
   }
 
-  final fallback = _messageFromResponseData(data);
-  if (fallback != null) {
-    return ApiException(fallback, statusCode: statusCode);
-  }
-
   return ApiException(
-    e.message ?? 'An error occurred. Please try again.',
+    e.message ?? _defaultApiErrorMessage,
     statusCode: statusCode,
+    errorCode: parsed.errorCode,
   );
 }
