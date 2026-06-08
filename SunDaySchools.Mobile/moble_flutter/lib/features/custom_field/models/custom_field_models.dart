@@ -1,4 +1,11 @@
 /// Custom field DTOs aligned with backend API contracts.
+
+int _readInt(dynamic value) {
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  return int.parse(value.toString());
+}
+
 class CustomFieldOptionDto {
   final int? id;
   final String value;
@@ -14,7 +21,7 @@ class CustomFieldOptionDto {
 
   factory CustomFieldOptionDto.fromJson(Map<String, dynamic> json) {
     return CustomFieldOptionDto(
-      id: json['id'] as int?,
+      id: json['id'] == null ? null : _readInt(json['id']),
       value: json['value'] as String? ?? '',
       displayText: json['displayText'] as String? ?? '',
       sortOrder: json['sortOrder'] as int? ?? 0,
@@ -88,6 +95,9 @@ class CustomFieldDefinitionReadDto {
   final String? validationRegex;
   final int sortOrder;
   final List<CustomFieldOptionDto> options;
+  final bool isBuiltIn;
+  final bool isSystemField;
+  final bool isDeletable;
 
   const CustomFieldDefinitionReadDto({
     required this.id,
@@ -106,12 +116,15 @@ class CustomFieldDefinitionReadDto {
     this.validationRegex,
     this.sortOrder = 0,
     this.options = const [],
+    this.isBuiltIn = false,
+    this.isSystemField = false,
+    this.isDeletable = true,
   });
 
   factory CustomFieldDefinitionReadDto.fromJson(Map<String, dynamic> json) {
     final optionsJson = json['options'] as List<dynamic>? ?? [];
     return CustomFieldDefinitionReadDto(
-      id: json['id'] as int,
+      id: _readInt(json['id']),
       name: json['name'] as String? ?? '',
       displayName: json['displayName'] as String? ?? '',
       description: json['description'] as String?,
@@ -129,6 +142,13 @@ class CustomFieldDefinitionReadDto {
       options: optionsJson
           .map((e) => CustomFieldOptionDto.fromJson(e as Map<String, dynamic>))
           .toList(),
+      isBuiltIn: json['isBuiltIn'] as bool? ??
+          json['isSystemField'] as bool? ??
+          false,
+      isSystemField: json['isSystemField'] as bool? ??
+          json['isBuiltIn'] as bool? ??
+          false,
+      isDeletable: json['isDeletable'] as bool? ?? true,
     );
   }
 }
@@ -193,6 +213,8 @@ class CustomFieldDefinitionUpdateDto {
   final bool? isReadOnly;
   final bool? isHidden;
   final int? sortOrder;
+  final String? placeholder;
+  final String? validationRegex;
   final List<CustomFieldOptionDto>? options;
 
   const CustomFieldDefinitionUpdateDto({
@@ -203,6 +225,8 @@ class CustomFieldDefinitionUpdateDto {
     this.isReadOnly,
     this.isHidden,
     this.sortOrder,
+    this.placeholder,
+    this.validationRegex,
     this.options,
   });
 
@@ -214,6 +238,8 @@ class CustomFieldDefinitionUpdateDto {
     if (isReadOnly != null) map['isReadOnly'] = isReadOnly;
     if (isHidden != null) map['isHidden'] = isHidden;
     if (sortOrder != null) map['sortOrder'] = sortOrder;
+    if (placeholder != null) map['placeholder'] = placeholder;
+    if (validationRegex != null) map['validationRegex'] = validationRegex;
     if (options != null) {
       map['options'] = options!.map((o) => o.toJson()).toList();
     }

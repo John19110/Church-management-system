@@ -6,6 +6,8 @@ using SunDaySchools.API.Requests;
 using SunDaySchools.API.Services.Interfaces;
 using SunDaySchools.BLL.DTOS;
 using SunDaySchools.BLL.Exceptions;
+using SunDaySchools.BLL.Authorization;
+using SunDaySchools.BLL.DTOS.CustomFields;
 using SunDaySchools.BLL.DTOS.UnifiedForms;
 using SunDaySchools.BLL.Manager.Interfaces;
 using SunDaySchools.BLL.Services.UnifiedForms;
@@ -22,15 +24,18 @@ namespace SunDaySchools.API.Controllers
         private readonly IMemberManager _memberManager;
         private readonly IFileStorage _fileStorage;
         private readonly IUnifiedEntityFormManager _unifiedFormManager;
+        private readonly ICustomFieldManager _customFieldManager;
 
         public MemberController(
             IMemberManager memberManager,
             IFileStorage fileStorage,
-            IUnifiedEntityFormManager unifiedFormManager)
+            IUnifiedEntityFormManager unifiedFormManager,
+            ICustomFieldManager customFieldManager)
         {
             _memberManager = memberManager;
             _fileStorage = fileStorage;
             _unifiedFormManager = unifiedFormManager;
+            _customFieldManager = customFieldManager;
         }
 
 
@@ -73,6 +78,18 @@ namespace SunDaySchools.API.Controllers
 
         /// <summary>Returns members for a classroom. 200 with an empty array if the classroom exists but has no members; 404 only if the classroom does not exist.</summary>
         /// <summary>Unified form schema: built-in + custom fields in one list.</summary>
+        [HttpGet("field-definitions")]
+        [Authorize(Policy = CustomFieldPolicies.ReadDefinitions)]
+        [Produces(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<IReadOnlyList<EntityFieldDefinitionDto>>> GetFieldDefinitions(
+            [FromQuery] bool includeInactive = true)
+        {
+            var defs = await _customFieldManager.GetDefinitionsByEntityAsync(
+                CustomFieldEntityNames.Member,
+                includeInactive);
+            return Ok(defs.Select(CustomFieldDefinitionReadMapper.ToFieldDefinitionSummary).ToList());
+        }
+
         [HttpGet("form-schema")]
         [Produces(MediaTypeNames.Application.Json)]
         public async Task<ActionResult<EntityFormSchemaDto>> GetFormSchema(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -28,9 +29,13 @@ class _CustomFieldDefinitionFormScreenState
     extends ConsumerState<CustomFieldDefinitionFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _displayNameController = TextEditingController();
+  final _sortOrderController = TextEditingController();
+  final _placeholderController = TextEditingController();
+  final _validationRegexController = TextEditingController();
   CustomFieldDataType _dataType = CustomFieldDataType.text;
   bool _isRequired = false;
   bool _isReadOnly = false;
+  bool _isHidden = false;
   bool _loading = false;
 
   final List<({TextEditingController value, TextEditingController label})>
@@ -38,15 +43,23 @@ class _CustomFieldDefinitionFormScreenState
 
   bool get _isEdit => widget.existing != null;
 
+  bool get _isSystemField =>
+      widget.existing?.isBuiltIn == true ||
+      widget.existing?.isSystemField == true;
+
   @override
   void initState() {
     super.initState();
     final e = widget.existing;
     if (e != null) {
       _displayNameController.text = e.displayName;
+      _sortOrderController.text = e.sortOrder.toString();
+      _placeholderController.text = e.placeholder ?? '';
+      _validationRegexController.text = e.validationRegex ?? '';
       _dataType = e.dataType;
       _isRequired = e.isRequired;
       _isReadOnly = e.isReadOnly;
+      _isHidden = e.isHidden;
       for (final o in e.options) {
         _options.add((
           value: TextEditingController(text: o.value),
@@ -59,6 +72,9 @@ class _CustomFieldDefinitionFormScreenState
   @override
   void dispose() {
     _displayNameController.dispose();
+    _sortOrderController.dispose();
+    _placeholderController.dispose();
+    _validationRegexController.dispose();
     for (final o in _options) {
       o.value.dispose();
       o.label.dispose();
@@ -72,13 +88,39 @@ class _CustomFieldDefinitionFormScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEdit ? l10n.editCustomField : l10n.newCustomField),
+        title: Text(
+          _isEdit
+              ? (_isSystemField ? l10n.editSystemField : l10n.editCustomField)
+              : l10n.newCustomField,
+        ),
       ),
       body: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            if (_isSystemField)
+              Card(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.systemFieldBadge,
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        l10n.systemFieldNameLocked(widget.existing!.name),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            if (_isSystemField) const SizedBox(height: 12),
             AppTextField(
               controller: _displayNameController,
               label: l10n.displayNameLabel,
@@ -87,7 +129,7 @@ class _CustomFieldDefinitionFormScreenState
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<CustomFieldDataType>(
-              value: _dataType,
+              initialValue: _dataType,
               decoration: InputDecoration(labelText: l10n.fieldTypeLabel),
               items: CustomFieldDataType.values
                   .where((t) => t != CustomFieldDataType.unknown)
@@ -96,9 +138,16 @@ class _CustomFieldDefinitionFormScreenState
                         child: Text(l10n.labelForDataType(t)),
                       ))
                   .toList(),
-              onChanged: _isEdit
+              onChanged: (_isEdit || _isSystemField)
                   ? null
                   : (v) => setState(() => _dataType = v ?? _dataType),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _sortOrderController,
+              decoration: InputDecoration(labelText: l10n.sortOrderLabel),
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             ),
             SwitchListTile(
               title: Text(l10n.fieldRequiredLabel),
@@ -108,7 +157,24 @@ class _CustomFieldDefinitionFormScreenState
             SwitchListTile(
               title: Text(l10n.fieldReadOnlyLabel),
               value: _isReadOnly,
-              onChanged: (v) => setState(() => _isReadOnly = v),
+              onChanged: _isSystemField && widget.existing?.isReadOnly == true
+                  ? null
+                  : (v) => setState(() => _isReadOnly = v),
+            ),
+            SwitchListTile(
+              title: Text(l10n.fieldHiddenLabel),
+              subtitle: Text(l10n.fieldHiddenHint),
+              value: _isHidden,
+              onChanged: (v) => setState(() => _isHidden = v),
+            ),
+            AppTextField(
+              controller: _placeholderController,
+              label: l10n.placeholderLabel,
+            ),
+            const SizedBox(height: 12),
+            AppTextField(
+              controller: _validationRegexController,
+              label: l10n.validationRegexLabel,
             ),
             if (_dataType == CustomFieldDataType.singleSelect ||
                 _dataType == CustomFieldDataType.multiSelect) ...[
@@ -174,6 +240,8 @@ class _CustomFieldDefinitionFormScreenState
       return;
     }
 
+    final sortOrder = int.tryParse(_sortOrderController.text.trim());
+
     setState(() => _loading = true);
 
     try {
@@ -185,6 +253,14 @@ class _CustomFieldDefinitionFormScreenState
             displayName: _displayNameController.text.trim(),
             isRequired: _isRequired,
             isReadOnly: _isReadOnly,
+            isHidden: _isHidden,
+            sortOrder: sortOrder,
+            placeholder: _placeholderController.text.trim().isEmpty
+                ? ''
+                : _placeholderController.text.trim(),
+            validationRegex: _validationRegexController.text.trim().isEmpty
+                ? ''
+                : _validationRegexController.text.trim(),
             options: options,
           ),
         );
@@ -196,6 +272,14 @@ class _CustomFieldDefinitionFormScreenState
             dataType: customFieldDataTypeToApi(_dataType),
             isRequired: _isRequired,
             isReadOnly: _isReadOnly,
+            isHidden: _isHidden,
+            sortOrder: sortOrder ?? 0,
+            placeholder: _placeholderController.text.trim().isEmpty
+                ? null
+                : _placeholderController.text.trim(),
+            validationRegex: _validationRegexController.text.trim().isEmpty
+                ? null
+                : _validationRegexController.text.trim(),
             options: options,
           ),
         );

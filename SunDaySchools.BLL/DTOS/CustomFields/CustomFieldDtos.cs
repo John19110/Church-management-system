@@ -30,6 +30,29 @@ namespace SunDaySchools.BLL.DTOS.CustomFields
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public List<CustomFieldOptionDto> Options { get; set; } = new();
+
+        /// <summary>True when the field maps to a built-in model property.</summary>
+        public bool IsBuiltIn { get; set; }
+
+        /// <summary>Alias for <see cref="IsBuiltIn"/> in field-definitions API responses.</summary>
+        public bool IsSystemField { get; set; }
+
+        /// <summary>False for critical system fields that cannot be deactivated.</summary>
+        public bool IsDeletable { get; set; } = true;
+    }
+
+    /// <summary>Lightweight field metadata for field-definitions endpoints.</summary>
+    public class EntityFieldDefinitionDto
+    {
+        public string Name { get; set; } = string.Empty;
+        public string DisplayName { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty;
+        public bool Required { get; set; }
+        public bool IsSystemField { get; set; }
+        public bool IsReadOnly { get; set; }
+        public bool IsHidden { get; set; }
+        public int SortOrder { get; set; }
+        public int? Id { get; set; }
     }
 
     public class CustomFieldDefinitionCreateDto
