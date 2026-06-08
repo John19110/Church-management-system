@@ -6,9 +6,12 @@ using SunDaySchools.API.Services.Interfaces;
 using SunDaySchools.BLL.Application.Servants;
 using SunDaySchools.BLL.DTOS;
 using SunDaySchools.BLL.DTOS.AccountDtos;
+using SunDaySchools.BLL.Authorization;
+using SunDaySchools.BLL.DTOS.CustomFields;
 using SunDaySchools.BLL.DTOS.UnifiedForms;
 using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Interfaces;
+using SunDaySchools.BLL.Services.UnifiedForms;
 using SunDaySchools.BLL.Services.UnifiedForms;
 using SunDaySchools.DAL.Models.CustomFields;
 using System.Net.Mime;
@@ -24,19 +27,22 @@ namespace SunDaySchools.API.Controllers
         private readonly IFileStorage _fileStorage;
         private readonly IWebHostEnvironment _env;
         private readonly IUnifiedEntityFormManager _unifiedFormManager;
+        private readonly ICustomFieldManager _customFieldManager;
 
         public ServantController(
             IServantManager servantManager,
             IServantProfileService servantProfileService,
             IFileStorage fileStorage,
             IWebHostEnvironment env,
-            IUnifiedEntityFormManager unifiedFormManager)
+            IUnifiedEntityFormManager unifiedFormManager,
+            ICustomFieldManager customFieldManager)
         {
             _servantManager = servantManager;
             _servantProfileService = servantProfileService;
             _fileStorage = fileStorage;
             _env = env;
             _unifiedFormManager = unifiedFormManager;
+            _customFieldManager = customFieldManager;
         }
 
         [HttpPost]
@@ -62,6 +68,18 @@ namespace SunDaySchools.API.Controllers
         {
             var servants = await _servantManager.GetAllAsync();
             return Ok(servants);
+        }
+
+        [HttpGet("field-definitions")]
+        [Authorize(Policy = CustomFieldPolicies.ReadDefinitions)]
+        [Produces(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<IReadOnlyList<EntityFieldDefinitionDto>>> GetFieldDefinitions(
+            [FromQuery] bool includeInactive = true)
+        {
+            var defs = await _customFieldManager.GetDefinitionsByEntityAsync(
+                CustomFieldEntityNames.Servant,
+                includeInactive);
+            return Ok(defs.Select(CustomFieldDefinitionReadMapper.ToFieldDefinitionSummary).ToList());
         }
 
         [HttpGet("form-schema")]

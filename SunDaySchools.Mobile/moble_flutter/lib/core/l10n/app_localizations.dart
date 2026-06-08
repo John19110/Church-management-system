@@ -9,6 +9,9 @@ class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
   }
 
+  /// Use when [BuildContext] is unavailable (e.g. error mappers with [Locale]).
+  static AppLocalizations forLocale(Locale locale) => AppLocalizations(locale);
+
   static const delegate = _AppLocalizationsDelegate();
 
   static const supportedLocales = [Locale('en'), Locale('ar')];
@@ -315,12 +318,31 @@ class AppLocalizations {
         return _t('entityServant');
       case 'Meeting':
         return _t('entityMeeting');
+      case 'Church':
+        return _t('entityChurch');
       default:
         return entityName;
     }
   }
   String get notAuthorized => _t('notAuthorized');
   String get noCustomFieldsYet => _t('noCustomFieldsYet');
+  String get noFieldsConfigured => _t('noFieldsConfigured');
+  String get systemFieldsSection => _t('systemFieldsSection');
+  String get systemFieldsSectionHint => _t('systemFieldsSectionHint');
+  String get customFieldsSection => _t('customFieldsSection');
+  String get systemFieldBadge => _t('systemFieldBadge');
+  String get fieldStatusRequired => _t('fieldStatusRequired');
+  String get fieldStatusOptional => _t('fieldStatusOptional');
+  String get fieldHiddenInForms => _t('fieldHiddenInForms');
+  String get fieldHiddenLabel => _t('fieldHiddenLabel');
+  String get fieldHiddenHint => _t('fieldHiddenHint');
+  String get sortOrderLabel => _t('sortOrderLabel');
+  String get placeholderLabel => _t('placeholderLabel');
+  String get validationRegexLabel => _t('validationRegexLabel');
+  String get editSystemField => _t('editSystemField');
+  String systemFieldNameLocked(String name) =>
+      _t('systemFieldNameLocked').replaceAll('{name}', name);
+  String get systemFieldCannotDeactivate => _t('systemFieldCannotDeactivate');
   String get editCustomField => _t('editCustomField');
   String get newCustomField => _t('newCustomField');
   String get displayNameLabel => _t('displayNameLabel');
@@ -351,6 +373,102 @@ class AppLocalizations {
           .replaceAll('{entity}', entityDisplayName(entityName));
   String get customFieldsAdminDescription => _t('customFieldsAdminDescription');
   String get recommendedSyncKeysHint => _t('recommendedSyncKeysHint');
+
+  // ── Auth / OTP (disabled flows) ───────────────────────────────────────────
+  String get backToLogin => _t('backToLogin');
+  String get passwordResetDisabled => _t('passwordResetDisabled');
+  String get phoneVerificationDisabled => _t('phoneVerificationDisabled');
+  String get registrationSuccessfulPleaseSignIn =>
+      _t('registrationSuccessfulPleaseSignIn');
+  String get forgotPassword => _t('forgotPassword');
+  String get verifyPhone => _t('verifyPhone');
+  String get resetPassword => _t('resetPassword');
+
+  // ── Common booleans / placeholders ────────────────────────────────────────
+  String get yes => _t('yes');
+  String get no => _t('no');
+  String get unknownName => _t('unknownName');
+  String get notAvailable => _t('notAvailable');
+  String get timeFormatHint => _t('timeFormatHint');
+  String get churchBrand => _t('churchBrand');
+
+  // ── Errors (no context) ───────────────────────────────────────────────────
+  String get genericErrorTryAgain => _t('genericErrorTryAgain');
+  String get sessionExpiredPleaseSignIn => _t('sessionExpiredPleaseSignIn');
+  String get networkErrorTryAgain => _t('networkErrorTryAgain');
+  String get somethingWentWrongTryAgain => _t('somethingWentWrongTryAgain');
+  String get serverErrorTryLater => _t('serverErrorTryLater');
+
+  // ── Members / servants / IDs ──────────────────────────────────────────────
+  String get invalidMemberId => _t('invalidMemberId');
+  String get invalidMemberIdDetail => _t('invalidMemberIdDetail');
+  String get memberIdMissingFromApi => _t('memberIdMissingFromApi');
+  String get servantIdMissingFromApi => _t('servantIdMissingFromApi');
+
+  // ── Attendance extras ───────────────────────────────────────────────────────
+  String get noAttendanceSessionsYet => _t('noAttendanceSessionsYet');
+  String get editMeeting => _t('editMeeting');
+  String get editChurch => _t('editChurch');
+  String get classroomDetails => _t('classroomDetails');
+  String get customFieldValues => _t('customFieldValues');
+  String get entityChurch => _t('entityChurch');
+
+  // ── Custom fields extras ──────────────────────────────────────────────────
+  String get additionalFields => _t('additionalFields');
+  String get additionalFieldsSaved => _t('additionalFieldsSaved');
+  String get saveAdditionalFields => _t('saveAdditionalFields');
+  String get failedToLoadCustomFields => _t('failedToLoadCustomFields');
+  String get isoDateTimeHint => _t('isoDateTimeHint');
+  String get jsonExampleHint => _t('jsonExampleHint');
+
+  // ── Admin confirm ─────────────────────────────────────────────────────────
+  String rejectUserConfirm(String name) =>
+      _t('rejectUserConfirm').replaceAll('{name}', name);
+
+  // ── Validation templates ──────────────────────────────────────────────────
+  String fieldIsRequired(String displayName) =>
+      _t('fieldIsRequired').replaceAll('{name}', displayName);
+  String fieldFormatInvalid(String displayName) =>
+      _t('fieldFormatInvalid').replaceAll('{name}', displayName);
+  String fieldMustBeWholeNumber(String displayName) =>
+      _t('fieldMustBeWholeNumber').replaceAll('{name}', displayName);
+  String fieldMustBeNumber(String displayName) =>
+      _t('fieldMustBeNumber').replaceAll('{name}', displayName);
+  String fieldMustBeBoolean(String displayName) =>
+      _t('fieldMustBeBoolean').replaceAll('{name}', displayName);
+  String fieldMustBeValidDate(String displayName) =>
+      _t('fieldMustBeValidDate').replaceAll('{name}', displayName);
+  String fieldMustBeValidDateTime(String displayName) =>
+      _t('fieldMustBeValidDateTime').replaceAll('{name}', displayName);
+  String fieldMustBeValidJson(String displayName) =>
+      _t('fieldMustBeValidJson').replaceAll('{name}', displayName);
+  String selectValidOptionFor(String displayName) =>
+      _t('selectValidOptionFor').replaceAll('{name}', displayName);
+  String fieldRequiresAtLeastOneOption(String displayName) =>
+      _t('fieldRequiresAtLeastOneOption').replaceAll('{name}', displayName);
+  String invalidSelectionFor(String displayName) =>
+      _t('invalidSelectionFor').replaceAll('{name}', displayName);
+
+  String memberNumberLabel(int id) =>
+      _t('memberNumber').replaceAll('{id}', id.toString());
+  String sessionNumberLabel(int id) =>
+      _t('sessionNumber').replaceAll('{id}', id.toString());
+  String recordsCountLabel(int count) =>
+      _t('recordsCountLabel').replaceAll('{count}', count.toString());
+  String meetingServantsMembersSummary(int servants, int members) =>
+      _t('meetingServantsMembersSummary')
+          .replaceAll('{servants}', servants.toString())
+          .replaceAll('{members}', members.toString());
+  String attendanceHistoryTitle(String? classroomName) {
+    if (classroomName == null || classroomName.trim().isEmpty) {
+      return attendanceHistory;
+    }
+    return _t('attendanceHistoryWithClassroom')
+        .replaceAll('{classroom}', classroomName);
+  }
+  String entityAdditionalFieldsTitle(String entityName) =>
+      _t('entityAdditionalFieldsTitle')
+          .replaceAll('{entity}', entityDisplayName(entityName));
 
   // ── Translation tables ────────────────────────────────────────────────────
   static const Map<String, Map<String, String>> _translations = {
@@ -636,6 +754,24 @@ class AppLocalizations {
       'entityMeeting': 'Meeting',
       'notAuthorized': 'Not authorized',
       'noCustomFieldsYet': 'No custom fields yet.',
+      'noFieldsConfigured': 'No fields configured yet.',
+      'systemFieldsSection': 'System fields',
+      'systemFieldsSectionHint':
+          'Built-in model properties. You can rename labels, hide fields, reorder, and set validation. Database column names cannot be changed.',
+      'customFieldsSection': 'Custom fields',
+      'systemFieldBadge': 'System',
+      'fieldStatusRequired': 'Required',
+      'fieldStatusOptional': 'Optional',
+      'fieldHiddenInForms': 'Hidden in forms',
+      'fieldHiddenLabel': 'Hidden in forms',
+      'fieldHiddenHint': 'When enabled, this field is not shown on create/edit screens.',
+      'sortOrderLabel': 'Sort order',
+      'placeholderLabel': 'Placeholder',
+      'validationRegexLabel': 'Validation pattern (regex)',
+      'editSystemField': 'Edit system field',
+      'systemFieldNameLocked':
+          'Database key "{name}" is fixed and cannot be changed.',
+      'systemFieldCannotDeactivate': 'Critical system fields cannot be deactivated.',
       'editCustomField': 'Edit custom field',
       'newCustomField': 'New custom field',
       'displayNameLabel': 'Display name',
@@ -673,9 +809,77 @@ class AppLocalizations {
           'An admin must define which attributes to store for this entity (Custom Fields).',
       'configureEntityAttributesTitle': 'Configure {entity} attributes',
       'customFieldsAdminDescription':
-          'Original model fields are listed here. Deactivate any you do not need; add more fields anytime. All active fields appear on create, edit, and detail screens.',
+          'System fields from the backend model appear at the top. Custom fields you create appear below. Configure labels, visibility, order, and validation; active fields appear on create, edit, and detail screens.',
       'recommendedSyncKeysHint':
           'Tip: use internal keys like name, ageOfMembers, or leaderServantId (classroom) to also update list titles when auto-generated from display names.',
+      // Auth / OTP disabled
+      'backToLogin': 'Back to login',
+      'passwordResetDisabled':
+          'Password reset via WhatsApp is currently disabled.',
+      'phoneVerificationDisabled': 'Phone verification is currently disabled.',
+      'registrationSuccessfulPleaseSignIn':
+          'Registration successful. Please sign in.',
+      'forgotPassword': 'Forgot password',
+      'verifyPhone': 'Verify phone',
+      'resetPassword': 'Reset password',
+      // Common
+      'yes': 'Yes',
+      'no': 'No',
+      'unknownName': 'Unknown',
+      'notAvailable': '—',
+      'timeFormatHint': 'HH:mm',
+      'churchBrand': 'Church',
+      // Errors
+      'genericErrorTryAgain': 'An error occurred. Please try again.',
+      'sessionExpiredPleaseSignIn':
+          'Your session has expired. Please sign in again.',
+      'networkErrorTryAgain':
+          'Network error. Please check your connection and try again.',
+      'somethingWentWrongTryAgain': 'Something went wrong. Please try again.',
+      'serverErrorTryLater': 'Server error. Please try again later.',
+      // IDs / API
+      'invalidMemberId': 'Invalid member id.',
+      'invalidMemberIdDetail':
+          'Invalid member id. Open this screen from the list after the API returns real ids.',
+      'memberIdMissingFromApi':
+          'Member id is missing from the server response. The API must include an id field on each member.',
+      'servantIdMissingFromApi':
+          'Servant id is missing from the server response. The API must include an id field on each servant.',
+      // Attendance
+      'noAttendanceSessionsYet': 'No attendance sessions yet.',
+      'sessionNumber': 'Session #{id}',
+      'recordsCountLabel': '{count} records',
+      'attendanceHistoryWithClassroom': 'Attendance history • {classroom}',
+      'meetingServantsMembersSummary':
+          'Servants: {servants} • Members: {members}',
+      // Routing / screens
+      'editMeeting': 'Edit meeting',
+      'editChurch': 'Edit church',
+      'classroomDetails': 'Classroom details',
+      'customFieldValues': 'Custom field values',
+      'entityChurch': 'Church',
+      // Custom fields extras
+      'additionalFields': 'Additional fields',
+      'additionalFieldsSaved': 'Additional fields saved',
+      'saveAdditionalFields': 'Save additional fields',
+      'entityAdditionalFieldsTitle': '{entity} — additional fields',
+      'failedToLoadCustomFields': 'Failed to load custom fields:',
+      'isoDateTimeHint': 'ISO date-time',
+      'jsonExampleHint': '{"key": "value"}',
+      // Admin
+      'rejectUserConfirm': 'This will reject {name}.',
+      // Validation templates
+      'fieldIsRequired': '{name} is required',
+      'fieldFormatInvalid': '{name} does not match the required format',
+      'fieldMustBeWholeNumber': '{name} must be a whole number',
+      'fieldMustBeNumber': '{name} must be a number',
+      'fieldMustBeBoolean': '{name} must be true or false',
+      'fieldMustBeValidDate': '{name} must be a valid date',
+      'fieldMustBeValidDateTime': '{name} must be a valid date/time',
+      'fieldMustBeValidJson': '{name} must be valid JSON',
+      'selectValidOptionFor': 'Select a valid option for {name}',
+      'fieldRequiresAtLeastOneOption': '{name} requires at least one option',
+      'invalidSelectionFor': 'Invalid selection for {name}',
     },
     'ar': {
       // Auth
@@ -882,7 +1086,7 @@ class AppLocalizations {
       'enterAgeRangeHint': 'أدخل نطاق الأعمار',
       'ageOfMembersRequiredGeneric': 'أعمار الأعضاء مطلوبة',
       'classroomAddedSuccessfully': 'تمت إضافة الفصل بنجاح.',
-      'visibleClassrooms': 'الفصول الظاهرة',
+      'visibleClassrooms': 'الفصول',
       'noVisibleClassroomsFound': 'لم يتم العثور على فصول ظاهرة.',
       'attendanceHistory': 'سجل الحضور',
 
@@ -922,19 +1126,19 @@ class AppLocalizations {
       'selectMeeting': 'اختر الاجتماع',
       'classroomsLabel': 'الفصول',
       'selectClassrooms': 'اختر الفصول',
-      'superAdminHome': 'صفحة المسؤول العام',
+      'superAdminHome': 'الصفحة الرئيسيه',
       'loadingLabel': 'جار التحميل...',
       'errorLabel': 'خطأ:',
       'pendingCount': '{count} معلّق',
       'noVisibleMeetingsFound': 'لم يتم العثور على اجتماعات ظاهرة.',
-      'failedToLoadVisibleMeetings': 'تعذر تحميل الاجتماعات الظاهرة:',
-      'failedToLoadVisibleClassrooms': 'تعذر تحميل الفصول الظاهرة:',
+      'failedToLoadVisibleMeetings': 'تعذر تحميل الاجتماعات :',
+      'failedToLoadVisibleClassrooms': 'تعذر تحميل الفصول :',
       'failedToLoadClassrooms': 'تعذر تحميل الفصول:',
       'editMeetingTitle': 'تعديل الاجتماع: {meeting}',
       'pageNotFound': 'الصفحة غير موجودة:',
       'missingRequiredData': 'بيانات مطلوبة مفقودة لهذه الصفحة.',
       'optional': 'اختياري',
-      'visibleMeetings': 'الاجتماعات الظاهرة',
+      'visibleMeetings': 'الاجتماعات ',
       'leaderServantOptional': 'الخادم المسؤول (اختياري)',
       'selectServant': 'اختر خادماً',
       'meetingUpdated': 'تم تحديث الاجتماع.',
@@ -955,6 +1159,24 @@ class AppLocalizations {
       'entityMeeting': 'الاجتماع',
       'notAuthorized': 'غير مصرح',
       'noCustomFieldsYet': 'لا توجد حقول مخصصة بعد.',
+      'noFieldsConfigured': 'لا توجد حقول مُعدّة بعد.',
+      'systemFieldsSection': 'حقول النظام',
+      'systemFieldsSectionHint':
+          'خصائص النموذج المدمجة. يمكنك تغيير التسميات وإخفاء الحقول وإعادة الترتيب وضبط التحقق. لا يمكن تغيير أسماء أعمدة قاعدة البيانات.',
+      'customFieldsSection': 'الحقول المخصصة',
+      'systemFieldBadge': 'نظام',
+      'fieldStatusRequired': 'إلزامي',
+      'fieldStatusOptional': 'اختياري',
+      'fieldHiddenInForms': 'مخفي في النماذج',
+      'fieldHiddenLabel': 'مخفي في النماذج',
+      'fieldHiddenHint': 'عند التفعيل، لا يظهر هذا الحقل في شاشات الإنشاء أو التعديل.',
+      'sortOrderLabel': 'ترتيب العرض',
+      'placeholderLabel': 'نص توضيحي',
+      'validationRegexLabel': 'نمط التحقق (تعبير نمطي)',
+      'editSystemField': 'تعديل حقل النظام',
+      'systemFieldNameLocked':
+          'مفتاح قاعدة البيانات "{name}" ثابت ولا يمكن تغييره.',
+      'systemFieldCannotDeactivate': 'لا يمكن إلغاء تفعيل حقول النظام الأساسية.',
       'editCustomField': 'تعديل حقل مخصص',
       'newCustomField': 'حقل مخصص جديد',
       'displayNameLabel': 'الاسم المعروض',
@@ -992,9 +1214,77 @@ class AppLocalizations {
           'يجب على المسؤول تحديد السمات التي تُخزَّن لهذا الكيان (الحقول المخصصة).',
       'configureEntityAttributesTitle': 'إعداد سمات {entity}',
       'customFieldsAdminDescription':
-          'حقول النموذج الأصلية مدرجة هنا. عطّل ما لا تحتاجه؛ أضف حقولاً جديدة في أي وقت. الحقول النشطة تظهر في الإنشاء والتعديل والتفاصيل.',
+          'حقول النظام من نموذج الخادم تظهر في الأعلى. الحقول المخصصة التي تنشئها تظهر أدناه. اضبط التسميات والظهور والترتيب والتحقق؛ الحقول النشطة تظهر في الإنشاء والتعديل والتفاصيل.',
       'recommendedSyncKeysHint':
           'نصيحة: المفاتيح الداخلية مثل name أو ageOfMembers أو leaderServantId (للفصل) تحدّث أيضاً عناوين القوائم عند توليدها من الاسم المعروض.',
+      // Auth / OTP disabled
+      'backToLogin': 'العودة لتسجيل الدخول',
+      'passwordResetDisabled':
+          'إعادة تعيين كلمة المرور عبر واتساب غير متاحة حالياً.',
+      'phoneVerificationDisabled': 'التحقق من الهاتف غير متاح حالياً.',
+      'registrationSuccessfulPleaseSignIn':
+          'تم التسجيل بنجاح. يرجى تسجيل الدخول.',
+      'forgotPassword': 'نسيت كلمة المرور',
+      'verifyPhone': 'التحقق من الهاتف',
+      'resetPassword': 'إعادة تعيين كلمة المرور',
+      // Common
+      'yes': 'نعم',
+      'no': 'لا',
+      'unknownName': 'غير معروف',
+      'notAvailable': '—',
+      'timeFormatHint': 'س:د',
+      'churchBrand': 'الكنيسة',
+      // Errors
+      'genericErrorTryAgain': 'حدث خطأ. يرجى المحاولة مرة أخرى.',
+      'sessionExpiredPleaseSignIn':
+          'انتهت جلستك. يرجى تسجيل الدخول مرة أخرى.',
+      'networkErrorTryAgain':
+          'خطأ في الشبكة. تحقق من الاتصال وحاول مرة أخرى.',
+      'somethingWentWrongTryAgain': 'حدث خطأ ما. يرجى المحاولة مرة أخرى.',
+      'serverErrorTryLater': 'خطأ في الخادم. يرجى المحاولة لاحقاً.',
+      // IDs / API
+      'invalidMemberId': 'معرف العضو غير صالح.',
+      'invalidMemberIdDetail':
+          'معرف العضو غير صالح. افتح هذه الشاشة من القائمة بعد أن يعيد الخادم معرفات صحيحة.',
+      'memberIdMissingFromApi':
+          'معرف العضو مفقود من استجابة الخادم. يجب أن يتضمن كل عضو حقل id.',
+      'servantIdMissingFromApi':
+          'معرف الخادم مفقود من استجابة الخادم. يجب أن يتضمن كل خادم حقل id.',
+      // Attendance
+      'noAttendanceSessionsYet': 'لا توجد جلسات حضور بعد.',
+      'sessionNumber': 'جلسة رقم {id}',
+      'recordsCountLabel': '{count} سجلات',
+      'attendanceHistoryWithClassroom': 'سجل الحضور • {classroom}',
+      'meetingServantsMembersSummary':
+          'الخدام: {servants} • الأعضاء: {members}',
+      // Routing / screens
+      'editMeeting': 'تعديل الاجتماع',
+      'editChurch': 'تعديل الكنيسة',
+      'classroomDetails': 'تفاصيل الفصل',
+      'customFieldValues': 'قيم الحقول المخصصة',
+      'entityChurch': 'الكنيسة',
+      // Custom fields extras
+      'additionalFields': 'حقول إضافية',
+      'additionalFieldsSaved': 'تم حفظ الحقول الإضافية',
+      'saveAdditionalFields': 'حفظ الحقول الإضافية',
+      'entityAdditionalFieldsTitle': '{entity} — حقول إضافية',
+      'failedToLoadCustomFields': 'تعذر تحميل الحقول المخصصة:',
+      'isoDateTimeHint': 'تاريخ ووقت بصيغة ISO',
+      'jsonExampleHint': '{"key": "value"}',
+      // Admin
+      'rejectUserConfirm': 'سيتم رفض {name}.',
+      // Validation templates
+      'fieldIsRequired': '{name} مطلوب',
+      'fieldFormatInvalid': '{name} لا يطابق الصيغة المطلوبة',
+      'fieldMustBeWholeNumber': '{name} يجب أن يكون عدداً صحيحاً',
+      'fieldMustBeNumber': '{name} يجب أن يكون رقماً',
+      'fieldMustBeBoolean': '{name} يجب أن يكون صحيحاً أو خاطئاً',
+      'fieldMustBeValidDate': '{name} يجب أن يكون تاريخاً صالحاً',
+      'fieldMustBeValidDateTime': '{name} يجب أن يكون تاريخاً/وقتاً صالحاً',
+      'fieldMustBeValidJson': '{name} يجب أن يكون JSON صالحاً',
+      'selectValidOptionFor': 'اختر خياراً صالحاً لـ {name}',
+      'fieldRequiresAtLeastOneOption': '{name} يتطلب خياراً واحداً على الأقل',
+      'invalidSelectionFor': 'اختيار غير صالح لـ {name}',
     },
   };
 }

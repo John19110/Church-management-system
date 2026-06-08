@@ -2,16 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
 import '../models/custom_field_models.dart';
 import '../providers/custom_field_cache_providers.dart';
 import '../providers/custom_field_providers.dart';
-import '../utils/custom_field_l10n.dart';
+import '../widgets/field_definition_card.dart';
 import '../../../shared/widgets/common_widgets.dart';
 
-/// Admin/SuperAdmin screen to list and manage custom field definitions.
+/// Admin/SuperAdmin screen to list and manage system + custom field definitions.
 class CustomFieldDefinitionsScreen extends ConsumerStatefulWidget {
   final String entityName;
 
@@ -24,6 +25,11 @@ class CustomFieldDefinitionsScreen extends ConsumerStatefulWidget {
 
 class _CustomFieldDefinitionsScreenState
     extends ConsumerState<CustomFieldDefinitionsScreen> {
+  Future<void> _reloadDefinitions(CustomFieldDefinitionsQuery query) async {
+    refreshEntityFormsAfterDefinitionChange(ref, widget.entityName);
+    await ref.read(customFieldDefinitionsProvider(query).future);
+  }
+
   Future<void> _openAddField() async {
     final created = await context.push<bool>(
       '/custom-fields/${widget.entityName}/new',
@@ -31,6 +37,17 @@ class _CustomFieldDefinitionsScreenState
     if (created == true) {
       refreshEntityFormsAfterDefinitionChange(ref, widget.entityName);
     }
+  }
+
+  List<CustomFieldDefinitionReadDto> _sorted(
+    Iterable<CustomFieldDefinitionReadDto> defs,
+  ) {
+    final list = defs.toList()
+      ..sort((a, b) {
+        final order = a.sortOrder.compareTo(b.sortOrder);
+        return order != 0 ? order : a.displayName.compareTo(b.displayName);
+      });
+    return list;
   }
 
   @override
@@ -55,9 +72,11 @@ class _CustomFieldDefinitionsScreenState
           );
         }
 
-        final defsAsync = ref.watch(
-          customFieldDefinitionsProvider(widget.entityName),
+        final defsQuery = (
+          entityName: widget.entityName,
+          includeInactive: true,
         );
+        final defsAsync = ref.watch(customFieldDefinitionsProvider(defsQuery));
 
         return Scaffold(
           appBar: AppBar(
@@ -77,16 +96,22 @@ class _CustomFieldDefinitionsScreenState
           ),
           body: defsAsync.when(
             loading: () => const LoadingWidget(),
-            error: (e, _) => AppErrorWidget(message: e.toString()),
+            error: (e, _) => AppErrorWidget(
+              message: userFriendlyMessage(e, l10n),
+              onRetry: () =>
+                  ref.invalidate(customFieldDefinitionsProvider(defsQuery)),
+            ),
             data: (defs) {
-              if (defs.isEmpty) {
+              final systemFields = _sorted(
+                defs.where((d) => d.isBuiltIn || d.isSystemField),
+              );
+              final customFields = _sorted(
+                defs.where((d) => !d.isBuiltIn && !d.isSystemField),
+              );
+
+              if (systemFields.isEmpty && customFields.isEmpty) {
                 return RefreshIndicator(
-                  onRefresh: () async {
-                    refreshEntityFormsAfterDefinitionChange(
-                      ref,
-                      widget.entityName,
-                    );
-                  },
+                  onRefresh: () => _reloadDefinitions(defsQuery),
                   child: ListView(
                     padding: const EdgeInsets.all(24),
                     children: [
@@ -98,7 +123,7 @@ class _CustomFieldDefinitionsScreenState
                       const SizedBox(height: 24),
                       Center(
                         child: Text(
-                          l10n.noCustomFieldsYet,
+                          l10n.noFieldsConfigured,
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                       ),
@@ -112,53 +137,69 @@ class _CustomFieldDefinitionsScreenState
                   ),
                 );
               }
+
               return RefreshIndicator(
-                onRefresh: () async {
-                  refreshEntityFormsAfterDefinitionChange(
-                    ref,
-                    widget.entityName,
-                  );
-                },
-                child: ListView.builder(
+                onRefresh: () => _reloadDefinitions(defsQuery),
+                child: ListView(
                   padding: const EdgeInsets.only(bottom: 88),
-                  itemCount: defs.length + 1,
-                  itemBuilder: (_, i) {
-                    if (i == 0) {
-                      return Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                      child: Text(
+                        l10n.customFieldsAdminDescription,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                            ),
+                      ),
+                    ),
+                    if (systemFields.isNotEmpty) ...[
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
                         child: Text(
-                          l10n.customFieldsAdminDescription,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurfaceVariant,
+                          l10n.systemFieldsSection,
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
                               ),
                         ),
-                      );
-                    }
-                    final def = defs[i - 1];
-                    return ListTile(
-                      title: Text(def.displayName),
-                      subtitle: Text(l10n.labelForDataType(def.dataType)),
-                      trailing: Icon(
-                        def.isActive ? Icons.check_circle : Icons.cancel,
-                        color: def.isActive ? Colors.green : Colors.grey,
                       ),
-                      onTap: () async {
-                        final updated = await context.push<bool>(
-                          '/custom-fields/${widget.entityName}/edit/${def.id}',
-                          extra: def,
-                        );
-                        if (updated == true) {
-                          refreshEntityFormsAfterDefinitionChange(
-                            ref,
-                            widget.entityName,
-                          );
-                        }
-                      },
-                      onLongPress: () => _confirmDeactivate(def),
-                    );
-                  },
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          l10n.systemFieldsSectionHint,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                      ...systemFields.map(
+                        (def) => FieldDefinitionCard(
+                          definition: def,
+                          onTap: () => _openEdit(def),
+                          onLongPress: def.isDeletable
+                              ? () => _confirmDeactivate(def)
+                              : null,
+                        ),
+                      ),
+                    ],
+                    if (customFields.isNotEmpty) ...[
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
+                        child: Text(
+                          l10n.customFieldsSection,
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                      ),
+                      ...customFields.map(
+                        (def) => FieldDefinitionCard(
+                          definition: def,
+                          onTap: () => _openEdit(def),
+                          onLongPress: () => _confirmDeactivate(def),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               );
             },
@@ -168,8 +209,23 @@ class _CustomFieldDefinitionsScreenState
     );
   }
 
+  Future<void> _openEdit(CustomFieldDefinitionReadDto def) async {
+    final updated = await context.push<bool>(
+      '/custom-fields/${widget.entityName}/edit/${def.id}',
+      extra: def,
+    );
+    if (updated == true) {
+      refreshEntityFormsAfterDefinitionChange(ref, widget.entityName);
+    }
+  }
+
   Future<void> _confirmDeactivate(CustomFieldDefinitionReadDto def) async {
     final l10n = AppLocalizations.of(context);
+    if (!def.isDeletable) {
+      showErrorSnackbar(context, l10n.systemFieldCannotDeactivate);
+      return;
+    }
+
     final ok = await showConfirmDialog(
       context,
       title: l10n.deactivateField,

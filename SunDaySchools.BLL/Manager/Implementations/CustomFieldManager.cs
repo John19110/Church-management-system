@@ -136,6 +136,14 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 });
             }
 
+            if (EntityDefaultFieldTemplates.IsBuiltInField(dto.EntityName, fieldName))
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["name"] = new[] { "This name is reserved for a system field." }
+                });
+            }
+
             var entity = _mapper.Map<CustomFieldDefinition>(dto);
             entity.Name = fieldName;
             entity.DisplayName = dto.DisplayName.Trim();
@@ -169,6 +177,16 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             var definition = await _repository.GetDefinitionByIdAsync(id, includeOptions: true)
                 ?? throw new NotFoundException($"Custom field definition {id} was not found.");
+
+            if (EntityDefaultFieldTemplates.IsBuiltInField(definition.EntityName, definition.Name)
+                && dto.DataType.HasValue
+                && dto.DataType.Value != definition.DataType)
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["dataType"] = new[] { "System field data types cannot be changed." }
+                });
+            }
 
             if (dto.DataType.HasValue && dto.DataType.Value != definition.DataType)
             {
@@ -235,6 +253,14 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             var definition = await _repository.GetDefinitionByIdAsync(id, includeOptions: false)
                 ?? throw new NotFoundException($"Custom field definition {id} was not found.");
+
+            if (EntityDefaultFieldTemplates.IsCriticalField(definition.EntityName, definition.Name))
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["name"] = new[] { "Critical system fields cannot be deactivated." }
+                });
+            }
 
             definition.IsActive = false;
             definition.UpdatedAt = DateTime.UtcNow;
