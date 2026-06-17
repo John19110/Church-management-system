@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../core/l10n/app_localizations.dart';
 import '../../../shared/widgets/app_network_avatar.dart';
 import '../models/unified_form_models.dart';
 import '../utils/unified_form_field_utils.dart';
@@ -24,20 +25,34 @@ class UnifiedEntityPhotoPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPick,
-      child: Center(
-        child: pickedFile != null
-            ? CircleAvatar(
-                radius: radius,
-                backgroundImage: FileImage(pickedFile!),
-              )
-            : AppNetworkAvatar(
-                imageUrl: photoUrlFromFields(fields),
-                radius: radius,
-                placeholder: Icon(Icons.camera_alt, size: radius * 0.75),
+    final l10n = AppLocalizations.of(context);
+
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: onPick,
+          child: Center(
+            child: pickedFile != null
+                ? CircleAvatar(
+                    radius: radius,
+                    backgroundImage: FileImage(pickedFile!),
+                  )
+                : AppNetworkAvatar(
+                    imageUrl: photoUrlFromFields(fields),
+                    radius: radius,
+                    placeholder: Icon(Icons.camera_alt, size: radius * 0.75),
+                  ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          l10n.tapToChangePhoto,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
-      ),
+          textAlign: TextAlign.center,
+        ),
+      ],
     );
   }
 }

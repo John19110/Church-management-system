@@ -7,6 +7,7 @@ import '../../../core/l10n/app_localizations.dart';
 import '../models/custom_field_models.dart';
 import '../providers/custom_field_providers.dart';
 import '../utils/custom_field_l10n.dart';
+import '../utils/field_display_label.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/common_widgets.dart';
 
@@ -113,7 +114,9 @@ class _CustomFieldDefinitionFormScreenState
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        l10n.systemFieldNameLocked(widget.existing!.name),
+                        l10n.systemFieldKeyLockedLabel(
+                          localizedFieldDisplayLabel(widget.existing!, l10n),
+                        ),
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
@@ -232,6 +235,10 @@ class _CustomFieldDefinitionFormScreenState
     if (!_formKey.currentState!.validate()) return;
 
     final l10n = AppLocalizations.of(context);
+    if (_isEdit && widget.existing!.id <= 0) {
+      showErrorSnackbar(context, l10n.systemFieldNotProvisioned);
+      return;
+    }
     final options = _buildOptions();
     if ((_dataType == CustomFieldDataType.singleSelect ||
             _dataType == CustomFieldDataType.multiSelect) &&

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../unified_form/models/unified_form_models.dart';
@@ -75,7 +76,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
         context.pop();
       }
     } catch (e) {
-      if (mounted) showErrorSnackbar(context, e.toString());
+      if (mounted) showErrorSnackbar(context, userFriendlyMessage(e, l10n));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -91,7 +92,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
       body: profileAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => AppErrorWidget(
-          message: '${l10n.failedToLoadProfile} $e',
+          message: userFriendlyMessage(e, l10n),
           onRetry: () => ref.invalidate(servantProfileProvider),
         ),
         data: (profile) {
@@ -109,7 +110,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
           return formAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (e, _) => AppErrorWidget(
-              message: e.toString(),
+              message: userFriendlyMessage(e, l10n),
               onRetry: () => ref.invalidate(
                 entityFormDataProvider((
                   entity: UnifiedEntityNames.servant,

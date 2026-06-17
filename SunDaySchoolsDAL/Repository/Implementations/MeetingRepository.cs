@@ -49,6 +49,22 @@ namespace SunDaySchools.DAL.Repository.Implementations
                 .FirstOrDefaultAsync(m => m.Id == id);
         }
 
+        public async Task<Meeting?> GetByPublicIdAsync(string publicId)
+        {
+            if (string.IsNullOrWhiteSpace(publicId))
+                return null;
+
+            return await _context.Meetings
+                .AsNoTracking()
+                .FirstOrDefaultAsync(m => m.PublicId == publicId.Trim());
+        }
+
+        public async Task<int?> GetMeetingIdByPublicIdAsync(string publicId)
+        {
+            var meeting = await GetByPublicIdAsync(publicId);
+            return meeting?.Id;
+        }
+
         public async Task<Meeting?> GetByNameAsync(string name)
         {
             return await _context.Meetings

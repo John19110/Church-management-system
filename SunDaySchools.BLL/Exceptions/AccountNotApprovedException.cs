@@ -5,7 +5,7 @@ namespace SunDaySchools.BLL.Exceptions
     public class AccountNotApprovedException : Exception
     {
         public AccountNotApprovedException()
-            : base("Your account is waiting for church admin approval.")
+            : base("Your account is waiting for approval from the church administrator.")
         {
         }
 

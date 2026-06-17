@@ -100,7 +100,7 @@ class MeetingDetailScreen extends ConsumerWidget {
                 ?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
-          ..._buildNameList(meeting.servantNames),
+          ..._buildNameList(meeting.servantNames, l10n),
           const SizedBox(height: 16),
           Text(
             l10n.membersHeading,
@@ -110,7 +110,7 @@ class MeetingDetailScreen extends ConsumerWidget {
                 ?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
-          ..._buildNameList(meeting.memberNames),
+          ..._buildNameList(meeting.memberNames, l10n),
           const SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: () => context.push(AppRoutes.member),
@@ -130,7 +130,7 @@ class MeetingDetailScreen extends ConsumerWidget {
   }
 }
 
-List<Widget> _buildNameList(List<String> names) {
-  if (names.isEmpty) return const [Text('-')];
+List<Widget> _buildNameList(List<String> names, AppLocalizations l10n) {
+  if (names.isEmpty) return [Text(l10n.notAvailable)];
   return names.map((name) => Text('• $name')).toList();
 }

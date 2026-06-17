@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/l10n/app_localizations.dart';
 import '../models/custom_field_models.dart';
 import '../providers/custom_field_providers.dart';
+import '../utils/field_display_label.dart';
 
 /// Read-only detail section for entity screens.
 class CustomFieldsDetailSection extends ConsumerWidget {
@@ -17,6 +19,7 @@ class CustomFieldsDetailSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final async = ref.watch(
       entityCustomFieldsProvider((entity: entityName, id: entityId)),
     );
@@ -31,8 +34,8 @@ class CustomFieldsDetailSection extends ConsumerWidget {
           if (value == null || value.isEmpty) continue;
           rows.add(
             ListTile(
-              title: Text(def.displayName),
-              subtitle: Text(_formatValue(def, value)),
+              title: Text(localizedFieldDisplayLabel(def, l10n)),
+              subtitle: Text(_formatValue(def, value, l10n)),
             ),
           );
         }
@@ -46,7 +49,7 @@ class CustomFieldsDetailSection extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                 child: Text(
-                  'Additional fields',
+                  l10n.additionalFields,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
@@ -58,9 +61,13 @@ class CustomFieldsDetailSection extends ConsumerWidget {
     );
   }
 
-  String _formatValue(CustomFieldDefinitionReadDto def, String value) {
+  String _formatValue(
+    CustomFieldDefinitionReadDto def,
+    String value,
+    AppLocalizations l10n,
+  ) {
     if (def.dataType == CustomFieldDataType.boolean) {
-      return value.toLowerCase() == 'true' ? 'Yes' : 'No';
+      return value.toLowerCase() == 'true' ? l10n.yes : l10n.no;
     }
     if (def.dataType == CustomFieldDataType.multiSelect && value.startsWith('[')) {
       try {

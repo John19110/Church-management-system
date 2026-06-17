@@ -23,6 +23,7 @@ using SunDaySchools.API.Json;
 using SunDaySchools.API.Filters;
 using SunDaySchools.API.Middlewares;
 using System.Text.Json.Serialization;
+using SunDaySchools.BLL.Services;
 using SunDaySchools.BLL.Services.CustomFields;
 using SunDaySchools.BLL.Configuration;
 using SunDaySchools.BLL.Services.Auth.Interfaces;
@@ -30,6 +31,7 @@ using SunDaySchools.BLL.Services.Auth.Implementations;
 using SunDaySchools.BLL.Abstractions;
 using SunDaySchools.BLL.Application.Servants;
 using SunDaySchools.DAL.Abstractions;
+using SunDaySchools.API.Infrastructure;
 using SunDaySchools.API.Infrastructure.Auth;
 using SunDaySchools.API.Infrastructure.Tenant;
 
@@ -136,6 +138,7 @@ builder.Services.AddHttpClient("WhatsApp");
 
 builder.Services.AddScoped<IChurchRepository, ChurchRepository>();
 builder.Services.AddScoped<IChurchManager, ChurchManager>();
+builder.Services.AddScoped<IPublicIdResolver, PublicIdResolver>();
 
 builder.Services.AddScoped<IClassroomManager, ClassroomManager>();
 builder.Services.AddScoped<IClassroomRepository, ClassroomRepository>();
@@ -242,6 +245,9 @@ builder.Services.AddAutoMapper(m => m.AddProfile(new MappingProfile()));
 
 
 var app = builder.Build();
+
+// Apply EF migrations and repair PublicId columns if hosting DB is out of sync.
+DatabaseBootstrap.ApplyMigrationsAndRepairSchema(app.Services, app.Logger);
 
 var whatsAppConfig = app.Configuration.GetSection(WhatsAppOptions.SectionName).Get<WhatsAppOptions>();
 if (whatsAppConfig == null || !whatsAppConfig.Enabled)

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/routing/app_router.dart';
+import '../../../shared/widgets/app_network_avatar.dart';
 import '../../member/models/member_models.dart';
 import '../../member/providers/members_providers.dart';
 import '../models/classroom_models.dart';
@@ -51,9 +52,14 @@ class ClassroomDetailScreen extends ConsumerWidget {
 
     final appBarTitle = formAsync.maybeWhen(
       data: (form) {
-        final title =
-            unifiedDisplayTitle(UnifiedEntityNames.classroom, form.fields);
-        return title == '—' ? (classroom.name ?? l10n.classroom) : title;
+        final title = unifiedDisplayTitle(
+          UnifiedEntityNames.classroom,
+          form.fields,
+          l10n: l10n,
+        );
+        return title == l10n.notAvailable
+            ? (classroom.name ?? l10n.classroom)
+            : title;
       },
       orElse: () => classroom.name ?? l10n.classroom,
     );
@@ -100,7 +106,15 @@ class ClassroomDetailScreen extends ConsumerWidget {
           bottom: _kClassroomDetailBottomBarHeight + bottomInset,
         ),
         child: FloatingActionButton(
-          onPressed: () => context.push('/members/add', extra: classroomId),
+          onPressed: () async {
+            final created = await context.push<int?>(
+              '/members/add',
+              extra: classroomId,
+            );
+            if (created != null && created > 0) {
+              ref.invalidate(membersByClassroomProvider(classroomId));
+            }
+          },
           child: const Icon(Icons.add),
         ),
       ),
@@ -118,7 +132,7 @@ class ClassroomDetailScreen extends ConsumerWidget {
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                       child: Text(
-                        '${classroom.totalMembersCount ?? 0} ${l10n.members}',
+                        l10n.membersCountLine(classroom.totalMembersCount ?? 0),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
@@ -148,7 +162,10 @@ class ClassroomDetailScreen extends ConsumerWidget {
                                   role == 'admin' || role == 'superadmin',
                             );
                           }
-                          return UnifiedEntityDetailFields(fields: form.fields);
+                          return UnifiedEntityDetailFields(
+                            fields: form.fields,
+                            entityName: UnifiedEntityNames.classroom,
+                          );
                         },
                       ),
                     ),
@@ -277,10 +294,7 @@ class ClassroomDetailScreen extends ConsumerWidget {
                   final m = members[index];
                   final name = m.fullName?.trim().isNotEmpty == true
                       ? m.fullName!
-                      : l10n.memberNumber.replaceAll(
-                          '{id}',
-                          (m.id ?? '').toString(),
-                        );
+                      : l10n.memberNumberLabel(m.id ?? 0);
 
                   return Card(
                     clipBehavior: Clip.antiAlias,
@@ -291,24 +305,19 @@ class ClassroomDetailScreen extends ConsumerWidget {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            CircleAvatar(
+                            AppNetworkAvatar(
+                              imageUrl: m.displayImageUrl,
+                              debugTag: 'classroom-grid-${m.id}',
                               radius: 40,
                               backgroundColor: Theme.of(context)
                                   .colorScheme
                                   .surfaceContainerHighest,
-                              backgroundImage: m.imageUrl != null &&
-                                      m.imageUrl!.isNotEmpty
-                                  ? NetworkImage(m.imageUrl!)
-                                  : null,
-                              child: m.imageUrl == null || m.imageUrl!.isEmpty
-                                  ? Text(
-                                      name.isNotEmpty
-                                          ? name[0].toUpperCase()
-                                          : '?',
-                                      style:
-                                          Theme.of(context).textTheme.titleLarge,
-                                    )
-                                  : null,
+                              placeholder: Text(
+                                name.isNotEmpty
+                                    ? name[0].toUpperCase()
+                                    : '?',
+                                style: Theme.of(context).textTheme.titleLarge,
+                              ),
                             ),
                             const SizedBox(height: 10),
                             Text(

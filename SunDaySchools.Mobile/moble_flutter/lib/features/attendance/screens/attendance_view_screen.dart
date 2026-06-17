@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/attendance_models.dart';
 import '../providers/attendance_providers.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
+import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
 
 class AttendanceViewScreen extends ConsumerWidget {
@@ -15,11 +16,11 @@ class AttendanceViewScreen extends ConsumerWidget {
     final sessionAsync = ref.watch(attendanceSessionProvider(sessionId));
 
     return Scaffold(
-      appBar: AppBar(title: Text('${l10n.sessionId} #$sessionId')),
+      appBar: AppBar(title: Text(l10n.sessionNumberLabel(sessionId))),
       body: sessionAsync.when(
         loading: () => const cw.LoadingWidget(),
         error: (e, _) => cw.AppErrorWidget(
-          message: e.toString(),
+          message: userFriendlyMessage(e, l10n),
           onRetry: () => ref.invalidate(attendanceSessionProvider(sessionId)),
         ),
         data: (session) => ListView(
@@ -49,7 +50,7 @@ class AttendanceViewScreen extends ConsumerWidget {
               final statusText = _statusLabel(statusEnum, l10n);
               final name = (record.memberName?.trim().isNotEmpty == true)
                   ? record.memberName!.trim()
-                  : 'Member #${record.memberId}';
+                  : l10n.memberNumberLabel(record.memberId);
               final note = record.note?.trim();
 
               return Card(
@@ -84,11 +85,13 @@ class AttendanceViewScreen extends ConsumerWidget {
                         children: [
                           _InfoChip(
                             icon: Icons.book_outlined,
-                            label: '${l10n.homework}: ${record.madeHomeWork ? 'Yes' : 'No'}',
+                            label:
+                                '${l10n.homework}: ${record.madeHomeWork ? l10n.yes : l10n.no}',
                           ),
                           _InfoChip(
                             icon: Icons.build_outlined,
-                            label: '${l10n.tools}: ${record.hasTools ? 'Yes' : 'No'}',
+                            label:
+                                '${l10n.tools}: ${record.hasTools ? l10n.yes : l10n.no}',
                           ),
                         ],
                       ),

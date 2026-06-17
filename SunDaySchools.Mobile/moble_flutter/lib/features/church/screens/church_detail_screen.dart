@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/l10n/app_localizations.dart';
-import '../../../core/storage/token_storage.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
 import '../../custom_field/providers/custom_field_cache_providers.dart';
@@ -101,11 +100,3 @@ class ChurchDetailScreen extends ConsumerWidget {
     );
   }
 }
-
-/// Church id from JWT (ChurchId claim).
-final currentChurchIdProvider = FutureProvider<int?>((ref) async {
-  ref.watch(authSessionEpochProvider);
-  final token = await TokenStorage.getToken();
-  if (token == null || token.isEmpty) return null;
-  return AuthRoleUtils.extractChurchId(token);
-});

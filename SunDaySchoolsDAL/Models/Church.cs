@@ -4,6 +4,9 @@ using SunDaySchools.Models;
 public class Church
 {
     public int Id { get; set; }
+
+    public string PublicId { get; set; } = Guid.NewGuid().ToString();
+
     public string Name { get; set; }
 
     public ICollection<Member>  Members  { get; set; } = new List<Member>();

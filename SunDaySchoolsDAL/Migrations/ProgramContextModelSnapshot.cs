@@ -37,9 +37,17 @@ namespace SunDaySchools.DAL.Migrations
                     b.Property<int?>("PastorId")
                         .HasColumnType("int");
 
+                    b.Property<string>("PublicId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("PastorId");
+
+                    b.HasIndex("PublicId")
+                        .IsUnique();
 
                     b.ToTable("Churches");
                 });
@@ -586,6 +594,11 @@ namespace SunDaySchools.DAL.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("PublicId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
+
                     b.Property<TimeOnly>("Weekly_appointment")
                         .HasColumnType("time");
 
@@ -594,6 +607,9 @@ namespace SunDaySchools.DAL.Migrations
                     b.HasIndex("ChurchId");
 
                     b.HasIndex("LeaderServantId");
+
+                    b.HasIndex("PublicId")
+                        .IsUnique();
 
                     b.ToTable("Meetings");
                 });

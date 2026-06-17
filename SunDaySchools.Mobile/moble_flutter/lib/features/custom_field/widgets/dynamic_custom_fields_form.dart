@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/l10n/app_localizations.dart';
 import '../models/custom_field_models.dart';
 import '../providers/custom_field_providers.dart';
 import 'dynamic_custom_field_widget.dart';
@@ -144,15 +145,23 @@ class _DynamicCustomFieldsFormState extends ConsumerState<DynamicCustomFieldsFor
           padding: EdgeInsets.all(16),
           child: Center(child: CircularProgressIndicator()),
         ),
-        error: (e, _) => Padding(
-          padding: const EdgeInsets.all(8),
-          child: Text('Custom fields: $e'),
-        ),
+        error: (e, _) {
+          final l10n = AppLocalizations.of(context);
+          return Padding(
+            padding: const EdgeInsets.all(8),
+            child: Text('${l10n.failedToLoadCustomFields} $e'),
+          );
+        },
         data: (data) => _buildFields(data.definitions, data),
       );
     }
 
-    final defsAsync = ref.watch(customFieldDefinitionsProvider(widget.entityName));
+    final defsAsync = ref.watch(
+      customFieldDefinitionsProvider((
+        entityName: widget.entityName,
+        includeInactive: false,
+      )),
+    );
     return defsAsync.when(
       loading: () => const SizedBox.shrink(),
       error: (_, __) => const SizedBox.shrink(),
@@ -177,7 +186,7 @@ class _DynamicCustomFieldsFormState extends ConsumerState<DynamicCustomFieldsFor
       children: [
         const SizedBox(height: 16),
         Text(
-          'Additional fields',
+          AppLocalizations.of(context).additionalFields,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 8),

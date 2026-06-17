@@ -131,6 +131,7 @@ namespace SunDaySchools.BLL.Application.Servants
                     : new ServantProfileChurchDto
                     {
                         Id = servant.Church.Id,
+                        PublicId = servant.Church.PublicId,
                         Name = servant.Church.Name
                     },
                 Meeting = servant.Meeting == null
@@ -138,6 +139,7 @@ namespace SunDaySchools.BLL.Application.Servants
                     : new ServantProfileMeetingDto
                     {
                         Id = servant.Meeting.Id,
+                        PublicId = servant.Meeting.PublicId,
                         Name = servant.Meeting.Name
                     },
                 Classrooms = servant.ClassroomServants

@@ -1,3 +1,44 @@
+// Phone verification disabled — original implementation preserved below.
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../core/l10n/app_localizations.dart';
+import '../../../core/routing/app_router.dart';
+
+/// Verifies WhatsApp OTP after registration or resend from phone entry.
+class OtpVerificationScreen extends ConsumerWidget {
+  final String phoneNumber;
+
+  const OtpVerificationScreen({super.key, required this.phoneNumber});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.verifyPhone)),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(l10n.phoneVerificationDisabled),
+              const SizedBox(height: 16),
+              OutlinedButton(
+                onPressed: () => context.go(AppRoutes.login),
+                child: Text(l10n.backToLogin),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/*
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -138,3 +179,4 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
     );
   }
 }
+*/

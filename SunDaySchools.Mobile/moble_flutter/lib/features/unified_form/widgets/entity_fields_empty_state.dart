@@ -19,7 +19,7 @@ class EntityFieldsEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final hint = configurationHint ?? l10n.entityFieldsNotConfigured;
+    final hint = l10n.entityFieldsNotConfigured;
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 12),

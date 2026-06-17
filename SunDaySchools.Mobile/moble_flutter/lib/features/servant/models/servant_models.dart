@@ -57,12 +57,18 @@ class ServantReadDto {
 
 class NamedEntityDto {
   final int id;
+  final String publicId;
   final String? name;
 
-  const NamedEntityDto({required this.id, this.name});
+  const NamedEntityDto({
+    required this.id,
+    this.publicId = '',
+    this.name,
+  });
 
   factory NamedEntityDto.fromJson(Map<String, dynamic> json) => NamedEntityDto(
         id: json['id'] as int? ?? 0,
+        publicId: json['publicId'] as String? ?? '',
         name: json['name'] as String?,
       );
 }

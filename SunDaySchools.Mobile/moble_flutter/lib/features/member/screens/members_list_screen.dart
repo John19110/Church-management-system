@@ -85,13 +85,15 @@ class MembersListScreen extends ConsumerWidget {
                 itemCount: members.length,
                 itemBuilder: (context, index) {
                   final member = members[index];
+                  member.debugLogImage('members-list');
                   final initial = (member.fullName?.isNotEmpty == true)
                       ? member.fullName![0].toUpperCase()
                       : '?';
                   return Card(
                     child: ListTile(
                       leading: AppNetworkAvatar(
-                        imageUrl: member.imageUrl,
+                        imageUrl: member.displayImageUrl,
+                        debugTag: 'members-list-${member.id}',
                         radius: 20,
                         backgroundColor: const Color(0xFF4299E1),
                         placeholder: Text(
@@ -99,7 +101,7 @@ class MembersListScreen extends ConsumerWidget {
                           style: const TextStyle(color: Colors.white),
                         ),
                       ),
-                      title: Text(member.fullName ?? 'Unknown'),
+                      title: Text(member.fullName ?? l10n.unknownName),
                       subtitle: Text(member.gender ?? ''),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () async {
@@ -107,8 +109,7 @@ class MembersListScreen extends ConsumerWidget {
                           if (context.mounted) {
                             cw.showErrorSnackbar(
                               context,
-                              'Member id is missing from the server response. '
-                              'The API must include an `id` field on each member.',
+                              l10n.memberIdMissingFromApi,
                             );
                           }
                           return;

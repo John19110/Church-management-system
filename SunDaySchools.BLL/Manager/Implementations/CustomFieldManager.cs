@@ -70,7 +70,25 @@ namespace SunDaySchools.BLL.Manager.Implementations
             {
                 var definitions = await _repository.GetDefinitionsByEntityAsync(entityName, includeInactive)
                     ?? Array.Empty<CustomFieldDefinition>();
-                return CustomFieldDefinitionReadMapper.ToReadDtoList(definitions);
+                var dtos = CustomFieldDefinitionReadMapper.ToReadDtoList(definitions);
+                var merged = EntityDefaultFieldTemplates.MergeDefinitionDtos(entityName, dtos);
+
+                if (merged.Any(d => d.IsBuiltIn && d.Id <= 0))
+                {
+                    await EntityDefaultFieldProvisioner.EnsureDefaultsAsync(
+                        _repository,
+                        entityName,
+                        _logger,
+                        _tenantContext,
+                        _currentUser);
+
+                    definitions = await _repository.GetDefinitionsByEntityAsync(entityName, includeInactive)
+                        ?? Array.Empty<CustomFieldDefinition>();
+                    dtos = CustomFieldDefinitionReadMapper.ToReadDtoList(definitions);
+                    merged = EntityDefaultFieldTemplates.MergeDefinitionDtos(entityName, dtos);
+                }
+
+                return merged;
             }
             catch (Exception ex)
             {

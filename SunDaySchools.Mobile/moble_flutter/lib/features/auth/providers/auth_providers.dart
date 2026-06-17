@@ -19,6 +19,9 @@ final authSessionEpochProvider = StateProvider<int>((ref) => 0);
 
 /// True when a non-empty JWT is stored locally.
 Future<bool> hasStoredAuthToken() async {
+  if (TokenStorage.isCacheWarm) {
+    return TokenStorage.cachedToken?.isNotEmpty == true;
+  }
   final token = await TokenStorage.getToken();
   return token != null && token.isNotEmpty;
 }
@@ -34,9 +37,17 @@ Future<T> whenAuthenticated<T>(
 
 final currentUserRoleProvider = FutureProvider<String?>((ref) async {
   ref.watch(authSessionEpochProvider);
-  final token = await TokenStorage.getToken();
+  final token = TokenStorage.cachedToken ?? await TokenStorage.getToken();
   if (token == null || token.isEmpty) return null;
   return AuthRoleUtils.extractPrimaryRole(token);
+});
+
+/// Church id from JWT (ChurchId claim).
+final currentChurchIdProvider = FutureProvider<int?>((ref) async {
+  ref.watch(authSessionEpochProvider);
+  final token = TokenStorage.cachedToken ?? await TokenStorage.getToken();
+  if (token == null || token.isEmpty) return null;
+  return AuthRoleUtils.extractChurchId(token);
 });
 
 extension ResolvedRoleAsyncX on AsyncValue<String?> {

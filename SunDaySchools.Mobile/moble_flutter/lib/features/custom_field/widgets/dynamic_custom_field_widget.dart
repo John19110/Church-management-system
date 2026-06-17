@@ -2,9 +2,11 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
+import '../../../core/l10n/app_localizations.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../models/custom_field_models.dart';
 import '../utils/custom_field_validator.dart';
+import '../utils/field_display_label.dart';
 
 /// Renders a single dynamic field based on its definition.
 class DynamicCustomFieldWidget extends StatelessWidget {
@@ -31,8 +33,10 @@ class DynamicCustomFieldWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     if (definition.isHidden) return const SizedBox.shrink();
 
-    final label = definition.displayName;
-    final validator = (String? v) => CustomFieldValidator.validate(definition, v);
+    final l10n = AppLocalizations.of(context);
+    final label = localizedFieldDisplayLabel(definition, l10n);
+    final validator = (String? v) =>
+        CustomFieldValidator.validate(definition, v, l10n: l10n);
 
     switch (definition.dataType) {
       case CustomFieldDataType.longText:
@@ -83,7 +87,7 @@ class DynamicCustomFieldWidget extends StatelessWidget {
         return AppTextField(
           controller: controller,
           label: label,
-          hint: definition.placeholder ?? 'ISO date-time',
+          hint: definition.placeholder ?? l10n.isoDateTimeHint,
           readOnly: true,
           onTap: (readOnly || definition.isReadOnly)
               ? null
@@ -94,7 +98,7 @@ class DynamicCustomFieldWidget extends StatelessWidget {
         return AppTextField(
           controller: controller,
           label: label,
-          hint: definition.placeholder ?? '{"key": "value"}',
+          hint: definition.placeholder ?? l10n.jsonExampleHint,
           maxLines: 5,
           readOnly: readOnly || definition.isReadOnly,
           validator: validator,
@@ -118,6 +122,7 @@ class DynamicCustomFieldWidget extends StatelessWidget {
           validator: (_) => CustomFieldValidator.validate(
             definition,
             controller.text.isEmpty ? null : controller.text,
+            l10n: l10n,
           ),
         );
       case CustomFieldDataType.multiSelect:
@@ -127,7 +132,11 @@ class DynamicCustomFieldWidget extends StatelessWidget {
             final serialized = multiSelected.isEmpty
                 ? null
                 : jsonEncode(multiSelected);
-            return CustomFieldValidator.validate(definition, serialized);
+            return CustomFieldValidator.validate(
+              definition,
+              serialized,
+              l10n: l10n,
+            );
           },
           builder: (state) {
             return Column(

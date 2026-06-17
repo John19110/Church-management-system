@@ -17,6 +17,7 @@ class AuthRepository {
   }
 
   AuthFlowResult _parseAuthResponse(Map<String, dynamic> data) {
+    // Phone verification disabled — still detect API flag so UI can route to login.
     if (data['requiresPhoneVerification'] == true) {
       return AuthFlowResult(
         requiresPhoneVerification: true,
@@ -51,8 +52,13 @@ class AuthRepository {
         'PhoneNumber': dto.phoneNumber,
         'Password': dto.password,
         'ConfirmPassword': dto.confirmPassword,
-        'ChurchId': dto.churchId.toString(),
-        'MeetingId': dto.meetingId.toString(),
+        'ChurchPublicId': dto.churchPublicId,
+        'RequestedMeetingName': dto.requestedMeetingName,
+        'RequestedRole': dto.requestedRole,
+        if (dto.meetingAdminPhoneNumber != null &&
+            dto.meetingAdminPhoneNumber!.isNotEmpty)
+          'MeetingAdminPhoneNumber': dto.meetingAdminPhoneNumber,
+        if (dto.meetingPublicId.isNotEmpty) 'MeetingPublicId': dto.meetingPublicId,
         if (dto.birthDate != null) 'BirthDate': dto.birthDate,
         if (dto.joiningDate != null) 'JoiningDate': dto.joiningDate,
         if (dto.image != null)
@@ -140,45 +146,46 @@ class AuthRepository {
     });
   }
 
-  Future<int> sendWhatsAppOtp(PhoneOtpDto dto) async {
-    return apiCall(() async {
-      final response = await _dio.post(
-        AppConstants.sendWhatsAppOtpEndpoint,
-        data: dto.toJson(),
-      );
-      final data = response.data as Map<String, dynamic>;
-      return data['resendCooldownSeconds'] as int? ?? 60;
-    });
-  }
+  // Phone verification disabled
+  // Future<int> sendWhatsAppOtp(PhoneOtpDto dto) async {
+  //   return apiCall(() async {
+  //     final response = await _dio.post(
+  //       AppConstants.sendWhatsAppOtpEndpoint,
+  //       data: dto.toJson(),
+  //     );
+  //     final data = response.data as Map<String, dynamic>;
+  //     return data['resendCooldownSeconds'] as int? ?? 60;
+  //   });
+  // }
 
-  Future<void> verifyWhatsAppOtp(VerifyOtpDto dto) async {
-    return apiCall(() async {
-      await _dio.post(
-        AppConstants.verifyWhatsAppOtpEndpoint,
-        data: dto.toJson(),
-      );
-    });
-  }
+  // Future<void> verifyWhatsAppOtp(VerifyOtpDto dto) async {
+  //   return apiCall(() async {
+  //     await _dio.post(
+  //       AppConstants.verifyWhatsAppOtpEndpoint,
+  //       data: dto.toJson(),
+  //     );
+  //   });
+  // }
 
-  Future<int> forgotPassword(PhoneOtpDto dto) async {
-    return apiCall(() async {
-      final response = await _dio.post(
-        AppConstants.forgotPasswordEndpoint,
-        data: dto.toJson(),
-      );
-      final data = response.data as Map<String, dynamic>;
-      return data['resendCooldownSeconds'] as int? ?? 60;
-    });
-  }
+  // Future<int> forgotPassword(PhoneOtpDto dto) async {
+  //   return apiCall(() async {
+  //     final response = await _dio.post(
+  //       AppConstants.forgotPasswordEndpoint,
+  //       data: dto.toJson(),
+  //     );
+  //     final data = response.data as Map<String, dynamic>;
+  //     return data['resendCooldownSeconds'] as int? ?? 60;
+  //   });
+  // }
 
-  Future<void> resetPassword(ResetPasswordDto dto) async {
-    return apiCall(() async {
-      await _dio.post(
-        AppConstants.resetPasswordEndpoint,
-        data: dto.toJson(),
-      );
-    });
-  }
+  // Future<void> resetPassword(ResetPasswordDto dto) async {
+  //   return apiCall(() async {
+  //     await _dio.post(
+  //       AppConstants.resetPasswordEndpoint,
+  //       data: dto.toJson(),
+  //     );
+  //   });
+  // }
 
   Future<void> logout() async {
     try {
@@ -191,16 +198,17 @@ class AuthRepository {
   }
 }
 
-/// Thrown when login succeeds but phone OTP is still required.
-class PhoneVerificationRequiredException implements Exception {
-  final String phoneNumber;
-  final String? message;
-
-  PhoneVerificationRequiredException({
-    required this.phoneNumber,
-    this.message,
-  });
-
-  @override
-  String toString() => message ?? 'Phone verification required.';
-}
+// Phone verification disabled
+// /// Thrown when login succeeds but phone OTP is still required.
+// class PhoneVerificationRequiredException implements Exception {
+//   final String phoneNumber;
+//   final String? message;
+//
+//   PhoneVerificationRequiredException({
+//     required this.phoneNumber,
+//     this.message,
+//   });
+//
+//   @override
+//   String toString() => message ?? 'Phone verification required.';
+// }

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/l10n/app_localizations.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/endpoint_select_fields.dart';
 import '../models/unified_form_models.dart';
 import '../utils/unified_form_controller.dart';
+import '../utils/unified_form_field_utils.dart';
 import '../utils/unified_form_validator.dart';
 
 /// Renders any unified field (built-in or custom) from metadata.
@@ -11,26 +13,39 @@ class UnifiedFormFieldWidget extends StatelessWidget {
   final UnifiedFieldDefinitionDto field;
   final UnifiedFormController controller;
   final bool readOnly;
+  final String? entityName;
 
   const UnifiedFormFieldWidget({
     super.key,
     required this.field,
     required this.controller,
     this.readOnly = false,
+    this.entityName,
   });
 
   @override
   Widget build(BuildContext context) {
     if (field.isHidden) return const SizedBox.shrink();
 
+    final l10n = AppLocalizations.of(context);
+    final label = unifiedFieldLabel(field, entityName: entityName, l10n: l10n);
+    final placeholder = unifiedFieldPlaceholder(
+      field,
+      entityName: entityName,
+      l10n: l10n,
+    );
     final effectiveReadOnly = readOnly || field.isReadOnly;
-    final validator = (String? _) =>
-        UnifiedFormValidator.validate(field, controller.valueFor(field));
+    final validator = (String? _) => UnifiedFormValidator.validate(
+          field,
+          controller.valueFor(field),
+          l10n: l10n,
+          entityName: entityName,
+        );
 
     switch (field.dataType) {
       case UnifiedFieldDataType.boolean:
         return SwitchListTile(
-          title: Text(field.displayName),
+          title: Text(label),
           subtitle: field.description != null ? Text(field.description!) : null,
           value: controller.boolFor(field.fieldKey),
           onChanged: effectiveReadOnly
@@ -45,13 +60,16 @@ class UnifiedFormFieldWidget extends StatelessWidget {
           );
           return EndpointSelectDropdown(
             endpoint: field.lookupEndpoint!,
-            label: field.displayName,
-            hintText: field.placeholder,
+            label: label,
+            hintText: placeholder,
             value: current,
             enabled: !effectiveReadOnly,
             onChanged: (v) => controller
                 .controllerFor(field.fieldKey)
                 .text = v?.toString() ?? '',
+            validator: effectiveReadOnly
+                ? null
+                : (v) => validator(v?.toString()),
           );
         }
         return DropdownButtonFormField<String>(
@@ -59,8 +77,8 @@ class UnifiedFormFieldWidget extends StatelessWidget {
               ? null
               : controller.controllerFor(field.fieldKey).text,
           decoration: InputDecoration(
-            labelText: field.displayName,
-            hintText: field.placeholder,
+            labelText: label,
+            hintText: placeholder,
           ),
           items: field.options
               .map((o) => DropdownMenuItem(
@@ -83,7 +101,7 @@ class UnifiedFormFieldWidget extends StatelessWidget {
           builder: (state) => Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(field.displayName, style: Theme.of(context).textTheme.titleSmall),
+              Text(label, style: Theme.of(context).textTheme.titleSmall),
               Wrap(
                 spacing: 8,
                 children: field.options.map((opt) {
@@ -121,8 +139,8 @@ class UnifiedFormFieldWidget extends StatelessWidget {
       case UnifiedFieldDataType.json:
         return AppTextField(
           controller: controller.controllerFor(field.fieldKey),
-          label: field.displayName,
-          hint: field.placeholder,
+          label: label,
+          hint: placeholder,
           maxLines: field.dataType == UnifiedFieldDataType.json ? 5 : 4,
           readOnly: effectiveReadOnly,
           validator: validator,
@@ -131,7 +149,7 @@ class UnifiedFormFieldWidget extends StatelessWidget {
       case UnifiedFieldDataType.number:
         return AppTextField(
           controller: controller.controllerFor(field.fieldKey),
-          label: field.displayName,
+          label: label,
           keyboardType: TextInputType.number,
           readOnly: effectiveReadOnly,
           validator: validator,
@@ -140,7 +158,7 @@ class UnifiedFormFieldWidget extends StatelessWidget {
       case UnifiedFieldDataType.decimal:
         return AppTextField(
           controller: controller.controllerFor(field.fieldKey),
-          label: field.displayName,
+          label: label,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           readOnly: effectiveReadOnly,
           validator: validator,
@@ -149,14 +167,14 @@ class UnifiedFormFieldWidget extends StatelessWidget {
       case UnifiedFieldDataType.date:
         return AppDateField(
           controller: controller.controllerFor(field.fieldKey),
-          label: field.displayName,
+          label: label,
           validator: validator,
         );
 
       case UnifiedFieldDataType.dateTime:
         return AppTextField(
           controller: controller.controllerFor(field.fieldKey),
-          label: field.displayName,
+          label: label,
           readOnly: true,
           onTap: effectiveReadOnly
               ? null
@@ -169,14 +187,14 @@ class UnifiedFormFieldWidget extends StatelessWidget {
           final url = controller.controllerFor(field.fieldKey).text;
           if (url.isEmpty) return const SizedBox.shrink();
           return ListTile(
-            title: Text(field.displayName),
+            title: Text(label),
             subtitle: Text(url, maxLines: 1, overflow: TextOverflow.ellipsis),
           );
         }
         return AppTextField(
           controller: controller.controllerFor(field.fieldKey),
-          label: field.displayName,
-          hint: field.placeholder,
+          label: label,
+          hint: placeholder,
           readOnly: effectiveReadOnly,
           validator: validator,
         );

@@ -111,7 +111,9 @@ namespace SunDaySchools.API.Controllers
         [HttpPost("create-from-form")]
         [Consumes(MediaTypeNames.Application.Json)]
         [Produces(MediaTypeNames.Application.Json)]
-        public async Task<ActionResult<object>> CreateFromForm([FromBody] SaveEntityFormDto request)
+        public async Task<ActionResult<object>> CreateFromForm(
+            [FromBody] SaveEntityFormDto request,
+            [FromQuery] int? meetingId = null)
         {
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
             if (request == null)
@@ -122,7 +124,8 @@ namespace SunDaySchools.API.Controllers
 
             var id = await _unifiedFormManager.CreateEntityWithFormDataAsync(
                 CustomFieldEntityNames.Classroom,
-                request);
+                request,
+                meetingIdForClassroom: meetingId);
             return Ok(new { id, message = "Classroom created." });
         }
 

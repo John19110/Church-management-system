@@ -1,3 +1,4 @@
+using System.Text.Json;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
 using SunDaySchools.BLL.Abstractions;
@@ -337,14 +338,15 @@ namespace SunDaySchools.BLL.Manager.Implementations
         public async Task<int> CreateEntityWithFormDataAsync(
             string entityName,
             SaveEntityFormDto dto,
-            int? classroomIdForMember = null)
+            int? classroomIdForMember = null,
+            int? meetingIdForClassroom = null)
         {
             EnsureEntity(entityName);
 
             var entityId = entityName switch
             {
                 CustomFieldEntityNames.Member => await CreateMemberShellAsync(dto, classroomIdForMember),
-                CustomFieldEntityNames.Classroom => await CreateClassroomShellAsync(dto),
+                CustomFieldEntityNames.Classroom => await CreateClassroomShellAsync(dto, meetingIdForClassroom),
                 _ => throw new ValidationException(new Dictionary<string, string[]>
                 {
                     ["entityName"] = new[] { $"Create-from-form is not supported for '{entityName}'." }
@@ -365,21 +367,57 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 });
             }
 
-            var displayName = ExtractFirstTextValue(dto) ?? "Member";
+            var displayName = ExtractMemberDisplayName(dto) ?? "Member";
             var addDto = new MemberAddDTO { Name1 = displayName };
             return await _memberManager.AddAsync(addDto, classroomId.Value);
         }
 
-        private async Task<int> CreateClassroomShellAsync(SaveEntityFormDto dto)
+        private async Task<int> CreateClassroomShellAsync(
+            SaveEntityFormDto dto,
+            int? meetingIdFromRequest = null)
         {
             var name = ExtractFirstTextValue(dto) ?? "Classroom";
+            var meetingId = meetingIdFromRequest ?? ExtractIntFieldValue(dto, "meetingId");
+
             var addDto = new ClassroomAddDTO
             {
                 Name = name,
-                AgeOfMembers = "-"
+                AgeOfMembers = "-",
+                MeetingId = meetingId
             };
 
             return await _classroomManager.AddAsync(addDto);
+        }
+
+        private static int? ExtractIntFieldValue(SaveEntityFormDto dto, string fieldKey)
+        {
+            var raw = dto.Fields
+                .FirstOrDefault(f => string.Equals(f.FieldKey, fieldKey, StringComparison.OrdinalIgnoreCase))
+                ?.Value;
+
+            if (string.IsNullOrWhiteSpace(raw))
+                return null;
+
+            return int.TryParse(raw.Trim(), out var id) && id > 0 ? id : null;
+        }
+
+        private static string? ExtractMemberDisplayName(SaveEntityFormDto dto)
+        {
+            foreach (var key in new[] { "name1", "name2", "name3", "name" })
+            {
+                var value = ExtractStringFieldValue(dto, key);
+                if (!string.IsNullOrWhiteSpace(value))
+                    return value;
+            }
+
+            return ExtractFirstTextValue(dto);
+        }
+
+        private static string? ExtractStringFieldValue(SaveEntityFormDto dto, string fieldKey)
+        {
+            return dto.Fields
+                .FirstOrDefault(f => string.Equals(f.FieldKey, fieldKey, StringComparison.OrdinalIgnoreCase))
+                ?.Value?.Trim();
         }
 
         private static string? ExtractFirstTextValue(SaveEntityFormDto dto)
@@ -406,8 +444,69 @@ namespace SunDaySchools.BLL.Manager.Implementations
             };
         }
 
-        private Task<IReadOnlyDictionary<string, string?>> LoadMemberValuesAsync(int id) =>
-            MemberFormBuiltInValuesLoader.LoadAsync(_memberRepository, id);
+        private async Task<IReadOnlyDictionary<string, string?>> LoadMemberValuesAsync(int id)
+        {
+            var m = await _memberRepository.GetByIdForFormAsync(id)
+                ?? throw new NotFoundException($"Member with id {id} not found.");
+
+            var imageUrl = ResolveMemberImageUrl(m.ImageUrl, m.ImageFileName);
+            var phones = await _memberRepository.GetContactPhonesForFormAsync(id);
+
+            return new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["name1"] = m.Name1,
+                ["name2"] = m.Name2,
+                ["name3"] = m.Name3,
+                ["gender"] = m.Gender,
+                ["address"] = m.Address,
+                ["dateOfBirth"] = m.DateOfBirth.ToString("yyyy-MM-dd"),
+                ["joiningDate"] = m.JoiningDate.ToString("yyyy-MM-dd"),
+                ["spiritualDateOfBirth"] = m.SpiritualDateOfBirth?.ToString("yyyy-MM-dd"),
+                ["lastAttendanceDate"] = m.LastAttendanceDate.ToString("yyyy-MM-dd"),
+                ["isDiscipline"] = m.IsDiscipline.ToString(),
+                ["totalNumberOfDaysAttended"] = m.TotalNumberOfDaysAttended.ToString(),
+                ["haveBrothers"] = m.HaveBrothers?.ToString(),
+                ["brothersNames"] = m.BrothersNames is { Count: > 0 }
+                    ? JsonSerializer.Serialize(m.BrothersNames)
+                    : null,
+                ["notes"] = m.Notes is { Count: > 0 }
+                    ? JsonSerializer.Serialize(m.Notes)
+                    : null,
+                ["phoneNumbers"] = phones.Count > 0
+                    ? JsonSerializer.Serialize(
+                        phones.Select(p => new MemberContactDTO
+                        {
+                            Relation = p.Relation,
+                            PhoneNumber = p.PhoneNumber
+                        }),
+                        new JsonSerializerOptions
+                        {
+                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                        })
+                    : null,
+                ["classroomId"] = m.ClassroomId?.ToString(),
+                ["imageUrl"] = imageUrl
+            };
+        }
+
+        private static string? ResolveMemberImageUrl(string? imageUrl, string? imageFileName)
+        {
+            if (!string.IsNullOrWhiteSpace(imageUrl))
+                return imageUrl.Trim();
+
+            if (string.IsNullOrWhiteSpace(imageFileName))
+                return null;
+
+            var file = imageFileName.Trim();
+            if (file.Contains("://", StringComparison.Ordinal))
+                return file;
+            if (file.StartsWith('/'))
+                return file;
+            if (file.StartsWith("members/", StringComparison.OrdinalIgnoreCase))
+                return $"/{file}";
+
+            return $"/images/{file}";
+        }
 
         private async Task<IReadOnlyDictionary<string, string?>> LoadClassroomValuesAsync(int id)
         {
@@ -528,6 +627,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             if (values.TryGetValue("name", out var v)) update.Name = v;
             if (values.TryGetValue("ageOfMembers", out v)) update.AgeOfMembers = v;
             if (values.TryGetValue("leaderServantId", out v)) update.LeaderServantId = EntityFormValueSerializer.ParseInt(v);
+            if (values.TryGetValue("meetingId", out v)) update.MeetingId = EntityFormValueSerializer.ParseInt(v);
 
             await _classroomManager.UpdateAsync(id, update);
         }

@@ -10,6 +10,9 @@ namespace SunDaySchools.DAL.Models
     public class Meeting 
     {
         public int Id { get; set; }
+
+        public string PublicId { get; set; } = Guid.NewGuid().ToString();
+
         public string? Name { get; set; }
         public int ChurchId { get; set; }
 

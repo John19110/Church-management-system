@@ -77,21 +77,31 @@ namespace SunDaySchools.BLL.Manager.Implementations
             if (appUser == null)
                 throw new NotFoundException("User not found.");
 
-            var servant = await _servantRepository.EnsureServantProfileAsync(
-                appUser,
-                _servantProfileOptions.AutoCreateMissingProfile);
-            if (servant == null)
+            if (!await _classroomRepository.ExistsAsync(classroomId))
+                throw new NotFoundException($"Classroom with id {classroomId} was not found.");
+
+            if (_currentUser.IsInRole("Servant"))
             {
-                var detail = _servantProfileOptions.AutoCreateMissingProfile
-                    ? ServantProfileMessages.MissingAfterAutoCreateAttempt()
-                    : ServantProfileMessages.MissingProfileManual();
-                throw new ServantProfileMissingException(detail);
+                var servant = await _servantRepository.EnsureServantProfileAsync(
+                    appUser,
+                    _servantProfileOptions.AutoCreateMissingProfile);
+                if (servant == null)
+                {
+                    var detail = _servantProfileOptions.AutoCreateMissingProfile
+                        ? ServantProfileMessages.MissingAfterAutoCreateAttempt()
+                        : ServantProfileMessages.MissingProfileManual();
+                    throw new ServantProfileMissingException(detail);
+                }
+
+                var isAssigned =
+                    await _classroomRepository.IsServantAssignedAsync(servant.Id, classroomId);
+                if (!isAssigned)
+                    throw new UnauthorizedAccessException("This class is not assigned to you.");
             }
-
-            var isAssigned = await _classroomRepository.IsServantAssignedAsync(servant.Id, classroomId);
-
-            if (!isAssigned && _currentUser.IsInRole("Servant"))
-                throw new UnauthorizedAccessException("This class is not assigned to you.");
+            else if (!_currentUser.IsInRole("Admin") && !_currentUser.IsInRole("SuperAdmin"))
+            {
+                throw new UnauthorizedAccessException("User role is not allowed to add members.");
+            }
 
             string? fileName = null;
 

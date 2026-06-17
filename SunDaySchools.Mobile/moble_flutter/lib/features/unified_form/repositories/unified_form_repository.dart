@@ -68,18 +68,29 @@ class UnifiedFormRepository {
     String entityName,
     SaveEntityFormDto dto, {
     int? classroomIdForMember,
+    int? meetingIdForClassroom,
   }) async {
     return apiCall(() async {
+      final queryParameters = <String, dynamic>{
+        if (classroomIdForMember != null) 'classroomId': classroomIdForMember,
+        if (meetingIdForClassroom != null) 'meetingId': meetingIdForClassroom,
+      };
+
       final response = await _dio.post(
         '${_entityBase(entityName)}/create-from-form',
         data: dto.toJson(),
-        queryParameters: classroomIdForMember != null
-            ? {'classroomId': classroomIdForMember}
-            : null,
+        queryParameters: queryParameters.isEmpty ? null : queryParameters,
         options: Options(contentType: Headers.jsonContentType),
       );
-      final data = response.data as Map<String, dynamic>;
-      return data['id'] as int;
+      final data = response.data;
+      if (data is! Map<String, dynamic>) {
+        throw const FormatException('Create entity response was not a JSON object.');
+      }
+
+      final rawId = data['id'] ?? data['Id'];
+      if (rawId is int) return rawId;
+      if (rawId is num) return rawId.toInt();
+      throw const FormatException('Create entity response did not include id.');
     });
   }
 }
