@@ -1,3 +1,7 @@
+import 'package:flutter/material.dart';
+
+import '../../../core/field_labels/system_field_labels.dart';
+import '../../../core/l10n/app_localizations.dart';
 import '../models/unified_form_models.dart';
 
 /// Built-in photo field synced to legacy `imageUrl` column (shown via photo picker, not text field).
@@ -32,7 +36,12 @@ String? photoUrlFromFields(List<UnifiedFieldDto> fields) =>
         : null;
 
 /// Display title from unified fields (built-in name keys first, then first non-empty value).
-String unifiedDisplayTitle(String entityName, List<UnifiedFieldDto> fields) {
+String unifiedDisplayTitle(
+  String entityName,
+  List<UnifiedFieldDto> fields, {
+  AppLocalizations? l10n,
+}) {
+  final loc = l10n ?? AppLocalizations.forLocale(const Locale('en'));
   const titleKeysByEntity = <String, List<String>>{
     UnifiedEntityNames.member: ['name1', 'name2', 'name3'],
     UnifiedEntityNames.servant: ['name'],
@@ -56,11 +65,46 @@ String unifiedDisplayTitle(String entityName, List<UnifiedFieldDto> fields) {
     final v = f.value?.trim();
     if (v != null && v.isNotEmpty) return v;
   }
-  return '—';
+  return loc.notAvailable;
 }
 
-String unifiedDetailInitial(String entityName, List<UnifiedFieldDto> fields) {
-  final title = unifiedDisplayTitle(entityName, fields);
-  if (title != '—' && title.isNotEmpty) return title[0].toUpperCase();
+String unifiedDetailInitial(
+  String entityName,
+  List<UnifiedFieldDto> fields, {
+  AppLocalizations? l10n,
+}) {
+  final loc = l10n ?? AppLocalizations.forLocale(const Locale('en'));
+  final title = unifiedDisplayTitle(entityName, fields, l10n: loc);
+  if (title != loc.notAvailable && title.isNotEmpty) {
+    return title[0].toUpperCase();
+  }
   return '?';
+}
+
+/// Localized label for built-in fields; custom fields keep API [displayName].
+String unifiedFieldLabel(
+  UnifiedFieldDefinitionDto field, {
+  String? entityName,
+  AppLocalizations? l10n,
+}) {
+  final loc = l10n ?? AppLocalizations.forLocale(const Locale('en'));
+  if (entityName != null) {
+    final localized = systemFieldLabel(loc, entityName, field.fieldKey);
+    if (localized != null && localized.isNotEmpty) return localized;
+  }
+  return field.displayName;
+}
+
+/// Localized placeholder for built-in fields when the API sends English.
+String? unifiedFieldPlaceholder(
+  UnifiedFieldDefinitionDto field, {
+  String? entityName,
+  AppLocalizations? l10n,
+}) {
+  final loc = l10n ?? AppLocalizations.forLocale(const Locale('en'));
+  if (entityName != null) {
+    final localized = systemFieldPlaceholder(loc, entityName, field.fieldKey);
+    if (localized != null && localized.isNotEmpty) return localized;
+  }
+  return field.placeholder;
 }

@@ -9,6 +9,8 @@ namespace SunDaySchools.DAL.Repository.Interfaces
     {
         Task<IQueryable<Meeting>> GetAllAsync();
         Task<Meeting?> GetByIdAsync(int id);
+        Task<Meeting?> GetByPublicIdAsync(string publicId);
+        Task<int?> GetMeetingIdByPublicIdAsync(string publicId);
         Task<Meeting?> GetByNameAsync(string name);
 
        Task<List<(int Id, string Name)>> GetMeetingsForSelection();

@@ -10,7 +10,18 @@ void refreshEntityFormsAfterDefinitionChange(
   String entityName,
 ) {
   ref.read(customFieldDefinitionsRevisionProvider(entityName).notifier).state++;
-  ref.invalidate(customFieldDefinitionsProvider(entityName));
+  ref.invalidate(
+    customFieldDefinitionsProvider((
+      entityName: entityName,
+      includeInactive: true,
+    )),
+  );
+  ref.invalidate(
+    customFieldDefinitionsProvider((
+      entityName: entityName,
+      includeInactive: false,
+    )),
+  );
   ref.invalidate(entityFormSchemaProvider);
   ref.invalidate(entityFormDataProvider);
   ref.invalidate(entityCustomFieldsProvider);

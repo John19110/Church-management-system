@@ -41,9 +41,14 @@ namespace SunDaySchools.BLL.Manager.Implementations
             var churchId = _tenantContext.ChurchId
                 ?? throw new UnauthorizedAccessException("ChurchId claim is missing");
 
-            registerDTO.ChurchId = churchId;
+            var meetingId = _tenantContext.MeetingId
+                ?? throw new UnauthorizedAccessException("MeetingId claim is missing");
 
-            await _accountManager.RegisterServant(registerDTO, webRootPath);
+            await _accountManager.RegisterServantForTenant(
+                registerDTO,
+                churchId,
+                meetingId,
+                webRootPath);
 
             var phone = registerDTO.PhoneNumber.Trim().Replace(" ", "");
             var user = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phone);

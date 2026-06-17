@@ -17,6 +17,7 @@ namespace SunDaySchools.BLL.Manager.Interfaces
         Task<int> CreateEntityWithFormDataAsync(
             string entityName,
             SaveEntityFormDto dto,
-            int? classroomIdForMember = null);
+            int? classroomIdForMember = null,
+            int? meetingIdForClassroom = null);
     }
 }

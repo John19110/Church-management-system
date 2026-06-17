@@ -1,3 +1,41 @@
+// Phone verification disabled — original implementation preserved below.
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../core/l10n/app_localizations.dart';
+import '../../../core/routing/app_router.dart';
+
+class ForgotPasswordScreen extends ConsumerWidget {
+  const ForgotPasswordScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.forgotPassword)),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(l10n.passwordResetDisabled),
+              const SizedBox(height: 16),
+              OutlinedButton(
+                onPressed: () => context.go(AppRoutes.login),
+                child: Text(l10n.backToLogin),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/*
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -90,3 +128,4 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     );
   }
 }
+*/

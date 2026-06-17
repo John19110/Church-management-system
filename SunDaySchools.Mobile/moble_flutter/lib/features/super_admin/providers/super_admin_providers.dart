@@ -11,3 +11,9 @@ final pendingAdminsProvider =
     FutureProvider<List<PendingUserDto>>((ref) async {
   return ref.watch(superAdminRepositoryProvider).getPendingAdmins();
 });
+
+final pendingChurchUsersProvider =
+    FutureProvider<List<PendingChurchUserDto>>((ref) async {
+  ref.watch(authSessionEpochProvider);
+  return ref.watch(superAdminRepositoryProvider).getPendingUsers();
+});

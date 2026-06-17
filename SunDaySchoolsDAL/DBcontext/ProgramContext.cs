@@ -158,12 +158,30 @@ namespace SunDaySchoolsDAL.DBcontext
                 .HasForeignKey(c => c.PastorId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            builder.Entity<Church>()
+                .Property(c => c.PublicId)
+                .IsRequired()
+                .HasMaxLength(36);
+
+            builder.Entity<Church>()
+                .HasIndex(c => c.PublicId)
+                .IsUnique();
+
             // Meeting → Leader
             builder.Entity<Meeting>()
                 .HasOne(m => m.LeaderServant)
                 .WithMany()
                 .HasForeignKey(m => m.LeaderServantId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Meeting>()
+                .Property(m => m.PublicId)
+                .IsRequired()
+                .HasMaxLength(36);
+
+            builder.Entity<Meeting>()
+                .HasIndex(m => m.PublicId)
+                .IsUnique();
 
             // Classroom → Leader
             builder.Entity<Classroom>()
@@ -229,6 +247,14 @@ namespace SunDaySchoolsDAL.DBcontext
                     method?.Invoke(this, new object[] { builder, hasClassroomId });
                 }
             }
+
+            // Church-wide custom field definitions (MeetingId null) must remain visible under meeting scope.
+            builder.Entity<CustomFieldDefinition>()
+                .HasQueryFilter(d =>
+                    (!CurrentChurchId.HasValue || d.ChurchId == CurrentChurchId) &&
+                    (!CurrentMeetingId.HasValue ||
+                     d.MeetingId == null ||
+                     d.MeetingId == CurrentMeetingId));
 
             // Index ChurchId
             foreach (var entityType in builder.Model.GetEntityTypes())

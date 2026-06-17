@@ -3,20 +3,16 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../auth/providers/auth_providers.dart';
-import '../../unified_form/widgets/unified_entity_photo_picker.dart';
-import '../../auth/utils/auth_role_utils.dart';
-import '../../classroom/providers/classroom_providers.dart';
-import '../../custom_field/providers/custom_field_cache_providers.dart';
-import '../../../shared/widgets/common_widgets.dart';
+
+import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
-import '../../unified_form/models/unified_form_models.dart';
-import '../../unified_form/providers/unified_form_providers.dart';
-import '../../unified_form/utils/unified_form_controller.dart';
-import '../../unified_form/utils/unified_form_screen_mixin.dart';
-import '../../unified_form/widgets/unified_entity_form.dart';
+import '../../../shared/widgets/common_widgets.dart';
+import '../../classroom/providers/classroom_providers.dart';
+import '../../unified_form/widgets/unified_entity_photo_picker.dart';
 import '../providers/members_providers.dart';
-import '../models/member_models.dart';
+import '../utils/member_form_controller.dart';
+import '../utils/member_native_form_mapper.dart';
+import '../widgets/member_form.dart';
 
 class MemberAddScreen extends ConsumerStatefulWidget {
   final int? classroomId;
@@ -27,10 +23,9 @@ class MemberAddScreen extends ConsumerStatefulWidget {
   ConsumerState<MemberAddScreen> createState() => _MemberAddScreenState();
 }
 
-class _MemberAddScreenState extends ConsumerState<MemberAddScreen>
-    with UnifiedFormScreenMixin {
+class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _formController = UnifiedFormController();
+  final _memberForm = MemberFormController();
   File? _image;
   bool _loading = false;
   int? _selectedClassroomId;
@@ -43,173 +38,116 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen>
 
   @override
   void dispose() {
-    _formController.dispose();
+    _memberForm.dispose();
     super.dispose();
   }
+
+  int? get _resolvedClassroomId => _selectedClassroomId ?? widget.classroomId;
 
   Future<void> _pickImage() async {
     final file = await pickUnifiedEntityPhoto();
     if (file != null) setState(() => _image = file);
   }
 
-  Future<void> _submit(List<UnifiedFieldDefinitionDto> fields) async {
-    if (!_formKey.currentState!.validate()) return;
-    if (fields.isEmpty) {
-      showErrorSnackbar(
-        context,
-        AppLocalizations.of(context).entityFieldsNotConfigured,
-      );
-      return;
-    }
+  void _rebuild() => setState(() {});
 
-    final classroomId = _selectedClassroomId ?? widget.classroomId ?? 0;
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final classroomId = _resolvedClassroomId ?? 0;
+    final l10n = AppLocalizations.of(context);
     if (classroomId <= 0) {
-      showErrorSnackbar(context, AppLocalizations.of(context).pleaseSelectClassroom);
+      showErrorSnackbar(context, l10n.pleaseSelectClassroom);
       return;
     }
 
     setState(() => _loading = true);
-    final l10n = AppLocalizations.of(context);
     try {
-      final memberId = await ref.read(unifiedFormRepositoryProvider).createFromForm(
-            UnifiedEntityNames.member,
-            _formController.buildSavePayload(fields),
-            classroomIdForMember: classroomId,
+      final dto = MemberNativeFormMapper.toAddDto(_memberForm);
+      final memberId = await ref.read(membersRepositoryProvider).create(
+            classroomId,
+            dto,
+            image: _image,
           );
 
-      if (_image != null) {
-        await ref.read(membersRepositoryProvider).updateWithImage(
-              memberId,
-              MemberUpdateDto(id: memberId),
-              image: _image!,
-            );
-      }
+      ref.invalidate(membersListProvider);
+      ref.invalidate(membersByClassroomProvider(classroomId));
 
       if (mounted) {
         showSuccessSnackbar(context, l10n.memberAddedSuccessfully);
         context.pop(memberId);
       }
     } catch (e) {
-      if (mounted) showErrorSnackbar(context, e.toString());
+      if (mounted) showErrorSnackbar(context, userFriendlyMessage(e, l10n));
     } finally {
       if (mounted) setState(() => _loading = false);
-    }
-  }
-
-  Future<void> _openFieldSettings() async {
-    await context.push('/custom-fields/Member');
-    if (mounted) {
-      refreshEntityFormsAfterDefinitionChange(ref, UnifiedEntityNames.member);
-      ref.invalidate(
-        entityFormSchemaProvider((entity: UnifiedEntityNames.member, mode: 'Create')),
-      );
-      resetFormSignature();
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final roleAsync = ref.watch(currentUserRoleProvider);
-    final schemaAsync = ref.watch(
-      entityFormSchemaProvider((entity: UnifiedEntityNames.member, mode: 'Create')),
-    );
     final classroomsAsync = ref.watch(visibleClassroomsProvider);
     final needsClassroomPicker = (widget.classroomId ?? 0) <= 0;
 
-    return roleAsync.when(
-      loading: () => Scaffold(
-        appBar: AppBar(title: Text(l10n.addMember)),
-        body: const LoadingWidget(),
-      ),
-      error: (e, _) => Scaffold(
-        appBar: AppBar(title: Text(l10n.addMember)),
-        body: AppErrorWidget(message: e.toString()),
-      ),
-      data: (role) {
-        final canManage = AuthRoleUtils.canManageCustomFields(role);
-
-        return Scaffold(
-          appBar: AppBar(
-            title: Text(l10n.addMember),
-            actions: [
-              if (canManage)
-                IconButton(
-                  icon: const Icon(Icons.tune),
-                  tooltip: l10n.manageCustomFields,
-                  onPressed: _openFieldSettings,
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.addMember)),
+      body: SafeArea(
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              if (needsClassroomPicker)
+                classroomsAsync.when(
+                  loading: () => const LinearProgressIndicator(),
+                  error: (e, _) => Text(userFriendlyMessage(e, l10n)),
+                  data: (classrooms) {
+                    if (classrooms.isEmpty) {
+                      return Text(l10n.noVisibleClassroomsFound);
+                    }
+                    final options =
+                        classrooms.where((c) => c.id != null).toList();
+                    final selectedId = _selectedClassroomId;
+                    final validSelection = selectedId != null &&
+                        options.any((c) => c.id == selectedId);
+                    return DropdownButtonFormField<int>(
+                      value: validSelection ? selectedId : null,
+                      decoration: InputDecoration(
+                        labelText: l10n.selectClassroom,
+                      ),
+                      items: options
+                          .map(
+                            (c) => DropdownMenuItem(
+                              value: c.id,
+                              child: Text(c.name ?? l10n.classroom),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (v) => setState(() => _selectedClassroomId = v),
+                      validator: (v) =>
+                          v == null ? l10n.pleaseSelectClassroom : null,
+                    );
+                  },
                 ),
+              if (needsClassroomPicker) const SizedBox(height: 16),
+              MemberForm(
+                controller: _memberForm,
+                pickedImage: _image,
+                onPickImage: _pickImage,
+                onChanged: _rebuild,
+              ),
+              const SizedBox(height: 24),
+              _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : FilledButton(
+                      onPressed: _submit,
+                      child: Text(l10n.add),
+                    ),
             ],
           ),
-          body: schemaAsync.when(
-            loading: () => const LoadingWidget(),
-            error: (e, _) => AppErrorWidget(message: e.toString()),
-            data: (schema) {
-              syncFormController(_formController, schema.fields);
-
-              return Form(
-                key: _formKey,
-                child: ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    if (needsClassroomPicker)
-                      classroomsAsync.when(
-                        loading: () => const LinearProgressIndicator(),
-                        error: (e, _) => Text('${l10n.errorLabel} $e'),
-                        data: (classrooms) {
-                          if (classrooms.isEmpty) {
-                            return Text(l10n.noVisibleClassroomsFound);
-                          }
-                          return DropdownButtonFormField<int>(
-                            value: _selectedClassroomId,
-                            decoration: InputDecoration(
-                              labelText: l10n.selectClassroom,
-                            ),
-                            items: classrooms
-                                .where((c) => c.id != null)
-                                .map(
-                                  (c) => DropdownMenuItem(
-                                    value: c.id,
-                                    child: Text(c.name ?? '${c.id}'),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (v) => setState(() => _selectedClassroomId = v),
-                            validator: (v) =>
-                                v == null ? l10n.pleaseSelectClassroom : null,
-                          );
-                        },
-                      ),
-                    if (needsClassroomPicker) const SizedBox(height: 16),
-                    UnifiedEntityPhotoPicker(
-                      fields: const [],
-                      pickedFile: _image,
-                      onPick: _pickImage,
-                    ),
-                    const SizedBox(height: 16),
-                    UnifiedEntityForm(
-                      fields: schema.fields,
-                      controller: _formController,
-                      entityName: UnifiedEntityNames.member,
-                      configurationHint: schema.configurationHint,
-                      canManageDefinitions: canManage,
-                    ),
-                    const SizedBox(height: 24),
-                    _loading
-                        ? const Center(child: CircularProgressIndicator())
-                        : FilledButton(
-                            onPressed: schema.fields.isEmpty
-                                ? null
-                                : () => _submit(schema.fields),
-                            child: Text(l10n.add),
-                          ),
-                  ],
-                ),
-              );
-            },
-          ),
-        );
-      },
+        ),
+      ),
     );
   }
 }

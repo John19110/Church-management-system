@@ -1,4 +1,7 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
+
+import '../l10n/app_localizations.dart';
 
 const String _defaultApiErrorMessage = 'An error occurred. Please try again.';
 
@@ -103,12 +106,19 @@ ParsedApiError parseApiError(
 }
 
 /// User-facing text for any error thrown from repositories or UI catch blocks.
-String userFriendlyMessage(Object error) {
-  if (error is AppException) return error.message;
-  if (error is DioException) return mapDioException(error).message;
+String userFriendlyMessage(Object error, [AppLocalizations? l10n]) {
+  final loc = l10n ?? AppLocalizations.forLocale(const Locale('en'));
+
+  if (error is UnauthorizedException) return loc.sessionExpiredPleaseSignIn;
+  if (error is NetworkException) return loc.networkErrorTryAgain;
+  if (error is AppException && error.message.isNotEmpty) return error.message;
+  if (error is DioException) {
+    return userFriendlyMessage(mapDioException(error), loc);
+  }
+
   final text = error.toString();
   if (_looksLikeTechnicalError(text)) {
-    return 'Something went wrong. Please try again.';
+    return loc.somethingWentWrongTryAgain;
   }
   return text;
 }
@@ -227,14 +237,14 @@ AppException mapDioException(DioException e) {
 
   if (statusCode != null && statusCode >= 500) {
     return ApiException(
-      'Server error. Please try again later.',
+      AppLocalizations.forLocale(const Locale('en')).serverErrorTryLater,
       statusCode: statusCode,
       errorCode: parsed.errorCode ?? 'SERVER_ERROR',
     );
   }
 
   return ApiException(
-    e.message ?? _defaultApiErrorMessage,
+    e.message ?? AppLocalizations.forLocale(const Locale('en')).genericErrorTryAgain,
     statusCode: statusCode,
     errorCode: parsed.errorCode,
   );

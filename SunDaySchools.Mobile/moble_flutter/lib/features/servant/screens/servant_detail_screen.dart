@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
+import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
@@ -31,7 +32,7 @@ class ServantDetailScreen extends ConsumerWidget {
       ),
       error: (e, _) => Scaffold(
         appBar: AppBar(title: Text(l10n.servantDetails)),
-        body: cw.AppErrorWidget(message: e.toString()),
+        body: cw.AppErrorWidget(message: userFriendlyMessage(e, l10n)),
       ),
       data: (role) {
         final canManage = AuthRoleUtils.canManageCustomFields(role);
@@ -60,6 +61,7 @@ class ServantDetailScreen extends ConsumerWidget {
                 ),
               IconButton(
                 icon: const Icon(Icons.edit),
+                tooltip: l10n.editServant,
                 onPressed: () async {
                   final saved = await context.push<bool>('/servants/$id/edit');
                   if (saved == true) {
@@ -77,7 +79,7 @@ class ServantDetailScreen extends ConsumerWidget {
           body: formAsync.when(
             loading: () => const cw.LoadingWidget(),
             error: (e, _) => cw.AppErrorWidget(
-              message: e.toString(),
+              message: userFriendlyMessage(e, l10n),
               onRetry: () => ref.invalidate(
                 entityFormDataProvider((
                   entity: UnifiedEntityNames.servant,
@@ -95,13 +97,26 @@ class ServantDetailScreen extends ConsumerWidget {
                     avatarRadius: 56,
                   ),
                   const SizedBox(height: 16),
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Text(
+                      l10n.servantInformation,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                   if (formData.fields.isEmpty)
                     EntityFieldsEmptyState(
                       entityName: UnifiedEntityNames.servant,
                       canManageDefinitions: canManage,
                     )
                   else
-                    UnifiedEntityDetailFields(fields: formData.fields),
+                    UnifiedEntityDetailFields(
+                      fields: formData.fields,
+                      entityName: UnifiedEntityNames.servant,
+                    ),
                 ],
               ),
             ),

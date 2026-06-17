@@ -10,6 +10,7 @@ import '../../member/models/member_models.dart';
 import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../../shared/widgets/endpoint_select_fields.dart';
+import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
 
 /// State for a single attendance record row.
@@ -78,7 +79,12 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
         _records = members.map((m) => _RecordState(member: m)).toList();
       });
     } catch (e) {
-      if (mounted) showErrorSnackbarFixed(context, e.toString());
+      if (mounted) {
+        showErrorSnackbarFixed(
+          context,
+          userFriendlyMessage(e, AppLocalizations.of(context)),
+        );
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -116,7 +122,7 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
         context.pop();
       }
     } catch (e) {
-      if (mounted) showErrorSnackbarFixed(context, e.toString());
+      if (mounted) showErrorSnackbarFixed(context, userFriendlyMessage(e, l10n));
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -233,7 +239,7 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
                                 Expanded(
                                   child: Text(
                                     record.member.fullName ??
-                                        'Member #${record.member.id}',
+                                        l10n.memberNumberLabel(record.member.id),
                                     style: Theme.of(context)
                                         .textTheme
                                         .titleSmall

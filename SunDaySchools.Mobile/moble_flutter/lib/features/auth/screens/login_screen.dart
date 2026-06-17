@@ -1,20 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'dart:developer' as developer;
-
 import '../models/auth_models.dart';
 import '../providers/auth_providers.dart';
 import '../utils/auth_role_utils.dart';
-import '../../classroom/providers/classroom_providers.dart';
-import '../../meeting/providers/meeting_providers.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/providers/locale_provider.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../../../core/error/app_exception.dart';
-import '../../../core/routing/app_router.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -57,15 +52,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ),
       );
 
-      if (result.requiresPhoneVerification) {
-        if (mounted) {
-          final phone = result.phoneNumber ?? _phoneController.text.trim();
-          context.go(
-            '${AppRoutes.verifyPhone}?phone=${Uri.encodeComponent(phone)}',
-          );
-        }
-        return;
-      }
+      // Phone verification disabled
+      // if (result.requiresPhoneVerification) {
+      //   if (mounted) {
+      //     final phone = result.phoneNumber ?? _phoneController.text.trim();
+      //     context.go(
+      //       '${AppRoutes.verifyPhone}?phone=${Uri.encodeComponent(phone)}',
+      //     );
+      //   }
+      //   return;
+      // }
 
       final token = result.token;
       if (token == null || token.isEmpty) {
@@ -74,32 +70,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       final role = AuthRoleUtils.extractPrimaryRole(token);
 
-      if (role == 'superadmin') {
-        await ref.read(meetingRepositoryProvider).getVisibleMeetings();
-      } else if (role == 'admin' || role == 'servant') {
-        await ref.read(classroomRepositoryProvider).getVisible();
-      } else {
-        developer.log(
-          'Unknown or missing role after login; skipping role-based fetch.',
-          name: 'LoginScreen',
-          error: role,
-        );
-      }
-
       ref.read(authSessionEpochProvider.notifier).state++;
       ref.read(authStateProvider.notifier).state = true;
 
       if (mounted) context.go(AuthRoleUtils.routeForRole(role));
     } catch (e) {
       if (mounted) {
-        final msg = e.toString().toLowerCase();
-        if (msg.contains('phone verification') || msg.contains('not verified')) {
-          context.go(
-            '${AppRoutes.verifyPhone}?phone=${Uri.encodeComponent(_phoneController.text.trim())}',
-          );
+        final l10n = AppLocalizations.of(context);
+        // Approval gate: show the friendly localized message for pending/rejected.
+        if (e is ApiException && e.errorCode == 'ACCOUNT_PENDING') {
+          showErrorSnackbar(context, l10n.accountPendingApproval);
           return;
         }
-        showErrorSnackbar(context, userFriendlyMessage(e));
+        if (e is ApiException && e.errorCode == 'ACCOUNT_REJECTED') {
+          showErrorSnackbar(context, l10n.accountRejected);
+          return;
+        }
+        showErrorSnackbar(context, userFriendlyMessage(e, l10n));
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -180,7 +167,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         const SizedBox(height: 16),
 
                         Text(
-                          "Church",
+                          l10n.churchBrand,
                           textAlign: TextAlign.center,
                           style: Theme.of(context)
                               .textTheme
@@ -248,15 +235,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                         const SizedBox(height: 8),
 
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton(
-                            onPressed: _loading
-                                ? null
-                                : () => context.push(AppRoutes.forgotPassword),
-                            child: const Text('Forgot password?'),
-                          ),
-                        ),
+                        // Phone verification / OTP password reset disabled
+                        // Align(
+                        //   alignment: Alignment.centerRight,
+                        //   child: TextButton(
+                        //     onPressed: _loading
+                        //         ? null
+                        //         : () => context.push(AppRoutes.forgotPassword),
+                        //     child: const Text('Forgot password?'),
+                        //   ),
+                        // ),
 
                         const SizedBox(height: 8),
 

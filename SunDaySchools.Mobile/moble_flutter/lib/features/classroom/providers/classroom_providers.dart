@@ -28,6 +28,14 @@ final visibleClassroomsByMeetingProvider =
   );
 });
 
+/// Refreshes classroom list providers after create/edit/delete.
+void invalidateVisibleClassrooms(WidgetRef ref, {int? meetingId}) {
+  ref.invalidate(visibleClassroomsProvider);
+  if (meetingId != null && meetingId > 0) {
+    ref.invalidate(visibleClassroomsByMeetingProvider(meetingId));
+  }
+}
+
 final classroomsForSelectionProvider =
     FutureProvider<List<SelectOption>>((ref) async {
   ref.watch(authSessionEpochProvider);

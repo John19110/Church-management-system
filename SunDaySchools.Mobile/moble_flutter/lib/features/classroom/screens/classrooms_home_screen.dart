@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/startup/deferred_startup_mixin.dart';
 import '../../../core/routing/app_router.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
@@ -9,12 +10,12 @@ import '../../auth/utils/auth_session.dart';
 import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
 import '../../custom_field/providers/custom_field_cache_providers.dart';
 import '../../unified_form/models/unified_form_models.dart';
+import '../models/classroom_models.dart';
 import '../providers/classroom_providers.dart';
 
 class ClassroomsHomeScreen extends ConsumerStatefulWidget {
   /// When false, no [AppBar] is shown so this screen can be embedded under a
   /// parent [Scaffold] (e.g. Servant/Admin home) without a duplicate top bar.
-  /// Add-classroom for admins uses a FAB in that case.
   final bool showAppBar;
   final int? meetingId;
   final String? meetingName;
@@ -31,19 +32,26 @@ class ClassroomsHomeScreen extends ConsumerStatefulWidget {
       _ClassroomsHomeScreenState();
 }
 
-class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
+class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen>
+    with DeferredStartupMixin {
   Future<void> _refresh() async {
-    if (widget.meetingId != null) {
-      ref.invalidate(visibleClassroomsByMeetingProvider(widget.meetingId));
-      await ref.read(visibleClassroomsByMeetingProvider(widget.meetingId).future);
-    } else {
-      ref.invalidate(visibleClassroomsProvider);
-      await ref.read(visibleClassroomsProvider.future);
+    invalidateVisibleClassrooms(ref, meetingId: widget.meetingId);
+    try {
+      if (widget.meetingId != null) {
+        await ref.read(visibleClassroomsByMeetingProvider(widget.meetingId).future);
+      } else {
+        await ref.read(visibleClassroomsProvider.future);
+      }
+    } catch (_) {
+      // AsyncValue on the list shows the error.
     }
   }
 
   Future<void> _openAddClassroom() async {
-    await context.push('/classrooms/add');
+    await context.push(
+      '/classrooms/add',
+      extra: widget.meetingId,
+    );
     await _refresh();
   }
 
@@ -51,13 +59,15 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final roleAsync = ref.watch(currentUserRoleProvider);
-    final classroomsAsync = widget.meetingId != null
-        ? ref.watch(visibleClassroomsByMeetingProvider(widget.meetingId))
-        : ref.watch(visibleClassroomsProvider);
+    final classroomsAsync = !deferredReady
+        ? const AsyncValue<List<ClassroomReadDto>>.loading()
+        : widget.meetingId != null
+            ? ref.watch(visibleClassroomsByMeetingProvider(widget.meetingId))
+            : ref.watch(visibleClassroomsProvider);
     final role = roleAsync.resolvedRoleOrNull;
     final homeRoute = AuthRoleUtils.routeForRole(role);
     final currentLocation = GoRouterState.of(context).matchedLocation;
-    final canAddClassroom = role == 'admin';
+    final canAddClassroom = role == 'admin' || role == 'superadmin';
     final title = widget.meetingName?.trim().isNotEmpty == true
         ? '${l10n.classrooms} — ${widget.meetingName}'
         : l10n.classroomsHome;
@@ -88,24 +98,11 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
                         }
                       },
                     ),
-                  if (canAddClassroom)
-                    IconButton(
-                      icon: const Icon(Icons.add),
-                      tooltip: l10n.addClassroom,
-                      onPressed: _openAddClassroom,
-                    ),
                   IconButton(
                     icon: const Icon(Icons.logout),
                     onPressed: () => logoutSession(ref, context),
                   ),
                 ],
-              )
-            : null,
-        floatingActionButton: !widget.showAppBar && canAddClassroom
-            ? FloatingActionButton(
-                onPressed: _openAddClassroom,
-                tooltip: l10n.addClassroom,
-                child: const Icon(Icons.add),
               )
             : null,
         body: RefreshIndicator(
@@ -118,18 +115,8 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
                       .toList()
                   : classrooms;
               return ListView(
-                padding: EdgeInsets.fromLTRB(
-                  16,
-                  16,
-                  16,
-                  !widget.showAppBar && canAddClassroom ? 88 : 16,
-                ),
+                padding: const EdgeInsets.all(16),
                 children: [
-                  Text(
-                    l10n.visibleClassrooms,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
                   if (filtered.isEmpty)
                     Card(
                       child: Padding(
@@ -167,7 +154,7 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
                                     const SizedBox(width: 12),
                                     Expanded(
                                       child: Text(
-                                        c.name ?? '-',
+                                        c.name ?? l10n.notAvailable,
                                         style: Theme.of(context)
                                             .textTheme
                                             .titleMedium
@@ -186,19 +173,15 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
                                 ),
                                 const SizedBox(height: 12),
                                 Text(
-                                  l10n.ageLabel.replaceAll(
-                                    '{age}',
-                                    c.ageOfMembers ?? '—',
-                                  ),
+                                  l10n.ageLabelText(c.ageOfMembers),
                                   style: Theme.of(context).textTheme.bodyMedium,
                                 ),
                                 const SizedBox(height: 6),
                                 Text(
-                                  '${c.totalMembersCount ?? 0} ${l10n.members} · '
-                                  '${l10n.attendanceSessionsCount.replaceAll(
-                                    '{count}',
-                                    (c.pastAttendanceSessionsCount ?? 0).toString(),
-                                  )}',
+                                  l10n.membersAndSessionsLine(
+                                    c.totalMembersCount ?? 0,
+                                    c.pastAttendanceSessionsCount ?? 0,
+                                  ),
                                   style: Theme.of(context)
                                       .textTheme
                                       .bodySmall
@@ -218,18 +201,8 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
               );
             },
             loading: () => ListView(
-              padding: EdgeInsets.fromLTRB(
-                16,
-                16,
-                16,
-                !widget.showAppBar && canAddClassroom ? 88 : 16,
-              ),
+              padding: const EdgeInsets.all(16),
               children: const [
-                Text(
-                  'Visible Classrooms',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 8),
                 Padding(
                   padding: EdgeInsets.symmetric(vertical: 32),
                   child: Center(child: CircularProgressIndicator()),
@@ -237,18 +210,8 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
               ],
             ),
             error: (e, _) => ListView(
-              padding: EdgeInsets.fromLTRB(
-                16,
-                16,
-                16,
-                !widget.showAppBar && canAddClassroom ? 88 : 16,
-              ),
+              padding: const EdgeInsets.all(16),
               children: [
-                Text(
-                  l10n.visibleClassrooms,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
                 Card(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -259,9 +222,29 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen> {
             ),
           ),
         ),
-        bottomNavigationBar: AppSectionBottomNavigationBar(
-          currentIndex: 0,
-          homeRoute: homeRoute,
+        bottomNavigationBar: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (canAddClassroom)
+              SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: _openAddClassroom,
+                      icon: const Icon(Icons.add),
+                      label: Text(l10n.addClassroom),
+                    ),
+                  ),
+                ),
+              ),
+            AppSectionBottomNavigationBar(
+              currentIndex: 0,
+              homeRoute: homeRoute,
+            ),
+          ],
         ),
       ),
     );

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/providers/locale_provider.dart';
 import '../../../core/providers/theme_provider.dart';
@@ -27,6 +29,7 @@ class ProfileScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final profileAsync = ref.watch(servantProfileProvider);
     final role = ref.watch(currentUserRoleProvider).resolvedRoleOrNull;
+    final isSuperAdmin = role == 'superadmin';
     final homeRoute = AuthRoleUtils.routeForRole(role);
     final themeMode = ref.watch(themeModeProvider);
     final locale = ref.watch(localeProvider);
@@ -42,7 +45,7 @@ class ProfileScreen extends ConsumerWidget {
       body: profileAsync.when(
         loading: () => const cw.LoadingWidget(),
         error: (e, _) => cw.AppErrorWidget(
-          message: e.toString(),
+          message: userFriendlyMessage(e, l10n),
           onRetry: () => ref.invalidate(servantProfileProvider),
         ),
         data: (profile) {
@@ -76,7 +79,7 @@ class ProfileScreen extends ConsumerWidget {
                     child: Center(child: CircularProgressIndicator()),
                   ),
                   error: (e, _) => cw.AppErrorWidget(
-                    message: e.toString(),
+                    message: userFriendlyMessage(e, l10n),
                     onRetry: () => ref.invalidate(
                       entityFormDataProvider((
                         entity: UnifiedEntityNames.servant,
@@ -92,17 +95,44 @@ class ProfileScreen extends ConsumerWidget {
                         avatarRadius: 56,
                       ),
                       const SizedBox(height: 16),
+                      Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: Text(
+                          l10n.profileInformation,
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
                       if (formData.fields.isEmpty)
                         EntityFieldsEmptyState(
                           entityName: UnifiedEntityNames.servant,
                           canManageDefinitions: false,
                         )
                       else
-                        UnifiedEntityDetailFields(fields: formData.fields),
+                        UnifiedEntityDetailFields(
+                          fields: formData.fields,
+                          entityName: UnifiedEntityNames.servant,
+                        ),
                     ],
                   ),
                 ),
+                if (isSuperAdmin) ...[
+                  const SizedBox(height: 16),
+                  const _SuperAdminChurchIdCard(),
+                ],
                 const SizedBox(height: 16),
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(
+                    l10n.appSettings,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                ),
+                const SizedBox(height: 8),
                 Card(
                   child: Column(
                     children: [
@@ -123,7 +153,7 @@ class ProfileScreen extends ConsumerWidget {
                         trailing: TextButton(
                           onPressed: () =>
                               ref.read(localeProvider.notifier).toggle(),
-                          child: Text(isArabic ? 'EN' : 'ع'),
+                          child: Text(isArabic ? l10n.english : l10n.arabic),
                         ),
                         onTap: () => ref.read(localeProvider.notifier).toggle(),
                       ),
@@ -150,6 +180,55 @@ class ProfileScreen extends ConsumerWidget {
           );
         },
       ),
+    );
+  }
+}
+
+class _SuperAdminChurchIdCard extends ConsumerWidget {
+  const _SuperAdminChurchIdCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final profileAsync = ref.watch(servantProfileProvider);
+
+    return profileAsync.when(
+      loading: () => const Card(
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      ),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (profile) {
+        final churchPublicId = profile.church?.publicId ?? '';
+        if (churchPublicId.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        final churchIdText = churchPublicId;
+
+        return Card(
+          child: ListTile(
+            leading: const Icon(Icons.church_outlined),
+            title: Text(l10n.churchIdLabel),
+            subtitle: SelectableText(
+              churchIdText,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+            trailing: IconButton(
+              icon: const Icon(Icons.copy),
+              tooltip: l10n.copyLabel,
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: churchIdText));
+                cw.showSuccessSnackbar(context, l10n.churchIdCopied);
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -10,7 +10,7 @@ import '../../custom_field/providers/custom_field_cache_providers.dart';
 import '../../unified_form/models/unified_form_models.dart';
 import '../../unified_form/providers/unified_form_providers.dart';
 import '../../unified_form/widgets/entity_fields_empty_state.dart';
-import '../../unified_form/widgets/unified_entity_detail_header.dart';
+import '../widgets/member_detail_header.dart';
 import '../../unified_form/widgets/unified_entity_form.dart';
 
 class MemberDetailScreen extends ConsumerWidget {
@@ -24,8 +24,7 @@ class MemberDetailScreen extends ConsumerWidget {
       return Scaffold(
         appBar: AppBar(title: Text(l10n.memberDetails)),
         body: cw.AppErrorWidget(
-          message:
-              'Invalid member id. Open this screen from the list after the API returns real ids.',
+          message: l10n.invalidMemberIdDetail,
           onRetry: () {
             if (context.mounted) context.pop();
           },
@@ -33,6 +32,7 @@ class MemberDetailScreen extends ConsumerWidget {
       );
     }
 
+    final memberAsync = ref.watch(memberDetailProvider(id));
     final formAsync = ref.watch(
       entityFormDataProvider((entity: UnifiedEntityNames.member, id: id)),
     );
@@ -77,6 +77,7 @@ class MemberDetailScreen extends ConsumerWidget {
                 onPressed: () async {
                   final saved = await context.push<bool>('/member/$id/edit');
                   if (saved == true) {
+                    ref.invalidate(memberDetailProvider(id));
                     ref.invalidate(
                       entityFormDataProvider((
                         entity: UnifiedEntityNames.member,
@@ -113,35 +114,42 @@ class MemberDetailScreen extends ConsumerWidget {
               ),
             ],
           ),
-          body: formAsync.when(
+          body: memberAsync.when(
             loading: () => const cw.LoadingWidget(),
             error: (e, _) => cw.AppErrorWidget(
               message: e.toString(),
-              onRetry: () => ref.invalidate(
-                entityFormDataProvider((
-                  entity: UnifiedEntityNames.member,
-                  id: id,
-                )),
-              ),
+              onRetry: () => ref.invalidate(memberDetailProvider(id)),
             ),
-            data: (formData) => SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  UnifiedEntityDetailHeader(
-                    entityName: UnifiedEntityNames.member,
-                    fields: formData.fields,
-                  ),
-                  const SizedBox(height: 16),
-                  if (formData.fields.isEmpty)
-                    EntityFieldsEmptyState(
-                      entityName: UnifiedEntityNames.member,
-                      canManageDefinitions: canManage,
-                    )
-                  else
-                    UnifiedEntityDetailFields(fields: formData.fields),
-                ],
+            data: (member) => formAsync.when(
+              loading: () => const cw.LoadingWidget(),
+              error: (e, _) => cw.AppErrorWidget(
+                message: e.toString(),
+                onRetry: () => ref.invalidate(
+                  entityFormDataProvider((
+                    entity: UnifiedEntityNames.member,
+                    id: id,
+                  )),
+                ),
+              ),
+              data: (formData) => SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    MemberDetailHeader(member: member),
+                    const SizedBox(height: 16),
+                    if (formData.fields.isEmpty)
+                      EntityFieldsEmptyState(
+                        entityName: UnifiedEntityNames.member,
+                        canManageDefinitions: canManage,
+                      )
+                    else
+                      UnifiedEntityDetailFields(
+                        fields: formData.fields,
+                        entityName: UnifiedEntityNames.member,
+                      ),
+                  ],
+                ),
               ),
             ),
           ),

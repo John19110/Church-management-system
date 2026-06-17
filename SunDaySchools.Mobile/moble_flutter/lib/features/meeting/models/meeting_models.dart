@@ -26,6 +26,7 @@ class MeetingAddDto {
 
 class MeetingReadDto {
   final int? id;
+  final String publicId;
   final String? name;
   final String? weeklyAppointment;
   final String? dayOfWeek;
@@ -37,6 +38,7 @@ class MeetingReadDto {
 
   const MeetingReadDto({
     this.id,
+    this.publicId = '',
     this.name,
     this.weeklyAppointment,
     this.dayOfWeek,
@@ -49,6 +51,7 @@ class MeetingReadDto {
 
   factory MeetingReadDto.fromJson(Map<String, dynamic> json) => MeetingReadDto(
         id: json['id'] as int?,
+        publicId: json['publicId'] as String? ?? '',
         name: json['name'] as String?,
         weeklyAppointment: (json['weeklyAppointment'] ??
                 json['weekly_appointment'] ??

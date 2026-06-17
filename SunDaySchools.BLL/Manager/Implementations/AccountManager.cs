@@ -4,6 +4,7 @@ using SunDaySchools.BLL.Abstractions;
 using SunDaySchools.BLL.DTOS.AccountDtos;
 using SunDaySchools.BLL.Exceptions;         
 using SunDaySchools.BLL.Manager.Interfaces;
+using SunDaySchools.BLL.Services;
 using SunDaySchools.BLL.Services.Auth.Interfaces;
 using SunDaySchools.DAL.Models;
 using SunDaySchools.DAL.Repository.Interfaces;
@@ -29,12 +30,13 @@ namespace SunDaySchools.BLL.Manager.Implementations
         private readonly IUnitOfWork _unitOfWork;
         private readonly IFileManager _fileManager;
         private readonly IAuthOtpManager _authOtpManager;
+        private readonly IPublicIdResolver _publicIdResolver;
 
 
         public AccountManager(UserManager<ApplicationUser>usermagaer, ITokenService tokenService,
             IServantRepository servantRepo, IChurchRepository churchRepo, IAdminRepository adminRepo,
             IMeetingRepository meetingRepo, IUnitOfWork unitOfWork,IFileManager fileManager,
-            IAuthOtpManager authOtpManager)
+            IAuthOtpManager authOtpManager, IPublicIdResolver publicIdResolver)
         {
 
             _churchRepo = churchRepo;
@@ -46,6 +48,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             _unitOfWork = unitOfWork;
             _fileManager = fileManager;
             _authOtpManager = authOtpManager;
+            _publicIdResolver = publicIdResolver;
         }
 
         public async Task<AuthFlowResultDto> Login(LoginDTO loginDto)
@@ -77,11 +80,17 @@ namespace SunDaySchools.BLL.Manager.Implementations
             if (existingUser == null)
                 throw new InvalidCredentialsException();
 
-            if (!existingUser.IsApproved)
+            // Approval gate: rejected users are blocked permanently, pending users
+            // must wait for the church Super Admin. Approved users continue.
+            if (existingUser.RegistrationStatus == RegistrationStatus.Rejected)
+                throw new AccountRejectedException();
+
+            if (existingUser.RegistrationStatus == RegistrationStatus.Pending || !existingUser.IsApproved)
                 throw new AccountNotApprovedException();
 
-            if (!existingUser.IsPhoneVerified)
-                throw new PhoneNotVerifiedException(phoneNumber);
+            // TODO: Re-enable WhatsApp/phone verification after verification module is completed.
+            //if (!existingUser.IsPhoneVerified)
+            //    throw new PhoneNotVerifiedException(phoneNumber);
 
             var check = await _userManager.CheckPasswordAsync(existingUser, loginDto.Password);
             if (!check)
@@ -161,6 +170,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     UserName = dto.Name,
                     PhoneNumber = phoneNumber,
                     IsApproved = true,
+                    RegistrationStatus = RegistrationStatus.Approved,
+                    ApprovalDate = DateTime.Now,
                     IsPhoneVerified = false,
                     ChurchId = church.Id
                 };
@@ -217,7 +228,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 await _unitOfWork.SaveChangesAsync();
             });
 
-            await _authOtpManager.SendPhoneVerificationAfterRegistrationAsync(phoneNumber);
+            // TODO: Re-enable WhatsApp verification after verification module is completed.
+            // await _authOtpManager.SendPhoneVerificationAfterRegistrationAsync(phoneNumber);
             return AuthFlowResultDto.RequiresVerification(phoneNumber);
         }
         public async Task<AuthFlowResultDto> RegisterMeetingAdminNewChurch(RegisterMeetingAdminNewChurchDTO registerMeetingAdminDTO,string webRootPath)
@@ -270,6 +282,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     UserName = registerMeetingAdminDTO.Name,
                     PhoneNumber = meetingPhone,
                     IsApproved = true,
+                    RegistrationStatus = RegistrationStatus.Approved,
+                    ApprovalDate = DateTime.Now,
                     IsPhoneVerified = false,
                     ChurchId = church.Id,
                     MeetingId = meeting.Id
@@ -317,11 +331,99 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 await _unitOfWork.SaveChangesAsync();
             });
 
-            await _authOtpManager.SendPhoneVerificationAfterRegistrationAsync(meetingPhone);
+            // TODO: Re-enable WhatsApp verification after verification module is completed.
+            // await _authOtpManager.SendPhoneVerificationAfterRegistrationAsync(meetingPhone);
             return AuthFlowResultDto.RequiresVerification(meetingPhone);
         }
     
         public async Task<AuthFlowResultDto> RegisterServant(RegisterServantDTO registerDto, string webRootPath)
+        {
+            if (registerDto == null)
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["registerDto"] = new[] { "Registration data cannot be null." }
+                });
+
+            if (!PublicIdHelper.IsValidFormat(registerDto.ChurchPublicId))
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["ChurchPublicId"] = new[] { "A valid church identifier is required." }
+                });
+            }
+
+            // Existing-church registration supports three requested roles.
+            var requestedRole = NormalizeRequestedRole(registerDto.RequestedRole);
+            var identityRole = MapRequestedRoleToIdentityRole(requestedRole);
+
+            // A Church Admin manages the whole church, so no specific meeting is requested.
+            if (requestedRole != RequestedRoles.ChurchAdmin
+                && string.IsNullOrWhiteSpace(registerDto.RequestedMeetingName))
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["RequestedMeetingName"] = new[] { "Requested meeting name is required." }
+                });
+            }
+
+            // The Meeting Admin phone helps the Super Admin route a servant to the right meeting.
+            if (requestedRole == RequestedRoles.Servant
+                && string.IsNullOrWhiteSpace(registerDto.MeetingAdminPhoneNumber))
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["MeetingAdminPhoneNumber"] = new[] { "Meeting admin phone number is required for servants." }
+                });
+            }
+
+            var church = await _publicIdResolver.GetChurchByPublicIdAsync(registerDto.ChurchPublicId);
+            if (church == null)
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["ChurchPublicId"] = new[] { "Church not found." }
+                });
+            }
+
+            // Existing-church members are created as Pending; the church Super Admin
+            // assigns the real meeting/role and approves later.
+            return await RegisterServantCoreAsync(
+                registerDto,
+                church.Id,
+                meetingId: null,
+                requestedMeetingName: string.IsNullOrWhiteSpace(registerDto.RequestedMeetingName)
+                    ? null
+                    : registerDto.RequestedMeetingName.Trim(),
+                requestedRole: requestedRole,
+                identityRole: identityRole,
+                status: RegistrationStatus.Pending,
+                webRootPath);
+        }
+
+        public Task<AuthFlowResultDto> RegisterServantForTenant(
+            RegisterServantDTO registerDto,
+            int churchId,
+            int meetingId,
+            string webRootPath) =>
+            RegisterServantCoreAsync(
+                registerDto,
+                churchId,
+                meetingId,
+                requestedMeetingName: null,
+                requestedRole: RequestedRoles.Servant,
+                identityRole: "Servant",
+                status: RegistrationStatus.Approved,
+                webRootPath);
+
+        private async Task<AuthFlowResultDto> RegisterServantCoreAsync(
+            RegisterServantDTO registerDto,
+            int churchId,
+            int? meetingId,
+            string? requestedMeetingName,
+            string requestedRole,
+            string identityRole,
+            RegistrationStatus status,
+            string webRootPath)
         {
             if (registerDto == null)
                 throw new ValidationException(new Dictionary<string, string[]>
@@ -337,21 +439,33 @@ namespace SunDaySchools.BLL.Manager.Implementations
             if (existingUser != null)
                 throw new UserAlreadyExistsException();
 
-            var church = await _churchRepo.GetByIdAsync(registerDto.ChurchId);
+            var church = await _churchRepo.GetByIdAsync(churchId);
             if (church == null)
-                throw new NotFoundException($"Church with id {registerDto.ChurchId} not found.");
+                throw new NotFoundException($"Church with id {churchId} not found.");
 
-            var existingMeeting = await _meetingRepo.GetByIdAsync(registerDto.MeetingId);
-            if (existingMeeting == null)
-                throw new NotFoundException("Meeting not found");
+            // Meeting is optional for pending registrations; assigned on approval.
+            if (meetingId.HasValue)
+            {
+                var existingMeeting = await _meetingRepo.GetByIdAsync(meetingId.Value);
+                if (existingMeeting == null)
+                    throw new NotFoundException("Meeting not found");
 
-            if (existingMeeting.ChurchId != registerDto.ChurchId)
-                throw new ValidationException(new Dictionary<string, string[]>
-                {
-                    ["MeetingId"] = new[] { "The selected meeting does not belong to the selected church." }
-                });
+                if (existingMeeting.ChurchId != churchId)
+                    throw new ValidationException(new Dictionary<string, string[]>
+                    {
+                        ["MeetingId"] = new[] { "The selected meeting does not belong to the selected church." }
+                    });
+            }
 
+            var isApproved = status == RegistrationStatus.Approved;
             var servantPhone = registerDto.PhoneNumber.Trim().Replace(" ", "");
+
+            // Persist the registration photo up front so it is available either for the
+            // approved Servant profile or for the pending user's holding fields.
+            var (imageFileName, imageUrl) = await _fileManager.SaveImageAsync(
+                registerDto.Image,
+                webRootPath,
+                "images");
 
             await RunInTransactionAsync(async () =>
             {
@@ -359,10 +473,24 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 {
                     UserName = registerDto.Name,
                     PhoneNumber = servantPhone,
-                    IsApproved = false,
+                    IsApproved = isApproved,
+                    RegistrationStatus = status,
+                    RequestedChurchId = churchId,
+                    RequestedMeetingName = requestedMeetingName,
+                    RequestedRole = requestedRole,
+                    MeetingAdminPhoneNumber = string.IsNullOrWhiteSpace(registerDto.MeetingAdminPhoneNumber)
+                        ? null
+                        : registerDto.MeetingAdminPhoneNumber.Trim().Replace(" ", ""),
+                    ApprovalDate = isApproved ? DateTime.Now : null,
                     IsPhoneVerified = false,
-                    ChurchId = registerDto.ChurchId,
-                    MeetingId = registerDto.MeetingId
+                    // Photo/dates are held on the user; they move to the Servant profile on creation.
+                    ImageUrl = imageUrl,
+                    ImageFileName = imageFileName,
+                    BirthDate = registerDto.BirthDate,
+                    JoiningDate = registerDto.JoiningDate ?? registerDto.BirthDate,
+                    // Pending users are NOT yet attached to a church/meeting; that happens on approval.
+                    ChurchId = isApproved ? churchId : null,
+                    MeetingId = isApproved ? meetingId : null
                 };
 
                 var result = await _userManager.CreateAsync(user, registerDto.Password);
@@ -378,7 +506,15 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     throw new ValidationException(errors);
                 }
 
-                await _userManager.AddToRoleAsync(user, "Servant");
+                // Pending self-registrations are NOT activated yet: no role, no Servant row,
+                // no church/meeting assignment. The Super Admin activates everything on approval.
+                if (!isApproved)
+                {
+                    await _unitOfWork.SaveChangesAsync();
+                    return;
+                }
+
+                await _userManager.AddToRoleAsync(user, identityRole);
                 await _unitOfWork.SaveChangesAsync();
 
                 var servant = new Servant
@@ -387,26 +523,21 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     Name = registerDto.Name,
                     PhoneNumber = registerDto.PhoneNumber,
                     BirthDate = registerDto.BirthDate,
-                    JoiningDate = registerDto.BirthDate,
-                    ChurchId = registerDto.ChurchId,
-                    MeetingId = registerDto.MeetingId
+                    JoiningDate = registerDto.JoiningDate ?? registerDto.BirthDate,
+                    ChurchId = churchId,
+                    MeetingId = meetingId,
+                    ImageFileName = imageFileName,
+                    ImageUrl = imageUrl
                 };
 
-                var (fileName, url) = await _fileManager.SaveImageAsync(
-                    registerDto.Image,
-                    webRootPath,
-                    "images"
-                );
-
-                servant.ImageFileName = fileName;
-                servant.ImageUrl = url;
                 user.ServantProfile = servant;
 
                 await _servantRepo.AddAsync(servant);
                 await _unitOfWork.SaveChangesAsync();
             });
 
-            await _authOtpManager.SendPhoneVerificationAfterRegistrationAsync(servantPhone);
+            // TODO: Re-enable WhatsApp verification after verification module is completed.
+            // await _authOtpManager.SendPhoneVerificationAfterRegistrationAsync(servantPhone);
             return AuthFlowResultDto.RequiresVerification(servantPhone);
         }
         /// <summary>
@@ -471,6 +602,35 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 throw;
             }
         }
+
+        /// <summary>Canonical requested-role values stored on the user and exchanged with the client.</summary>
+        public static class RequestedRoles
+        {
+            public const string Servant = "Servant";
+            public const string MeetingAdmin = "MeetingAdmin";
+            public const string ChurchAdmin = "ChurchAdmin";
+        }
+
+        private static string NormalizeRequestedRole(string? requestedRole)
+        {
+            var value = (requestedRole ?? string.Empty).Trim().Replace(" ", "");
+
+            if (string.Equals(value, "MeetingAdmin", StringComparison.OrdinalIgnoreCase))
+                return RequestedRoles.MeetingAdmin;
+            if (string.Equals(value, "ChurchAdmin", StringComparison.OrdinalIgnoreCase))
+                return RequestedRoles.ChurchAdmin;
+
+            // Default / unknown values fall back to Servant (backward compatible).
+            return RequestedRoles.Servant;
+        }
+
+        /// <summary>Maps a requested role to an ASP.NET Identity role (only Admin/Servant/SuperAdmin exist).</summary>
+        private static string MapRequestedRoleToIdentityRole(string requestedRole) => requestedRole switch
+        {
+            RequestedRoles.MeetingAdmin => "Admin",
+            RequestedRoles.ChurchAdmin => "SuperAdmin",
+            _ => "Servant"
+        };
 
         private async Task<List<TokenClaimDescriptor>> BuildJwtClaims(ApplicationUser user)
         {

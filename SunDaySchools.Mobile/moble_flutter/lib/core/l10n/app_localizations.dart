@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'locale_format.dart';
+
 class AppLocalizations {
   final Locale locale;
   AppLocalizations(this.locale);
@@ -105,6 +107,29 @@ class AppLocalizations {
   String get lastAttendanceDate => _t('lastAttendanceDate');
   String get totalDaysAttended => _t('totalDaysAttended');
   String get discipline => _t('discipline');
+  String get fatherName => _t('fatherName');
+  String get familyName => _t('familyName');
+  String get memberSectionPersonal => _t('memberSectionPersonal');
+  String get memberSectionDates => _t('memberSectionDates');
+  String get disciplineStatus => _t('disciplineStatus');
+  String get disciplineStatusHint => _t('disciplineStatusHint');
+  String get fullNameComputedHint => _t('fullNameComputedHint');
+  String get optionalLabel => _t('optionalLabel');
+  String get clearLabel => _t('clearLabel');
+  String get haveBrothersQuestion => _t('haveBrothersQuestion');
+  String get addPhoneNumber => _t('addPhoneNumber');
+  String get removePhoneNumber => _t('removePhoneNumber');
+  String get removeBrother => _t('removeBrother');
+  String get removeNote => _t('removeNote');
+  String get phoneRelationMember => _t('phoneRelationMember');
+  String get phoneRelationFather => _t('phoneRelationFather');
+  String get phoneRelationMother => _t('phoneRelationMother');
+  String get phoneRelationBrother => _t('phoneRelationBrother');
+  String get phoneRelationSister => _t('phoneRelationSister');
+  String get phoneRelationGuardian => _t('phoneRelationGuardian');
+  String get phoneRelationOther => _t('phoneRelationOther');
+  String get invalidPhoneFormat => _t('invalidPhoneFormat');
+  String get relationRequiredWhenPhone => _t('relationRequiredWhenPhone');
   String get classroomIdsOptional => _t('classroomIdsOptional');
   String get weeklyAppointmentHint => _t('weeklyAppointmentHint');
   String get invalidWeeklyAppointment => _t('invalidWeeklyAppointment');
@@ -146,6 +171,14 @@ class AppLocalizations {
   String get registerTypeServant => _t('registerTypeServant');
   String get registerTypeChurchAdmin => _t('registerTypeChurchAdmin');
   String get registerTypeMeetingAdmin => _t('registerTypeMeetingAdmin');
+  String get churchExistsQuestion => _t('churchExistsQuestion');
+  String get churchExistsYes => _t('churchExistsYes');
+  String get churchExistsNo => _t('churchExistsNo');
+  String get joinExistingChurchTitle => _t('joinExistingChurchTitle');
+  String get meetingAdminPhone => _t('meetingAdminPhone');
+  String get enterMeetingAdminPhone => _t('enterMeetingAdminPhone');
+  String get meetingAdminPhoneRequired => _t('meetingAdminPhoneRequired');
+  String get noMeetingsToAssign => _t('noMeetingsToAssign');
   String get weeklyAppointment => _t('weeklyAppointment');
   String get weeklyAppointmentRequired => _t('weeklyAppointmentRequired');
   String get phoneAlreadyUsed => _t('phoneAlreadyUsed');
@@ -204,6 +237,21 @@ class AppLocalizations {
   String get approvedUser => _t('approvedUser');
   String get rejectedUser => _t('rejectedUser');
   String get assignClassTooltip => _t('assignClassTooltip');
+  // Church user approval workflow
+  String get pendingUsers => _t('pendingUsers');
+  String get noPendingUsers => _t('noPendingUsers');
+  String get requestedMeetingName => _t('requestedMeetingName');
+  String get enterRequestedMeetingName => _t('enterRequestedMeetingName');
+  String get requestedMeetingNameRequired => _t('requestedMeetingNameRequired');
+  String get requestedMeetingLabel => _t('requestedMeetingLabel');
+  String get requestedRoleLabel => _t('requestedRoleLabel');
+  String get registrationDateLabel => _t('registrationDateLabel');
+  String get publicChurchIdLabel => _t('publicChurchIdLabel');
+  String get approveUserTitle => _t('approveUserTitle');
+  String get meetingSelectionRequired => _t('meetingSelectionRequired');
+  String get rejectReasonOptional => _t('rejectReasonOptional');
+  String get accountPendingApproval => _t('accountPendingApproval');
+  String get accountRejected => _t('accountRejected');
   String get couldNotVerifyRole => _t('couldNotVerifyRole');
   String get adminOnlyScreen => _t('adminOnlyScreen');
   String get noRoleFoundPleaseRelogin => _t('noRoleFoundPleaseRelogin');
@@ -235,6 +283,10 @@ class AppLocalizations {
   String get enterClassroomNameHint => _t('enterClassroomNameHint');
   String get classroomNameRequiredGeneric => _t('classroomNameRequiredGeneric');
   String get ageOfMembersLabel => _t('ageOfMembersLabel');
+  String get numberOfDisciplineMembersLabel =>
+      _t('numberOfDisciplineMembersLabel');
+  String get totalMembersCountLabel => _t('totalMembersCountLabel');
+  String get photoLabel => _t('photoLabel');
   String get enterAgeRangeHint => _t('enterAgeRangeHint');
   String get ageOfMembersRequiredGeneric => _t('ageOfMembersRequiredGeneric');
   String get classroomAddedSuccessfully => _t('classroomAddedSuccessfully');
@@ -267,6 +319,10 @@ class AppLocalizations {
   // ── Profile / Forms ───────────────────────────────────────────────────────
   String get profile => _t('profile');
   String get editProfile => _t('editProfile');
+  String get profileInformation => _t('profileInformation');
+  String get servantInformation => _t('servantInformation');
+  String get appSettings => _t('appSettings');
+  String get tapToChangePhoto => _t('tapToChangePhoto');
   String get saveLabel => _t('saveLabel');
   String get done => _t('done');
   String get select => _t('select');
@@ -274,6 +330,8 @@ class AppLocalizations {
   String get failedToLoadProfile => _t('failedToLoadProfile');
   String get profileUpdated => _t('profileUpdated');
   String get churchIdLabel => _t('churchIdLabel');
+  String get copyLabel => _t('copyLabel');
+  String get churchIdCopied => _t('churchIdCopied');
   String get meetingLabel => _t('meetingLabel');
   String get selectMeeting => _t('selectMeeting');
   String get classroomsLabel => _t('classroomsLabel');
@@ -342,7 +400,10 @@ class AppLocalizations {
   String get editSystemField => _t('editSystemField');
   String systemFieldNameLocked(String name) =>
       _t('systemFieldNameLocked').replaceAll('{name}', name);
+  String systemFieldKeyLockedLabel(String label) =>
+      _t('systemFieldKeyLockedLabel').replaceAll('{label}', label);
   String get systemFieldCannotDeactivate => _t('systemFieldCannotDeactivate');
+  String get systemFieldNotProvisioned => _t('systemFieldNotProvisioned');
   String get editCustomField => _t('editCustomField');
   String get newCustomField => _t('newCustomField');
   String get displayNameLabel => _t('displayNameLabel');
@@ -449,16 +510,46 @@ class AppLocalizations {
   String invalidSelectionFor(String displayName) =>
       _t('invalidSelectionFor').replaceAll('{name}', displayName);
 
+  /// Locale-aware integer for UI (Western in EN, Eastern Arabic in AR).
+  String formatNumber(num value) => LocaleFormat.number(value, locale);
+
+  String formatInteger(int value) => LocaleFormat.integer(value, locale);
+
+  /// Localizes Western digits inside arbitrary text (ages, IDs in labels, etc.).
+  String formatDigitsIn(String text) => LocaleFormat.digitsIn(text, locale);
+
   String memberNumberLabel(int id) =>
-      _t('memberNumber').replaceAll('{id}', id.toString());
+      _t('memberNumber').replaceAll('{id}', formatInteger(id));
+
   String sessionNumberLabel(int id) =>
-      _t('sessionNumber').replaceAll('{id}', id.toString());
+      _t('sessionNumber').replaceAll('{id}', formatInteger(id));
+
   String recordsCountLabel(int count) =>
-      _t('recordsCountLabel').replaceAll('{count}', count.toString());
+      _t('recordsCountLabel').replaceAll('{count}', formatInteger(count));
+
+  String pendingCountText(int count) =>
+      pendingCount.replaceAll('{count}', formatInteger(count));
+
+  String ageLabelText(String? age) {
+    final display = (age == null || age.trim().isEmpty)
+        ? notAvailable
+        : formatDigitsIn(age.trim());
+    return ageLabel.replaceAll('{age}', display);
+  }
+
+  String attendanceSessionsCountText(int count) =>
+      attendanceSessionsCount.replaceAll('{count}', formatInteger(count));
+
+  String membersCountLine(int count) =>
+      '${formatInteger(count)} $members';
+
+  String membersAndSessionsLine(int members, int sessions) =>
+      '${membersCountLine(members)} · ${attendanceSessionsCountText(sessions)}';
+
   String meetingServantsMembersSummary(int servants, int members) =>
       _t('meetingServantsMembersSummary')
-          .replaceAll('{servants}', servants.toString())
-          .replaceAll('{members}', members.toString());
+          .replaceAll('{servants}', formatInteger(servants))
+          .replaceAll('{members}', formatInteger(members));
   String attendanceHistoryTitle(String? classroomName) {
     if (classroomName == null || classroomName.trim().isEmpty) {
       return attendanceHistory;
@@ -547,6 +638,32 @@ class AppLocalizations {
       'lastAttendanceDate': 'Last attendance date',
       'totalDaysAttended': 'Total days attended',
       'discipline': 'Discipline flag',
+      'fatherName': 'Father name',
+      'familyName': 'Family name',
+      'memberSectionPersonal': 'Personal information',
+      'memberSectionDates': 'Dates',
+      'disciplineStatus': 'Discipline member',
+      'disciplineStatusHint':
+          'Mark if this member is on the discipline list',
+      'fullNameComputedHint':
+          'Full name is generated automatically from the name fields',
+      'optionalLabel': 'Optional',
+      'clearLabel': 'Clear',
+      'haveBrothersQuestion': 'Does the member have brothers in the program?',
+      'addPhoneNumber': 'Add phone number',
+      'removePhoneNumber': 'Remove phone number',
+      'removeBrother': 'Remove brother',
+      'removeNote': 'Remove note',
+      'phoneRelationMember': 'Member',
+      'phoneRelationFather': 'Father',
+      'phoneRelationMother': 'Mother',
+      'phoneRelationBrother': 'Brother',
+      'phoneRelationSister': 'Sister',
+      'phoneRelationGuardian': 'Guardian',
+      'phoneRelationOther': 'Other',
+      'invalidPhoneFormat': 'Enter a valid phone number',
+      'relationRequiredWhenPhone':
+          'Select a relation when a phone number is entered',
       'classroomIdsOptional':
           'Classroom IDs (comma-separated, optional)',
       'weeklyAppointmentHint':
@@ -588,6 +705,14 @@ class AppLocalizations {
       'registerTypeServant': 'Servant',
       'registerTypeChurchAdmin': 'Church Admin',
       'registerTypeMeetingAdmin': 'Meeting Admin',
+      'churchExistsQuestion': 'Does your church already exist in the application?',
+      'churchExistsYes': 'Yes, my church already exists',
+      'churchExistsNo': 'No, my church does not exist yet',
+      'joinExistingChurchTitle': 'Join an Existing Church',
+      'meetingAdminPhone': 'Meeting Admin Phone Number',
+      'enterMeetingAdminPhone': 'Enter the meeting admin\'s phone number',
+      'meetingAdminPhoneRequired': 'Meeting admin phone number is required',
+      'noMeetingsToAssign': 'No meetings exist yet. Create a meeting before approving this user.',
       'weeklyAppointment': 'Weekly Appointment',
       'weeklyAppointmentRequired': 'Weekly appointment is required',
       'phoneAlreadyUsed': 'This phone number is already in use. Please sign in or use a different number.',
@@ -645,6 +770,21 @@ class AppLocalizations {
       'rejectThisUser': 'this user',
       'approvedUser': 'Approved',
       'rejectedUser': 'Rejected',
+      'pendingUsers': 'Pending Users',
+      'noPendingUsers': 'No pending users.',
+      'requestedMeetingName': 'Requested Meeting Name',
+      'enterRequestedMeetingName': 'e.g. Preparatory Boys, College, Servants Meeting',
+      'requestedMeetingNameRequired': 'Requested meeting name is required.',
+      'requestedMeetingLabel': 'Requested Meeting',
+      'requestedRoleLabel': 'Role',
+      'registrationDateLabel': 'Registration Date',
+      'publicChurchIdLabel': 'Public Church ID',
+      'approveUserTitle': 'Approve User',
+      'meetingSelectionRequired': 'Please select a meeting for this user.',
+      'rejectReasonOptional': 'Reason (optional)',
+      'accountPendingApproval':
+          'Your account is waiting for approval from the church administrator.',
+      'accountRejected': 'Your registration request was rejected.',
       'assignClassTooltip': 'Assign class',
       'couldNotVerifyRole': 'Could not verify your role:',
       'adminOnlyScreen': 'This screen is for Admin users only.',
@@ -678,6 +818,9 @@ class AppLocalizations {
       'enterClassroomNameHint': 'Enter classroom name',
       'classroomNameRequiredGeneric': 'Classroom name is required',
       'ageOfMembersLabel': 'Age of Members',
+      'numberOfDisciplineMembersLabel': 'Number of discipline members',
+      'totalMembersCountLabel': 'Total members count',
+      'photoLabel': 'Photo',
       'enterAgeRangeHint': 'Enter age range',
       'ageOfMembersRequiredGeneric': 'Age of members is required',
       'classroomAddedSuccessfully': 'Classroom added successfully.',
@@ -710,6 +853,10 @@ class AppLocalizations {
       // Profile / Forms
       'profile': 'Profile',
       'editProfile': 'Edit profile',
+      'profileInformation': 'Profile information',
+      'servantInformation': 'Servant information',
+      'appSettings': 'App settings',
+      'tapToChangePhoto': 'Tap to change photo',
       'saveLabel': 'Save',
       'done': 'Done',
       'select': 'Select',
@@ -717,6 +864,8 @@ class AppLocalizations {
       'failedToLoadProfile': 'Failed to load profile:',
       'profileUpdated': 'Profile updated.',
       'churchIdLabel': 'Church id',
+      'copyLabel': 'Copy',
+      'churchIdCopied': 'Church ID copied to clipboard',
       'meetingLabel': 'Meeting',
       'selectMeeting': 'Select meeting',
       'classroomsLabel': 'Classrooms',
@@ -771,7 +920,11 @@ class AppLocalizations {
       'editSystemField': 'Edit system field',
       'systemFieldNameLocked':
           'Database key "{name}" is fixed and cannot be changed.',
+      'systemFieldKeyLockedLabel':
+          '"{label}" is a system field; its internal property name cannot be changed.',
       'systemFieldCannotDeactivate': 'Critical system fields cannot be deactivated.',
+      'systemFieldNotProvisioned':
+          'This system field is not saved on the server yet. Deploy the latest API and reopen this screen.',
       'editCustomField': 'Edit custom field',
       'newCustomField': 'New custom field',
       'displayNameLabel': 'Display name',
@@ -955,6 +1108,31 @@ class AppLocalizations {
       'lastAttendanceDate': 'تاريخ آخر حضور',
       'totalDaysAttended': 'إجمالي أيام الحضور',
       'discipline': 'علم انضباط',
+      'fatherName': 'اسم الأب',
+      'familyName': 'اسم العائلة',
+      'memberSectionPersonal': 'المعلومات الشخصية',
+      'memberSectionDates': 'التواريخ',
+      'disciplineStatus': 'عضو انضباط',
+      'disciplineStatusHint': 'حدّد إذا كان العضو ضمن قائمة الانضباط',
+      'fullNameComputedHint':
+          'يُولَّد الاسم الكامل تلقائياً من حقول الاسم',
+      'optionalLabel': 'اختياري',
+      'clearLabel': 'مسح',
+      'haveBrothersQuestion': 'هل لدى العضو إخوة في البرنامج؟',
+      'addPhoneNumber': 'إضافة رقم هاتف',
+      'removePhoneNumber': 'إزالة رقم الهاتف',
+      'removeBrother': 'إزالة أخ',
+      'removeNote': 'إزالة ملاحظة',
+      'phoneRelationMember': 'العضو',
+      'phoneRelationFather': 'الأب',
+      'phoneRelationMother': 'الأم',
+      'phoneRelationBrother': 'الأخ',
+      'phoneRelationSister': 'الأخت',
+      'phoneRelationGuardian': 'ولي الأمر',
+      'phoneRelationOther': 'أخرى',
+      'invalidPhoneFormat': 'أدخل رقماً هاتفياً صالحاً',
+      'relationRequiredWhenPhone':
+          'اختر صلة القرابة عند إدخال رقم هاتف',
       'classroomIdsOptional': ' الفصول (مفصولة بفاصلة، اختياري)',
       'weeklyAppointmentHint': 'وقت فقط، مثال 09:00',
       'invalidWeeklyAppointment': 'أدخل وقتاً صحيحاً',
@@ -994,6 +1172,14 @@ class AppLocalizations {
       'registerTypeServant': 'خادم',
       'registerTypeChurchAdmin': 'مشرف كنيسة',
       'registerTypeMeetingAdmin': 'مشرف اجتماع',
+      'churchExistsQuestion': 'هل كنيستك مسجّلة بالفعل في التطبيق؟',
+      'churchExistsYes': 'نعم، كنيستي موجودة بالفعل',
+      'churchExistsNo': 'لا، كنيستي غير موجودة بعد',
+      'joinExistingChurchTitle': 'الانضمام إلى كنيسة موجودة',
+      'meetingAdminPhone': 'رقم هاتف مشرف الاجتماع',
+      'enterMeetingAdminPhone': 'أدخل رقم هاتف مشرف الاجتماع',
+      'meetingAdminPhoneRequired': 'رقم هاتف مشرف الاجتماع مطلوب',
+      'noMeetingsToAssign': 'لا توجد اجتماعات بعد. أنشئ اجتماعًا قبل الموافقة على هذا المستخدم.',
       'weeklyAppointment': 'الموعد الأسبوعي',
       'weeklyAppointmentRequired': 'الموعد الأسبوعي مطلوب',
       'phoneAlreadyUsed': 'رقم الهاتف مستخدم بالفعل. يرجى تسجيل الدخول أو استخدام رقم آخر.',
@@ -1050,6 +1236,20 @@ class AppLocalizations {
       'rejectThisUser': 'هذا المستخدم',
       'approvedUser': 'تم القبول',
       'rejectedUser': 'تم الرفض',
+      'pendingUsers': 'المستخدمون المعلّقون',
+      'noPendingUsers': 'لا يوجد مستخدمون معلّقون.',
+      'requestedMeetingName': 'اسم الاجتماع المطلوب',
+      'enterRequestedMeetingName': 'مثال: إعدادي بنين، الجامعة، اجتماع الخدام',
+      'requestedMeetingNameRequired': 'اسم الاجتماع المطلوب مطلوب.',
+      'requestedMeetingLabel': 'الاجتماع المطلوب',
+      'requestedRoleLabel': 'الدور',
+      'registrationDateLabel': 'تاريخ التسجيل',
+      'publicChurchIdLabel': 'معرّف الكنيسة العام',
+      'approveUserTitle': 'قبول المستخدم',
+      'meetingSelectionRequired': 'يرجى اختيار اجتماع لهذا المستخدم.',
+      'rejectReasonOptional': 'السبب (اختياري)',
+      'accountPendingApproval': 'حسابك في انتظار موافقة مسؤول الكنيسة.',
+      'accountRejected': 'تم رفض طلب تسجيلك.',
       'assignClassTooltip': 'تعيين فصل',
       'couldNotVerifyRole': 'تعذر التحقق من الدور:',
       'adminOnlyScreen': 'هذه الصفحة خاصة بالمشرفين فقط.',
@@ -1083,6 +1283,9 @@ class AppLocalizations {
       'enterClassroomNameHint': 'أدخل اسم الفصل',
       'classroomNameRequiredGeneric': 'اسم الفصل مطلوب',
       'ageOfMembersLabel': 'أعمار الأعضاء',
+      'numberOfDisciplineMembersLabel': 'عدد أعضاء الانضباط',
+      'totalMembersCountLabel': 'إجمالي عدد الأعضاء',
+      'photoLabel': 'الصورة',
       'enterAgeRangeHint': 'أدخل نطاق الأعمار',
       'ageOfMembersRequiredGeneric': 'أعمار الأعضاء مطلوبة',
       'classroomAddedSuccessfully': 'تمت إضافة الفصل بنجاح.',
@@ -1115,6 +1318,10 @@ class AppLocalizations {
       // Profile / Forms
       'profile': 'الملف الشخصي',
       'editProfile': 'تعديل الملف الشخصي',
+      'profileInformation': 'معلومات الملف الشخصي',
+      'servantInformation': 'معلومات الخادم',
+      'appSettings': 'إعدادات التطبيق',
+      'tapToChangePhoto': 'اضغط لتغيير الصورة',
       'saveLabel': 'حفظ',
       'done': 'تم',
       'select': 'اختر',
@@ -1122,6 +1329,8 @@ class AppLocalizations {
       'failedToLoadProfile': 'تعذر تحميل الملف الشخصي:',
       'profileUpdated': 'تم تحديث الملف الشخصي.',
       'churchIdLabel': 'معرف الكنيسة',
+      'copyLabel': 'نسخ',
+      'churchIdCopied': 'تم نسخ معرف الكنيسة',
       'meetingLabel': 'الاجتماع',
       'selectMeeting': 'اختر الاجتماع',
       'classroomsLabel': 'الفصول',
@@ -1176,7 +1385,11 @@ class AppLocalizations {
       'editSystemField': 'تعديل حقل النظام',
       'systemFieldNameLocked':
           'مفتاح قاعدة البيانات "{name}" ثابت ولا يمكن تغييره.',
+      'systemFieldKeyLockedLabel':
+          '"{label}" حقل نظام؛ لا يمكن تغيير اسم الخاصية الداخلي له.',
       'systemFieldCannotDeactivate': 'لا يمكن إلغاء تفعيل حقول النظام الأساسية.',
+      'systemFieldNotProvisioned':
+          'حقل النظام هذا غير محفوظ على الخادم بعد. انشر أحدث إصدار من الواجهة البرمجية وأعد فتح هذه الشاشة.',
       'editCustomField': 'تعديل حقل مخصص',
       'newCustomField': 'حقل مخصص جديد',
       'displayNameLabel': 'الاسم المعروض',

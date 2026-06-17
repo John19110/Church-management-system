@@ -1,16 +1,23 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
+
+import '../../../core/l10n/app_localizations.dart';
 import '../models/custom_field_models.dart';
 
 /// Client-side validation mirroring backend rules.
 class CustomFieldValidator {
   static String? validate(
     CustomFieldDefinitionReadDto field,
-    String? rawValue,
-  ) {
+    String? rawValue, {
+    AppLocalizations? l10n,
+  }) {
+    final loc = l10n ?? AppLocalizations.forLocale(const Locale('en'));
+    final displayName = field.displayName;
+
     final empty = rawValue == null || rawValue.trim().isEmpty;
     if (empty) {
-      return field.isRequired ? '${field.displayName} is required' : null;
+      return field.isRequired ? loc.fieldIsRequired(displayName) : null;
     }
 
     final value = rawValue!.trim();
@@ -18,48 +25,48 @@ class CustomFieldValidator {
     if (field.validationRegex != null && field.validationRegex!.isNotEmpty) {
       final regex = RegExp(field.validationRegex!);
       if (!regex.hasMatch(value)) {
-        return '${field.displayName} does not match the required format';
+        return loc.fieldFormatInvalid(displayName);
       }
     }
 
     switch (field.dataType) {
       case CustomFieldDataType.number:
         if (int.tryParse(value) == null) {
-          return '${field.displayName} must be a whole number';
+          return loc.fieldMustBeWholeNumber(displayName);
         }
         break;
       case CustomFieldDataType.decimal:
         if (double.tryParse(value) == null) {
-          return '${field.displayName} must be a number';
+          return loc.fieldMustBeNumber(displayName);
         }
         break;
       case CustomFieldDataType.boolean:
         final lower = value.toLowerCase();
         if (!['true', 'false', '1', '0', 'yes', 'no'].contains(lower)) {
-          return '${field.displayName} must be true or false';
+          return loc.fieldMustBeBoolean(displayName);
         }
         break;
       case CustomFieldDataType.date:
         if (DateTime.tryParse(value) == null) {
-          return '${field.displayName} must be a valid date';
+          return loc.fieldMustBeValidDate(displayName);
         }
         break;
       case CustomFieldDataType.dateTime:
         if (DateTime.tryParse(value) == null) {
-          return '${field.displayName} must be a valid date/time';
+          return loc.fieldMustBeValidDateTime(displayName);
         }
         break;
       case CustomFieldDataType.json:
         try {
           jsonDecode(value);
         } catch (_) {
-          return '${field.displayName} must be valid JSON';
+          return loc.fieldMustBeValidJson(displayName);
         }
         break;
       case CustomFieldDataType.singleSelect:
         final allowed = field.options.map((o) => o.value).toSet();
         if (!allowed.contains(value)) {
-          return 'Select a valid option for ${field.displayName}';
+          return loc.selectValidOptionFor(displayName);
         }
         break;
       case CustomFieldDataType.multiSelect:
@@ -67,11 +74,11 @@ class CustomFieldValidator {
         final allowed = field.options.map((o) => o.value).toSet();
         if (selected.isEmpty) {
           return field.isRequired
-              ? '${field.displayName} requires at least one option'
+              ? loc.fieldRequiresAtLeastOneOption(displayName)
               : null;
         }
         if (selected.any((s) => !allowed.contains(s))) {
-          return 'Invalid selection for ${field.displayName}';
+          return loc.invalidSelectionFor(displayName);
         }
         break;
       default:

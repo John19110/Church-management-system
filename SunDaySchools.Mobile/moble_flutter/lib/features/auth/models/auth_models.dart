@@ -63,8 +63,19 @@ class RegisterServantDto {
   final String phoneNumber;
   final String password;
   final String confirmPassword;
-  final int churchId;
-  final int meetingId;
+  final String churchPublicId;
+
+  /// Free-text meeting name the user wants to join (assigned by Super Admin on approval).
+  final String requestedMeetingName;
+
+  /// Requested role: 'Servant' | 'MeetingAdmin' | 'ChurchAdmin'.
+  final String requestedRole;
+
+  /// Phone of the Meeting Admin responsible for the requested meeting (servants only).
+  final String? meetingAdminPhoneNumber;
+
+  /// Legacy public meeting id — optional, no longer required for self-registration.
+  final String meetingPublicId;
   final File? image;
   final String? birthDate;
   final String? joiningDate;
@@ -75,8 +86,11 @@ class RegisterServantDto {
     required this.phoneNumber,
     required this.password,
     required this.confirmPassword,
-    required this.churchId,
-    required this.meetingId,
+    required this.churchPublicId,
+    required this.requestedMeetingName,
+    this.requestedRole = 'Servant',
+    this.meetingAdminPhoneNumber,
+    this.meetingPublicId = '',
     this.image,
     this.birthDate,
     this.joiningDate,

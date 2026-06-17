@@ -135,8 +135,9 @@ class AdminPendingServantsScreen extends ConsumerWidget {
                             final ok = await cw.showConfirmDialog(
                               context,
                               title: l10n.rejectServantTitle,
-                              content:
-                                  'This will reject ${u.name.isEmpty ? l10n.rejectThisUser : u.name}.',
+                              content: l10n.rejectUserConfirm(
+                                u.name.isEmpty ? l10n.rejectThisUser : u.name,
+                              ),
                               confirmText: l10n.reject,
                             );
                             if (!ok) return;

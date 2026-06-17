@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/routing/app_router.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
 import '../../custom_field/providers/custom_field_cache_providers.dart';
@@ -32,6 +33,12 @@ class ServantsListScreen extends ConsumerWidget {
         appBar: AppBar(
           title: Text(l10n.servants),
           actions: [
+            if (role == 'superadmin')
+              IconButton(
+                icon: const Icon(Icons.pending_actions),
+                tooltip: l10n.pendingUsers,
+                onPressed: () => context.push(AppRoutes.pendingUsers),
+              ),
             if (role == 'admin' || role == 'superadmin')
               IconButton(
                 icon: const Icon(Icons.tune),
@@ -82,7 +89,7 @@ class ServantsListScreen extends ConsumerWidget {
                           style: const TextStyle(color: Colors.white),
                         ),
                       ),
-                      title: Text(servant.name ?? 'Unknown'),
+                      title: Text(servant.name ?? l10n.unknownName),
                       subtitle: Text(servant.phoneNumber ?? ''),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () async {
@@ -90,8 +97,7 @@ class ServantsListScreen extends ConsumerWidget {
                           if (context.mounted) {
                             cw.showErrorSnackbar(
                               context,
-                              'Servant id is missing from the server response. '
-                              'The API must include an `id` field on each servant.',
+                              l10n.servantIdMissingFromApi,
                             );
                           }
                           return;

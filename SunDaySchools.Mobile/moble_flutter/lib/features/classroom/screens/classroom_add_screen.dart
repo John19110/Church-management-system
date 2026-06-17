@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
 import '../../custom_field/providers/custom_field_cache_providers.dart';
+import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../unified_form/models/unified_form_models.dart';
@@ -15,7 +16,9 @@ import '../../unified_form/widgets/unified_entity_form.dart';
 import '../providers/classroom_providers.dart';
 
 class ClassroomAddScreen extends ConsumerStatefulWidget {
-  const ClassroomAddScreen({super.key});
+  final int? meetingId;
+
+  const ClassroomAddScreen({super.key, this.meetingId});
 
   @override
   ConsumerState<ClassroomAddScreen> createState() => _ClassroomAddScreenState();
@@ -49,16 +52,17 @@ class _ClassroomAddScreenState extends ConsumerState<ClassroomAddScreen>
       final id = await ref.read(unifiedFormRepositoryProvider).createFromForm(
             UnifiedEntityNames.classroom,
             _formController.buildSavePayload(fields),
+            meetingIdForClassroom: widget.meetingId,
           );
 
-      ref.invalidate(visibleClassroomsProvider);
+      invalidateVisibleClassrooms(ref, meetingId: widget.meetingId);
 
       if (mounted) {
         showSuccessSnackbar(context, l10n.classroomAddedSuccessfully);
         context.pop(id);
       }
     } catch (e) {
-      if (mounted) showErrorSnackbar(context, e.toString());
+      if (mounted) showErrorSnackbar(context, userFriendlyMessage(e, l10n));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -90,7 +94,7 @@ class _ClassroomAddScreenState extends ConsumerState<ClassroomAddScreen>
       ),
       error: (e, _) => Scaffold(
         appBar: AppBar(title: Text(l10n.addClassroom)),
-        body: AppErrorWidget(message: e.toString()),
+        body: AppErrorWidget(message: userFriendlyMessage(e, l10n)),
       ),
       data: (role) {
         final canManage = AuthRoleUtils.canManageCustomFields(role);
@@ -109,7 +113,7 @@ class _ClassroomAddScreenState extends ConsumerState<ClassroomAddScreen>
           ),
           body: schemaAsync.when(
             loading: () => const LoadingWidget(),
-            error: (e, _) => AppErrorWidget(message: e.toString()),
+            error: (e, _) => AppErrorWidget(message: userFriendlyMessage(e, l10n)),
             data: (schema) {
               syncFormController(_formController, schema.fields);
 

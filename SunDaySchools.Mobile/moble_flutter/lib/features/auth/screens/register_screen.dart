@@ -6,8 +6,6 @@ import 'package:image_picker/image_picker.dart';
 import '../models/auth_models.dart';
 import '../providers/auth_providers.dart';
 import '../utils/auth_role_utils.dart';
-import '../../classroom/providers/classroom_providers.dart';
-import '../../meeting/providers/meeting_providers.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../../core/l10n/app_localizations.dart';
@@ -16,8 +14,21 @@ import '../../../core/routing/app_router.dart';
 
 enum _RegisterType { servant, churchAdmin, meetingAdmin }
 
+/// Which registration form to present. Chosen by the registration entry /
+/// new-church role screens, so the form no longer shows a type dropdown.
+enum RegisterFormMode {
+  existingChurchMember,
+  newChurchMeetingAdmin,
+  newChurchSuperAdmin,
+}
+
 class RegisterScreen extends ConsumerStatefulWidget {
-  const RegisterScreen({super.key});
+  final RegisterFormMode mode;
+
+  const RegisterScreen({
+    super.key,
+    this.mode = RegisterFormMode.existingChurchMember,
+  });
 
   @override
   ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
@@ -32,9 +43,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
-  // Servant-specific controllers
+  // Existing-church member controllers
   final _churchIdController = TextEditingController();
-  final _meetingIdController = TextEditingController();
+  final _requestedMeetingController = TextEditingController();
+  final _meetingAdminPhoneController = TextEditingController();
+
+  // Requested role for existing-church member registration.
+  String _requestedRole = 'Servant';
 
   // Church/Meeting admin controllers
   final _churchNameController = TextEditingController();
@@ -58,6 +73,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     super.initState();
     _passwordController.text = 'TestPassword@12345';
     _confirmPasswordController.text = 'TestPassword@12345';
+    _selectedType = switch (widget.mode) {
+      RegisterFormMode.existingChurchMember => _RegisterType.servant,
+      RegisterFormMode.newChurchMeetingAdmin => _RegisterType.meetingAdmin,
+      RegisterFormMode.newChurchSuperAdmin => _RegisterType.churchAdmin,
+    };
   }
 
   @override
@@ -67,7 +87,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _churchIdController.dispose();
-    _meetingIdController.dispose();
+    _requestedMeetingController.dispose();
+    _meetingAdminPhoneController.dispose();
     _churchNameController.dispose();
     _meetingNameController.dispose();
     _weeklyAppointmentController.dispose();
@@ -102,8 +123,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               phoneNumber: _phoneController.text.trim(),
               password: _passwordController.text,
               confirmPassword: _confirmPasswordController.text,
-              churchId: int.parse(_churchIdController.text.trim()),
-              meetingId: int.parse(_meetingIdController.text.trim()),
+              churchPublicId: _churchIdController.text.trim(),
+              requestedMeetingName: _requestedRole == 'ChurchAdmin'
+                  ? ''
+                  : _requestedMeetingController.text.trim(),
+              requestedRole: _requestedRole,
+              meetingAdminPhoneNumber: _requestedRole == 'Servant'
+                  ? _meetingAdminPhoneController.text.trim().nullIfEmpty
+                  : null,
               birthDate: _birthController.text.trim().nullIfEmpty,
               joiningDate: _joiningController.text.trim().nullIfEmpty,
               image: _image,
@@ -148,14 +175,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
       if (result.requiresPhoneVerification) {
         if (mounted) {
-          final phone = result.phoneNumber ?? _phoneController.text.trim();
+          // Phone verification disabled — account created; send user to login.
+          // final phone = result.phoneNumber ?? _phoneController.text.trim();
+          // showSuccessSnackbar(
+          //   context,
+          //   result.message ?? 'Check WhatsApp for your verification code.',
+          // );
+          // context.go(
+          //   '${AppRoutes.verifyPhone}?phone=${Uri.encodeComponent(phone)}',
+          // );
           showSuccessSnackbar(
             context,
-            result.message ?? 'Check WhatsApp for your verification code.',
+            result.message ?? l10n.registrationSuccessfulPleaseSignIn,
           );
-          context.go(
-            '${AppRoutes.verifyPhone}?phone=${Uri.encodeComponent(phone)}',
-          );
+          context.go(AppRoutes.login);
         }
         return;
       }
@@ -166,12 +199,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       }
 
       final role = AuthRoleUtils.extractPrimaryRole(token);
-
-      if (role == 'superadmin') {
-        await ref.read(meetingRepositoryProvider).getVisibleMeetings();
-      } else if (role == 'admin' || role == 'servant') {
-        await ref.read(classroomRepositoryProvider).getVisible();
-      }
 
       ref.read(authSessionEpochProvider.notifier).state++;
       ref.read(authStateProvider.notifier).state = true;
@@ -202,9 +229,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         }
       }
 
-      showErrorSnackbar(context, userFriendlyMessage(e));
+      showErrorSnackbar(context, userFriendlyMessage(e, l10n));
     } finally {
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  String _formTitle(AppLocalizations l10n) {
+    switch (widget.mode) {
+      case RegisterFormMode.existingChurchMember:
+        return l10n.joinExistingChurchTitle;
+      case RegisterFormMode.newChurchMeetingAdmin:
+        return l10n.registerTypeMeetingAdmin;
+      case RegisterFormMode.newChurchSuperAdmin:
+        return l10n.registerTypeChurchAdmin;
     }
   }
 
@@ -250,35 +288,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  l10n.selectRegistrationType,
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-                const SizedBox(height: 8),
-
-                DropdownButtonFormField<_RegisterType>(
-                  value: _selectedType,
-                  items: [
-                    DropdownMenuItem(
-                      value: _RegisterType.servant,
-                      child: Text(l10n.registerTypeServant),
-                    ),
-                    DropdownMenuItem(
-                      value: _RegisterType.churchAdmin,
-                      child: Text(l10n.registerTypeChurchAdmin),
-                    ),
-                    DropdownMenuItem(
-                      value: _RegisterType.meetingAdmin,
-                      child: Text(l10n.registerTypeMeetingAdmin),
-                    ),
-                  ],
-                  onChanged: (v) {
-                    if (v != null) {
-                      setState(() {
-                        _selectedType = v;
-                        _image = null;
-                      });
-                    }
-                  },
+                  _formTitle(l10n),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                  textAlign: TextAlign.center,
                 ),
 
                 const SizedBox(height: 24),
@@ -367,33 +381,66 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     controller: _churchIdController,
                     label: l10n.churchId,
                     hint: l10n.enterChurchId,
-                    keyboardType: TextInputType.number,
                     validator: (v) {
                       if (v == null || v.trim().isEmpty) {
                         return l10n.churchIdRequired;
-                      }
-                      if (int.tryParse(v.trim()) == null) {
-                        return l10n.required;
                       }
                       return null;
                     },
                   ),
                   const SizedBox(height: 16),
-                  AppTextField(
-                    controller: _meetingIdController,
-                    label: l10n.meetingId,
-                    hint: l10n.enterMeetingId,
-                    keyboardType: TextInputType.number,
-                    validator: (v) {
-                      if (v == null || v.trim().isEmpty) {
-                        return l10n.meetingIdRequired;
-                      }
-                      if (int.tryParse(v.trim()) == null) {
-                        return l10n.required;
-                      }
-                      return null;
+                  DropdownButtonFormField<String>(
+                    value: _requestedRole,
+                    decoration: InputDecoration(labelText: l10n.requestedRoleLabel),
+                    items: [
+                      DropdownMenuItem(
+                        value: 'Servant',
+                        child: Text(l10n.registerTypeServant),
+                      ),
+                      DropdownMenuItem(
+                        value: 'MeetingAdmin',
+                        child: Text(l10n.registerTypeMeetingAdmin),
+                      ),
+                      DropdownMenuItem(
+                        value: 'ChurchAdmin',
+                        child: Text(l10n.registerTypeChurchAdmin),
+                      ),
+                    ],
+                    onChanged: (v) {
+                      if (v != null) setState(() => _requestedRole = v);
                     },
                   ),
+                  // Church Admin manages the whole church, so no meeting is requested.
+                  if (_requestedRole != 'ChurchAdmin') ...[
+                    const SizedBox(height: 16),
+                    AppTextField(
+                      controller: _requestedMeetingController,
+                      label: l10n.requestedMeetingName,
+                      hint: l10n.enterRequestedMeetingName,
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) {
+                          return l10n.requestedMeetingNameRequired;
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+                  if (_requestedRole == 'Servant') ...[
+                    const SizedBox(height: 16),
+                    AppTextField(
+                      controller: _meetingAdminPhoneController,
+                      label: l10n.meetingAdminPhone,
+                      hint: l10n.enterMeetingAdminPhone,
+                      keyboardType: TextInputType.phone,
+                      validator: (v) {
+                        if (_requestedRole == 'Servant' &&
+                            (v == null || v.trim().isEmpty)) {
+                          return l10n.meetingAdminPhoneRequired;
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
                 ],
 
                 if (_selectedType == _RegisterType.churchAdmin) ...[

@@ -5,9 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../l10n/app_localizations.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
-import '../../features/auth/screens/otp_verification_screen.dart';
-import '../../features/auth/screens/forgot_password_screen.dart';
-import '../../features/auth/screens/reset_password_screen.dart';
+import '../../features/auth/screens/registration_type_screen.dart';
+import '../../features/auth/screens/new_church_role_screen.dart';
+// Phone verification disabled
+// import '../../features/auth/screens/otp_verification_screen.dart';
+// import '../../features/auth/screens/forgot_password_screen.dart';
+// import '../../features/auth/screens/reset_password_screen.dart';
 import '../../features/auth/utils/auth_role_utils.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
 import '../../features/member/screens/members_list_screen.dart';
@@ -24,6 +27,7 @@ import '../../features/attendance/screens/attendance_view_screen.dart';
 import '../../features/attendance/screens/attendance_history_screen.dart';
 import '../../features/super_admin/screens/super_admin_home_screen.dart';
 import '../../features/super_admin/screens/super_admin_pending_admins_screen.dart';
+import '../../features/super_admin/screens/super_admin_pending_users_screen.dart';
 import '../../features/meeting/models/meeting_models.dart';
 import '../../features/meeting/screens/meeting_detail_screen.dart';
 import '../../features/church/screens/church_detail_screen.dart';
@@ -45,9 +49,16 @@ import '../../core/storage/token_storage.dart';
 class AppRoutes {
   static const login = '/login';
   static const register = '/register';
-  static const verifyPhone = '/verify-phone';
-  static const forgotPassword = '/forgot-password';
-  static const resetPassword = '/reset-password';
+  static const registerExistingChurch = '/register/existing-church';
+  static const registerNewChurch = '/register/new-church';
+  static const registerNewChurchMeetingAdmin =
+      '/register/new-church/meeting-admin';
+  static const registerNewChurchSuperAdmin =
+      '/register/new-church/super-admin';
+  // Phone verification disabled
+  // static const verifyPhone = '/verify-phone';
+  // static const forgotPassword = '/forgot-password';
+  // static const resetPassword = '/reset-password';
   static const dashboard = '/dashboard';
   static const superAdminHome = '/super-admin-home';
   static const adminHome = '/admin-home';
@@ -56,6 +67,7 @@ class AppRoutes {
   static const profile = '/profile';
   static const profileEdit = '/profile/edit';
   static const pendingAdmins = '/super-admin/pending-admins';
+  static const pendingUsers = '/super-admin/pending-users';
   static const pendingServants = '/admin/pending-servants';
   static const meetingDetail = '/meeting-detail';
   static const churchSettings = '/church';
@@ -72,21 +84,25 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: AppRoutes.login,
 
     redirect: (context, state) async {
-      final hasToken = await TokenStorage.hasToken();
+      final hasToken = TokenStorage.isCacheWarm
+          ? TokenStorage.cachedToken?.isNotEmpty == true
+          : await TokenStorage.hasToken();
 
       final loc = state.matchedLocation;
       final onAuthPage = loc == AppRoutes.login ||
           loc == AppRoutes.register ||
-          loc.startsWith(AppRoutes.verifyPhone) ||
-          loc == AppRoutes.forgotPassword ||
-          loc.startsWith(AppRoutes.resetPassword);
+          loc.startsWith(AppRoutes.register);
+          // Phone verification disabled
+          // loc.startsWith(AppRoutes.verifyPhone) ||
+          // loc == AppRoutes.forgotPassword ||
+          // loc.startsWith(AppRoutes.resetPassword);
 
       if (!hasToken && !onAuthPage) {
         return AppRoutes.login;
       }
 
       if (hasToken && onAuthPage) {
-        final token = await TokenStorage.getToken();
+        final token = TokenStorage.cachedToken ?? await TokenStorage.getToken();
         final role = token != null
             ? AuthRoleUtils.extractPrimaryRole(token)
             : null;
@@ -99,25 +115,48 @@ final routerProvider = Provider<GoRouter>((ref) {
 
     routes: [
       GoRoute(path: AppRoutes.login, builder: (_, __) => const LoginScreen()),
-      GoRoute(path: AppRoutes.register, builder: (_, __) => const RegisterScreen()),
       GoRoute(
-        path: AppRoutes.verifyPhone,
-        builder: (_, state) {
-          final phone = state.uri.queryParameters['phone'] ?? '';
-          return OtpVerificationScreen(phoneNumber: phone);
-        },
+        path: AppRoutes.register,
+        builder: (_, __) => const RegistrationTypeScreen(),
       ),
       GoRoute(
-        path: AppRoutes.forgotPassword,
-        builder: (_, __) => const ForgotPasswordScreen(),
+        path: AppRoutes.registerExistingChurch,
+        builder: (_, __) =>
+            const RegisterScreen(mode: RegisterFormMode.existingChurchMember),
       ),
       GoRoute(
-        path: AppRoutes.resetPassword,
-        builder: (_, state) {
-          final phone = state.uri.queryParameters['phone'] ?? '';
-          return ResetPasswordScreen(phoneNumber: phone);
-        },
+        path: AppRoutes.registerNewChurch,
+        builder: (_, __) => const NewChurchRoleScreen(),
       ),
+      GoRoute(
+        path: AppRoutes.registerNewChurchMeetingAdmin,
+        builder: (_, __) =>
+            const RegisterScreen(mode: RegisterFormMode.newChurchMeetingAdmin),
+      ),
+      GoRoute(
+        path: AppRoutes.registerNewChurchSuperAdmin,
+        builder: (_, __) =>
+            const RegisterScreen(mode: RegisterFormMode.newChurchSuperAdmin),
+      ),
+      // Phone verification disabled
+      // GoRoute(
+      //   path: AppRoutes.verifyPhone,
+      //   builder: (_, state) {
+      //     final phone = state.uri.queryParameters['phone'] ?? '';
+      //     return OtpVerificationScreen(phoneNumber: phone);
+      //   },
+      // ),
+      // GoRoute(
+      //   path: AppRoutes.forgotPassword,
+      //   builder: (_, __) => const ForgotPasswordScreen(),
+      // ),
+      // GoRoute(
+      //   path: AppRoutes.resetPassword,
+      //   builder: (_, state) {
+      //     final phone = state.uri.queryParameters['phone'] ?? '';
+      //     return ResetPasswordScreen(phoneNumber: phone);
+      //   },
+      // ),
       GoRoute(path: AppRoutes.dashboard, builder: (_, __) => const DashboardScreen()),
 
       GoRoute(
@@ -177,6 +216,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
 
       GoRoute(
+        path: AppRoutes.pendingUsers,
+        builder: (_, __) => const SuperAdminPendingUsersScreen(),
+      ),
+
+      GoRoute(
         path: AppRoutes.pendingServants,
         builder: (_, __) => const AdminPendingServantsScreen(),
       ),
@@ -186,7 +230,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, state) {
           final meeting = state.extra;
           if (meeting is! MeetingReadDto) {
-            return const _MissingRouteDataScreen(title: 'Meeting details');
+            return _MissingRouteDataScreen(
+              titleBuilder: (l10n) => l10n.meetingDetails,
+            );
           }
           return MeetingDetailScreen(meeting: meeting);
         },
@@ -197,12 +243,19 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, state) {
           final id = int.tryParse(state.pathParameters['id'] ?? '');
           if (id == null || id <= 0) {
-            return const _MissingRouteDataScreen(title: 'Edit meeting');
+            return _MissingRouteDataScreen(
+              titleBuilder: (l10n) => l10n.editMeeting,
+            );
           }
-          return UnifiedEntityEditScreen(
-            entityName: UnifiedEntityNames.meeting,
-            entityId: id,
-            title: 'Edit meeting',
+          return Builder(
+            builder: (context) {
+              final l10n = AppLocalizations.of(context);
+              return UnifiedEntityEditScreen(
+                entityName: UnifiedEntityNames.meeting,
+                entityId: id,
+                title: l10n.editMeeting,
+              );
+            },
           );
         },
       ),
@@ -210,7 +263,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.churchSettings,
         redirect: (_, __) async {
-          final token = await TokenStorage.getToken();
+          final token = TokenStorage.cachedToken ?? await TokenStorage.getToken();
           if (token == null) return AppRoutes.login;
           final churchId = AuthRoleUtils.extractChurchId(token);
           if (churchId == null || churchId <= 0) return AppRoutes.dashboard;
@@ -223,7 +276,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, state) {
           final id = int.tryParse(state.pathParameters['id'] ?? '');
           if (id == null || id <= 0) {
-            return const _MissingRouteDataScreen(title: 'Church');
+            return _MissingRouteDataScreen(
+              titleBuilder: (l10n) => l10n.entityChurch,
+            );
           }
           return ChurchDetailScreen(churchId: id);
         },
@@ -234,12 +289,19 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, state) {
           final id = int.tryParse(state.pathParameters['id'] ?? '');
           if (id == null || id <= 0) {
-            return const _MissingRouteDataScreen(title: 'Edit church');
+            return _MissingRouteDataScreen(
+              titleBuilder: (l10n) => l10n.editChurch,
+            );
           }
-          return UnifiedEntityEditScreen(
-            entityName: UnifiedEntityNames.church,
-            entityId: id,
-            title: 'Edit church',
+          return Builder(
+            builder: (context) {
+              final l10n = AppLocalizations.of(context);
+              return UnifiedEntityEditScreen(
+                entityName: UnifiedEntityNames.church,
+                entityId: id,
+                title: l10n.editChurch,
+              );
+            },
           );
         },
       ),
@@ -249,7 +311,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, state) {
           final classroom = state.extra;
           if (classroom is! ClassroomReadDto) {
-            return const _MissingRouteDataScreen(title: 'Classroom details');
+            return _MissingRouteDataScreen(
+              titleBuilder: (l10n) => l10n.classroomDetails,
+            );
           }
           return ClassroomDetailScreen(classroom: classroom);
         },
@@ -257,7 +321,17 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       GoRoute(
         path: '/classrooms/add',
-        builder: (_, __) => const ClassroomAddScreen(),
+        builder: (_, state) {
+          int? meetingId;
+          final extra = state.extra;
+          if (extra is int && extra > 0) {
+            meetingId = extra;
+          } else {
+            final raw = state.uri.queryParameters['meetingId'];
+            if (raw != null) meetingId = int.tryParse(raw);
+          }
+          return ClassroomAddScreen(meetingId: meetingId);
+        },
       ),
 
       // Members
@@ -315,7 +389,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, state) {
           final entityId = int.tryParse(state.pathParameters['entityId'] ?? '');
           if (entityId == null || entityId <= 0) {
-            return const _MissingRouteDataScreen(title: 'Custom field values');
+            return _MissingRouteDataScreen(
+              titleBuilder: (l10n) => l10n.customFieldValues,
+            );
           }
           return UnifiedEntityEditScreen(
             entityName: state.pathParameters['entityName']!,
@@ -369,7 +445,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, state) {
           final classroomId = int.tryParse(state.pathParameters['classroomId'] ?? '');
           if (classroomId == null) {
-            return const _MissingRouteDataScreen(title: 'Attendance history');
+            return _MissingRouteDataScreen(
+              titleBuilder: (l10n) => l10n.attendanceHistory,
+            );
           }
           final classroomName = state.uri.queryParameters['classroomName'];
           return AttendanceHistoryScreen(
@@ -395,15 +473,18 @@ final routerProvider = Provider<GoRouter>((ref) {
   );
 });
 
-class _MissingRouteDataScreen extends StatelessWidget {
-  final String title;
+typedef _RouteTitleBuilder = String Function(AppLocalizations l10n);
 
-  const _MissingRouteDataScreen({required this.title});
+class _MissingRouteDataScreen extends StatelessWidget {
+  final _RouteTitleBuilder titleBuilder;
+
+  const _MissingRouteDataScreen({required this.titleBuilder});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppBar(title: Text(titleBuilder(l10n))),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16),

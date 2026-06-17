@@ -1,3 +1,7 @@
+import 'package:flutter/foundation.dart';
+
+import '../../../core/utils/member_image_url.dart';
+
 class MemberContactDto {
   final String? relation;
   final String? phoneNumber;
@@ -18,6 +22,9 @@ class MemberContactDto {
 class MemberReadDto {
   /// Member primary key from API (`id` in JSON). If missing, list/detail navigation breaks.
   final int id;
+  final String? name1;
+  final String? name2;
+  final String? name3;
   final String? fullName;
   final String? imageFileName;
   final String? imageUrl;
@@ -37,6 +44,9 @@ class MemberReadDto {
 
   const MemberReadDto({
     required this.id,
+    this.name1,
+    this.name2,
+    this.name3,
     this.fullName,
     this.imageFileName,
     this.imageUrl,
@@ -55,11 +65,37 @@ class MemberReadDto {
     this.notes,
   });
 
+  /// Best URL/path for UI widgets.
+  String? get displayImageUrl => memberDisplayImageUrl(
+        imageUrl: imageUrl,
+        imageFileName: imageFileName,
+      );
+
+  /// Debug logging for image resolution (debug builds only).
+  void debugLogImage(String context) {
+    if (!kDebugMode) return;
+    final display = displayImageUrl;
+    debugLogMemberImage(
+      context: context,
+      imageFileName: imageFileName,
+      imageUrl: imageUrl,
+      displayUrl: display,
+    );
+  }
+
+  static String? _str(Map<String, dynamic> json, String camel, String pascal) {
+    final value = json[camel] ?? json[pascal];
+    return value is String ? value : value?.toString();
+  }
+
   factory MemberReadDto.fromJson(Map<String, dynamic> json) => MemberReadDto(
-        id: json['id'] as int? ?? 0,
-        fullName: json['fullName'] as String?,
-        imageFileName: json['imageFileName'] as String?,
-        imageUrl: json['imageUrl'] as String?,
+        id: (json['id'] ?? json['Id']) as int? ?? 0,
+        name1: _str(json, 'name1', 'Name1'),
+        name2: _str(json, 'name2', 'Name2'),
+        name3: _str(json, 'name3', 'Name3'),
+        fullName: _str(json, 'fullName', 'FullName'),
+        imageFileName: _str(json, 'imageFileName', 'ImageFileName'),
+        imageUrl: _str(json, 'imageUrl', 'ImageUrl'),
         address: json['address'] as String?,
         gender: json['gender'] as String?,
         dateOfBirth: json['dateOfBirth'] as String?,
@@ -160,8 +196,7 @@ class MemberUpdateDto extends MemberAddDto {
         ...super.toJson(),
         if (lastAttendanceDate != null && lastAttendanceDate!.isNotEmpty)
           'lastAttendanceDate': lastAttendanceDate,
-        'isDiscipline': isDiscipline ?? false,
-        'totalNumberOfDaysAttended': totalNumberOfDaysAttended ?? 0,
+        if (isDiscipline != null) 'isDiscipline': isDiscipline,
         if (classroomId != null) 'classroomId': classroomId,
       };
 }

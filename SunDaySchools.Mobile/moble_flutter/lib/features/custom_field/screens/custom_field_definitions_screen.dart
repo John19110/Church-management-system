@@ -9,6 +9,7 @@ import '../../auth/utils/auth_role_utils.dart';
 import '../models/custom_field_models.dart';
 import '../providers/custom_field_cache_providers.dart';
 import '../providers/custom_field_providers.dart';
+import '../utils/field_display_label.dart';
 import '../widgets/field_definition_card.dart';
 import '../../../shared/widgets/common_widgets.dart';
 
@@ -229,7 +230,9 @@ class _CustomFieldDefinitionsScreenState
     final ok = await showConfirmDialog(
       context,
       title: l10n.deactivateField,
-      content: l10n.deactivateFieldConfirm(def.displayName),
+      content: l10n.deactivateFieldConfirm(
+        localizedFieldDisplayLabel(def, l10n),
+      ),
       confirmText: l10n.deactivate,
       confirmColor: Colors.orange,
     );

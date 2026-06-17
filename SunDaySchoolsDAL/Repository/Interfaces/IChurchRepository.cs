@@ -12,6 +12,8 @@ namespace SunDaySchools.DAL.Repository.Interfaces
 
         Task<Church?> GetByNameAsync(string churchName);
         Task<Church?> GetByIdAsync(int ChurchId);
+        Task<Church?> GetByPublicIdAsync(string publicId);
+        Task<int?> GetChurchIdByPublicIdAsync(string publicId);
         Task UpdateAsync(Church church);
 
     }

@@ -11,6 +11,7 @@ namespace SunDaySchools.BLL.DTOS.MeetingDtos
     {
 
             public int Id { get; set; }
+            public string PublicId { get; set; } = string.Empty;
             public string? Name { get; set; }
             public TimeOnly WeeklyAppointment { get; set; }
             public string DayOfWeek { get; set; } = string.Empty;

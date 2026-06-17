@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/error/app_exception.dart';
+import '../../../core/l10n/app_localizations.dart';
 import '../providers/attendance_providers.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
 
@@ -17,25 +19,26 @@ class AttendanceHistoryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final sessionsAsync =
         ref.watch(attendanceHistoryByClassroomProvider(classroomId));
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Attendance history${classroomName != null ? ' • $classroomName' : ''}'),
+        title: Text(l10n.attendanceHistoryTitle(classroomName)),
       ),
       body: sessionsAsync.when(
         loading: () => const cw.LoadingWidget(),
         error: (e, _) => cw.AppErrorWidget(
-          message: e.toString(),
+          message: userFriendlyMessage(e, l10n),
           onRetry: () => ref.invalidate(
             attendanceHistoryByClassroomProvider(classroomId),
           ),
         ),
         data: (sessions) {
           if (sessions.isEmpty) {
-            return const cw.EmptyWidget(
-              message: 'No attendance sessions yet.',
+            return cw.EmptyWidget(
+              message: l10n.noAttendanceSessionsYet,
               icon: Icons.history,
             );
           }
@@ -51,11 +54,13 @@ class AttendanceHistoryScreen extends ConsumerWidget {
                 return Card(
                   child: ListTile(
                     leading: const Icon(Icons.event_note_outlined),
-                    title: Text(s.createdAt ?? 'Session #${s.id}'),
+                    title: Text(
+                      s.createdAt ?? l10n.sessionNumberLabel(s.id),
+                    ),
                     subtitle: Text(
                       (s.notes?.trim().isNotEmpty == true)
                           ? s.notes!.trim()
-                          : '${s.recordsCount} records',
+                          : l10n.recordsCountLabel(s.recordsCount),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -71,4 +76,3 @@ class AttendanceHistoryScreen extends ConsumerWidget {
     );
   }
 }
-

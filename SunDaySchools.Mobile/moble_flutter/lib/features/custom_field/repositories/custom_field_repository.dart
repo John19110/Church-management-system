@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../core/api/dio_client.dart';
 import '../../../core/constants/app_constants.dart';
@@ -14,16 +15,62 @@ class CustomFieldRepository {
     bool includeInactive = false,
   }) async {
     return apiCall(() async {
-      final response = await _dio.get(
-        '${AppConstants.customFieldEndpoint}/definitions/$entityName',
-        queryParameters: {'includeInactive': includeInactive},
+      final path = '${AppConstants.customFieldEndpoint}/definitions/$entityName';
+      final queryParameters = {'includeInactive': includeInactive};
+
+      debugPrint(
+        '[CustomFieldRepository] GET $path includeInactive=$includeInactive',
       );
-      final list = response.data as List<dynamic>;
-      return list
-          .map((e) =>
-              CustomFieldDefinitionReadDto.fromJson(e as Map<String, dynamic>))
-          .toList();
+
+      final response = await _dio.get(
+        path,
+        queryParameters: queryParameters,
+      );
+
+      debugPrint(
+        '[CustomFieldRepository] status=${response.statusCode} '
+        'bodyType=${response.data.runtimeType}',
+      );
+
+      final list = _parseDefinitionList(response.data);
+      debugPrint(
+        '[CustomFieldRepository] parsed ${list.length} definition(s) for $entityName',
+      );
+
+      final parsed = <CustomFieldDefinitionReadDto>[];
+      for (var i = 0; i < list.length; i++) {
+        try {
+          final item = list[i];
+          if (item is! Map<String, dynamic>) {
+            debugPrint(
+              '[CustomFieldRepository] skip index=$i: expected Map, got ${item.runtimeType}',
+            );
+            continue;
+          }
+          parsed.add(CustomFieldDefinitionReadDto.fromJson(item));
+        } catch (e, st) {
+          debugPrint(
+            '[CustomFieldRepository] deserialize failed index=$i error=$e',
+          );
+          debugPrint(st.toString());
+          rethrow;
+        }
+      }
+
+      return parsed;
     });
+  }
+
+  List<dynamic> _parseDefinitionList(dynamic data) {
+    if (data is List<dynamic>) return data;
+    if (data is Map<String, dynamic>) {
+      for (final key in const ['data', 'items', 'definitions', 'result']) {
+        final nested = data[key];
+        if (nested is List<dynamic>) return nested;
+      }
+    }
+    debugPrint('[CustomFieldRepository] unexpected response shape: $data');
+    return const [];
   }
 
   Future<CustomFieldDefinitionReadDto> createDefinition(

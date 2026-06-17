@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../models/custom_field_models.dart';
 import '../providers/custom_field_providers.dart';
 import '../widgets/dynamic_custom_fields_form.dart';
+import '../../../core/error/app_exception.dart';
+import '../../../core/l10n/app_localizations.dart';
 import '../../../shared/widgets/common_widgets.dart';
 
 /// Edit custom field values for any entity (Classroom, Meeting, etc.).
@@ -54,11 +55,19 @@ class _EntityCustomFieldsEditScreenState
         )),
       );
       if (mounted) {
-        showSuccessSnackbar(context, 'Additional fields saved');
+        showSuccessSnackbar(
+          context,
+          AppLocalizations.of(context).additionalFieldsSaved,
+        );
         context.pop(true);
       }
     } catch (e) {
-      if (mounted) showErrorSnackbar(context, e.toString());
+      if (mounted) {
+        showErrorSnackbar(
+          context,
+          userFriendlyMessage(e, AppLocalizations.of(context)),
+        );
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -66,7 +75,9 @@ class _EntityCustomFieldsEditScreenState
 
   @override
   Widget build(BuildContext context) {
-    final title = widget.title ?? '${widget.entityName} — additional fields';
+    final l10n = AppLocalizations.of(context);
+    final title = widget.title ??
+        l10n.entityAdditionalFieldsTitle(widget.entityName);
 
     return Scaffold(
       appBar: AppBar(title: Text(title)),
@@ -85,7 +96,7 @@ class _EntityCustomFieldsEditScreenState
                 ? const Center(child: CircularProgressIndicator())
                 : FilledButton(
                     onPressed: _save,
-                    child: const Text('Save additional fields'),
+                    child: Text(l10n.saveAdditionalFields),
                   ),
           ],
         ),

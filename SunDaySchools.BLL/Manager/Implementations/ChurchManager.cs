@@ -38,6 +38,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             return new ChurchReadDTO
             {
                 Id = church.Id,
+                PublicId = church.PublicId,
                 Name = church.Name,
                 PastorId = church.PastorId,
                 PastorName = pastorName,

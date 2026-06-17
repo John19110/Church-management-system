@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/l10n/app_localizations.dart';
 import '../../../shared/widgets/app_network_avatar.dart';
 import '../models/unified_form_models.dart';
 import '../utils/unified_form_field_utils.dart';
@@ -19,7 +20,8 @@ class UnifiedEntityDetailHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final title = unifiedDisplayTitle(entityName, fields);
+    final l10n = AppLocalizations.of(context);
+    final title = unifiedDisplayTitle(entityName, fields, l10n: l10n);
     final imageUrl = photoUrlFromFields(fields);
 
     return Column(
@@ -29,7 +31,7 @@ class UnifiedEntityDetailHeader extends StatelessWidget {
           radius: avatarRadius,
           backgroundColor: const Color(0xFF4299E1),
           placeholder: Text(
-            unifiedDetailInitial(entityName, fields),
+            unifiedDetailInitial(entityName, fields, l10n: l10n),
             style: TextStyle(
               fontSize: avatarRadius * 0.75,
               color: Colors.white,

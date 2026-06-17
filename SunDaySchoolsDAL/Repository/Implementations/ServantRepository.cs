@@ -24,11 +24,15 @@ namespace SunDaySchools.DAL.Repository.Implementations
             await _context.SaveChangesAsync();
         }
         public async Task<IEnumerable<Servant>> GetAllAsync()
-        {// edit here 
+        {
+            // Only approved accounts are real servants. Pending/Rejected registrations must
+            // never appear here even if a Servant row exists (legacy data / re-runs).
             return await _context.Servants
                 .Include(s=> s.ClassroomServants)
                 .ThenInclude(cs => cs.Classroom)
                 .Include(s => s.ApplicationUser)
+                .Where(s => s.ApplicationUser != null
+                            && s.ApplicationUser.RegistrationStatus == RegistrationStatus.Approved)
                 .ToListAsync();
         }
 

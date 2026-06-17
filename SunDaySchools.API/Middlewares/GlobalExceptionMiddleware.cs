@@ -121,6 +121,10 @@ namespace SunDaySchools.API.Middlewares
             if (exception is InvalidCredentialsException credEx)
                 return credEx.Message;
 
+            // Surface the human-friendly approval messages to the client.
+            if (exception is AccountNotApprovedException or AccountRejectedException)
+                return exception.Message;
+
             return mappedMessage;
         }
 
@@ -165,7 +169,8 @@ namespace SunDaySchools.API.Middlewares
                 InvalidCredentialsException => ((int)HttpStatusCode.Unauthorized, "AUTH_FAILED", "Authentication failed"),
 
                 ServantProfileMissingException => ((int)HttpStatusCode.Forbidden, "FORBIDDEN", "Forbidden"),
-                AccountNotApprovedException => ((int)HttpStatusCode.Forbidden, "FORBIDDEN", "Forbidden"),
+                AccountNotApprovedException pendingEx => ((int)HttpStatusCode.Forbidden, "ACCOUNT_PENDING", pendingEx.Message),
+                AccountRejectedException rejectedEx => ((int)HttpStatusCode.Forbidden, "ACCOUNT_REJECTED", rejectedEx.Message),
                 ProfileNotCompletedException => ((int)HttpStatusCode.Forbidden, "FORBIDDEN", "Forbidden"),
                 PhoneNotVerifiedException phoneEx => (
                     (int)HttpStatusCode.Forbidden,

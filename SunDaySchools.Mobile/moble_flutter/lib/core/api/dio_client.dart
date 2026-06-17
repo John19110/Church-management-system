@@ -1,29 +1,32 @@
-import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+
 import '../constants/app_constants.dart';
 import '../error/app_exception.dart';
 import '../storage/token_storage.dart';
+import 'dio_retry_interceptor.dart';
 
 Dio createDio() {
   final dio = Dio(
     BaseOptions(
       baseUrl: AppConstants.baseUrl,
-      connectTimeout: const Duration(seconds: 15),
-      receiveTimeout: const Duration(seconds: 15),
-      // Do not force a global Content-Type. Dio will set it per-request:
-      // - application/json for JSON bodies
-      // - multipart/form-data for FormData
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 12),
       headers: const {},
     ),
   );
 
   dio.interceptors.add(_AuthInterceptor());
+  dio.interceptors.add(DioRetryInterceptor(dio, maxRetries: 2));
   dio.interceptors.add(_FullUrlLogger());
-  dio.interceptors.add(LogInterceptor(
-    requestBody: true,
-    responseBody: true,
-    logPrint: (obj) => debugPrint(obj.toString()),
-  ));
+
+  if (kDebugMode) {
+    dio.interceptors.add(LogInterceptor(
+      requestBody: true,
+      responseBody: false,
+      logPrint: (obj) => debugPrint(obj.toString()),
+    ));
+  }
 
   return dio;
 }
@@ -32,19 +35,21 @@ Dio createDio() {
 class _FullUrlLogger extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    debugPrint('[DIO] ${options.method} ${options.uri}');
+    if (kDebugMode) {
+      debugPrint('[DIO] ${options.method} ${options.uri}');
+    }
     handler.next(options);
   }
 }
 
-/// Adds JWT Bearer token to every request and handles 401 errors.
+/// Adds JWT Bearer token to every request using the in-memory cache when warm.
 class _AuthInterceptor extends Interceptor {
   @override
   Future<void> onRequest(
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    final token = await TokenStorage.getToken();
+    final token = TokenStorage.cachedToken ?? await TokenStorage.getToken();
     if (token != null && token.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $token';
     }
