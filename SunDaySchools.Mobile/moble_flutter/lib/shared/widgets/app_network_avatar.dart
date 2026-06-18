@@ -38,6 +38,14 @@ class AppNetworkAvatar extends StatelessWidget {
     this.debugTag,
   });
 
+  Widget _placeholderBox() {
+    return Container(
+      color: backgroundColor,
+      alignment: Alignment.center,
+      child: placeholder,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final resolved = resolveApiImageUrl(imageUrl);
@@ -49,57 +57,42 @@ class AppNetworkAvatar extends StatelessWidget {
       );
     }
 
-    if (resolved == null) {
-      return CircleAvatar(
-        radius: radius,
-        backgroundColor: backgroundColor,
-        child: placeholder,
-      );
-    }
-
-    final headers = authImageHeaders();
-
-    return ClipOval(
-      child: SizedBox(
-        width: size,
-        height: size,
-        child: Image.network(
-          resolved,
-          headers: headers,
-          fit: BoxFit.cover,
-          // Decorative avatar: keep it OUT of the semantics tree. Otherwise the
-          // implicit image semantics node toggles in/out as the image loads,
-          // and on Flutter 3.41's new semantics engine that hits a framework
-          // dirty-geometry assertion (flutter/flutter #184036/#184226) which,
-          // once thrown in flushSemantics, re-throws every frame (infinite loop).
-          excludeFromSemantics: true,
-          errorBuilder: (_, error, ___) {
-            if (kDebugMode && debugTag != null) {
-              debugPrint(
-                '[AppNetworkAvatar:$debugTag] load failed url=$resolved error=$error',
-              );
-            }
-            return Container(
-              color: backgroundColor,
-              alignment: Alignment.center,
+    // Decorative avatars must not participate in semantics. Image.network toggles
+    // implicit semantics nodes as it loads, and animated loading spinners request
+    // a frame every tick — both trigger Flutter 3.41 flushSemantics assertions
+    // (flutter/flutter #184036/#184226) that loop forever once they fire.
+    return ExcludeSemantics(
+      child: resolved == null
+          ? CircleAvatar(
+              radius: radius,
+              backgroundColor: backgroundColor,
               child: placeholder,
-            );
-          },
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) return child;
-            return Container(
-              color: backgroundColor,
-              alignment: Alignment.center,
+            )
+          : ClipOval(
               child: SizedBox(
-                width: radius,
-                height: radius,
-                child: const CircularProgressIndicator(strokeWidth: 2),
+                width: size,
+                height: size,
+                child: Image.network(
+                  resolved,
+                  headers: authImageHeaders(),
+                  fit: BoxFit.cover,
+                  excludeFromSemantics: true,
+                  errorBuilder: (_, error, ___) {
+                    if (kDebugMode && debugTag != null) {
+                      debugPrint(
+                        '[AppNetworkAvatar:$debugTag] load failed url=$resolved error=$error',
+                      );
+                    }
+                    return _placeholderBox();
+                  },
+                  // Static placeholder only — no CircularProgressIndicator.
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return _placeholderBox();
+                  },
+                ),
               ),
-            );
-          },
-        ),
-      ),
+            ),
     );
   }
 }
-
