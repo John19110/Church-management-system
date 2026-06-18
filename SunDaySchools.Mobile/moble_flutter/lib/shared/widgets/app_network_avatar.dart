@@ -57,42 +57,54 @@ class AppNetworkAvatar extends StatelessWidget {
       );
     }
 
-    // Decorative avatars must not participate in semantics. Image.network toggles
-    // implicit semantics nodes as it loads, and animated loading spinners request
-    // a frame every tick — both trigger Flutter 3.41 flushSemantics assertions
-    // (flutter/flutter #184036/#184226) that loop forever once they fire.
+    if (resolved == null) {
+      return ExcludeSemantics(
+        child: CircleAvatar(
+          radius: radius,
+          backgroundColor: backgroundColor,
+          child: placeholder,
+        ),
+      );
+    }
+
+    // Decorative avatars must not participate in semantics. Keep a STABLE widget
+    // tree (Stack + opacity fade) — loadingBuilder child swaps inside a ListView
+    // leave parentData dirty during RenderViewportBase.visitChildrenForSemantics
+    // (Flutter 3.41: '!semantics.parentDataDirty' / geometry! null).
     return ExcludeSemantics(
-      child: resolved == null
-          ? CircleAvatar(
-              radius: radius,
-              backgroundColor: backgroundColor,
-              child: placeholder,
-            )
-          : ClipOval(
-              child: SizedBox(
-                width: size,
-                height: size,
-                child: Image.network(
-                  resolved,
-                  headers: authImageHeaders(),
-                  fit: BoxFit.cover,
-                  excludeFromSemantics: true,
-                  errorBuilder: (_, error, ___) {
-                    if (kDebugMode && debugTag != null) {
-                      debugPrint(
-                        '[AppNetworkAvatar:$debugTag] load failed url=$resolved error=$error',
-                      );
-                    }
-                    return _placeholderBox();
-                  },
-                  // Static placeholder only — no CircularProgressIndicator.
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return _placeholderBox();
-                  },
-                ),
+      child: ClipOval(
+        child: SizedBox(
+          width: size,
+          height: size,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              _placeholderBox(),
+              Image.network(
+                resolved,
+                headers: authImageHeaders(),
+                fit: BoxFit.cover,
+                excludeFromSemantics: true,
+                gaplessPlayback: true,
+                frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                  final visible =
+                      frame != null || wasSynchronouslyLoaded;
+                  return Opacity(opacity: visible ? 1 : 0, child: child);
+                },
+                errorBuilder: (_, error, ___) {
+                  if (kDebugMode && debugTag != null) {
+                    debugPrint(
+                      '[AppNetworkAvatar:$debugTag] load failed url=$resolved error=$error',
+                    );
+                  }
+                  // Placeholder underneath stays visible; do not swap subtree.
+                  return const SizedBox.shrink();
+                },
               ),
-            ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
