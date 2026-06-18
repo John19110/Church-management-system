@@ -1,43 +1,63 @@
 name: moble_flutter
-description: "Sunday School Management System - Flutter Mobile App"
-publish_to: 'none'
+description: A new Flutter project.
+
+publish_to: "none"
 
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: ">=3.3.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  cupertino_icons: ^1.0.8
+
+  # UI / Core
+  cupertino_icons: ^1.0.9
+  google_fonts: ^8.1.0
+  image_picker: ^1.2.2
+
+  # Navigation
+  go_router: ^17.3.0
+
+  # Networking
   dio: ^5.4.0
-  flutter_riverpod: ^2.4.9
-  riverpod_annotation: ^2.3.3
-  go_router: ^14.2.0
-  flutter_secure_storage: ^9.0.0
-  shared_preferences: ^2.2.3
-  intl: 0.20.2
-  image_picker: ^1.0.7
-  google_fonts: ^6.1.0
+
+  # STATE MANAGEMENT (STABLE - COMPATIBLE WITH YOUR FLUTTER SDK)
+  flutter_riverpod: ^2.6.1
+  riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+
+  # Storage
+  flutter_secure_storage: ^10.3.1
+
+  # Utils
+  path_provider: ^2.1.6
+  shared_preferences: ^2.4.26
+  intl: ^0.20.2
+
+  # Image processing
+  image: ^4.9.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0
-  riverpod_generator: ^2.3.9
-  build_runner: ^2.4.8
-  json_serializable: ^6.7.1
-  flutter_launcher_icons: ^0.13.1
-  rename: ^3.0.1
 
-flutter_icons:
-  android: true
-  ios: true
-  image_path: "assets/icon/app_icon.png"
-  remove_alpha_ios: true
+  flutter_lints: ^3.0.0
+
+  # CODE GENERATION (MATCHED TO RIVERPOD 2 STACK)
+  build_runner: ^2.4.0
+  json_serializable: ^6.8.0
+  json_annotation: ^4.9.0
+  riverpod_generator: ^2.6.5
+
+  # Tools
+  flutter_launcher_icons: ^0.14.4
+
+  # Testing (Downgraded to be compatible with riverpod_generator)
+  mockito: ^5.4.6
 
 flutter:
   uses-material-design: true
