@@ -9,6 +9,9 @@ namespace SunDaySchools.DAL.Repository.Interfaces
 
         Task<CustomFieldDefinition?> GetDefinitionByIdAsync(int id, bool includeOptions = true);
 
+        Task<CustomFieldDefinition?> GetTrackedDefinitionByIdAsync(
+            int id, bool includeOptions = true);
+
         Task<CustomFieldDefinition?> GetDefinitionByNameAsync(
             string entityName, string name);
 

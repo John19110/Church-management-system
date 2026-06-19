@@ -1,4 +1,5 @@
-﻿using SunDaySchools.DAL.Repository.Interfaces;
+﻿using SunDaySchools.DAL.Models.CustomFields;
+using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchools.Models;
 using SunDaySchoolsDAL.DBcontext;
 using Microsoft.EntityFrameworkCore;
@@ -10,10 +11,12 @@ namespace SunDaySchools.DAL.Repository.Implementations
     public class ClassroomRepository : IClassroomRepository
     {
         private readonly ProgramContext _context;
+        private readonly IMemberRepository _memberRepository;
 
-        public ClassroomRepository(ProgramContext context)
+        public ClassroomRepository(ProgramContext context, IMemberRepository memberRepository)
         {
             _context = context;
+            _memberRepository = memberRepository;
         }
 
         public async Task<IQueryable<Classroom>> GetAllAsync()
@@ -33,12 +36,26 @@ namespace SunDaySchools.DAL.Repository.Implementations
                 .Select(c => new ValueTuple<int, string>(c.Id, c.Name))
                 .ToListAsync();
         }
+
+        public async Task<List<Classroom>> GetByIdsAsync(List<int> ids)
+        {
+            if (ids == null || ids.Count == 0)
+                return new List<Classroom>();
+
+            return await _context.Classrooms
+                .AsNoTracking()
+                .Where(c => ids.Contains(c.Id))
+                .ToListAsync();
+        }
+
         public async Task<Classroom?> GetByIdAsync(int id)
         {
             return await _context.Classrooms
-                //.Include(c => c.Servants)
+                .Include(c => c.ClassroomServants)
+                    .ThenInclude(cs => cs.Servant)
                 .Include(c => c.Members)
                 .Include(c => c.AttendanceHistory)
+                .Include(c => c.LeaderServant)
                 .FirstOrDefaultAsync(s => s.Id == id);
         }
 
@@ -62,12 +79,92 @@ namespace SunDaySchools.DAL.Repository.Implementations
 
         public async Task DeleteAsync(int id)
         {
-            var classroom = await _context.Classrooms.FindAsync(id);
-            if (classroom != null)
+            await DeleteWithDependenciesAsync(id);
+        }
+
+        public async Task DeleteWithDependenciesAsync(int id)
+        {
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                _context.Classrooms.Remove(classroom);
+                await DeleteWithDependenciesCoreAsync(id);
                 await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
             }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task DeleteWithDependenciesCoreAsync(int id)
+        {
+            await _memberRepository.DeleteByClassroomIdAsync(id);
+
+            var sessionIds = await _context.AttendanceSessions
+                .IgnoreQueryFilters()
+                .Where(s => s.ClassroomId == id)
+                .Select(s => s.Id)
+                .ToListAsync();
+
+            if (sessionIds.Count > 0)
+            {
+                await _context.AttendanceRecords
+                    .IgnoreQueryFilters()
+                    .Where(r => sessionIds.Contains(r.AttendanceSessionId))
+                    .ExecuteDeleteAsync();
+
+                await _context.AttendanceSessions
+                    .IgnoreQueryFilters()
+                    .Where(s => s.ClassroomId == id)
+                    .ExecuteDeleteAsync();
+            }
+
+            var examIds = await _context.Exams
+                .IgnoreQueryFilters()
+                .Where(e => e.ClassroomId == id)
+                .Select(e => e.Id)
+                .ToListAsync();
+
+            if (examIds.Count > 0)
+            {
+                await _context.ExamResults
+                    .IgnoreQueryFilters()
+                    .Where(er => examIds.Contains(er.ExamId))
+                    .ExecuteDeleteAsync();
+
+                await _context.Exams
+                    .IgnoreQueryFilters()
+                    .Where(e => e.ClassroomId == id)
+                    .ExecuteDeleteAsync();
+            }
+
+            await _context.ClassroomServants
+                .IgnoreQueryFilters()
+                .Where(cs => cs.ClassroomId == id)
+                .ExecuteDeleteAsync();
+
+            await _context.CustomFieldValues
+                .IgnoreQueryFilters()
+                .Where(v =>
+                    v.EntityName == CustomFieldEntityNames.Classroom &&
+                    v.EntityId == id)
+                .ExecuteDeleteAsync();
+
+            await _context.Classrooms
+                .IgnoreQueryFilters()
+                .Where(c => c.Id == id)
+                .ExecuteUpdateAsync(s => s.SetProperty(c => c.LeaderServantId, (int?)null));
+
+            var classroom = await _context.Classrooms
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (classroom == null)
+                return;
+
+            _context.Classrooms.Remove(classroom);
         }
 
         public async Task<List<Classroom>> GetByServantIdAsync(int? servantId)
@@ -75,13 +172,38 @@ namespace SunDaySchools.DAL.Repository.Implementations
             if (!servantId.HasValue)
                 return new List<Classroom>();
 
+            return await GetAccessibleForServantAsync(servantId.Value);
+        }
+
+        public async Task<List<Classroom>> GetAccessibleForServantAsync(int servantId)
+        {
             return await _context.Classrooms
-                .Where(c => c.ClassroomServants.Any(cs => cs.ServantId == servantId.Value))
+                .Where(c =>
+                    c.ClassroomServants.Any(cs => cs.ServantId == servantId) ||
+                    c.LeaderServantId == servantId)
                 .Include(c => c.Members)
                 .Include(c => c.AttendanceHistory)
                 .Include(c => c.ClassroomServants)
                     .ThenInclude(cs => cs.Servant)
+                .Include(c => c.LeaderServant)
                 .ToListAsync();
+        }
+
+        public async Task<List<int>> GetAccessibleClassroomIdsForServantAsync(int servantId)
+        {
+            var fromJunction = await _context.ClassroomServants
+                .AsNoTracking()
+                .Where(cs => cs.ServantId == servantId)
+                .Select(cs => cs.ClassroomId)
+                .ToListAsync();
+
+            var fromLeader = await _context.Classrooms
+                .AsNoTracking()
+                .Where(c => c.LeaderServantId == servantId)
+                .Select(c => c.Id)
+                .ToListAsync();
+
+            return fromJunction.Concat(fromLeader).Distinct().ToList();
         }
 
         public async Task<List<Classroom>> GetByMeetingIdAsync(int? meetingId)
@@ -92,6 +214,7 @@ namespace SunDaySchools.DAL.Repository.Implementations
                 .Include(c => c.AttendanceHistory)
                 .Include(c => c.ClassroomServants)
                     .ThenInclude(cs => cs.Servant)
+                .Include(c => c.LeaderServant)
                 .ToListAsync();
         }
 
@@ -103,13 +226,17 @@ namespace SunDaySchools.DAL.Repository.Implementations
                 .Include(c => c.AttendanceHistory)
                 .Include(c => c.ClassroomServants)
                     .ThenInclude(cs => cs.Servant)
+                .Include(c => c.LeaderServant)
                 .ToListAsync();
         }
 
         public async Task<bool> IsServantAssignedAsync(int servantId, int classroomId)
         {
-            return await _context.Set<ClassroomServant>()
-                .AnyAsync(cs => cs.ServantId == servantId && cs.ClassroomId == classroomId);
+            return await _context.Classrooms
+                .AnyAsync(c =>
+                    c.Id == classroomId &&
+                    (c.ClassroomServants.Any(cs => cs.ServantId == servantId) ||
+                     c.LeaderServantId == servantId));
         }
         public async Task SaveAsync()
         {

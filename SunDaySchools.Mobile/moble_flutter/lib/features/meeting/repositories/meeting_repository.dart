@@ -40,4 +40,14 @@ class MeetingRepository {
       );
     });
   }
+
+  /// DELETE /api/Meeting/{id}
+  Future<void> delete(int id) async {
+    if (id <= 0) {
+      throw ArgumentError.value(id, 'id', 'Meeting id must be a positive integer');
+    }
+    return apiCall(() async {
+      await _dio.delete('${AppConstants.meetingEndpoint}/$id');
+    });
+  }
 }

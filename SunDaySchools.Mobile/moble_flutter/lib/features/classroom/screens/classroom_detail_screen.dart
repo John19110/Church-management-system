@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/routing/app_router.dart';
+import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../../../shared/widgets/app_network_avatar.dart';
 import '../../member/models/member_models.dart';
 import '../../member/providers/members_providers.dart';
 import '../models/classroom_models.dart';
+import '../providers/classroom_providers.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
 import '../../unified_form/models/unified_form_models.dart';
@@ -99,6 +101,18 @@ class ClassroomDetailScreen extends ConsumerWidget {
                 }
               },
             ),
+          if (AuthRoleUtils.canDeleteClassroom(role))
+            IconButton(
+              icon: const Icon(Icons.delete_outline, color: Colors.red),
+              tooltip: l10n.deleteClassroom,
+              onPressed: () => _confirmDeleteClassroom(
+                context,
+                ref,
+                classroomId: classroomId,
+                meetingId: classroom.meetingId,
+                l10n: l10n,
+              ),
+            ),
         ],
       ),
       floatingActionButton: Padding(
@@ -143,6 +157,26 @@ class ClassroomDetailScreen extends ConsumerWidget {
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: formAsync.when(
+                        loading: () => _ClassroomServantsCard(
+                          classroom: classroom,
+                          l10n: l10n,
+                        ),
+                        error: (_, __) => _ClassroomServantsCard(
+                          classroom: classroom,
+                          l10n: l10n,
+                        ),
+                        data: (form) => _ClassroomServantsCard(
+                          classroom: classroom,
+                          form: form,
+                          l10n: l10n,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: formAsync.when(
                         loading: () => const Padding(
                           padding: EdgeInsets.symmetric(vertical: 12),
                           child: Center(
@@ -165,6 +199,7 @@ class ClassroomDetailScreen extends ConsumerWidget {
                           return UnifiedEntityDetailFields(
                             fields: form.fields,
                             entityName: UnifiedEntityNames.classroom,
+                            excludeFieldKeys: kClassroomServantDetailFieldKeys,
                           );
                         },
                       ),
@@ -232,6 +267,33 @@ class ClassroomDetailScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  static Future<void> _confirmDeleteClassroom(
+    BuildContext context,
+    WidgetRef ref, {
+    required int classroomId,
+    required int? meetingId,
+    required AppLocalizations l10n,
+  }) async {
+    final confirmed = await cw.showConfirmDialog(
+      context,
+      title: l10n.deleteClassroom,
+      content: l10n.confirmDeleteClassroom,
+    );
+    if (!confirmed) return;
+
+    try {
+      await ref.read(classroomRepositoryProvider).delete(classroomId);
+      if (!context.mounted) return;
+      invalidateVisibleClassrooms(ref, meetingId: meetingId);
+      cw.showSuccessSnackbar(context, l10n.classroomDeletedSuccessfully);
+      context.pop();
+    } catch (e) {
+      if (context.mounted) {
+        cw.showErrorSnackbar(context, e.toString());
+      }
+    }
   }
 
   List<Widget> _buildMembersSlivers(
@@ -343,5 +405,143 @@ class ClassroomDetailScreen extends ConsumerWidget {
         ];
       },
     );
+  }
+}
+
+class _ClassroomServantsCard extends StatelessWidget {
+  final ClassroomReadDto classroom;
+  final EntityFormDataDto? form;
+  final AppLocalizations l10n;
+
+  const _ClassroomServantsCard({
+    required this.classroom,
+    this.form,
+    required this.l10n,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final leaderName = _resolveLeaderName();
+    final assignedNames = _resolveAssignedNames(leaderName);
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.servants,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              title: Text(l10n.leaderServantLabel),
+              subtitle: Text(
+                leaderName ?? l10n.notAvailable,
+                style: leaderName == null
+                    ? TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      )
+                    : null,
+              ),
+            ),
+            const Divider(height: 16),
+            Text(
+              l10n.assignedServantsLabel,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+            ),
+            const SizedBox(height: 4),
+            if (assignedNames.isEmpty)
+              Text(
+                l10n.noServantsAssigned,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              )
+            else
+              ...assignedNames.map(
+                (name) => Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text('• ${l10n.formatDigitsIn(name)}'),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String? _resolveLeaderName() {
+    final fromDto = classroom.leaderServantName?.trim();
+    if (fromDto != null && fromDto.isNotEmpty) return fromDto;
+
+    final field = _fieldByKey('leaderServantId');
+    if (field == null) return null;
+    return _labelForSelectField(field);
+  }
+
+  List<String> _resolveAssignedNames(String? leaderName) {
+    final fromDto = classroom.servantNames
+        .map((n) => n.trim())
+        .where((n) => n.isNotEmpty)
+        .toList();
+    if (fromDto.isNotEmpty) return fromDto;
+
+    final field = _fieldByKey('servantIds');
+    if (field == null) return const [];
+
+    final labels = _labelsForMultiSelectField(field);
+    if (labels.isNotEmpty) return labels;
+
+    if (leaderName != null && leaderName.isNotEmpty) {
+      return [leaderName];
+    }
+    return const [];
+  }
+
+  UnifiedFieldDto? _fieldByKey(String key) {
+    final fields = form?.fields;
+    if (fields == null) return null;
+    for (final field in fields) {
+      if (field.fieldKey == key) return field;
+    }
+    return null;
+  }
+
+  String? _labelForSelectField(UnifiedFieldDto field) {
+    final raw = field.value?.trim();
+    if (raw == null || raw.isEmpty) return null;
+    for (final option in field.options) {
+      if (option.value == raw) {
+        return option.displayText.trim();
+      }
+    }
+    return null;
+  }
+
+  List<String> _labelsForMultiSelectField(UnifiedFieldDto field) {
+    final raw = field.value?.trim();
+    if (raw == null || raw.isEmpty) return const [];
+
+    final parts = UnifiedEntityDetailFields.parseMultiSelectValues(raw);
+    return parts
+        .map((part) {
+          for (final option in field.options) {
+            if (option.value == part) {
+              return option.displayText.trim();
+            }
+          }
+          return '';
+        })
+        .where((label) => label.isNotEmpty)
+        .toList();
   }
 }

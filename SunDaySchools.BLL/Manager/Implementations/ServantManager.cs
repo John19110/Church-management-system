@@ -98,6 +98,14 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 throw new NotFoundException($"Servant with id {servantUpdateDTO.Id} not found.");
 
             _mapper.Map(servantUpdateDTO, existing);
+
+            if (!string.IsNullOrWhiteSpace(servantUpdateDTO.PhoneNumber) &&
+                existing.ApplicationUser != null)
+            {
+                existing.ApplicationUser.PhoneNumber =
+                    servantUpdateDTO.PhoneNumber.Trim().Replace(" ", "");
+            }
+
             await _servantRepository.UpdateAsync(existing);
         }
 

@@ -21,10 +21,12 @@ class ServantsListScreen extends ConsumerWidget {
     final servantsAsync = ref.watch(servantsListProvider);
     final role = ref.watch(currentUserRoleProvider).resolvedRoleOrNull;
     final homeRoute = AuthRoleUtils.routeForRole(role);
-    final currentLocation = GoRouterState.of(context).matchedLocation;
+    // Do NOT read GoRouterState.matchedLocation here. A context.push() updates
+    // the router while this route stays in the stack; rebuilding this ListView
+    // without item keys leaves stale parentData -> viewport semantics crash.
 
     return PopScope(
-      canPop: currentLocation == homeRoute,
+      canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
         context.go(homeRoute);
@@ -79,9 +81,10 @@ class ServantsListScreen extends ConsumerWidget {
                       ? servant.name![0].toUpperCase()
                       : '?';
                   return Card(
+                    key: ValueKey('servant-${servant.id}'),
                     child: ListTile(
                       leading: AppNetworkAvatar(
-                        imageUrl: servant.imageUrl,
+                        imageUrl: servant.displayImageUrl,
                         radius: 20,
                         backgroundColor: const Color(0xFFED8936),
                         placeholder: Text(

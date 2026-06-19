@@ -65,4 +65,9 @@ class AuthRoleUtils {
   /// Admin and SuperAdmin can define custom field attributes per entity.
   static bool canManageCustomFields(String? role) =>
       role == 'admin' || role == 'superadmin';
+
+  static bool canDeleteMeeting(String? role) => role == 'superadmin';
+
+  static bool canDeleteClassroom(String? role) =>
+      role == 'admin' || role == 'superadmin';
 }

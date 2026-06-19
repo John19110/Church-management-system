@@ -98,6 +98,15 @@ namespace SunDaySchools.API.Controllers
             return NoContent();
         }
 
+        [HttpDelete("{id:int}")]
+        [Authorize(Roles = "SuperAdmin")]
+        public async Task<IActionResult> DeleteMeeting(int id)
+        {
+            if (id <= 0) return BadRequest("Meeting id must be a positive integer.");
+            await _meetingManager.DeleteMeetingAsync(id);
+            return NoContent();
+        }
+
 
 
 

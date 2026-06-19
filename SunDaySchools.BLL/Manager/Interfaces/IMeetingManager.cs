@@ -18,6 +18,7 @@ namespace SunDaySchools.BLL.Manager.Interfaces
         Task<List<MeetingReadDTO>> GetVisibleMeetings();
 
         Task UpdateMeeting(int id, MeetingUpdateDto dto, bool generateDefaults = false);
+        Task DeleteMeetingAsync(int id);
 
     }
 }

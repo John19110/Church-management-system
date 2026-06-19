@@ -17,6 +17,7 @@ import '../../unified_form/providers/unified_form_providers.dart';
 import '../../unified_form/widgets/entity_fields_empty_state.dart';
 import '../../unified_form/widgets/unified_entity_detail_header.dart';
 import '../../unified_form/widgets/unified_entity_form.dart';
+import '../models/servant_models.dart';
 import '../providers/servants_providers.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -29,7 +30,6 @@ class ProfileScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final profileAsync = ref.watch(servantProfileProvider);
     final role = ref.watch(currentUserRoleProvider).resolvedRoleOrNull;
-    final isSuperAdmin = role == 'superadmin';
     final homeRoute = AuthRoleUtils.routeForRole(role);
     final themeMode = ref.watch(themeModeProvider);
     final locale = ref.watch(localeProvider);
@@ -53,16 +53,12 @@ class ProfileScreen extends ConsumerWidget {
             return cw.AppErrorWidget(message: l10n.failedToLoadProfile);
           }
 
-          final formAsync = ref.watch(
-            entityFormDataProvider((
-              entity: UnifiedEntityNames.servant,
-              id: profile.id,
-            )),
-          );
+          final formAsync = ref.watch(servantProfileFormDataProvider);
 
           return RefreshIndicator(
             onRefresh: () async {
               ref.invalidate(servantProfileProvider);
+              ref.invalidate(servantProfileFormDataProvider);
               ref.invalidate(
                 entityFormDataProvider((
                   entity: UnifiedEntityNames.servant,
@@ -74,24 +70,40 @@ class ProfileScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(16),
               children: [
                 formAsync.when(
-                  loading: () => const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 24),
-                    child: Center(child: CircularProgressIndicator()),
+                  loading: () => Column(
+                    children: [
+                      UnifiedEntityDetailHeader(
+                        entityName: UnifiedEntityNames.servant,
+                        fields: const [],
+                        imageUrl: profile.displayImageUrl,
+                        avatarRadius: 56,
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 24),
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
+                    ],
                   ),
-                  error: (e, _) => cw.AppErrorWidget(
-                    message: userFriendlyMessage(e, l10n),
-                    onRetry: () => ref.invalidate(
-                      entityFormDataProvider((
-                        entity: UnifiedEntityNames.servant,
-                        id: profile.id,
-                      )),
-                    ),
+                  error: (e, _) => Column(
+                    children: [
+                      UnifiedEntityDetailHeader(
+                        entityName: UnifiedEntityNames.servant,
+                        fields: const [],
+                        imageUrl: profile.displayImageUrl,
+                        avatarRadius: 56,
+                      ),
+                      cw.AppErrorWidget(
+                        message: userFriendlyMessage(e, l10n),
+                        onRetry: () => ref.invalidate(servantProfileFormDataProvider),
+                      ),
+                    ],
                   ),
                   data: (formData) => Column(
                     children: [
                       UnifiedEntityDetailHeader(
                         entityName: UnifiedEntityNames.servant,
                         fields: formData.fields,
+                        imageUrl: profile.displayImageUrl,
                         avatarRadius: 56,
                       ),
                       const SizedBox(height: 16),
@@ -106,7 +118,7 @@ class ProfileScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 8),
                       if (formData.fields.isEmpty)
-                        EntityFieldsEmptyState(
+                        const EntityFieldsEmptyState(
                           entityName: UnifiedEntityNames.servant,
                           canManageDefinitions: false,
                         )
@@ -118,10 +130,8 @@ class ProfileScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                if (isSuperAdmin) ...[
-                  const SizedBox(height: 16),
-                  const _SuperAdminChurchIdCard(),
-                ],
+                const SizedBox(height: 16),
+                _RoleContextCard(profile: profile, role: role),
                 const SizedBox(height: 16),
                 Align(
                   alignment: AlignmentDirectional.centerStart,
@@ -165,6 +175,7 @@ class ProfileScreen extends ConsumerWidget {
                   onPressed: () async {
                     await context.push(AppRoutes.profileEdit);
                     ref.invalidate(servantProfileProvider);
+                    ref.invalidate(servantProfileFormDataProvider);
                     ref.invalidate(
                       entityFormDataProvider((
                         entity: UnifiedEntityNames.servant,
@@ -184,51 +195,109 @@ class ProfileScreen extends ConsumerWidget {
   }
 }
 
-class _SuperAdminChurchIdCard extends ConsumerWidget {
-  const _SuperAdminChurchIdCard();
+/// Account role and church / meeting assignment based on the signed-in user.
+class _RoleContextCard extends StatelessWidget {
+  const _RoleContextCard({
+    required this.profile,
+    required this.role,
+  });
+
+  final ServantProfileDto profile;
+  final String? role;
+
+  static String _roleLabel(AppLocalizations l10n, String? role) {
+    switch (role) {
+      case 'superadmin':
+        return l10n.registerTypeChurchAdmin;
+      case 'admin':
+        return l10n.registerTypeMeetingAdmin;
+      case 'servant':
+        return l10n.registerTypeServant;
+      default:
+        return l10n.notAvailable;
+    }
+  }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final profileAsync = ref.watch(servantProfileProvider);
+    final isSuperAdmin = role == 'superadmin';
+    final showMeeting = role == 'admin' || role == 'servant';
+    final showChurchContext =
+        isSuperAdmin || role == 'admin' || role == 'servant';
 
-    return profileAsync.when(
-      loading: () => const Card(
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Center(child: CircularProgressIndicator()),
-        ),
-      ),
-      error: (_, __) => const SizedBox.shrink(),
-      data: (profile) {
-        final churchPublicId = profile.church?.publicId ?? '';
-        if (churchPublicId.isEmpty) {
-          return const SizedBox.shrink();
-        }
+    final churchName = profile.church?.name?.trim() ?? '';
+    final churchPublicId = profile.church?.publicId.trim() ?? '';
+    final meetingName = profile.meeting?.name?.trim() ?? '';
 
-        final churchIdText = churchPublicId;
+    final churchDisplay =
+        churchName.isNotEmpty ? churchName : l10n.notAvailable;
+    final meetingDisplay =
+        meetingName.isNotEmpty ? meetingName : l10n.notAvailable;
 
-        return Card(
-          child: ListTile(
-            leading: const Icon(Icons.church_outlined),
-            title: Text(l10n.churchIdLabel),
-            subtitle: SelectableText(
-              churchIdText,
+    return Card(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.badge_outlined),
+            title: Text(l10n.requestedRoleLabel),
+            subtitle: Text(
+              _roleLabel(l10n, role),
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
             ),
-            trailing: IconButton(
-              icon: const Icon(Icons.copy),
-              tooltip: l10n.copyLabel,
-              onPressed: () {
-                Clipboard.setData(ClipboardData(text: churchIdText));
-                cw.showSuccessSnackbar(context, l10n.churchIdCopied);
-              },
-            ),
           ),
-        );
-      },
+          if (showChurchContext) ...[
+            const Divider(height: 0),
+            ListTile(
+              leading: const Icon(Icons.church_outlined),
+              title: Text(l10n.churchName),
+              subtitle: Text(
+                churchDisplay,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+            ),
+          ],
+          if (isSuperAdmin && churchPublicId.isNotEmpty) ...[
+            const Divider(height: 0),
+            ListTile(
+              leading: const Icon(Icons.tag_outlined),
+              title: Text(l10n.churchIdLabel),
+              subtitle: SelectableText(
+                churchPublicId,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              trailing: IconButton(
+                icon: const Icon(Icons.copy),
+                tooltip: l10n.copyLabel,
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: churchPublicId));
+                  cw.showSuccessSnackbar(context, l10n.churchIdCopied);
+                },
+              ),
+            ),
+          ],
+          if (showMeeting) ...[
+            const Divider(height: 0),
+            ListTile(
+              leading: const Icon(Icons.groups_outlined),
+              title: Text(l10n.meetingName),
+              subtitle: Text(
+                meetingDisplay,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

@@ -95,8 +95,16 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     entityName);
             }
 
-            var custom = await _customFieldRepository.GetDefinitionsByEntityAsync(entityName)
+            var custom = await _customFieldRepository.GetDefinitionsByEntityAsync(
+                    entityName,
+                    includeInactive: true)
                 ?? Array.Empty<CustomFieldDefinition>();
+
+            var suppressedTemplates = custom
+                .Where(d => !d.IsActive
+                    && EntityDefaultFieldTemplates.IsBuiltInField(entityName, d.Name))
+                .Select(d => d.Name)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
             var fromDb = custom
                 .Where(d => d.IsActive && !d.IsHidden)
@@ -106,7 +114,11 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 .ToList();
 
             var fields = EntityFormSchemaRegistry.FilterForMode(
-                EntityFormSchemaMerger.MergeWithTemplates(fromDb, entityName, mode),
+                EntityFormSchemaMerger.MergeWithTemplates(
+                    fromDb,
+                    entityName,
+                    mode,
+                    suppressedTemplates),
                 entityName,
                 mode).ToList();
 
@@ -167,7 +179,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     builtInValues = new Dictionary<string, string?>();
                 }
 
-                var fields = schema.Fields.Select(def =>
+                var fields = new List<UnifiedFieldDto>();
+                foreach (var def in schema.Fields.Where(ShouldIncludeInFormData))
                 {
                     string? value = null;
                     if (def.CustomFieldDefinitionId is int defId)
@@ -179,7 +192,14 @@ namespace SunDaySchools.BLL.Manager.Implementations
                         value = sqlValue;
                     }
 
-                    return new UnifiedFieldDto
+                    var options = def.Options ?? new List<UnifiedFieldOptionDto>();
+                    if (!string.IsNullOrWhiteSpace(def.LookupEndpoint) &&
+                        !string.IsNullOrWhiteSpace(value))
+                    {
+                        options = await ResolveLookupOptionsAsync(def, value);
+                    }
+
+                    fields.Add(new UnifiedFieldDto
                     {
                         FieldKey = def.FieldKey,
                         DisplayName = def.DisplayName,
@@ -196,10 +216,10 @@ namespace SunDaySchools.BLL.Manager.Implementations
                         ValidationRegex = def.ValidationRegex,
                         LookupEndpoint = def.LookupEndpoint,
                         CustomFieldDefinitionId = def.CustomFieldDefinitionId,
-                        Options = def.Options ?? new List<UnifiedFieldOptionDto>(),
+                        Options = options,
                         Value = value
-                    };
-                }).Where(f => !f.IsHidden).ToList();
+                    });
+                }
 
                 _logger.LogInformation(
                     "GetFormData completed for {Entity} id={EntityId} fieldCount={Count}",
@@ -285,11 +305,19 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
                 if (meta.CustomFieldDefinitionId.HasValue)
                 {
-                    customItems.Add(new CustomFieldValueItemDto
+                    // Built-in fields that sync to SQL columns are persisted there;
+                    // skip duplicate custom-field storage (avoids SingleSelect option
+                    // validation for API-backed lookups like leaderServantId).
+                    var skipCustomStore = meta.IsBuiltIn
+                        && EntityColumnSyncRegistry.CanSyncToEntityTable(entityName, key);
+                    if (!skipCustomStore)
                     {
-                        CustomFieldDefinitionId = meta.CustomFieldDefinitionId.Value,
-                        Value = value
-                    });
+                        customItems.Add(new CustomFieldValueItemDto
+                        {
+                            CustomFieldDefinitionId = meta.CustomFieldDefinitionId.Value,
+                            Value = value
+                        });
+                    }
                 }
 
                 if (EntityColumnSyncRegistry.CanSyncToEntityTable(entityName, key))
@@ -308,6 +336,9 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             try
             {
+                if (columnSyncValues.Count > 0)
+                    await ApplyBuiltInValuesAsync(entityName, entityId, columnSyncValues);
+
                 if (customItems.Count > 0)
                 {
                     await _customFieldManager.SaveEntityValuesAsync(
@@ -319,9 +350,6 @@ namespace SunDaySchools.BLL.Manager.Implementations
                         },
                         requireAllRequiredFields: false);
                 }
-
-                if (columnSyncValues.Count > 0)
-                    await ApplyBuiltInValuesAsync(entityName, entityId, columnSyncValues);
             }
             catch (ValidationException ex)
             {
@@ -376,7 +404,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             SaveEntityFormDto dto,
             int? meetingIdFromRequest = null)
         {
-            var name = ExtractFirstTextValue(dto) ?? "Classroom";
+            var name = ExtractStringFieldValue(dto, "name") ?? "Classroom";
             var meetingId = meetingIdFromRequest ?? ExtractIntFieldValue(dto, "meetingId");
 
             var addDto = new ClassroomAddDTO
@@ -517,7 +545,10 @@ namespace SunDaySchools.BLL.Manager.Implementations
             {
                 ["name"] = c.Name,
                 ["ageOfMembers"] = c.AgeOfMembers,
-                ["leaderServantId"] = c.LeaderServantId?.ToString()
+                ["leaderServantId"] = c.LeaderServantId?.ToString(),
+                ["servantIds"] = c.ClassroomServants?.Count > 0
+                    ? JsonSerializer.Serialize(c.ClassroomServants.Select(cs => cs.ServantId).OrderBy(id => id))
+                    : null
             };
         }
 
@@ -532,9 +563,37 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 ["phoneNumber"] = s.PhoneNumber,
                 ["birthDate"] = s.BirthDate?.ToString("yyyy-MM-dd"),
                 ["joiningDate"] = s.JoiningDate?.ToString("yyyy-MM-dd"),
-                ["classroomId"] = s.ClassroomServants?.FirstOrDefault()?.ClassroomId.ToString(),
-                ["imageUrl"] = s.ImageUrl
+                ["classroomId"] = s.ClassroomServants?.Count > 0
+                    ? string.Join(",", s.ClassroomServants.Select(cs => cs.ClassroomId).OrderBy(id => id))
+                    : null,
+                ["imageUrl"] = ResolveServantImageUrl(s.ImageUrl, s.ImageFileName)
             };
+        }
+
+        private static string? ResolveServantImageUrl(string? imageUrl, string? imageFileName)
+        {
+            if (!string.IsNullOrWhiteSpace(imageUrl))
+                return imageUrl.Trim();
+
+            var fileName = imageFileName?.Trim();
+            if (string.IsNullOrEmpty(fileName))
+                return null;
+
+            if (fileName.Contains("://", StringComparison.Ordinal))
+                return fileName;
+
+            if (fileName.StartsWith('/'))
+                return fileName;
+
+            return $"/uploads/{fileName}";
+        }
+
+        private static bool ShouldIncludeInFormData(UnifiedFieldDefinitionDto def)
+        {
+            if (!def.IsHidden)
+                return true;
+
+            return def.FieldKey.Equals("imageUrl", StringComparison.OrdinalIgnoreCase);
         }
 
         private async Task<IReadOnlyDictionary<string, string?>> LoadMeetingValuesAsync(int id)
@@ -628,6 +687,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
             if (values.TryGetValue("ageOfMembers", out v)) update.AgeOfMembers = v;
             if (values.TryGetValue("leaderServantId", out v)) update.LeaderServantId = EntityFormValueSerializer.ParseInt(v);
             if (values.TryGetValue("meetingId", out v)) update.MeetingId = EntityFormValueSerializer.ParseInt(v);
+            if (values.TryGetValue("servantIds", out v))
+                update.ServantIds = EntityFormValueSerializer.ParseIntList(v) ?? new List<int>();
 
             await _classroomManager.UpdateAsync(id, update);
         }
@@ -672,6 +733,58 @@ namespace SunDaySchools.BLL.Manager.Implementations
                     def.Name);
                 return null;
             }
+        }
+
+        private async Task<List<UnifiedFieldOptionDto>> ResolveLookupOptionsAsync(
+            UnifiedFieldDefinitionDto def,
+            string value)
+        {
+            if (string.IsNullOrWhiteSpace(def.LookupEndpoint))
+                return def.Options ?? new List<UnifiedFieldOptionDto>();
+
+            var ids = ParseLookupIds(def, value);
+            if (ids.Count == 0)
+                return def.Options ?? new List<UnifiedFieldOptionDto>();
+
+            if (def.LookupEndpoint.Contains("Servant", StringComparison.OrdinalIgnoreCase))
+            {
+                var servants = await _servantRepository.GetByIdsAsync(ids);
+                return servants
+                    .Select(s => new UnifiedFieldOptionDto
+                    {
+                        Value = s.Id.ToString(),
+                        DisplayText = string.IsNullOrWhiteSpace(s.Name) ? $"#{s.Id}" : s.Name!
+                    })
+                    .ToList();
+            }
+
+            if (def.LookupEndpoint.Contains("Classroom", StringComparison.OrdinalIgnoreCase))
+            {
+                var classrooms = await _classroomRepository.GetByIdsAsync(ids);
+                return classrooms
+                    .Select(c => new UnifiedFieldOptionDto
+                    {
+                        Value = c.Id.ToString(),
+                        DisplayText = string.IsNullOrWhiteSpace(c.Name) ? $"#{c.Id}" : c.Name!
+                    })
+                    .ToList();
+            }
+
+            return def.Options ?? new List<UnifiedFieldOptionDto>();
+        }
+
+        private static List<int> ParseLookupIds(UnifiedFieldDefinitionDto def, string value)
+        {
+            if (def.DataType == CustomFieldDataType.MultiSelect)
+                return EntityFormValueSerializer.ParseIntList(value) ?? new List<int>();
+
+            var trimmed = value.Trim();
+            if (trimmed.Contains(',') || trimmed.StartsWith('['))
+                return EntityFormValueSerializer.ParseIntList(value) ?? new List<int>();
+
+            return EntityFormValueSerializer.ParseInt(value) is int single && single > 0
+                ? new List<int> { single }
+                : new List<int>();
         }
 
         private static void EnsureEntity(string entityName)

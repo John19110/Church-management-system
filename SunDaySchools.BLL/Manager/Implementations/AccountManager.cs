@@ -27,6 +27,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
         private readonly IChurchRepository _churchRepo;
         private readonly IAdminRepository _adminRepo;
         private readonly IMeetingRepository _meetingRepo;
+        private readonly IClassroomRepository _classroomRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IFileManager _fileManager;
         private readonly IAuthOtpManager _authOtpManager;
@@ -35,7 +36,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
         public AccountManager(UserManager<ApplicationUser>usermagaer, ITokenService tokenService,
             IServantRepository servantRepo, IChurchRepository churchRepo, IAdminRepository adminRepo,
-            IMeetingRepository meetingRepo, IUnitOfWork unitOfWork,IFileManager fileManager,
+            IMeetingRepository meetingRepo, IClassroomRepository classroomRepository, IUnitOfWork unitOfWork,IFileManager fileManager,
             IAuthOtpManager authOtpManager, IPublicIdResolver publicIdResolver)
         {
 
@@ -45,6 +46,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             _servantRepo = servantRepo;
             _adminRepo = adminRepo;
             _meetingRepo = meetingRepo;
+            _classroomRepository = classroomRepository;
             _unitOfWork = unitOfWork;
             _fileManager = fileManager;
             _authOtpManager = authOtpManager;
@@ -634,10 +636,12 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
         private async Task<List<TokenClaimDescriptor>> BuildJwtClaims(ApplicationUser user)
         {
+            var servantProfile = await _servantRepo.GetProfileByApplicationUserIdAsync(user.Id);
+
             var claims = new List<TokenClaimDescriptor>
             {
                 new() { Type = JwtRegisteredClaimNames.Sub, Value = user.Id },
-                new() { Type = ClaimTypes.Name, Value = user.ServantProfile?.Name ?? string.Empty },
+                new() { Type = ClaimTypes.Name, Value = servantProfile?.Name ?? string.Empty },
                 new() { Type = ClaimTypes.MobilePhone, Value = user.PhoneNumber ?? string.Empty },
                 new() { Type = "ChurchId", Value = user.ChurchId?.ToString() ?? string.Empty },
             };
@@ -645,16 +649,18 @@ namespace SunDaySchools.BLL.Manager.Implementations
             if (user.MeetingId.HasValue)
                 claims.Add(new TokenClaimDescriptor { Type = "MeetingId", Value = user.MeetingId.Value.ToString() });
 
-            if (user.ServantProfile?.ClassroomServants?.Any() == true)
+            if (servantProfile != null)
             {
-                var classroomIds = user.ServantProfile.ClassroomServants
-                    .Select(x => x.ClassroomId)
-                    .Distinct();
-                claims.Add(new TokenClaimDescriptor
+                var classroomIds = await _classroomRepository
+                    .GetAccessibleClassroomIdsForServantAsync(servantProfile.Id);
+                if (classroomIds.Count > 0)
                 {
-                    Type = "ClassroomIds",
-                    Value = string.Join(",", classroomIds)
-                });
+                    claims.Add(new TokenClaimDescriptor
+                    {
+                        Type = "ClassroomIds",
+                        Value = string.Join(",", classroomIds)
+                    });
+                }
             }
 
             var roles = await _userManager.GetRolesAsync(user);

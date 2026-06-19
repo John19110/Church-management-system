@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -83,22 +85,41 @@ class _UnifiedEntityFormState extends ConsumerState<UnifiedEntityForm> {
   }
 }
 
+/// Built-in classroom fields shown in a dedicated servants section on the detail screen.
+const kClassroomServantDetailFieldKeys = <String>{
+  'leaderServantId',
+  'servantIds',
+};
+
+/// Servant profile fields managed elsewhere or not user-editable.
+const kServantProfileReadOnlyFieldKeys = <String>{
+  'classroomId',
+  'churchId',
+  'meetingId',
+  'imageUrl',
+};
+
 /// Read-only detail rows from the same unified field list.
 class UnifiedEntityDetailFields extends StatelessWidget {
   final List<UnifiedFieldDto> fields; // built-in + custom values from form-data API
   final String? entityName;
+  final Set<String> excludeFieldKeys;
 
   const UnifiedEntityDetailFields({
     super.key,
     required this.fields,
     this.entityName,
+    this.excludeFieldKeys = const {},
   });
 
   @override
   Widget build(BuildContext context) {
     final visible = visibleUnifiedFields(
       fields,
-      excludeFieldKeys: kUnifiedPhotoFieldKeys,
+      excludeFieldKeys: {
+        ...kUnifiedPhotoFieldKeys,
+        ...excludeFieldKeys,
+      },
     );
 
     if (visible.isEmpty) return const SizedBox.shrink();
@@ -140,6 +161,22 @@ class UnifiedEntityDetailFields extends StatelessWidget {
     }
     if (f.dataType == UnifiedFieldDataType.singleSelect) {
       final raw = f.value!.trim();
+      final parts = raw.contains(',') || raw.startsWith('[')
+          ? UnifiedEntityDetailFields.parseMultiSelectValues(raw)
+          : <String>[raw];
+      if (parts.length > 1) {
+        final labels = parts
+            .map((part) {
+              for (final option in f.options) {
+                if (option.value == part) {
+                  return l10n.formatDigitsIn(option.displayText);
+                }
+              }
+              return LocaleFormat.formatNumericString(part, l10n.locale);
+            })
+            .toList();
+        return labels.isEmpty ? l10n.notAvailable : labels.join(', ');
+      }
       for (final option in f.options) {
         if (option.value == raw) {
           return l10n.formatDigitsIn(option.displayText);
@@ -148,10 +185,7 @@ class UnifiedEntityDetailFields extends StatelessWidget {
       return LocaleFormat.formatNumericString(raw, l10n.locale);
     }
     if (f.dataType == UnifiedFieldDataType.multiSelect) {
-      final labels = f.value!
-          .split(',')
-          .map((part) => part.trim())
-          .where((part) => part.isNotEmpty)
+      final labels = UnifiedEntityDetailFields.parseMultiSelectValues(f.value!)
           .map((part) {
             for (final option in f.options) {
               if (option.value == part) {
@@ -172,5 +206,25 @@ class UnifiedEntityDetailFields extends StatelessWidget {
       return l10n.formatDigitsIn(f.value!);
     }
     return l10n.formatDigitsIn(f.value!);
+  }
+
+  static List<String> parseMultiSelectValues(String raw) {
+    final trimmed = raw.trim();
+    if (trimmed.startsWith('[')) {
+      try {
+        final decoded = jsonDecode(trimmed) as List<dynamic>;
+        return decoded
+            .map((e) => e.toString().trim())
+            .where((part) => part.isNotEmpty)
+            .toList();
+      } catch (_) {
+        return const [];
+      }
+    }
+    return trimmed
+        .split(',')
+        .map((part) => part.trim())
+        .where((part) => part.isNotEmpty)
+        .toList();
   }
 }

@@ -50,6 +50,16 @@ namespace SunDaySchools.DAL.Repository.Implementations
             return definition;
         }
 
+        public async Task<CustomFieldDefinition?> GetTrackedDefinitionByIdAsync(
+            int id, bool includeOptions = true)
+        {
+            IQueryable<CustomFieldDefinition> query = _context.CustomFieldDefinitions;
+            if (includeOptions)
+                query = query.Include(d => d.Options);
+
+            return await query.FirstOrDefaultAsync(d => d.Id == id);
+        }
+
         public async Task<CustomFieldDefinition?> GetDefinitionByNameAsync(string entityName, string name)
         {
             var definition = await _context.CustomFieldDefinitions

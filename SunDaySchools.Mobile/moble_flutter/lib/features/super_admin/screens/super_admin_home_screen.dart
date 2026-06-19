@@ -9,6 +9,7 @@ import '../../auth/utils/auth_session.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../meeting/models/meeting_models.dart';
 import '../../meeting/providers/meeting_providers.dart';
+import '../../meeting/utils/meeting_delete_actions.dart';
 import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
 import '../providers/super_admin_providers.dart';
 
@@ -262,7 +263,26 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen>
                         m.membersCount,
                       ),
                     ),
-                    trailing: const Icon(Icons.chevron_right),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline, color: Colors.red),
+                          tooltip: l10n.deleteMeeting,
+                          onPressed: () {
+                            final meetingId = m.id;
+                            if (meetingId == null || meetingId <= 0) return;
+                            confirmAndDeleteMeeting(
+                              context,
+                              ref,
+                              meetingId: meetingId,
+                              l10n: l10n,
+                            );
+                          },
+                        ),
+                        const Icon(Icons.chevron_right),
+                      ],
+                    ),
                     onTap: () {
                       final meetingId = m.id;
                       if (meetingId == null || meetingId <= 0) return;

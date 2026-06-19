@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -6,6 +7,7 @@ import '../../../core/l10n/app_localizations.dart';
 import '../../../core/models/select_option.dart';
 import '../../../shared/widgets/app_network_avatar.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
+import '../../../core/models/select_option.dart';
 import '../../meeting/providers/meeting_providers.dart';
 import '../models/super_admin_models.dart';
 import '../providers/super_admin_providers.dart';
@@ -22,6 +24,19 @@ class SuperAdminPendingUsersScreen extends ConsumerStatefulWidget {
 
 class _SuperAdminPendingUsersScreenState
     extends ConsumerState<SuperAdminPendingUsersScreen> {
+  /// Defer mounting a [ListView] until after the route push finishes. Mounting
+  /// a new viewport in the same frame as the underlying servants ListView
+  /// rebuild triggers RenderViewportBase.visitChildrenForSemantics crashes.
+  bool _listViewportReady = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() => _listViewportReady = true);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -30,12 +45,15 @@ class _SuperAdminPendingUsersScreenState
     return Scaffold(
       appBar: AppBar(title: Text(l10n.pendingUsers)),
       body: pendingAsync.when(
-        loading: () => const cw.LoadingWidget(),
+        loading: () => const _StaticBodyPlaceholder(),
         error: (e, _) => cw.AppErrorWidget(
           message: userFriendlyMessage(e, l10n),
           onRetry: () => ref.invalidate(pendingChurchUsersProvider),
         ),
         data: (users) {
+          if (!_listViewportReady) {
+            return const _StaticBodyPlaceholder();
+          }
           if (users.isEmpty) {
             return cw.EmptyWidget(
               message: l10n.noPendingUsers,
@@ -48,6 +66,7 @@ class _SuperAdminPendingUsersScreenState
                 ref.invalidate(pendingChurchUsersProvider),
             child: ListView.builder(
               padding: const EdgeInsets.all(12),
+              addRepaintBoundaries: true,
               itemCount: users.length,
               itemBuilder: (context, index) {
                 final user = users[index];
@@ -59,6 +78,23 @@ class _SuperAdminPendingUsersScreenState
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+/// Non-animated placeholder — avoids overlapping animated spinners during route
+/// transitions (Flutter 3.41 viewport semantics).
+class _StaticBodyPlaceholder extends StatelessWidget {
+  const _StaticBodyPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Icon(
+        Icons.pending_actions,
+        size: 40,
+        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
       ),
     );
   }
@@ -164,12 +200,10 @@ class _PendingUserCardState extends ConsumerState<_PendingUserCard> {
                         ? l10n.noPhone
                         : user.phoneNumber,
                   ),
-                  if ((user.meetingAdminPhoneNumber ?? '')
-                      .isNotEmpty)
+                  if ((user.meetingAdminPhoneNumber ?? '').isNotEmpty)
                     _line(context, l10n.meetingAdminPhone,
                         user.meetingAdminPhoneNumber!),
-                  if ((user.requestedChurchPublicId ?? '')
-                      .isNotEmpty)
+                  if ((user.requestedChurchPublicId ?? '').isNotEmpty)
                     _line(context, l10n.publicChurchIdLabel,
                         user.requestedChurchPublicId!),
                   _line(context, l10n.registrationDateLabel,
@@ -180,18 +214,19 @@ class _PendingUserCardState extends ConsumerState<_PendingUserCard> {
           ],
         ),
         const SizedBox(height: 8),
-        // Wrap the button row in a SizedBox to constrain width
-        SizedBox(
-          width: double.infinity,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+        // Row gives horizontal children unbounded width; ElevatedButton.icon
+        // then asserts BoxConstraints(w=Infinity) inside a ListView item (line 224).
+        Align(
+          alignment: AlignmentDirectional.centerEnd,
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 4,
             children: [
               TextButton.icon(
                 icon: const Icon(Icons.close, color: Colors.red),
                 label: Text(l10n.reject),
                 onPressed: _isProcessing ? null : () => _reject(context),
               ),
-              const SizedBox(width: 8),
               ElevatedButton.icon(
                 icon: const Icon(Icons.check),
                 label: Text(l10n.approve),
@@ -227,7 +262,7 @@ class _PendingUserCardState extends ConsumerState<_PendingUserCard> {
 
       List<SelectOption> meetings;
       try {
-        meetings = await ref.read(meetingsForSelectionProvider.future);
+        meetings = await _loadMeetingsForApproval(ref);
       } catch (e) {
         if (context.mounted) {
           cw.showErrorSnackbar(context, userFriendlyMessage(e, l10n));
@@ -237,13 +272,20 @@ class _PendingUserCardState extends ConsumerState<_PendingUserCard> {
 
       if (!context.mounted) return;
 
+      if (kDebugMode) {
+        debugPrint(
+          '[ApproveUser] userId=${user.id} role=${user.role} '
+          'requestedRole=${user.requestedRole} meetings=${meetings.length}',
+        );
+      }
+
       if (meetings.isEmpty) {
         cw.showErrorSnackbar(context, l10n.noMeetingsToAssign);
         return;
       }
 
       final requested =
-      (user.requestedMeetingName ?? '').trim().toLowerCase();
+          (user.requestedMeetingName ?? '').trim().toLowerCase();
 
       int? selectedMeetingId = meetings
           .where((m) => m.name.trim().toLowerCase() == requested)
@@ -264,8 +306,10 @@ class _PendingUserCardState extends ConsumerState<_PendingUserCard> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(user.name,
-                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text(
+                      user.name,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     Text('${l10n.requestedRoleLabel}: ${user.role}'),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<int>(
@@ -277,10 +321,10 @@ class _PendingUserCardState extends ConsumerState<_PendingUserCard> {
                       items: meetings
                           .map(
                             (m) => DropdownMenuItem<int>(
-                          value: m.id,
-                          child: Text(m.name),
-                        ),
-                      )
+                              value: m.id,
+                              child: Text(m.name),
+                            ),
+                          )
                           .toList(),
                       onChanged: (v) =>
                           setState(() => tempSelectedId = v),
@@ -299,8 +343,10 @@ class _PendingUserCardState extends ConsumerState<_PendingUserCard> {
                           ctx,
                           l10n.meetingSelectionRequired,
                         );
+                        selectedMeetingId = null;
                         return;
                       }
+                      selectedMeetingId = tempSelectedId;
                       Navigator.of(ctx).pop(true);
                     },
                     child: Text(l10n.approve),
@@ -331,10 +377,40 @@ class _PendingUserCardState extends ConsumerState<_PendingUserCard> {
     }
   }
 
+  /// Fresh API read for the approval dialog — avoids a cached empty
+  /// [meetingsForSelectionProvider] result from a pre-login fetch.
+  Future<List<SelectOption>> _loadMeetingsForApproval(WidgetRef ref) async {
+    ref.invalidate(meetingsForSelectionProvider);
+    final repo = ref.read(meetingRepositoryProvider);
+
+    final selectOptions = await repo.getForSelection();
+    if (kDebugMode) {
+      debugPrint(
+        '[ApproveUser] GET /api/Meeting/select -> ${selectOptions.length} item(s)',
+      );
+    }
+    if (selectOptions.isNotEmpty) {
+      return selectOptions;
+    }
+
+    // Same church scope as the Super Admin home screen list.
+    final visible = await repo.getVisibleMeetings();
+    if (kDebugMode) {
+      debugPrint(
+        '[ApproveUser] GET /api/Meeting/visible -> ${visible.length} item(s)',
+      );
+    }
+
+    return visible
+        .where((m) => m.id != null && m.id! > 0)
+        .map((m) => SelectOption(id: m.id!, name: m.name?.trim() ?? ''))
+        .toList();
+  }
+
   Future<void> _runApprove(
-      BuildContext context, {
-        required int? meetingId,
-      }) async {
+    BuildContext context, {
+    required int? meetingId,
+  }) async {
     final l10n = AppLocalizations.of(context);
     final user = widget.user;
 
@@ -417,9 +493,9 @@ class _PendingUserCardState extends ConsumerState<_PendingUserCard> {
       final reason = reasonController.text.trim();
 
       await ref.read(superAdminRepositoryProvider).rejectUser(
-        user.id,
-        reason: reason.isEmpty ? null : reason,
-      );
+            user.id,
+            reason: reason.isEmpty ? null : reason,
+          );
 
       if (mounted) {
         ref.invalidate(pendingChurchUsersProvider);

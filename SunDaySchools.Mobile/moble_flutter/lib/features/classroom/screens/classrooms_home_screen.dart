@@ -12,6 +12,7 @@ import '../../custom_field/providers/custom_field_cache_providers.dart';
 import '../../unified_form/models/unified_form_models.dart';
 import '../models/classroom_models.dart';
 import '../providers/classroom_providers.dart';
+import '../../meeting/utils/meeting_delete_actions.dart';
 
 class ClassroomsHomeScreen extends ConsumerStatefulWidget {
   /// When false, no [AppBar] is shown so this screen can be embedded under a
@@ -68,6 +69,10 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen>
     final homeRoute = AuthRoleUtils.routeForRole(role);
     final currentLocation = GoRouterState.of(context).matchedLocation;
     final canAddClassroom = role == 'admin' || role == 'superadmin';
+    final canDeleteMeeting =
+        AuthRoleUtils.canDeleteMeeting(role) &&
+        widget.meetingId != null &&
+        widget.meetingId! > 0;
     final title = widget.meetingName?.trim().isNotEmpty == true
         ? '${l10n.classrooms} — ${widget.meetingName}'
         : l10n.classroomsHome;
@@ -236,6 +241,34 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen>
                       onPressed: _openAddClassroom,
                       icon: const Icon(Icons.add),
                       label: Text(l10n.addClassroom),
+                    ),
+                  ),
+                ),
+              ),
+            if (canDeleteMeeting)
+              SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () => confirmAndDeleteMeeting(
+                        context,
+                        ref,
+                        meetingId: widget.meetingId!,
+                        l10n: l10n,
+                        onDeleted: () => context.go(homeRoute),
+                      ),
+                      icon: const Icon(Icons.delete_outline, color: Colors.red),
+                      label: Text(
+                        l10n.deleteMeeting,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.red),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
                     ),
                   ),
                 ),

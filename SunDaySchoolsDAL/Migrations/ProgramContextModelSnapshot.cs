@@ -886,6 +886,15 @@ namespace SunDaySchools.DAL.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("ApprovalDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ApprovedByUserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateOnly?>("BirthDate")
+                        .HasColumnType("date");
+
                     b.Property<int?>("ChurchId")
                         .HasColumnType("int");
 
@@ -903,6 +912,12 @@ namespace SunDaySchools.DAL.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<string>("ImageFileName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsApproved")
                         .HasColumnType("bit");
 
@@ -911,11 +926,17 @@ namespace SunDaySchools.DAL.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
 
+                    b.Property<DateOnly?>("JoiningDate")
+                        .HasColumnType("date");
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("MeetingAdminPhoneNumber")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("MeetingId")
                         .HasColumnType("int");
@@ -936,6 +957,21 @@ namespace SunDaySchools.DAL.Migrations
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
+
+                    b.Property<int>("RegistrationStatus")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RejectionReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("RequestedChurchId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RequestedMeetingName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RequestedRole")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");

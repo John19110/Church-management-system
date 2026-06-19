@@ -14,6 +14,7 @@ class UnifiedEntityPhotoPicker extends StatelessWidget {
   final File? pickedFile;
   final VoidCallback onPick;
   final double radius;
+  final String? imageUrl;
 
   const UnifiedEntityPhotoPicker({
     super.key,
@@ -21,6 +22,7 @@ class UnifiedEntityPhotoPicker extends StatelessWidget {
     required this.pickedFile,
     required this.onPick,
     this.radius = 48,
+    this.imageUrl,
   });
 
   @override
@@ -38,7 +40,8 @@ class UnifiedEntityPhotoPicker extends StatelessWidget {
                     backgroundImage: FileImage(pickedFile!),
                   )
                 : AppNetworkAvatar(
-                    imageUrl: photoUrlFromFields(fields),
+                    imageUrl: imageUrl ?? photoUrlFromFields(fields),
+                    debugTag: 'entity-photo-picker',
                     radius: radius,
                     placeholder: Icon(Icons.camera_alt, size: radius * 0.75),
                   ),

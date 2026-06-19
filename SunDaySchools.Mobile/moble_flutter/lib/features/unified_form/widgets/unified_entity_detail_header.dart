@@ -10,24 +10,28 @@ class UnifiedEntityDetailHeader extends StatelessWidget {
   final String entityName;
   final List<UnifiedFieldDto> fields;
   final double avatarRadius;
+  final String? imageUrl;
 
   const UnifiedEntityDetailHeader({
     super.key,
     required this.entityName,
     required this.fields,
     this.avatarRadius = 48,
+    this.imageUrl,
   });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final title = unifiedDisplayTitle(entityName, fields, l10n: l10n);
-    final imageUrl = photoUrlFromFields(fields);
+    final resolvedImageUrl =
+        imageUrl?.trim().isNotEmpty == true ? imageUrl!.trim() : photoUrlFromFields(fields);
 
     return Column(
       children: [
         AppNetworkAvatar(
-          imageUrl: imageUrl,
+          imageUrl: resolvedImageUrl,
+          debugTag: 'entity-detail-$entityName',
           radius: avatarRadius,
           backgroundColor: const Color(0xFF4299E1),
           placeholder: Text(

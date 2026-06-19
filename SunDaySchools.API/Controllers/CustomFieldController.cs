@@ -93,6 +93,14 @@ namespace SunDaySchools.API.Controllers
             return Ok(new { message = "Field deactivated." });
         }
 
+        [HttpPost("definitions/{id:int}/activate")]
+        [Authorize(Policy = CustomFieldPolicies.ManageDefinitions)]
+        public async Task<IActionResult> ActivateDefinition(int id)
+        {
+            await _customFieldManager.ActivateDefinitionAsync(id);
+            return Ok(new { message = "Field activated." });
+        }
+
         [HttpGet("definitions/{id:int}/check-type-change")]
         [Authorize(Policy = CustomFieldPolicies.ManageDefinitions)]
         public async Task<ActionResult<CustomFieldTypeChangeCheckDto>> CheckTypeChange(

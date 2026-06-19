@@ -47,6 +47,8 @@ namespace SunDaySchools.BLL.AutoMapper
             CreateMap<Classroom, ClassroomReadDTO>()
                 .ForMember(d => d.Servants,
                     o => o.MapFrom(s => s.ClassroomServants.Select(cs => cs.Servant)))
+                .ForMember(d => d.LeaderServantName,
+                    o => o.MapFrom(s => s.LeaderServant != null ? s.LeaderServant.Name : null))
                 .ForMember(d => d.PastAttendanceSessionsCount,
                     o => o.MapFrom(s => s.AttendanceHistory != null ? s.AttendanceHistory.Count : 0));
 

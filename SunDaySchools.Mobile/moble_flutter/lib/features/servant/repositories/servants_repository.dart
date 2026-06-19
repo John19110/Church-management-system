@@ -5,6 +5,7 @@ import '../../../core/api/select_api.dart';
 import '../../../core/constants/app_constants.dart';
 import '../models/servant_models.dart';
 import '../../../core/models/select_option.dart';
+import '../../unified_form/models/unified_form_models.dart';
 
 class ServantsRepository {
   final Dio _dio;
@@ -47,7 +48,24 @@ class ServantsRepository {
     });
   }
 
-  Future<void> updateProfile({
+  Future<EntityFormDataDto> getProfileFormData() async {
+    return apiCall(() async {
+      final response = await _dio.get('${AppConstants.servantProfileEndpoint}/form-data');
+      return EntityFormDataDto.fromJson(response.data as Map<String, dynamic>);
+    });
+  }
+
+  Future<void> saveProfileFormData(SaveEntityFormDto dto) async {
+    return apiCall(() async {
+      await _dio.put(
+        '${AppConstants.servantProfileEndpoint}/form-data',
+        data: dto.toJson(),
+        options: Options(contentType: Headers.jsonContentType),
+      );
+    });
+  }
+
+  Future<ServantProfileDto?> updateProfile({
     String? name,
     String? phoneNumber,
     String? birthDate,
@@ -69,7 +87,7 @@ class ServantsRepository {
         if (meetingId != null) 'MeetingId': meetingId.toString(),
         if (image != null)
           'Image': await MultipartFile.fromFile(image.path,
-              filename: image.path.split('/').last),
+              filename: image.path.split(Platform.pathSeparator).last),
       };
 
       final ids = (classroomIds ?? const <int>[])
@@ -79,10 +97,16 @@ class ServantsRepository {
         map['ClassroomIds[$i]'] = ids[i].toString();
       }
 
-      await _dio.put(
+      final response = await _dio.put(
         AppConstants.servantProfileEndpoint,
         data: FormData.fromMap(map),
       );
+
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        return ServantProfileDto.fromJson(data);
+      }
+      return null;
     });
   }
 

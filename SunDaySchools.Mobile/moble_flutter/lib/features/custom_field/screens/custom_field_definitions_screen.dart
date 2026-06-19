@@ -175,8 +175,10 @@ class _CustomFieldDefinitionsScreenState
                       ...systemFields.map(
                         (def) => FieldDefinitionCard(
                           definition: def,
-                          onTap: () => _openEdit(def),
-                          onLongPress: def.isDeletable
+                          onTap: () => def.isActive
+                              ? _openEdit(def)
+                              : _confirmReactivate(def),
+                          onLongPress: def.isActive && def.isDeletable
                               ? () => _confirmDeactivate(def)
                               : null,
                         ),
@@ -195,8 +197,12 @@ class _CustomFieldDefinitionsScreenState
                       ...customFields.map(
                         (def) => FieldDefinitionCard(
                           definition: def,
-                          onTap: () => _openEdit(def),
-                          onLongPress: () => _confirmDeactivate(def),
+                          onTap: () => def.isActive
+                              ? _openEdit(def)
+                              : _confirmReactivate(def),
+                          onLongPress: def.isActive
+                              ? () => _confirmDeactivate(def)
+                              : null,
                         ),
                       ),
                     ],
@@ -238,10 +244,47 @@ class _CustomFieldDefinitionsScreenState
     );
     if (ok != true) return;
 
-    await ref.read(customFieldRepositoryProvider).deactivateDefinition(def.id);
-    refreshEntityFormsAfterDefinitionChange(ref, widget.entityName);
-    if (mounted) {
-      showSuccessSnackbar(context, l10n.fieldDeactivated);
+    try {
+      await ref.read(customFieldRepositoryProvider).deactivateDefinition(def.id);
+      refreshEntityFormsAfterDefinitionChange(ref, widget.entityName);
+      if (mounted) {
+        showSuccessSnackbar(context, l10n.fieldDeactivated);
+      }
+    } catch (e) {
+      if (mounted) {
+        showErrorSnackbar(
+          context,
+          userFriendlyMessage(e, l10n),
+        );
+      }
+    }
+  }
+
+  Future<void> _confirmReactivate(CustomFieldDefinitionReadDto def) async {
+    final l10n = AppLocalizations.of(context);
+    final ok = await showConfirmDialog(
+      context,
+      title: l10n.reactivateField,
+      content: l10n.reactivateFieldConfirm(
+        localizedFieldDisplayLabel(def, l10n),
+      ),
+      confirmText: l10n.reactivate,
+    );
+    if (ok != true) return;
+
+    try {
+      await ref.read(customFieldRepositoryProvider).activateDefinition(def.id);
+      refreshEntityFormsAfterDefinitionChange(ref, widget.entityName);
+      if (mounted) {
+        showSuccessSnackbar(context, l10n.fieldActivated);
+      }
+    } catch (e) {
+      if (mounted) {
+        showErrorSnackbar(
+          context,
+          userFriendlyMessage(e, l10n),
+        );
+      }
     }
   }
 }

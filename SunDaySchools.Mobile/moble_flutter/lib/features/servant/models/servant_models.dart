@@ -39,6 +39,9 @@ class ServantReadDto {
     this.classrooms = const [],
   });
 
+  String? get displayImageUrl =>
+      servantDisplayImageUrl(imageUrl: imageUrl, imageFileName: imageFileName);
+
   factory ServantReadDto.fromJson(Map<String, dynamic> json) => ServantReadDto(
         id: json['id'] as int? ?? 0,
         imageFileName: json['imageFileName'] as String?,
@@ -53,6 +56,29 @@ class ServantReadDto {
                 .toList() ??
             [],
       );
+}
+
+String? servantDisplayImageUrl({
+  String? imageUrl,
+  String? imageFileName,
+}) {
+  final rawUrl = imageUrl?.trim();
+  if (rawUrl != null && rawUrl.isNotEmpty) {
+    return rawUrl;
+  }
+
+  final fileName = imageFileName?.trim();
+  if (fileName == null || fileName.isEmpty) {
+    return null;
+  }
+
+  if (fileName.contains('://')) {
+    return fileName;
+  }
+  if (fileName.startsWith('/')) {
+    return fileName;
+  }
+  return '/uploads/$fileName';
 }
 
 class NamedEntityDto {
@@ -97,6 +123,8 @@ class ServantProfileDto {
     this.meeting,
     this.classrooms = const [],
   });
+
+  String? get displayImageUrl => servantDisplayImageUrl(imageUrl: imageUrl);
 
   factory ServantProfileDto.fromJson(Map<String, dynamic> json) => ServantProfileDto(
         id: json['id'] as int? ?? 0,

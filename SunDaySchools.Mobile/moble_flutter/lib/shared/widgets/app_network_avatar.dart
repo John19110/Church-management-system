@@ -7,10 +7,20 @@ import '../../core/storage/token_storage.dart';
 String? resolveApiImageUrl(String? raw) {
   final url = raw?.trim();
   if (url == null || url.isEmpty) return null;
-  final lower = url.toLowerCase();
-  if (lower.startsWith('http://') || lower.startsWith('https://')) return url;
 
-  // API sometimes returns relative paths like "/images/x.jpg" or "uploads/x.jpg"
+  final lower = url.toLowerCase();
+  if (lower.startsWith('http://') || lower.startsWith('https://')) {
+    final uri = Uri.tryParse(url);
+    if (uri != null && uri.hasScheme && uri.path.isNotEmpty) {
+      final path = uri.path;
+      // Rebase stored absolute URLs onto the configured API host (emulators/dev).
+      if (path.startsWith('/uploads/') || path.startsWith('/images/')) {
+        return '${AppConstants.baseUrl}$path';
+      }
+    }
+    return url;
+  }
+
   if (url.startsWith('/')) return '${AppConstants.baseUrl}$url';
   return '${AppConstants.baseUrl}/$url';
 }
@@ -21,7 +31,7 @@ Map<String, String>? authImageHeaders() {
   return {'Authorization': 'Bearer $token'};
 }
 
-class AppNetworkAvatar extends StatelessWidget {
+class AppNetworkAvatar extends StatefulWidget {
   final String? imageUrl;
   final double radius;
   final Color backgroundColor;
@@ -38,72 +48,53 @@ class AppNetworkAvatar extends StatelessWidget {
     this.debugTag,
   });
 
-  Widget _placeholderBox() {
-    return Container(
-      color: backgroundColor,
-      alignment: Alignment.center,
-      child: placeholder,
-    );
+  @override
+  State<AppNetworkAvatar> createState() => _AppNetworkAvatarState();
+}
+
+class _AppNetworkAvatarState extends State<AppNetworkAvatar> {
+  bool _loadFailed = false;
+
+  @override
+  void didUpdateWidget(covariant AppNetworkAvatar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.imageUrl != widget.imageUrl) {
+      _loadFailed = false;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final resolved = resolveApiImageUrl(imageUrl);
-    final size = radius * 2;
+    final resolved = _loadFailed ? null : resolveApiImageUrl(widget.imageUrl);
 
-    if (kDebugMode && debugTag != null) {
+    if (kDebugMode && widget.debugTag != null) {
       debugPrint(
-        '[AppNetworkAvatar:$debugTag] raw=${imageUrl ?? 'null'} resolved=${resolved ?? 'null'}',
+        '[AppNetworkAvatar:${widget.debugTag}] raw=${widget.imageUrl ?? 'null'} '
+        'resolved=${resolved ?? 'null'} failed=$_loadFailed',
       );
     }
 
-    if (resolved == null) {
-      return ExcludeSemantics(
-        child: CircleAvatar(
-          radius: radius,
-          backgroundColor: backgroundColor,
-          child: placeholder,
-        ),
-      );
-    }
-
-    // Decorative avatars must not participate in semantics. Keep a STABLE widget
-    // tree (Stack + opacity fade) — loadingBuilder child swaps inside a ListView
-    // leave parentData dirty during RenderViewportBase.visitChildrenForSemantics
-    // (Flutter 3.41: '!semantics.parentDataDirty' / geometry! null).
+    // Do not pass [placeholder] as [CircleAvatar.child] when an image is set —
+    // the child paints on top of [backgroundImage] and hides the photo.
     return ExcludeSemantics(
-      child: ClipOval(
-        child: SizedBox(
-          width: size,
-          height: size,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              _placeholderBox(),
-              Image.network(
-                resolved,
-                headers: authImageHeaders(),
-                fit: BoxFit.cover,
-                excludeFromSemantics: true,
-                gaplessPlayback: true,
-                frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-                  final visible =
-                      frame != null || wasSynchronouslyLoaded;
-                  return Opacity(opacity: visible ? 1 : 0, child: child);
-                },
-                errorBuilder: (_, error, ___) {
-                  if (kDebugMode && debugTag != null) {
-                    debugPrint(
-                      '[AppNetworkAvatar:$debugTag] load failed url=$resolved error=$error',
-                    );
-                  }
-                  // Placeholder underneath stays visible; do not swap subtree.
-                  return const SizedBox.shrink();
-                },
-              ),
-            ],
-          ),
-        ),
+      child: CircleAvatar(
+        radius: widget.radius,
+        backgroundColor: widget.backgroundColor,
+        backgroundImage: resolved != null
+            ? NetworkImage(resolved, headers: authImageHeaders())
+            : null,
+        onBackgroundImageError: resolved == null
+            ? null
+            : (_, error) {
+                if (kDebugMode && widget.debugTag != null) {
+                  debugPrint(
+                    '[AppNetworkAvatar:${widget.debugTag}] load failed '
+                    'url=$resolved error=$error',
+                  );
+                }
+                if (mounted) setState(() => _loadFailed = true);
+              },
+        child: resolved == null ? widget.placeholder : null,
       ),
     );
   }
