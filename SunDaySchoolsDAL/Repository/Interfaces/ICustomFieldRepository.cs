@@ -5,7 +5,11 @@ namespace SunDaySchools.DAL.Repository.Interfaces
     public interface ICustomFieldRepository
     {
         Task<IReadOnlyList<CustomFieldDefinition>> GetDefinitionsByEntityAsync(
-            string entityName, bool includeInactive = false);
+            string entityName, bool includeInactive = false, bool includePermanentlyDeleted = false);
+
+        Task<HashSet<string>> GetDefinitionNamesByEntityAsync(string entityName);
+
+        Task<HashSet<string>> GetPermanentlyDeletedDefinitionNamesByEntityAsync(string entityName);
 
         Task<CustomFieldDefinition?> GetDefinitionByIdAsync(int id, bool includeOptions = true);
 
@@ -23,6 +27,8 @@ namespace SunDaySchools.DAL.Repository.Interfaces
             string entityName, bool includeInactive = false);
 
         Task DeleteDefinitionAsync(int id);
+
+        Task TombstoneDefinitionAsync(int id);
 
         Task<IReadOnlyList<CustomFieldValue>> GetValuesAsync(string entityName, int entityId);
         Task<CustomFieldValue?> GetValueAsync(int definitionId, string entityName, int entityId);

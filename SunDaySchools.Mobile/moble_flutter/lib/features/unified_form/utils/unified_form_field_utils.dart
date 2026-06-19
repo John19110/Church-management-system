@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/field_labels/system_field_labels.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../custom_field/utils/field_display_label.dart';
 import '../models/unified_form_models.dart';
 
 /// Built-in photo field synced to legacy `imageUrl` column (shown via photo picker, not text field).
@@ -81,18 +82,44 @@ String unifiedDetailInitial(
   return '?';
 }
 
-/// Localized label for built-in fields; custom fields keep API [displayName].
+/// Localized label for built-in and custom fields from API display names.
 String unifiedFieldLabel(
   UnifiedFieldDefinitionDto field, {
   String? entityName,
   AppLocalizations? l10n,
 }) {
   final loc = l10n ?? AppLocalizations.forLocale(const Locale('en'));
+
+  if (field.customFieldDefinitionId != null && field.customFieldDefinitionId! > 0) {
+    return localizedDisplayNamePair(
+      displayName: field.displayName,
+      displayNameAr: field.displayNameAr,
+      l10n: loc,
+      fallbackKey: field.fieldKey,
+    );
+  }
+
+  final dbLabel = localizedDisplayNamePair(
+    displayName: field.displayName,
+    displayNameAr: field.displayNameAr,
+    l10n: loc,
+    fallbackKey: '',
+  );
+  if (dbLabel.isNotEmpty) {
+    return dbLabel;
+  }
+
   if (entityName != null) {
     final localized = systemFieldLabel(loc, entityName, field.fieldKey);
     if (localized != null && localized.isNotEmpty) return localized;
   }
-  return field.displayName;
+
+  return localizedDisplayNamePair(
+    displayName: field.displayName,
+    displayNameAr: field.displayNameAr,
+    l10n: loc,
+    fallbackKey: field.fieldKey,
+  );
 }
 
 /// Localized placeholder for built-in fields when the API sends English.

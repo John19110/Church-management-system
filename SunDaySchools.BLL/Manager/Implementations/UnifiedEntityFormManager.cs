@@ -97,21 +97,17 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             var custom = await _customFieldRepository.GetDefinitionsByEntityAsync(
                     entityName,
-                    includeInactive: true)
+                    includeInactive: true,
+                    includePermanentlyDeleted: true)
                 ?? Array.Empty<CustomFieldDefinition>();
 
-            var suppressedTemplates = custom
-                .Where(d => !d.IsActive
-                    && EntityDefaultFieldTemplates.IsBuiltInField(entityName, d.Name))
-                .Select(d => d.Name)
-                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var suppressedTemplates = EntityActiveFieldSchemaBuilder.BuildSuppressedTemplateKeys(
+                entityName,
+                custom);
 
-            var fromDb = custom
-                .Where(d => d.IsActive && !d.IsHidden)
-                .Select(SafeToUnifiedField)
-                .Where(f => f != null)
-                .Cast<UnifiedFieldDefinitionDto>()
-                .ToList();
+            var fromDb = EntityActiveFieldSchemaBuilder.BuildActiveUnifiedFields(
+                custom,
+                SafeToUnifiedField);
 
             var fields = EntityFormSchemaRegistry.FilterForMode(
                 EntityFormSchemaMerger.MergeWithTemplates(
@@ -199,26 +195,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                         options = await ResolveLookupOptionsAsync(def, value);
                     }
 
-                    fields.Add(new UnifiedFieldDto
-                    {
-                        FieldKey = def.FieldKey,
-                        DisplayName = def.DisplayName,
-                        Description = def.Description,
-                        DataType = def.DataType,
-                        IsRequired = def.IsRequired,
-                        IsBuiltIn = def.IsBuiltIn,
-                        IsReadOnly = def.IsReadOnly,
-                        IsHidden = def.IsHidden,
-                        SortOrder = def.SortOrder,
-                        AllowMultipleValues = def.AllowMultipleValues,
-                        DefaultValue = def.DefaultValue,
-                        Placeholder = def.Placeholder,
-                        ValidationRegex = def.ValidationRegex,
-                        LookupEndpoint = def.LookupEndpoint,
-                        CustomFieldDefinitionId = def.CustomFieldDefinitionId,
-                        Options = options,
-                        Value = value
-                    });
+                    fields.Add(ToUnifiedFieldDto(def, value, options));
                 }
 
                 _logger.LogInformation(
@@ -717,6 +694,32 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             await _meetingManager.UpdateMeeting(id, update);
         }
+
+        private static UnifiedFieldDto ToUnifiedFieldDto(
+            UnifiedFieldDefinitionDto def,
+            string? value,
+            List<UnifiedFieldOptionDto> options) =>
+            new()
+            {
+                FieldKey = def.FieldKey,
+                DisplayName = def.DisplayName,
+                DisplayNameAr = def.DisplayNameAr,
+                Description = def.Description,
+                DataType = def.DataType,
+                IsRequired = def.IsRequired,
+                IsBuiltIn = def.IsBuiltIn,
+                IsReadOnly = def.IsReadOnly,
+                IsHidden = def.IsHidden,
+                SortOrder = def.SortOrder,
+                AllowMultipleValues = def.AllowMultipleValues,
+                DefaultValue = def.DefaultValue,
+                Placeholder = def.Placeholder,
+                ValidationRegex = def.ValidationRegex,
+                LookupEndpoint = def.LookupEndpoint,
+                CustomFieldDefinitionId = def.CustomFieldDefinitionId,
+                Options = options,
+                Value = value,
+            };
 
         private UnifiedFieldDefinitionDto? SafeToUnifiedField(CustomFieldDefinition def)
         {

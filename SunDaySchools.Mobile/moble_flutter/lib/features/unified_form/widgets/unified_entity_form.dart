@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/l10n/locale_format.dart';
+import '../../../shared/widgets/locale_date_text.dart';
 import '../models/unified_form_models.dart';
 import '../utils/unified_form_controller.dart';
 import '../utils/unified_form_field_utils.dart';
@@ -85,12 +86,6 @@ class _UnifiedEntityFormState extends ConsumerState<UnifiedEntityForm> {
   }
 }
 
-/// Built-in classroom fields shown in a dedicated servants section on the detail screen.
-const kClassroomServantDetailFieldKeys = <String>{
-  'leaderServantId',
-  'servantIds',
-};
-
 /// Servant profile fields managed elsewhere or not user-editable.
 const kServantProfileReadOnlyFieldKeys = <String>{
   'classroomId',
@@ -142,13 +137,34 @@ class UnifiedEntityDetailFields extends StatelessWidget {
                       l10n: AppLocalizations.of(context),
                     ),
                   ),
-                  subtitle: Text(_formatValue(f, context)),
+                  subtitle: _buildDetailValue(context, f),
                 ),
               )
               .toList(),
         ),
       ),
     );
+  }
+
+  Widget _buildDetailValue(BuildContext context, UnifiedFieldDto f) {
+    final l10n = AppLocalizations.of(context);
+    if (f.value == null || f.value!.trim().isEmpty) {
+      return Text(l10n.notAvailable);
+    }
+    if (f.dataType == UnifiedFieldDataType.date) {
+      return LocaleDateText(
+        value: f.value,
+        locale: l10n.locale,
+      );
+    }
+    if (f.dataType == UnifiedFieldDataType.dateTime) {
+      return LocaleDateText(
+        value: f.value,
+        locale: l10n.locale,
+        includeTime: true,
+      );
+    }
+    return Text(_formatValue(f, context));
   }
 
   String _formatValue(UnifiedFieldDto f, BuildContext context) {
@@ -200,10 +216,6 @@ class UnifiedEntityDetailFields extends StatelessWidget {
     if (f.dataType == UnifiedFieldDataType.number ||
         f.dataType == UnifiedFieldDataType.decimal) {
       return LocaleFormat.formatNumericString(f.value!, l10n.locale);
-    }
-    if (f.dataType == UnifiedFieldDataType.date ||
-        f.dataType == UnifiedFieldDataType.dateTime) {
-      return l10n.formatDigitsIn(f.value!);
     }
     return l10n.formatDigitsIn(f.value!);
   }

@@ -28,6 +28,16 @@ CustomFieldDataType unifiedDataTypeToCustom(UnifiedFieldDataType type) {
   }
 }
 
+bool isEntityNameFieldKey(String fieldKey) {
+  switch (fieldKey.toLowerCase()) {
+    case 'name':
+    case 'name1':
+      return true;
+    default:
+      return false;
+  }
+}
+
 CustomFieldDefinitionReadDto customFieldFromUnifiedField(
   UnifiedFieldDefinitionDto field,
   String entityName,
@@ -48,7 +58,8 @@ CustomFieldDefinitionReadDto customFieldFromUnifiedField(
     validationRegex: field.validationRegex,
     isBuiltIn: field.isBuiltIn,
     isSystemField: field.isBuiltIn,
-    isDeletable: !field.isBuiltIn,
+    isDeletable: !isEntityNameFieldKey(field.fieldKey),
+    isPermanentDeletable: !isEntityNameFieldKey(field.fieldKey),
   );
 }
 

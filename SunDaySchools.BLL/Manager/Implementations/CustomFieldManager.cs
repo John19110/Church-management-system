@@ -68,10 +68,26 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             try
             {
-                var definitions = await _repository.GetDefinitionsByEntityAsync(entityName, includeInactive: true)
+                var allDefinitions = await _repository.GetDefinitionsByEntityAsync(
+                        entityName,
+                        includeInactive: true,
+                        includePermanentlyDeleted: true)
                     ?? Array.Empty<CustomFieldDefinition>();
+
+                var permanentlyDeletedNames = allDefinitions
+                    .Where(d => d.IsPermanentlyDeleted)
+                    .Select(d => d.Name)
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+                var definitions = allDefinitions
+                    .Where(d => !d.IsPermanentlyDeleted)
+                    .ToList();
+
                 var dtos = CustomFieldDefinitionReadMapper.ToReadDtoList(definitions);
-                var merged = EntityDefaultFieldTemplates.MergeDefinitionDtos(entityName, dtos);
+                var merged = EntityDefaultFieldTemplates.MergeDefinitionDtos(
+                    entityName,
+                    dtos,
+                    permanentlyDeletedNames);
 
                 if (merged.Any(d => d.IsBuiltIn && d.Id <= 0))
                 {
@@ -82,10 +98,26 @@ namespace SunDaySchools.BLL.Manager.Implementations
                         _tenantContext,
                         _currentUser);
 
-                    definitions = await _repository.GetDefinitionsByEntityAsync(entityName, includeInactive: true)
+                    allDefinitions = await _repository.GetDefinitionsByEntityAsync(
+                            entityName,
+                            includeInactive: true,
+                            includePermanentlyDeleted: true)
                         ?? Array.Empty<CustomFieldDefinition>();
+
+                    permanentlyDeletedNames = allDefinitions
+                        .Where(d => d.IsPermanentlyDeleted)
+                        .Select(d => d.Name)
+                        .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+                    definitions = allDefinitions
+                        .Where(d => !d.IsPermanentlyDeleted)
+                        .ToList();
+
                     dtos = CustomFieldDefinitionReadMapper.ToReadDtoList(definitions);
-                    merged = EntityDefaultFieldTemplates.MergeDefinitionDtos(entityName, dtos);
+                    merged = EntityDefaultFieldTemplates.MergeDefinitionDtos(
+                        entityName,
+                        dtos,
+                        permanentlyDeletedNames);
                 }
 
                 if (!includeInactive)
@@ -168,6 +200,9 @@ namespace SunDaySchools.BLL.Manager.Implementations
             var entity = _mapper.Map<CustomFieldDefinition>(dto);
             entity.Name = fieldName;
             entity.DisplayName = dto.DisplayName.Trim();
+            entity.DisplayNameAr = string.IsNullOrWhiteSpace(dto.DisplayNameAr)
+                ? null
+                : dto.DisplayNameAr.Trim();
             entity.EntityName = dto.EntityName.Trim();
             entity.CreatedAt = DateTime.UtcNow;
             entity.CreatedBy = await GetCurrentUserIdAsync();
@@ -221,6 +256,11 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 });
             }
 
+            if (EntityDefaultFieldTemplates.IsCriticalField(definition.EntityName, definition.Name))
+            {
+                ValidateCriticalFieldUpdate(definition, dto);
+            }
+
             if (EntityDefaultFieldTemplates.IsBuiltInField(definition.EntityName, definition.Name)
                 && dto.DataType.HasValue
                 && dto.DataType.Value != definition.DataType)
@@ -247,6 +287,13 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             if (!string.IsNullOrWhiteSpace(dto.DisplayName))
                 definition.DisplayName = dto.DisplayName.Trim();
+
+            if (dto.DisplayNameAr != null)
+            {
+                definition.DisplayNameAr = string.IsNullOrWhiteSpace(dto.DisplayNameAr)
+                    ? null
+                    : dto.DisplayNameAr.Trim();
+            }
 
             if (dto.Description != null)
                 definition.Description = dto.Description;
@@ -347,14 +394,34 @@ namespace SunDaySchools.BLL.Manager.Implementations
             }
 
             if (EntityDefaultFieldTemplates.IsBuiltInField(definition.EntityName, definition.Name))
-            {
-                throw new ValidationException(new Dictionary<string, string[]>
-                {
-                    ["name"] = new[] { "System fields cannot be permanently deleted. Deactivate the field instead." }
-                });
-            }
+                await _repository.TombstoneDefinitionAsync(id);
+            else
+                await _repository.DeleteDefinitionAsync(id);
+        }
 
-            await _repository.DeleteDefinitionAsync(id);
+        private static void ValidateCriticalFieldUpdate(
+            CustomFieldDefinition definition,
+            CustomFieldDefinitionUpdateDto dto)
+        {
+            var errors = new Dictionary<string, string[]>();
+
+            if (dto.DataType.HasValue && dto.DataType.Value != definition.DataType)
+                errors["dataType"] = new[] { "The entity name field data type cannot be changed." };
+
+            if (dto.IsRequired.HasValue && dto.IsRequired.Value != definition.IsRequired)
+                errors["isRequired"] = new[] { "The entity name field required flag cannot be changed." };
+
+            if (dto.IsReadOnly.HasValue && dto.IsReadOnly.Value != definition.IsReadOnly)
+                errors["isReadOnly"] = new[] { "The entity name field read-only flag cannot be changed." };
+
+            if (dto.IsHidden.HasValue && dto.IsHidden.Value != definition.IsHidden)
+                errors["isHidden"] = new[] { "The entity name field visibility cannot be changed." };
+
+            if (dto.IsActive.HasValue && dto.IsActive.Value != definition.IsActive)
+                errors["isActive"] = new[] { "The entity name field cannot be deactivated." };
+
+            if (errors.Count > 0)
+                throw new ValidationException(errors);
         }
 
         public async Task<CustomFieldTypeChangeCheckDto> CheckDataTypeChangeAsync(int id, CustomFieldDataType newDataType)
@@ -411,16 +478,20 @@ namespace SunDaySchools.BLL.Manager.Implementations
             var values = await _repository.GetValuesAsync(entityName, entityId);
 
             var valueDtos = values
-                .Where(v => v.Definition != null && v.Definition.IsActive)
-                .Select(v => new CustomFieldValueReadDto
+                .Where(v => definitions.Any(d => d.Id == v.CustomFieldDefinitionId))
+                .Select(v =>
                 {
-                    CustomFieldDefinitionId = v.CustomFieldDefinitionId,
-                    Name = v.Definition!.Name,
-                    DisplayName = v.Definition.DisplayName,
-                    DataType = v.Definition.DataType,
-                    Value = v.Value,
-                    IsReadOnly = v.Definition.IsReadOnly,
-                    IsHidden = v.Definition.IsHidden
+                    var def = definitions.First(d => d.Id == v.CustomFieldDefinitionId);
+                    return new CustomFieldValueReadDto
+                    {
+                        CustomFieldDefinitionId = v.CustomFieldDefinitionId,
+                        Name = def.Name,
+                        DisplayName = def.DisplayName,
+                        DataType = def.DataType,
+                        Value = v.Value,
+                        IsReadOnly = def.IsReadOnly,
+                        IsHidden = def.IsHidden
+                    };
                 })
                 .ToList();
 
@@ -428,7 +499,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             {
                 EntityName = entityName,
                 EntityId = entityId,
-                Definitions = _mapper.Map<List<CustomFieldDefinitionReadDto>>(definitions),
+                Definitions = CustomFieldDefinitionReadMapper.ToReadDtoList(definitions.ToList()),
                 Values = valueDtos
             };
         }

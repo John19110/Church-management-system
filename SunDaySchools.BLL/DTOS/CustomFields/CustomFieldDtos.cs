@@ -15,6 +15,7 @@ namespace SunDaySchools.BLL.DTOS.CustomFields
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string DisplayName { get; set; } = string.Empty;
+        public string? DisplayNameAr { get; set; }
         public string? Description { get; set; }
         public string EntityName { get; set; } = string.Empty;
         public CustomFieldDataType DataType { get; set; }
@@ -62,6 +63,7 @@ namespace SunDaySchools.BLL.DTOS.CustomFields
     {
         public string Name { get; set; } = string.Empty;
         public string DisplayName { get; set; } = string.Empty;
+        public string? DisplayNameAr { get; set; }
         public string? Description { get; set; }
         public string EntityName { get; set; } = string.Empty;
         public CustomFieldDataType DataType { get; set; }
@@ -82,6 +84,7 @@ namespace SunDaySchools.BLL.DTOS.CustomFields
     public class CustomFieldDefinitionUpdateDto
     {
         public string DisplayName { get; set; } = string.Empty;
+        public string? DisplayNameAr { get; set; }
         public string? Description { get; set; }
         public CustomFieldDataType? DataType { get; set; }
         public bool? IsRequired { get; set; }

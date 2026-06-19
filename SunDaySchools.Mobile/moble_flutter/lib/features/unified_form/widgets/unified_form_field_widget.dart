@@ -206,13 +206,9 @@ class UnifiedFormFieldWidget extends StatelessWidget {
         );
 
       case UnifiedFieldDataType.dateTime:
-        return AppTextField(
+        return AppDateTimeField(
           controller: controller.controllerFor(field.fieldKey),
           label: label,
-          readOnly: true,
-          onTap: effectiveReadOnly
-              ? null
-              : () => _pickDateTime(context, field.fieldKey),
           validator: validator,
         );
 
@@ -233,23 +229,5 @@ class UnifiedFormFieldWidget extends StatelessWidget {
           validator: validator,
         );
     }
-  }
-
-  Future<void> _pickDateTime(BuildContext context, String fieldKey) async {
-    final c = controller.controllerFor(fieldKey);
-    final date = await showDatePicker(
-      context: context,
-      initialDate: DateTime.tryParse(c.text) ?? DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime(2100),
-    );
-    if (date == null || !context.mounted) return;
-    final time = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(DateTime.tryParse(c.text) ?? DateTime.now()),
-    );
-    if (time == null) return;
-    final combined = DateTime(date.year, date.month, date.day, time.hour, time.minute);
-    c.text = combined.toUtc().toIso8601String();
   }
 }

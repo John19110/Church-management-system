@@ -41,15 +41,21 @@ class ClassroomDetailScreen extends ConsumerWidget {
     }
 
     final membersAsync = ref.watch(membersByClassroomProvider(classroomId));
-    final formAsync = ref.watch(
-      entityFormDataProvider((entity: UnifiedEntityNames.classroom, id: classroomId)),
+    final formQuery = (
+      entity: UnifiedEntityNames.classroom,
+      id: classroomId,
     );
+    final formAsync = ref.watch(entityFormDataProvider(formQuery));
     final role = ref.watch(currentUserRoleProvider).resolvedRoleOrNull;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
-    Future<void> refreshMembers() async {
+    Future<void> refreshClassroom() async {
       ref.invalidate(membersByClassroomProvider(classroomId));
-      await ref.read(membersByClassroomProvider(classroomId).future);
+      ref.invalidate(entityFormDataProvider(formQuery));
+      await Future.wait([
+        ref.read(membersByClassroomProvider(classroomId).future),
+        ref.read(entityFormDataProvider(formQuery).future),
+      ]);
     }
 
     final appBarTitle = formAsync.maybeWhen(
@@ -78,12 +84,7 @@ class ClassroomDetailScreen extends ConsumerWidget {
                 '/custom-fields/values/Classroom/$classroomId',
               );
               if (updated == true) {
-                ref.invalidate(
-                  entityFormDataProvider((
-                    entity: UnifiedEntityNames.classroom,
-                    id: classroomId,
-                  )),
-                );
+                ref.invalidate(entityFormDataProvider(formQuery));
               }
             },
           ),
@@ -98,6 +99,7 @@ class ClassroomDetailScreen extends ConsumerWidget {
                     ref,
                     UnifiedEntityNames.classroom,
                   );
+                  ref.invalidate(entityFormDataProvider(formQuery));
                 }
               },
             ),
@@ -138,7 +140,7 @@ class ClassroomDetailScreen extends ConsumerWidget {
         children: [
           Expanded(
             child: RefreshIndicator(
-              onRefresh: refreshMembers,
+              onRefresh: refreshClassroom,
               child: CustomScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
@@ -150,26 +152,6 @@ class ClassroomDetailScreen extends ConsumerWidget {
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
-                      ),
-                    ),
-                  ),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: formAsync.when(
-                        loading: () => _ClassroomServantsCard(
-                          classroom: classroom,
-                          l10n: l10n,
-                        ),
-                        error: (_, __) => _ClassroomServantsCard(
-                          classroom: classroom,
-                          l10n: l10n,
-                        ),
-                        data: (form) => _ClassroomServantsCard(
-                          classroom: classroom,
-                          form: form,
-                          l10n: l10n,
-                        ),
                       ),
                     ),
                   ),
@@ -199,7 +181,6 @@ class ClassroomDetailScreen extends ConsumerWidget {
                           return UnifiedEntityDetailFields(
                             fields: form.fields,
                             entityName: UnifiedEntityNames.classroom,
-                            excludeFieldKeys: kClassroomServantDetailFieldKeys,
                           );
                         },
                       ),
@@ -405,143 +386,5 @@ class ClassroomDetailScreen extends ConsumerWidget {
         ];
       },
     );
-  }
-}
-
-class _ClassroomServantsCard extends StatelessWidget {
-  final ClassroomReadDto classroom;
-  final EntityFormDataDto? form;
-  final AppLocalizations l10n;
-
-  const _ClassroomServantsCard({
-    required this.classroom,
-    this.form,
-    required this.l10n,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final leaderName = _resolveLeaderName();
-    final assignedNames = _resolveAssignedNames(leaderName);
-
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.servants,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            ListTile(
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-              title: Text(l10n.leaderServantLabel),
-              subtitle: Text(
-                leaderName ?? l10n.notAvailable,
-                style: leaderName == null
-                    ? TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      )
-                    : null,
-              ),
-            ),
-            const Divider(height: 16),
-            Text(
-              l10n.assignedServantsLabel,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
-            ),
-            const SizedBox(height: 4),
-            if (assignedNames.isEmpty)
-              Text(
-                l10n.noServantsAssigned,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              )
-            else
-              ...assignedNames.map(
-                (name) => Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text('• ${l10n.formatDigitsIn(name)}'),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String? _resolveLeaderName() {
-    final fromDto = classroom.leaderServantName?.trim();
-    if (fromDto != null && fromDto.isNotEmpty) return fromDto;
-
-    final field = _fieldByKey('leaderServantId');
-    if (field == null) return null;
-    return _labelForSelectField(field);
-  }
-
-  List<String> _resolveAssignedNames(String? leaderName) {
-    final fromDto = classroom.servantNames
-        .map((n) => n.trim())
-        .where((n) => n.isNotEmpty)
-        .toList();
-    if (fromDto.isNotEmpty) return fromDto;
-
-    final field = _fieldByKey('servantIds');
-    if (field == null) return const [];
-
-    final labels = _labelsForMultiSelectField(field);
-    if (labels.isNotEmpty) return labels;
-
-    if (leaderName != null && leaderName.isNotEmpty) {
-      return [leaderName];
-    }
-    return const [];
-  }
-
-  UnifiedFieldDto? _fieldByKey(String key) {
-    final fields = form?.fields;
-    if (fields == null) return null;
-    for (final field in fields) {
-      if (field.fieldKey == key) return field;
-    }
-    return null;
-  }
-
-  String? _labelForSelectField(UnifiedFieldDto field) {
-    final raw = field.value?.trim();
-    if (raw == null || raw.isEmpty) return null;
-    for (final option in field.options) {
-      if (option.value == raw) {
-        return option.displayText.trim();
-      }
-    }
-    return null;
-  }
-
-  List<String> _labelsForMultiSelectField(UnifiedFieldDto field) {
-    final raw = field.value?.trim();
-    if (raw == null || raw.isEmpty) return const [];
-
-    final parts = UnifiedEntityDetailFields.parseMultiSelectValues(raw);
-    return parts
-        .map((part) {
-          for (final option in field.options) {
-            if (option.value == part) {
-              return option.displayText.trim();
-            }
-          }
-          return '';
-        })
-        .where((label) => label.isNotEmpty)
-        .toList();
   }
 }

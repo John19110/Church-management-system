@@ -82,6 +82,7 @@ class CustomFieldDefinitionReadDto {
   final int id;
   final String name;
   final String displayName;
+  final String? displayNameAr;
   final String? description;
   final String entityName;
   final CustomFieldDataType dataType;
@@ -104,6 +105,7 @@ class CustomFieldDefinitionReadDto {
     required this.id,
     required this.name,
     required this.displayName,
+    this.displayNameAr,
     this.description,
     required this.entityName,
     required this.dataType,
@@ -129,6 +131,7 @@ class CustomFieldDefinitionReadDto {
       id: _readInt(json['id']),
       name: json['name'] as String? ?? '',
       displayName: json['displayName'] as String? ?? '',
+      displayNameAr: json['displayNameAr'] as String?,
       description: json['description'] as String?,
       entityName: json['entityName'] as String? ?? '',
       dataType: CustomFieldDataType.fromString(json['dataType'] as String?),
@@ -152,9 +155,8 @@ class CustomFieldDefinitionReadDto {
           false,
       isDeletable: json['isDeletable'] as bool? ?? true,
       isPermanentDeletable: json['isPermanentDeletable'] as bool? ??
-          (!(json['isBuiltIn'] as bool? ??
-              json['isSystemField'] as bool? ??
-              false)),
+          json['isDeletable'] as bool? ??
+          true,
     );
   }
 }
@@ -163,6 +165,7 @@ class CustomFieldDefinitionCreateDto {
   /// Optional; server generates from [displayName] when omitted.
   final String? name;
   final String displayName;
+  final String? displayNameAr;
   final String? description;
   final String entityName;
   final String dataType;
@@ -180,6 +183,7 @@ class CustomFieldDefinitionCreateDto {
   const CustomFieldDefinitionCreateDto({
     this.name,
     required this.displayName,
+    this.displayNameAr,
     this.description,
     required this.entityName,
     required this.dataType,
@@ -198,6 +202,8 @@ class CustomFieldDefinitionCreateDto {
   Map<String, dynamic> toJson() => {
         if (name != null && name!.trim().isNotEmpty) 'name': name!.trim(),
         'displayName': displayName,
+        if (displayNameAr != null && displayNameAr!.trim().isNotEmpty)
+          'displayNameAr': displayNameAr!.trim(),
         if (description != null) 'description': description,
         'entityName': entityName,
         'dataType': dataType,
@@ -215,6 +221,7 @@ class CustomFieldDefinitionCreateDto {
 
 class CustomFieldDefinitionUpdateDto {
   final String displayName;
+  final String? displayNameAr;
   final String? dataType;
   final bool? isRequired;
   final bool? isActive;
@@ -228,6 +235,7 @@ class CustomFieldDefinitionUpdateDto {
 
   const CustomFieldDefinitionUpdateDto({
     required this.displayName,
+    this.displayNameAr,
     this.dataType,
     this.isRequired,
     this.isActive,
@@ -242,6 +250,7 @@ class CustomFieldDefinitionUpdateDto {
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{'displayName': displayName};
+    if (displayNameAr != null) map['displayNameAr'] = displayNameAr;
     if (dataType != null) map['dataType'] = dataType;
     if (isRequired != null) map['isRequired'] = isRequired;
     if (isActive != null) map['isActive'] = isActive;

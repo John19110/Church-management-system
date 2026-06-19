@@ -7,16 +7,16 @@ import '../utils/field_display_label.dart';
 class FieldDefinitionCard extends StatelessWidget {
   final CustomFieldDefinitionReadDto definition;
   final VoidCallback? onTap;
-  final VoidCallback? onLongPress;
   final VoidCallback? onDeactivate;
+  final VoidCallback? onReactivate;
   final VoidCallback? onDeletePermanently;
 
   const FieldDefinitionCard({
     super.key,
     required this.definition,
     this.onTap,
-    this.onLongPress,
     this.onDeactivate,
+    this.onReactivate,
     this.onDeletePermanently,
   });
 
@@ -34,7 +34,6 @@ class FieldDefinitionCard extends StatelessWidget {
           : null,
       child: ListTile(
         onTap: onTap,
-        onLongPress: onLongPress,
         title: Row(
           children: [
             Expanded(
@@ -67,7 +66,9 @@ class FieldDefinitionCard extends StatelessWidget {
             ),
             const SizedBox(height: 2),
             Text(
-              definition.isRequired ? l10n.fieldStatusRequired : l10n.fieldStatusOptional,
+              definition.isRequired
+                  ? l10n.fieldStatusRequired
+                  : l10n.fieldStatusOptional,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: definition.isRequired
                     ? theme.colorScheme.error
@@ -96,42 +97,83 @@ class FieldDefinitionCard extends StatelessWidget {
   }
 
   Widget _buildTrailing(AppLocalizations l10n, ThemeData theme) {
-    final hasMenu = definition.isActive &&
-        (onDeactivate != null || onDeletePermanently != null);
+    final menuItems = <PopupMenuEntry<String>>[];
 
-    if (hasMenu) {
-      return PopupMenuButton<String>(
-        onSelected: (value) {
-          switch (value) {
-            case 'deactivate':
-              onDeactivate?.call();
-              break;
-            case 'delete':
-              onDeletePermanently?.call();
-              break;
-          }
-        },
-        itemBuilder: (context) => [
-          if (onDeactivate != null && definition.isDeletable)
-            PopupMenuItem(
-              value: 'deactivate',
-              child: Text(l10n.deactivate),
-            ),
-          if (onDeletePermanently != null && definition.isPermanentDeletable)
-            PopupMenuItem(
-              value: 'delete',
-              child: Text(
-                l10n.deletePermanently,
-                style: TextStyle(color: theme.colorScheme.error),
-              ),
-            ),
-        ],
+    if (definition.isActive &&
+        onDeactivate != null &&
+        definition.isDeletable) {
+      menuItems.add(
+        PopupMenuItem(
+          value: 'deactivate',
+          child: Row(
+            children: [
+              const Icon(Icons.visibility_off_outlined, size: 20),
+              const SizedBox(width: 12),
+              Text(l10n.deactivate),
+            ],
+          ),
+        ),
       );
     }
 
-    return Icon(
-      definition.isActive ? Icons.chevron_right : Icons.visibility_off,
-      color: definition.isActive ? null : theme.colorScheme.outline,
+    if (!definition.isActive && onReactivate != null) {
+      menuItems.add(
+        PopupMenuItem(
+          value: 'reactivate',
+          child: Row(
+            children: [
+              const Icon(Icons.visibility_outlined, size: 20),
+              const SizedBox(width: 12),
+              Text(l10n.reactivate),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (onDeletePermanently != null && definition.isDeletable) {
+      menuItems.add(
+        PopupMenuItem(
+          value: 'delete',
+          child: Row(
+            children: [
+              Icon(Icons.delete_forever_outlined,
+                  size: 20, color: theme.colorScheme.error),
+              const SizedBox(width: 12),
+              Text(
+                l10n.deletePermanently,
+                style: TextStyle(color: theme.colorScheme.error),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (menuItems.isEmpty) {
+      return Icon(
+        definition.isActive ? Icons.chevron_right : Icons.visibility_off,
+        color: definition.isActive ? null : theme.colorScheme.outline,
+      );
+    }
+
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.more_vert),
+      tooltip: l10n.fieldMoreOptions,
+      onSelected: (value) {
+        switch (value) {
+          case 'deactivate':
+            onDeactivate?.call();
+            break;
+          case 'reactivate':
+            onReactivate?.call();
+            break;
+          case 'delete':
+            onDeletePermanently?.call();
+            break;
+        }
+      },
+      itemBuilder: (context) => menuItems,
     );
   }
 }

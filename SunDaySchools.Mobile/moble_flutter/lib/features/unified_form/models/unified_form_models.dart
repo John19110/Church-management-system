@@ -65,6 +65,7 @@ class UnifiedFieldOptionDto {
 class UnifiedFieldDefinitionDto {
   final String fieldKey;
   final String displayName;
+  final String? displayNameAr;
   final String? description;
   final UnifiedFieldDataType dataType;
   final bool isRequired;
@@ -83,6 +84,7 @@ class UnifiedFieldDefinitionDto {
   const UnifiedFieldDefinitionDto({
     required this.fieldKey,
     required this.displayName,
+    this.displayNameAr,
     this.description,
     required this.dataType,
     this.isRequired = false,
@@ -104,6 +106,7 @@ class UnifiedFieldDefinitionDto {
     return UnifiedFieldDefinitionDto(
       fieldKey: json['fieldKey'] as String? ?? '',
       displayName: json['displayName'] as String? ?? '',
+      displayNameAr: json['displayNameAr'] as String?,
       description: json['description'] as String?,
       dataType: UnifiedFieldDataType.fromString(json['dataType'] as String?),
       isRequired: json['isRequired'] as bool? ?? false,
@@ -130,6 +133,7 @@ class UnifiedFieldDto extends UnifiedFieldDefinitionDto {
   const UnifiedFieldDto({
     required super.fieldKey,
     required super.displayName,
+    super.displayNameAr,
     super.description,
     required super.dataType,
     super.isRequired,
@@ -152,6 +156,7 @@ class UnifiedFieldDto extends UnifiedFieldDefinitionDto {
     return UnifiedFieldDto(
       fieldKey: def.fieldKey,
       displayName: def.displayName,
+      displayNameAr: def.displayNameAr,
       description: def.description,
       dataType: def.dataType,
       isRequired: def.isRequired,

@@ -58,6 +58,34 @@ namespace SunDaySchools.API.Infrastructure
                 logger.LogCritical(ex, "Registration approval schema repair failed. API will not work until columns exist.");
                 throw;
             }
+
+            try
+            {
+                EnsureCustomFieldDefinitionColumns(db, logger);
+                logger.LogInformation("Custom field definition schema verification/repair completed successfully.");
+            }
+            catch (Exception ex)
+            {
+                logger.LogCritical(ex, "Custom field definition schema repair failed. API will not work until columns exist.");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Adds bilingual display name and permanent-delete columns to
+        /// <c>CustomFieldDefinitions</c> when missing (shared hosting may lack the EF migration).
+        /// </summary>
+        private static void EnsureCustomFieldDefinitionColumns(ProgramContext db, ILogger logger)
+        {
+            const string table = "CustomFieldDefinitions";
+
+            EnsureColumn(db, logger, table, "DisplayNameAr", "nvarchar(256) NULL");
+            EnsureColumn(
+                db,
+                logger,
+                table,
+                "IsPermanentlyDeleted",
+                "bit NOT NULL CONSTRAINT [DF_CustomFieldDefinitions_IsPermanentlyDeleted] DEFAULT(0)");
         }
 
         /// <summary>

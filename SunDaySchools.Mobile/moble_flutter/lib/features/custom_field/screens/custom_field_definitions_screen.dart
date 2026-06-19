@@ -167,7 +167,11 @@ class _CustomFieldDefinitionsScreenState
                       ...inactive.map(
                         (def) => FieldDefinitionCard(
                           definition: def,
-                          onTap: () => _confirmReactivate(def),
+                          onTap: () => _openEdit(def),
+                          onReactivate: () => _confirmReactivate(def),
+                          onDeletePermanently: def.isDeletable
+                              ? () => _confirmDeletePermanently(def)
+                              : null,
                         ),
                       ),
                     ],
@@ -185,10 +189,9 @@ class _CustomFieldDefinitionsScreenState
     return FieldDefinitionCard(
       definition: def,
       onTap: () => _openEdit(def),
-      onLongPress: def.isDeletable ? () => _confirmDeactivate(def) : null,
       onDeactivate:
           def.isDeletable ? () => _confirmDeactivate(def) : null,
-      onDeletePermanently: def.isPermanentDeletable
+      onDeletePermanently: def.isDeletable
           ? () => _confirmDeletePermanently(def)
           : null,
     );
@@ -262,7 +265,7 @@ class _CustomFieldDefinitionsScreenState
 
   Future<void> _confirmDeletePermanently(CustomFieldDefinitionReadDto def) async {
     final l10n = AppLocalizations.of(context);
-    if (!def.isPermanentDeletable) {
+    if (!def.isDeletable) {
       showErrorSnackbar(context, l10n.systemFieldCannotDelete);
       return;
     }

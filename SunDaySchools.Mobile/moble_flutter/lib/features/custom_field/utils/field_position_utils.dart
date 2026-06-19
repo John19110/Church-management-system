@@ -13,19 +13,37 @@ List<CustomFieldDefinitionReadDto> sortedActiveProvisionedFields(
   return list;
 }
 
+int positionOptionCount({
+  required bool isCreate,
+  required List<CustomFieldDefinitionReadDto> sortedActive,
+}) {
+  final activeCount = sortedActive.length;
+  if (isCreate) {
+    return activeCount + 1;
+  }
+  return activeCount > 0 ? activeCount : 1;
+}
+
+int clampFieldPosition(int position, int positionCount) =>
+    position.clamp(1, positionCount);
+
 int currentFieldPosition(
   CustomFieldDefinitionReadDto field,
   List<CustomFieldDefinitionReadDto> sortedActive,
 ) {
   final index = sortedActive.indexWhere((d) => d.id == field.id);
-  return index < 0 ? sortedActive.length + 1 : index + 1;
-}
+  if (index >= 0) {
+    return index + 1;
+  }
 
-int positionOptionCount({
-  required bool isCreate,
-  required List<CustomFieldDefinitionReadDto> sortedActive,
-}) =>
-    isCreate ? sortedActive.length + 1 : sortedActive.length;
+  if (sortedActive.isEmpty) {
+    return 1;
+  }
+
+  final rank =
+      sortedActive.where((d) => d.sortOrder < field.sortOrder).length + 1;
+  return rank.clamp(1, sortedActive.length);
+}
 
 String fieldAppearancePositionLabel(
   AppLocalizations l10n,

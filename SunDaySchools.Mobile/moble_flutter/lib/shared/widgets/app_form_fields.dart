@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/l10n/app_localizations.dart';
+import '../../core/l10n/locale_format.dart';
 
 /// Styled text field for forms.
 class AppTextField extends StatelessWidget {
@@ -105,7 +106,7 @@ class _AppDateFieldState extends State<AppDateField> {
     final raw = widget.controller.text.trim();
     if (raw.isEmpty) return '';
     final l10n = AppLocalizations.of(context);
-    return l10n.formatDigitsIn(raw);
+    return l10n.formatDate(raw);
   }
 
   void _syncDisplay() {
@@ -117,9 +118,12 @@ class _AppDateFieldState extends State<AppDateField> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return TextFormField(
       controller: _displayController,
       readOnly: true,
+      textDirection: LocaleFormat.textDirectionFor(l10n.locale),
+      textAlign: LocaleFormat.textAlignFor(l10n.locale),
       validator: (_) => widget.validator?.call(widget.controller.text),
       decoration: InputDecoration(
         labelText: widget.label,
@@ -139,6 +143,117 @@ class _AppDateFieldState extends State<AppDateField> {
           _syncDisplay();
         }
       },
+    );
+  }
+}
+
+/// A date-time picker form field (stores ISO-8601; displays locale format).
+class AppDateTimeField extends StatefulWidget {
+  final TextEditingController controller;
+  final String label;
+  final String? Function(String?)? validator;
+
+  const AppDateTimeField({
+    super.key,
+    required this.controller,
+    required this.label,
+    this.validator,
+  });
+
+  @override
+  State<AppDateTimeField> createState() => _AppDateTimeFieldState();
+}
+
+class _AppDateTimeFieldState extends State<AppDateTimeField> {
+  late final TextEditingController _displayController;
+
+  @override
+  void initState() {
+    super.initState();
+    _displayController = TextEditingController();
+    widget.controller.addListener(_syncDisplay);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncDisplay();
+  }
+
+  @override
+  void didUpdateWidget(covariant AppDateTimeField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.removeListener(_syncDisplay);
+      widget.controller.addListener(_syncDisplay);
+      _syncDisplay();
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_syncDisplay);
+    _displayController.dispose();
+    super.dispose();
+  }
+
+  String _displayText() {
+    final raw = widget.controller.text.trim();
+    if (raw.isEmpty) return '';
+    final l10n = AppLocalizations.of(context);
+    return l10n.formatDateTime(raw);
+  }
+
+  void _syncDisplay() {
+    final next = _displayText();
+    if (_displayController.text != next) {
+      _displayController.text = next;
+    }
+  }
+
+  Future<void> _pickDateTime() async {
+    final c = widget.controller;
+    final date = await showDatePicker(
+      context: context,
+      initialDate: DateTime.tryParse(c.text) ?? DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2100),
+    );
+    if (date == null || !mounted) return;
+
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(
+        DateTime.tryParse(c.text) ?? DateTime.now(),
+      ),
+    );
+    if (time == null) return;
+
+    final combined = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      time.hour,
+      time.minute,
+    );
+    c.text = combined.toUtc().toIso8601String();
+    _syncDisplay();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return TextFormField(
+      controller: _displayController,
+      readOnly: true,
+      textDirection: LocaleFormat.textDirectionFor(l10n.locale),
+      textAlign: LocaleFormat.textAlignFor(l10n.locale),
+      validator: (_) => widget.validator?.call(widget.controller.text),
+      decoration: InputDecoration(
+        labelText: widget.label,
+        suffixIcon: const Icon(Icons.calendar_today),
+      ),
+      onTap: _pickDateTime,
     );
   }
 }

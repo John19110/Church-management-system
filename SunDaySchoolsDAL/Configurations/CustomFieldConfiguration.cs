@@ -14,6 +14,7 @@ namespace SunDaySchoolsDAL.Configurations
 
             builder.Property(x => x.Name).HasMaxLength(128).IsRequired();
             builder.Property(x => x.DisplayName).HasMaxLength(256).IsRequired();
+            builder.Property(x => x.DisplayNameAr).HasMaxLength(256);
             builder.Property(x => x.Description).HasMaxLength(2000);
             builder.Property(x => x.EntityName).HasMaxLength(64).IsRequired();
             builder.Property(x => x.DataType)

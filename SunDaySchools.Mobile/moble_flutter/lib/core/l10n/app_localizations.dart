@@ -439,6 +439,7 @@ class AppLocalizations {
   String deleteFieldPermanentlyConfirm(String name) =>
       _t('deleteFieldPermanentlyConfirm').replaceAll('{name}', name);
   String get deletePermanently => _t('deletePermanently');
+  String get fieldMoreOptions => _t('fieldMoreOptions');
   String get fieldDeletedPermanently => _t('fieldDeletedPermanently');
   String get systemFieldCannotDelete => _t('systemFieldCannotDelete');
   String get placeholderLabel => _t('placeholderLabel');
@@ -453,6 +454,8 @@ class AppLocalizations {
   String get editCustomField => _t('editCustomField');
   String get newCustomField => _t('newCustomField');
   String get displayNameLabel => _t('displayNameLabel');
+  String get displayNameEnglishLabel => _t('displayNameEnglishLabel');
+  String get displayNameArabicLabel => _t('displayNameArabicLabel');
   String get displayNameRequired => _t('displayNameRequired');
   String get fieldTypeLabel => _t('fieldTypeLabel');
   String get fieldRequiredLabel => _t('fieldRequiredLabel');
@@ -570,6 +573,13 @@ class AppLocalizations {
 
   /// Localizes Western digits inside arbitrary text (ages, IDs in labels, etc.).
   String formatDigitsIn(String text) => LocaleFormat.digitsIn(text, locale);
+
+  /// Locale-aware date preview (short date, correct reading direction).
+  String formatDate(String? raw) => LocaleFormat.formatDateString(raw, locale);
+
+  /// Locale-aware date-time preview.
+  String formatDateTime(String? raw) =>
+      LocaleFormat.formatDateTimeString(raw, locale);
 
   String memberNumberLabel(int id) =>
       _t('memberNumber').replaceAll('{id}', formatInteger(id));
@@ -997,9 +1007,10 @@ class AppLocalizations {
       'deleteFieldPermanentlyConfirm':
           'This will permanently delete "{name}" and all saved values. This action cannot be undone.',
       'deletePermanently': 'Delete permanently',
+      'fieldMoreOptions': 'Field options',
       'fieldDeletedPermanently': 'Field deleted permanently',
       'systemFieldCannotDelete':
-          'System fields cannot be permanently deleted. Deactivate the field instead.',
+          'The entity name field cannot be permanently deleted.',
       'placeholderLabel': 'Placeholder',
       'validationRegexLabel': 'Validation pattern (regex)',
       'editSystemField': 'Edit system field',
@@ -1013,6 +1024,8 @@ class AppLocalizations {
       'editCustomField': 'Edit custom field',
       'newCustomField': 'New custom field',
       'displayNameLabel': 'Display name',
+      'displayNameEnglishLabel': 'Display name (English)',
+      'displayNameArabicLabel': 'Display name (Arabic)',
       'displayNameRequired': 'Display name is required',
       'fieldTypeLabel': 'Field type',
       'fieldRequiredLabel': 'Required',
@@ -1500,9 +1513,10 @@ class AppLocalizations {
       'deleteFieldPermanentlyConfirm':
           'سيؤدي هذا إلى حذف "{name}" وجميع القيم المحفوظة نهائياً. لا يمكن التراجع عن هذا الإجراء.',
       'deletePermanently': 'حذف نهائي',
+      'fieldMoreOptions': 'خيارات الحقل',
       'fieldDeletedPermanently': 'تم حذف الحقل نهائياً',
       'systemFieldCannotDelete':
-          'لا يمكن حذف حقول النظام نهائياً. يمكنك إلغاء تفعيل الحقل بدلاً من ذلك.',
+          'لا يمكن حذف حقل اسم الكيان نهائياً.',
       'placeholderLabel': 'نص توضيحي',
       'validationRegexLabel': 'نمط التحقق (تعبير نمطي)',
       'editSystemField': 'تعديل حقل النظام',
@@ -1516,6 +1530,8 @@ class AppLocalizations {
       'editCustomField': 'تعديل حقل مخصص',
       'newCustomField': 'حقل مخصص جديد',
       'displayNameLabel': 'الاسم المعروض',
+      'displayNameEnglishLabel': 'الاسم المعروض (إنجليزي)',
+      'displayNameArabicLabel': 'الاسم المعروض (عربي)',
       'displayNameRequired': 'الاسم المعروض مطلوب',
       'fieldTypeLabel': 'نوع الحقل',
       'fieldRequiredLabel': 'إلزامي',
