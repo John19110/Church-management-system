@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../models/custom_field_models.dart';
+import '../providers/custom_field_cache_providers.dart';
 import '../providers/custom_field_providers.dart';
 import '../utils/custom_field_l10n.dart';
 import '../utils/field_display_label.dart';
+import '../utils/field_position_utils.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/common_widgets.dart';
 
@@ -26,11 +28,22 @@ class CustomFieldDefinitionFormScreen extends ConsumerStatefulWidget {
       _CustomFieldDefinitionFormScreenState();
 }
 
+class _OptionControllers {
+  final int? id;
+  final TextEditingController value;
+  final TextEditingController label;
+
+  const _OptionControllers({
+    this.id,
+    required this.value,
+    required this.label,
+  });
+}
+
 class _CustomFieldDefinitionFormScreenState
     extends ConsumerState<CustomFieldDefinitionFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _displayNameController = TextEditingController();
-  final _sortOrderController = TextEditingController();
   final _placeholderController = TextEditingController();
   final _validationRegexController = TextEditingController();
   CustomFieldDataType _dataType = CustomFieldDataType.text;
@@ -38,9 +51,9 @@ class _CustomFieldDefinitionFormScreenState
   bool _isReadOnly = false;
   bool _isHidden = false;
   bool _loading = false;
+  int? _displayPosition;
 
-  final List<({TextEditingController value, TextEditingController label})>
-      _options = [];
+  final List<_OptionControllers> _options = [];
 
   bool get _isEdit => widget.existing != null;
 
@@ -54,7 +67,6 @@ class _CustomFieldDefinitionFormScreenState
     final e = widget.existing;
     if (e != null) {
       _displayNameController.text = e.displayName;
-      _sortOrderController.text = e.sortOrder.toString();
       _placeholderController.text = e.placeholder ?? '';
       _validationRegexController.text = e.validationRegex ?? '';
       _dataType = e.dataType;
@@ -62,10 +74,13 @@ class _CustomFieldDefinitionFormScreenState
       _isReadOnly = e.isReadOnly;
       _isHidden = e.isHidden;
       for (final o in e.options) {
-        _options.add((
-          value: TextEditingController(text: o.value),
-          label: TextEditingController(text: o.displayText),
-        ));
+        _options.add(
+          _OptionControllers(
+            id: o.id,
+            value: TextEditingController(text: o.value),
+            label: TextEditingController(text: o.displayText),
+          ),
+        );
       }
     }
   }
@@ -73,7 +88,6 @@ class _CustomFieldDefinitionFormScreenState
   @override
   void dispose() {
     _displayNameController.dispose();
-    _sortOrderController.dispose();
     _placeholderController.dispose();
     _validationRegexController.dispose();
     for (final o in _options) {
@@ -83,9 +97,27 @@ class _CustomFieldDefinitionFormScreenState
     super.dispose();
   }
 
+  void _ensureDefaultPosition(List<CustomFieldDefinitionReadDto> sortedActive) {
+    if (_displayPosition != null) return;
+
+    if (_isEdit && widget.existing != null) {
+      _displayPosition = currentFieldPosition(widget.existing!, sortedActive);
+    } else {
+      _displayPosition = positionOptionCount(
+        isCreate: true,
+        sortedActive: sortedActive,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final defsQuery = (
+      entityName: widget.entityName,
+      includeInactive: false,
+    );
+    final defsAsync = ref.watch(customFieldDefinitionsProvider(defsQuery));
 
     return Scaffold(
       appBar: AppBar(
@@ -95,143 +127,180 @@ class _CustomFieldDefinitionFormScreenState
               : l10n.newCustomField,
         ),
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            if (_isSystemField)
-              Card(
-                color: Theme.of(context).colorScheme.primaryContainer,
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.systemFieldBadge,
-                        style: Theme.of(context).textTheme.titleSmall,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        l10n.systemFieldKeyLockedLabel(
-                          localizedFieldDisplayLabel(widget.existing!, l10n),
-                        ),
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            if (_isSystemField) const SizedBox(height: 12),
-            AppTextField(
-              controller: _displayNameController,
-              label: l10n.displayNameLabel,
-              validator: (v) =>
-                  v == null || v.trim().isEmpty ? l10n.displayNameRequired : null,
-            ),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<CustomFieldDataType>(
-              initialValue: _dataType,
-              decoration: InputDecoration(labelText: l10n.fieldTypeLabel),
-              items: CustomFieldDataType.values
-                  .where((t) => t != CustomFieldDataType.unknown)
-                  .map((t) => DropdownMenuItem(
-                        value: t,
-                        child: Text(l10n.labelForDataType(t)),
-                      ))
-                  .toList(),
-              onChanged: (_isEdit || _isSystemField)
-                  ? null
-                  : (v) => setState(() => _dataType = v ?? _dataType),
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _sortOrderController,
-              decoration: InputDecoration(labelText: l10n.sortOrderLabel),
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            ),
-            SwitchListTile(
-              title: Text(l10n.fieldRequiredLabel),
-              value: _isRequired,
-              onChanged: (v) => setState(() => _isRequired = v),
-            ),
-            SwitchListTile(
-              title: Text(l10n.fieldReadOnlyLabel),
-              value: _isReadOnly,
-              onChanged: _isSystemField && widget.existing?.isReadOnly == true
-                  ? null
-                  : (v) => setState(() => _isReadOnly = v),
-            ),
-            SwitchListTile(
-              title: Text(l10n.fieldHiddenLabel),
-              subtitle: Text(l10n.fieldHiddenHint),
-              value: _isHidden,
-              onChanged: (v) => setState(() => _isHidden = v),
-            ),
-            AppTextField(
-              controller: _placeholderController,
-              label: l10n.placeholderLabel,
-            ),
-            const SizedBox(height: 12),
-            AppTextField(
-              controller: _validationRegexController,
-              label: l10n.validationRegexLabel,
-            ),
-            if (_dataType == CustomFieldDataType.singleSelect ||
-                _dataType == CustomFieldDataType.multiSelect) ...[
-              const SizedBox(height: 8),
-              Text(
-                l10n.customFieldOptions,
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              ..._options.map((o) => Row(
-                    children: [
-                      Expanded(
-                        child: AppTextField(
-                          controller: o.value,
-                          label: l10n.optionValueLabel,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: AppTextField(
-                          controller: o.label,
-                          label: l10n.optionLabelLabel,
-                        ),
-                      ),
-                    ],
-                  )),
-              TextButton.icon(
-                onPressed: () => setState(() {
-                  _options.add((
-                    value: TextEditingController(),
-                    label: TextEditingController(),
-                  ));
-                }),
-                icon: const Icon(Icons.add),
-                label: Text(l10n.addOption),
-              ),
-            ],
-            const SizedBox(height: 24),
-            FilledButton(
-              onPressed: _loading ? null : _submit,
-              child: _loading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(_isEdit ? l10n.saveLabel : l10n.createField),
-            ),
-          ],
+      body: defsAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => AppErrorWidget(
+          message: userFriendlyMessage(e, l10n),
+          onRetry: () => ref.invalidate(customFieldDefinitionsProvider(defsQuery)),
         ),
+        data: (defs) {
+          final sortedActive = sortedActiveProvisionedFields(defs);
+          _ensureDefaultPosition(sortedActive);
+          final positionCount = positionOptionCount(
+            isCreate: !_isEdit,
+            sortedActive: sortedActive,
+          );
+
+          return Form(
+            key: _formKey,
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                if (_isSystemField)
+                  Card(
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.systemFieldBadge,
+                            style: Theme.of(context).textTheme.titleSmall,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            l10n.systemFieldKeyLockedLabel(
+                              localizedFieldDisplayLabel(widget.existing!, l10n),
+                            ),
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                if (_isSystemField) const SizedBox(height: 12),
+                AppTextField(
+                  controller: _displayNameController,
+                  label: l10n.displayNameLabel,
+                  validator: (v) => v == null || v.trim().isEmpty
+                      ? l10n.displayNameRequired
+                      : null,
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<CustomFieldDataType>(
+                  initialValue: _dataType,
+                  decoration: InputDecoration(labelText: l10n.fieldTypeLabel),
+                  items: CustomFieldDataType.values
+                      .where((t) => t != CustomFieldDataType.unknown)
+                      .map(
+                        (t) => DropdownMenuItem(
+                          value: t,
+                          child: Text(l10n.labelForDataType(t)),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (_isEdit || _isSystemField)
+                      ? null
+                      : (v) => setState(() => _dataType = v ?? _dataType),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<int>(
+                  initialValue: _displayPosition,
+                  decoration: InputDecoration(
+                    labelText: l10n.fieldAppearancePositionLabel,
+                  ),
+                  items: List.generate(positionCount, (index) {
+                    final position = index + 1;
+                    return DropdownMenuItem(
+                      value: position,
+                      child: Text(
+                        fieldAppearancePositionLabel(
+                          l10n,
+                          position,
+                          total: positionCount,
+                        ),
+                      ),
+                    );
+                  }),
+                  onChanged: (v) => setState(() => _displayPosition = v),
+                ),
+                SwitchListTile(
+                  title: Text(l10n.fieldRequiredLabel),
+                  value: _isRequired,
+                  onChanged: (v) => setState(() => _isRequired = v),
+                ),
+                SwitchListTile(
+                  title: Text(l10n.fieldReadOnlyLabel),
+                  value: _isReadOnly,
+                  onChanged: _isSystemField && widget.existing?.isReadOnly == true
+                      ? null
+                      : (v) => setState(() => _isReadOnly = v),
+                ),
+                SwitchListTile(
+                  title: Text(l10n.fieldHiddenLabel),
+                  subtitle: Text(l10n.fieldHiddenHint),
+                  value: _isHidden,
+                  onChanged: (v) => setState(() => _isHidden = v),
+                ),
+                AppTextField(
+                  controller: _placeholderController,
+                  label: l10n.placeholderLabel,
+                ),
+                const SizedBox(height: 12),
+                AppTextField(
+                  controller: _validationRegexController,
+                  label: l10n.validationRegexLabel,
+                ),
+                if (_dataType == CustomFieldDataType.singleSelect ||
+                    _dataType == CustomFieldDataType.multiSelect) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.customFieldOptions,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  ..._options.map(
+                    (o) => Row(
+                      children: [
+                        Expanded(
+                          child: AppTextField(
+                            controller: o.value,
+                            label: l10n.optionValueLabel,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: AppTextField(
+                            controller: o.label,
+                            label: l10n.optionLabelLabel,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: () => setState(() {
+                      _options.add(
+                        _OptionControllers(
+                          value: TextEditingController(),
+                          label: TextEditingController(),
+                        ),
+                      );
+                    }),
+                    icon: const Icon(Icons.add),
+                    label: Text(l10n.addOption),
+                  ),
+                ],
+                const SizedBox(height: 24),
+                FilledButton(
+                  onPressed: _loading ? null : () => _submit(sortedActive),
+                  child: _loading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(_isEdit ? l10n.saveLabel : l10n.createField),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
 
-  Future<void> _submit() async {
+  Future<void> _submit(List<CustomFieldDefinitionReadDto> sortedActive) async {
     if (!_formKey.currentState!.validate()) return;
 
     final l10n = AppLocalizations.of(context);
@@ -239,6 +308,7 @@ class _CustomFieldDefinitionFormScreenState
       showErrorSnackbar(context, l10n.systemFieldNotProvisioned);
       return;
     }
+
     final options = _buildOptions();
     if ((_dataType == CustomFieldDataType.singleSelect ||
             _dataType == CustomFieldDataType.multiSelect) &&
@@ -247,7 +317,8 @@ class _CustomFieldDefinitionFormScreenState
       return;
     }
 
-    final sortOrder = int.tryParse(_sortOrderController.text.trim());
+    final displayPosition = _displayPosition ??
+        positionOptionCount(isCreate: !_isEdit, sortedActive: sortedActive);
 
     setState(() => _loading = true);
 
@@ -261,7 +332,7 @@ class _CustomFieldDefinitionFormScreenState
             isRequired: _isRequired,
             isReadOnly: _isReadOnly,
             isHidden: _isHidden,
-            sortOrder: sortOrder,
+            displayPosition: displayPosition,
             placeholder: _placeholderController.text.trim().isEmpty
                 ? ''
                 : _placeholderController.text.trim(),
@@ -280,7 +351,7 @@ class _CustomFieldDefinitionFormScreenState
             isRequired: _isRequired,
             isReadOnly: _isReadOnly,
             isHidden: _isHidden,
-            sortOrder: sortOrder ?? 0,
+            displayPosition: displayPosition,
             placeholder: _placeholderController.text.trim().isEmpty
                 ? null
                 : _placeholderController.text.trim(),
@@ -291,9 +362,13 @@ class _CustomFieldDefinitionFormScreenState
           ),
         );
       }
+
+      refreshEntityFormsAfterDefinitionChange(ref, widget.entityName);
       if (mounted) context.pop(true);
     } catch (e) {
-      if (mounted) showErrorSnackbar(context, e.toString());
+      if (mounted) {
+        showErrorSnackbar(context, userFriendlyMessage(e, l10n));
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -306,12 +381,15 @@ class _CustomFieldDefinitionFormScreenState
     }
     return _options
         .where((o) => o.value.text.trim().isNotEmpty)
-        .map((o) => CustomFieldOptionDto(
-              value: o.value.text.trim(),
-              displayText: o.label.text.trim().isEmpty
-                  ? o.value.text.trim()
-                  : o.label.text.trim(),
-            ))
+        .map(
+          (o) => CustomFieldOptionDto(
+            id: o.id,
+            value: o.value.text.trim(),
+            displayText: o.label.text.trim().isEmpty
+                ? o.value.text.trim()
+                : o.label.text.trim(),
+          ),
+        )
         .toList();
   }
 }

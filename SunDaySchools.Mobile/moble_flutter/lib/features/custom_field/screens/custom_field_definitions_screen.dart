@@ -10,6 +10,7 @@ import '../models/custom_field_models.dart';
 import '../providers/custom_field_cache_providers.dart';
 import '../providers/custom_field_providers.dart';
 import '../utils/field_display_label.dart';
+import '../utils/field_position_utils.dart';
 import '../widgets/field_definition_card.dart';
 import '../../../shared/widgets/common_widgets.dart';
 
@@ -38,17 +39,6 @@ class _CustomFieldDefinitionsScreenState
     if (created == true) {
       refreshEntityFormsAfterDefinitionChange(ref, widget.entityName);
     }
-  }
-
-  List<CustomFieldDefinitionReadDto> _sorted(
-    Iterable<CustomFieldDefinitionReadDto> defs,
-  ) {
-    final list = defs.toList()
-      ..sort((a, b) {
-        final order = a.sortOrder.compareTo(b.sortOrder);
-        return order != 0 ? order : a.displayName.compareTo(b.displayName);
-      });
-    return list;
   }
 
   @override
@@ -103,14 +93,11 @@ class _CustomFieldDefinitionsScreenState
                   ref.invalidate(customFieldDefinitionsProvider(defsQuery)),
             ),
             data: (defs) {
-              final systemFields = _sorted(
-                defs.where((d) => d.isBuiltIn || d.isSystemField),
-              );
-              final customFields = _sorted(
-                defs.where((d) => !d.isBuiltIn && !d.isSystemField),
-              );
+              final ordered = sortedActiveProvisionedFields(defs);
+              final inactive = defs.where((d) => !d.isActive && d.id > 0).toList()
+                ..sort((a, b) => a.displayName.compareTo(b.displayName));
 
-              if (systemFields.isEmpty && customFields.isEmpty) {
+              if (ordered.isEmpty && inactive.isEmpty) {
                 return RefreshIndicator(
                   onRefresh: () => _reloadDefinitions(defsQuery),
                   child: ListView(
@@ -155,54 +142,32 @@ class _CustomFieldDefinitionsScreenState
                             ),
                       ),
                     ),
-                    if (systemFields.isNotEmpty) ...[
+                    if (ordered.isNotEmpty) ...[
                       Padding(
                         padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
                         child: Text(
-                          l10n.systemFieldsSection,
+                          l10n.fieldActive,
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          l10n.systemFieldsSectionHint,
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ),
-                      ...systemFields.map(
-                        (def) => FieldDefinitionCard(
-                          definition: def,
-                          onTap: () => def.isActive
-                              ? _openEdit(def)
-                              : _confirmReactivate(def),
-                          onLongPress: def.isActive && def.isDeletable
-                              ? () => _confirmDeactivate(def)
-                              : null,
-                        ),
-                      ),
+                      ...ordered.map((def) => _fieldCard(def)),
                     ],
-                    if (customFields.isNotEmpty) ...[
+                    if (inactive.isNotEmpty) ...[
                       Padding(
                         padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
                         child: Text(
-                          l10n.customFieldsSection,
+                          l10n.fieldInactive,
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
                         ),
                       ),
-                      ...customFields.map(
+                      ...inactive.map(
                         (def) => FieldDefinitionCard(
                           definition: def,
-                          onTap: () => def.isActive
-                              ? _openEdit(def)
-                              : _confirmReactivate(def),
-                          onLongPress: def.isActive
-                              ? () => _confirmDeactivate(def)
-                              : null,
+                          onTap: () => _confirmReactivate(def),
                         ),
                       ),
                     ],
@@ -213,6 +178,19 @@ class _CustomFieldDefinitionsScreenState
           ),
         );
       },
+    );
+  }
+
+  Widget _fieldCard(CustomFieldDefinitionReadDto def) {
+    return FieldDefinitionCard(
+      definition: def,
+      onTap: () => _openEdit(def),
+      onLongPress: def.isDeletable ? () => _confirmDeactivate(def) : null,
+      onDeactivate:
+          def.isDeletable ? () => _confirmDeactivate(def) : null,
+      onDeletePermanently: def.isPermanentDeletable
+          ? () => _confirmDeletePermanently(def)
+          : null,
     );
   }
 
@@ -252,10 +230,7 @@ class _CustomFieldDefinitionsScreenState
       }
     } catch (e) {
       if (mounted) {
-        showErrorSnackbar(
-          context,
-          userFriendlyMessage(e, l10n),
-        );
+        showErrorSnackbar(context, userFriendlyMessage(e, l10n));
       }
     }
   }
@@ -280,10 +255,40 @@ class _CustomFieldDefinitionsScreenState
       }
     } catch (e) {
       if (mounted) {
-        showErrorSnackbar(
-          context,
-          userFriendlyMessage(e, l10n),
-        );
+        showErrorSnackbar(context, userFriendlyMessage(e, l10n));
+      }
+    }
+  }
+
+  Future<void> _confirmDeletePermanently(CustomFieldDefinitionReadDto def) async {
+    final l10n = AppLocalizations.of(context);
+    if (!def.isPermanentDeletable) {
+      showErrorSnackbar(context, l10n.systemFieldCannotDelete);
+      return;
+    }
+
+    final ok = await showConfirmDialog(
+      context,
+      title: l10n.deleteFieldPermanently,
+      content: l10n.deleteFieldPermanentlyConfirm(
+        localizedFieldDisplayLabel(def, l10n),
+      ),
+      confirmText: l10n.deletePermanently,
+      confirmColor: Colors.red,
+    );
+    if (ok != true) return;
+
+    try {
+      await ref
+          .read(customFieldRepositoryProvider)
+          .deleteDefinitionPermanently(def.id);
+      refreshEntityFormsAfterDefinitionChange(ref, widget.entityName);
+      if (mounted) {
+        showSuccessSnackbar(context, l10n.fieldDeletedPermanently);
+      }
+    } catch (e) {
+      if (mounted) {
+        showErrorSnackbar(context, userFriendlyMessage(e, l10n));
       }
     }
   }

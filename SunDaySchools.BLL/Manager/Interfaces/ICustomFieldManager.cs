@@ -18,6 +18,8 @@ namespace SunDaySchools.BLL.Manager.Interfaces
 
         Task ActivateDefinitionAsync(int id);
 
+        Task DeleteDefinitionAsync(int id);
+
         Task<CustomFieldTypeChangeCheckDto> CheckDataTypeChangeAsync(int id, CustomFieldDataType newDataType);
 
         Task<EntityCustomFieldsReadDto> GetEntityFieldsAsync(string entityName, int entityId);

@@ -84,6 +84,43 @@ namespace SunDaySchools.DAL.Repository.Implementations
             await _context.SaveChangesAsync();
         }
 
+        public Task SaveChangesAsync(CancellationToken cancellationToken = default) =>
+            _context.SaveChangesAsync(cancellationToken);
+
+        public async Task<IReadOnlyList<CustomFieldDefinition>> GetTrackedDefinitionsByEntityAsync(
+            string entityName, bool includeInactive = false)
+        {
+            var query = _context.CustomFieldDefinitions
+                .Where(d => d.EntityName == entityName);
+
+            if (!includeInactive)
+                query = query.Where(d => d.IsActive);
+
+            return await query
+                .OrderBy(d => d.SortOrder)
+                .ThenBy(d => d.DisplayName)
+                .ToListAsync();
+        }
+
+        public async Task DeleteDefinitionAsync(int id)
+        {
+            var values = await _context.CustomFieldValues
+                .Where(v => v.CustomFieldDefinitionId == id)
+                .ToListAsync();
+
+            if (values.Count > 0)
+                _context.CustomFieldValues.RemoveRange(values);
+
+            var definition = await _context.CustomFieldDefinitions
+                .FirstOrDefaultAsync(d => d.Id == id);
+
+            if (definition == null)
+                return;
+
+            _context.CustomFieldDefinitions.Remove(definition);
+            await _context.SaveChangesAsync();
+        }
+
         public async Task<IReadOnlyList<CustomFieldValue>> GetValuesAsync(string entityName, int entityId)
         {
             // Do not Include(Definition): global filters on values/options use Definition navigation

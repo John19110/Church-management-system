@@ -8,12 +8,16 @@ class FieldDefinitionCard extends StatelessWidget {
   final CustomFieldDefinitionReadDto definition;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
+  final VoidCallback? onDeactivate;
+  final VoidCallback? onDeletePermanently;
 
   const FieldDefinitionCard({
     super.key,
     required this.definition,
     this.onTap,
     this.onLongPress,
+    this.onDeactivate,
+    this.onDeletePermanently,
   });
 
   @override
@@ -86,11 +90,48 @@ class FieldDefinitionCard extends StatelessWidget {
               ),
           ],
         ),
-        trailing: Icon(
-          definition.isActive ? Icons.chevron_right : Icons.visibility_off,
-          color: definition.isActive ? null : theme.colorScheme.outline,
-        ),
+        trailing: _buildTrailing(l10n, theme),
       ),
+    );
+  }
+
+  Widget _buildTrailing(AppLocalizations l10n, ThemeData theme) {
+    final hasMenu = definition.isActive &&
+        (onDeactivate != null || onDeletePermanently != null);
+
+    if (hasMenu) {
+      return PopupMenuButton<String>(
+        onSelected: (value) {
+          switch (value) {
+            case 'deactivate':
+              onDeactivate?.call();
+              break;
+            case 'delete':
+              onDeletePermanently?.call();
+              break;
+          }
+        },
+        itemBuilder: (context) => [
+          if (onDeactivate != null && definition.isDeletable)
+            PopupMenuItem(
+              value: 'deactivate',
+              child: Text(l10n.deactivate),
+            ),
+          if (onDeletePermanently != null && definition.isPermanentDeletable)
+            PopupMenuItem(
+              value: 'delete',
+              child: Text(
+                l10n.deletePermanently,
+                style: TextStyle(color: theme.colorScheme.error),
+              ),
+            ),
+        ],
+      );
+    }
+
+    return Icon(
+      definition.isActive ? Icons.chevron_right : Icons.visibility_off,
+      color: definition.isActive ? null : theme.colorScheme.outline,
     );
   }
 }

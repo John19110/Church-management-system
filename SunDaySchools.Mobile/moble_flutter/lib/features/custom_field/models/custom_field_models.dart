@@ -98,6 +98,7 @@ class CustomFieldDefinitionReadDto {
   final bool isBuiltIn;
   final bool isSystemField;
   final bool isDeletable;
+  final bool isPermanentDeletable;
 
   const CustomFieldDefinitionReadDto({
     required this.id,
@@ -119,6 +120,7 @@ class CustomFieldDefinitionReadDto {
     this.isBuiltIn = false,
     this.isSystemField = false,
     this.isDeletable = true,
+    this.isPermanentDeletable = true,
   });
 
   factory CustomFieldDefinitionReadDto.fromJson(Map<String, dynamic> json) {
@@ -149,6 +151,10 @@ class CustomFieldDefinitionReadDto {
           json['isBuiltIn'] as bool? ??
           false,
       isDeletable: json['isDeletable'] as bool? ?? true,
+      isPermanentDeletable: json['isPermanentDeletable'] as bool? ??
+          (!(json['isBuiltIn'] as bool? ??
+              json['isSystemField'] as bool? ??
+              false)),
     );
   }
 }
@@ -168,6 +174,7 @@ class CustomFieldDefinitionCreateDto {
   final String? placeholder;
   final String? validationRegex;
   final int sortOrder;
+  final int? displayPosition;
   final List<CustomFieldOptionDto>? options;
 
   const CustomFieldDefinitionCreateDto({
@@ -184,6 +191,7 @@ class CustomFieldDefinitionCreateDto {
     this.placeholder,
     this.validationRegex,
     this.sortOrder = 0,
+    this.displayPosition,
     this.options,
   });
 
@@ -200,7 +208,7 @@ class CustomFieldDefinitionCreateDto {
         if (defaultValue != null) 'defaultValue': defaultValue,
         if (placeholder != null) 'placeholder': placeholder,
         if (validationRegex != null) 'validationRegex': validationRegex,
-        'sortOrder': sortOrder,
+        if (displayPosition != null) 'displayPosition': displayPosition,
         if (options != null) 'options': options!.map((o) => o.toJson()).toList(),
       };
 }
@@ -213,6 +221,7 @@ class CustomFieldDefinitionUpdateDto {
   final bool? isReadOnly;
   final bool? isHidden;
   final int? sortOrder;
+  final int? displayPosition;
   final String? placeholder;
   final String? validationRegex;
   final List<CustomFieldOptionDto>? options;
@@ -225,6 +234,7 @@ class CustomFieldDefinitionUpdateDto {
     this.isReadOnly,
     this.isHidden,
     this.sortOrder,
+    this.displayPosition,
     this.placeholder,
     this.validationRegex,
     this.options,
@@ -238,6 +248,7 @@ class CustomFieldDefinitionUpdateDto {
     if (isReadOnly != null) map['isReadOnly'] = isReadOnly;
     if (isHidden != null) map['isHidden'] = isHidden;
     if (sortOrder != null) map['sortOrder'] = sortOrder;
+    if (displayPosition != null) map['displayPosition'] = displayPosition;
     if (placeholder != null) map['placeholder'] = placeholder;
     if (validationRegex != null) map['validationRegex'] = validationRegex;
     if (options != null) {

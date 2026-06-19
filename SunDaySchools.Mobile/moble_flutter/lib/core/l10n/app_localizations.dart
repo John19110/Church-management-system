@@ -405,6 +405,42 @@ class AppLocalizations {
   String get fieldHiddenLabel => _t('fieldHiddenLabel');
   String get fieldHiddenHint => _t('fieldHiddenHint');
   String get sortOrderLabel => _t('sortOrderLabel');
+  String get fieldAppearancePositionLabel => _t('fieldAppearancePositionLabel');
+  String fieldPositionOrdinal(int position) => fieldPositionName(position);
+  String fieldPositionName(int position) {
+    if (position <= 0) return '';
+    switch (position) {
+      case 1:
+        return _t('fieldPos_1');
+      case 2:
+        return _t('fieldPos_2');
+      case 3:
+        return _t('fieldPos_3');
+      case 4:
+        return _t('fieldPos_4');
+      case 5:
+        return _t('fieldPos_5');
+      case 6:
+        return _t('fieldPos_6');
+      case 7:
+        return _t('fieldPos_7');
+      case 8:
+        return _t('fieldPos_8');
+      case 9:
+        return _t('fieldPos_9');
+      case 10:
+        return _t('fieldPos_10');
+      default:
+        return _t('fieldPositionNumber').replaceAll('{n}', '$position');
+    }
+  }
+  String get fieldPositionLast => _t('fieldPositionLast');
+  String get deleteFieldPermanently => _t('deleteFieldPermanently');
+  String deleteFieldPermanentlyConfirm(String name) =>
+      _t('deleteFieldPermanentlyConfirm').replaceAll('{name}', name);
+  String get deletePermanently => _t('deletePermanently');
+  String get fieldDeletedPermanently => _t('fieldDeletedPermanently');
+  String get systemFieldCannotDelete => _t('systemFieldCannotDelete');
   String get placeholderLabel => _t('placeholderLabel');
   String get validationRegexLabel => _t('validationRegexLabel');
   String get editSystemField => _t('editSystemField');
@@ -944,6 +980,26 @@ class AppLocalizations {
       'fieldHiddenLabel': 'Hidden in forms',
       'fieldHiddenHint': 'When enabled, this field is not shown on create/edit screens.',
       'sortOrderLabel': 'Sort order',
+      'fieldAppearancePositionLabel': 'Appearance position',
+      'fieldPos_1': 'First',
+      'fieldPos_2': 'Second',
+      'fieldPos_3': 'Third',
+      'fieldPos_4': 'Fourth',
+      'fieldPos_5': 'Fifth',
+      'fieldPos_6': 'Sixth',
+      'fieldPos_7': 'Seventh',
+      'fieldPos_8': 'Eighth',
+      'fieldPos_9': 'Ninth',
+      'fieldPos_10': 'Tenth',
+      'fieldPositionNumber': 'Position {n}',
+      'fieldPositionLast': 'Last',
+      'deleteFieldPermanently': 'Delete field permanently',
+      'deleteFieldPermanentlyConfirm':
+          'This will permanently delete "{name}" and all saved values. This action cannot be undone.',
+      'deletePermanently': 'Delete permanently',
+      'fieldDeletedPermanently': 'Field deleted permanently',
+      'systemFieldCannotDelete':
+          'System fields cannot be permanently deleted. Deactivate the field instead.',
       'placeholderLabel': 'Placeholder',
       'validationRegexLabel': 'Validation pattern (regex)',
       'editSystemField': 'Edit system field',
@@ -1427,6 +1483,26 @@ class AppLocalizations {
       'fieldHiddenLabel': 'مخفي في النماذج',
       'fieldHiddenHint': 'عند التفعيل، لا يظهر هذا الحقل في شاشات الإنشاء أو التعديل.',
       'sortOrderLabel': 'ترتيب العرض',
+      'fieldAppearancePositionLabel': 'موضع الظهور',
+      'fieldPos_1': 'الأول',
+      'fieldPos_2': 'الثاني',
+      'fieldPos_3': 'الثالث',
+      'fieldPos_4': 'الرابع',
+      'fieldPos_5': 'الخامس',
+      'fieldPos_6': 'السادس',
+      'fieldPos_7': 'السابع',
+      'fieldPos_8': 'الثامن',
+      'fieldPos_9': 'التاسع',
+      'fieldPos_10': 'العاشر',
+      'fieldPositionNumber': 'الموضع {n}',
+      'fieldPositionLast': 'الأخير',
+      'deleteFieldPermanently': 'حذف الحقل نهائياً',
+      'deleteFieldPermanentlyConfirm':
+          'سيؤدي هذا إلى حذف "{name}" وجميع القيم المحفوظة نهائياً. لا يمكن التراجع عن هذا الإجراء.',
+      'deletePermanently': 'حذف نهائي',
+      'fieldDeletedPermanently': 'تم حذف الحقل نهائياً',
+      'systemFieldCannotDelete':
+          'لا يمكن حذف حقول النظام نهائياً. يمكنك إلغاء تفعيل الحقل بدلاً من ذلك.',
       'placeholderLabel': 'نص توضيحي',
       'validationRegexLabel': 'نمط التحقق (تعبير نمطي)',
       'editSystemField': 'تعديل حقل النظام',

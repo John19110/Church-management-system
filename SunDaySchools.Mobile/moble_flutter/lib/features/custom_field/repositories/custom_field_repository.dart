@@ -120,6 +120,14 @@ class CustomFieldRepository {
     });
   }
 
+  Future<void> deleteDefinitionPermanently(int id) async {
+    return apiCall(() async {
+      await _dio.delete(
+        '${AppConstants.customFieldEndpoint}/definitions/$id',
+      );
+    });
+  }
+
   Future<EntityCustomFieldsReadDto> getEntityFields(
     String entityName,
     int entityId,

@@ -106,7 +106,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
         public async Task<CustomFieldDefinitionReadDto?> GetDefinitionByIdAsync(int id)
         {
             var definition = await _repository.GetDefinitionByIdAsync(id);
-            return definition == null ? null : _mapper.Map<CustomFieldDefinitionReadDto>(definition);
+            return definition == null ? null : CustomFieldDefinitionReadMapper.ToReadDto(definition);
         }
 
         public async Task<CustomFieldDefinitionReadDto> CreateDefinitionAsync(CustomFieldDefinitionCreateDto dto)
@@ -172,6 +172,9 @@ namespace SunDaySchools.BLL.Manager.Implementations
             entity.CreatedAt = DateTime.UtcNow;
             entity.CreatedBy = await GetCurrentUserIdAsync();
             entity.IsActive = true;
+            entity.SortOrder = CustomFieldSortOrderHelper.SortOrderForPosition(
+                dto.DisplayPosition
+                ?? await CustomFieldSortOrderHelper.GetDefaultLastPositionAsync(_repository, dto.EntityName));
 
             if (dto.Options != null)
             {
@@ -187,8 +190,18 @@ namespace SunDaySchools.BLL.Manager.Implementations
             }
 
             await _repository.AddDefinitionAsync(entity);
-            return _mapper.Map<CustomFieldDefinitionReadDto>(
-                await _repository.GetDefinitionByIdAsync(entity.Id)!);
+
+            if (dto.DisplayPosition.HasValue)
+            {
+                await CustomFieldSortOrderHelper.ApplyDisplayPositionAsync(
+                    _repository,
+                    dto.EntityName,
+                    entity.Id,
+                    dto.DisplayPosition.Value);
+            }
+
+            var created = await _repository.GetDefinitionByIdAsync(entity.Id);
+            return CustomFieldDefinitionReadMapper.ToReadDto(created!);
         }
 
         public async Task<CustomFieldDefinitionReadDto> UpdateDefinitionAsync(
@@ -262,7 +275,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             if (dto.ValidationRegex != null)
                 definition.ValidationRegex = dto.ValidationRegex;
 
-            if (dto.SortOrder.HasValue)
+            if (dto.SortOrder.HasValue && !dto.DisplayPosition.HasValue)
                 definition.SortOrder = dto.SortOrder.Value;
 
             if (dto.Options != null)
@@ -273,8 +286,17 @@ namespace SunDaySchools.BLL.Manager.Implementations
             definition.UpdatedAt = DateTime.UtcNow;
             await _repository.UpdateDefinitionAsync(definition);
 
+            if (dto.DisplayPosition.HasValue)
+            {
+                await CustomFieldSortOrderHelper.ApplyDisplayPositionAsync(
+                    _repository,
+                    definition.EntityName,
+                    definition.Id,
+                    dto.DisplayPosition.Value);
+            }
+
             var refreshed = await _repository.GetDefinitionByIdAsync(id);
-            return _mapper.Map<CustomFieldDefinitionReadDto>(refreshed);
+            return CustomFieldDefinitionReadMapper.ToReadDto(refreshed!);
         }
 
         public async Task DeactivateDefinitionAsync(int id)
@@ -307,6 +329,32 @@ namespace SunDaySchools.BLL.Manager.Implementations
             definition.IsActive = true;
             definition.UpdatedAt = DateTime.UtcNow;
             await _repository.UpdateDefinitionAsync(definition);
+        }
+
+        public async Task DeleteDefinitionAsync(int id)
+        {
+            EnsureCanManageDefinitions();
+
+            var definition = await _repository.GetDefinitionByIdAsync(id, includeOptions: false)
+                ?? throw new NotFoundException($"Custom field definition {id} was not found.");
+
+            if (EntityDefaultFieldTemplates.IsCriticalField(definition.EntityName, definition.Name))
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["name"] = new[] { "The entity name field cannot be deleted." }
+                });
+            }
+
+            if (EntityDefaultFieldTemplates.IsBuiltInField(definition.EntityName, definition.Name))
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["name"] = new[] { "System fields cannot be permanently deleted. Deactivate the field instead." }
+                });
+            }
+
+            await _repository.DeleteDefinitionAsync(id);
         }
 
         public async Task<CustomFieldTypeChangeCheckDto> CheckDataTypeChangeAsync(int id, CustomFieldDataType newDataType)
@@ -497,7 +545,9 @@ namespace SunDaySchools.BLL.Manager.Implementations
             if (!RequiresOptions(definition.DataType))
                 return;
 
-            var existingById = definition.Options.ToDictionary(o => o.Id);
+            var existingById = definition.Options
+                .Where(o => o.Id > 0)
+                .ToDictionary(o => o.Id);
             var keptIds = new HashSet<int>();
 
             foreach (var dto in incoming)

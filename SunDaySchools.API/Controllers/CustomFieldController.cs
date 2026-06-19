@@ -101,6 +101,14 @@ namespace SunDaySchools.API.Controllers
             return Ok(new { message = "Field activated." });
         }
 
+        [HttpDelete("definitions/{id:int}")]
+        [Authorize(Policy = CustomFieldPolicies.ManageDefinitions)]
+        public async Task<IActionResult> DeleteDefinition(int id)
+        {
+            await _customFieldManager.DeleteDefinitionAsync(id);
+            return Ok(new { message = "Field permanently deleted." });
+        }
+
         [HttpGet("definitions/{id:int}/check-type-change")]
         [Authorize(Policy = CustomFieldPolicies.ManageDefinitions)]
         public async Task<ActionResult<CustomFieldTypeChangeCheckDto>> CheckTypeChange(
