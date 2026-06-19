@@ -16,11 +16,14 @@ namespace SunDaySchools.DAL.Repository.Implementations
         }
 
         public async Task<IReadOnlyList<CustomFieldDefinition>> GetDefinitionsByEntityAsync(
-            string entityName, bool includeInactive = false)
+            string entityName, bool includeInactive = false, bool includePermanentlyDeleted = false)
         {
             var query = _context.CustomFieldDefinitions
                 .AsNoTracking()
                 .Where(d => d.EntityName == entityName);
+
+            if (!includePermanentlyDeleted)
+                query = query.Where(d => !d.IsPermanentlyDeleted);
 
             if (!includeInactive)
                 query = query.Where(d => d.IsActive);
@@ -37,11 +40,34 @@ namespace SunDaySchools.DAL.Repository.Implementations
             return definitions;
         }
 
+        public async Task<HashSet<string>> GetDefinitionNamesByEntityAsync(string entityName)
+        {
+            var names = await _context.CustomFieldDefinitions
+                .AsNoTracking()
+                .Where(d => d.EntityName == entityName)
+                .Select(d => d.Name)
+                .ToListAsync();
+
+            return names.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        }
+
+        public async Task<HashSet<string>> GetPermanentlyDeletedDefinitionNamesByEntityAsync(
+            string entityName)
+        {
+            var names = await _context.CustomFieldDefinitions
+                .AsNoTracking()
+                .Where(d => d.EntityName == entityName && d.IsPermanentlyDeleted)
+                .Select(d => d.Name)
+                .ToListAsync();
+
+            return names.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        }
+
         public async Task<CustomFieldDefinition?> GetDefinitionByIdAsync(int id, bool includeOptions = true)
         {
             var definition = await _context.CustomFieldDefinitions
                 .AsNoTracking()
-                .FirstOrDefaultAsync(d => d.Id == id);
+                .FirstOrDefaultAsync(d => d.Id == id && !d.IsPermanentlyDeleted);
 
             if (definition == null || !includeOptions)
                 return definition;
@@ -57,14 +83,17 @@ namespace SunDaySchools.DAL.Repository.Implementations
             if (includeOptions)
                 query = query.Include(d => d.Options);
 
-            return await query.FirstOrDefaultAsync(d => d.Id == id);
+            return await query.FirstOrDefaultAsync(d => d.Id == id && !d.IsPermanentlyDeleted);
         }
 
         public async Task<CustomFieldDefinition?> GetDefinitionByNameAsync(string entityName, string name)
         {
             var definition = await _context.CustomFieldDefinitions
                 .AsNoTracking()
-                .FirstOrDefaultAsync(d => d.EntityName == entityName && d.Name == name);
+                .FirstOrDefaultAsync(d =>
+                    d.EntityName == entityName
+                    && d.Name == name
+                    && !d.IsPermanentlyDeleted);
 
             if (definition == null)
                 return null;
@@ -91,7 +120,7 @@ namespace SunDaySchools.DAL.Repository.Implementations
             string entityName, bool includeInactive = false)
         {
             var query = _context.CustomFieldDefinitions
-                .Where(d => d.EntityName == entityName);
+                .Where(d => d.EntityName == entityName && !d.IsPermanentlyDeleted);
 
             if (!includeInactive)
                 query = query.Where(d => d.IsActive);
@@ -104,12 +133,7 @@ namespace SunDaySchools.DAL.Repository.Implementations
 
         public async Task DeleteDefinitionAsync(int id)
         {
-            var values = await _context.CustomFieldValues
-                .Where(v => v.CustomFieldDefinitionId == id)
-                .ToListAsync();
-
-            if (values.Count > 0)
-                _context.CustomFieldValues.RemoveRange(values);
+            await RemoveValuesForDefinitionAsync(id);
 
             var definition = await _context.CustomFieldDefinitions
                 .FirstOrDefaultAsync(d => d.Id == id);
@@ -119,6 +143,32 @@ namespace SunDaySchools.DAL.Repository.Implementations
 
             _context.CustomFieldDefinitions.Remove(definition);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task TombstoneDefinitionAsync(int id)
+        {
+            await RemoveValuesForDefinitionAsync(id);
+
+            var definition = await _context.CustomFieldDefinitions
+                .FirstOrDefaultAsync(d => d.Id == id);
+
+            if (definition == null)
+                return;
+
+            definition.IsPermanentlyDeleted = true;
+            definition.IsActive = false;
+            definition.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+        }
+
+        private async Task RemoveValuesForDefinitionAsync(int definitionId)
+        {
+            var values = await _context.CustomFieldValues
+                .Where(v => v.CustomFieldDefinitionId == definitionId)
+                .ToListAsync();
+
+            if (values.Count > 0)
+                _context.CustomFieldValues.RemoveRange(values);
         }
 
         public async Task<IReadOnlyList<CustomFieldValue>> GetValuesAsync(string entityName, int entityId)

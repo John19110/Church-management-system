@@ -84,14 +84,9 @@ class DynamicCustomFieldWidget extends StatelessWidget {
           validator: validator,
         );
       case CustomFieldDataType.dateTime:
-        return AppTextField(
+        return AppDateTimeField(
           controller: controller,
           label: label,
-          hint: definition.placeholder ?? l10n.isoDateTimeHint,
-          readOnly: true,
-          onTap: (readOnly || definition.isReadOnly)
-              ? null
-              : () => _pickDateTime(context),
           validator: validator,
         );
       case CustomFieldDataType.json:
@@ -191,32 +186,5 @@ class DynamicCustomFieldWidget extends StatelessWidget {
           validator: validator,
         );
     }
-  }
-
-  Future<void> _pickDateTime(BuildContext context) async {
-    final date = await showDatePicker(
-      context: context,
-      initialDate: DateTime.tryParse(controller.text) ?? DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime(2100),
-    );
-    if (date == null || !context.mounted) return;
-
-    final time = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(
-        DateTime.tryParse(controller.text) ?? DateTime.now(),
-      ),
-    );
-    if (time == null) return;
-
-    final combined = DateTime(
-      date.year,
-      date.month,
-      date.day,
-      time.hour,
-      time.minute,
-    );
-    controller.text = combined.toUtc().toIso8601String();
   }
 }

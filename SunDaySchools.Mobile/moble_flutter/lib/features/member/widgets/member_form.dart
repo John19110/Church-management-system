@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../../../core/l10n/app_localizations.dart';
-import '../../../core/l10n/locale_format.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/app_network_avatar.dart';
+import '../../../shared/widgets/locale_date_text.dart';
 import '../utils/member_form_controller.dart';
 import '../utils/member_form_validator.dart';
 import '../utils/member_phone_relations.dart';
@@ -297,14 +297,16 @@ class _OptionalDateTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final display = value == null
-        ? l10n.notAvailable
-        : LocaleFormat.dateYmd(value!, l10n.locale);
 
     return ListTile(
       contentPadding: EdgeInsets.zero,
       title: Text(label),
-      subtitle: Text(display),
+      subtitle: value == null
+          ? Text(l10n.notAvailable)
+          : LocaleDateText(
+              dateTime: value,
+              locale: l10n.locale,
+            ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

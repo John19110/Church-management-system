@@ -44,6 +44,7 @@ class _CustomFieldDefinitionFormScreenState
     extends ConsumerState<CustomFieldDefinitionFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _displayNameController = TextEditingController();
+  final _displayNameArController = TextEditingController();
   final _placeholderController = TextEditingController();
   final _validationRegexController = TextEditingController();
   CustomFieldDataType _dataType = CustomFieldDataType.text;
@@ -61,12 +62,15 @@ class _CustomFieldDefinitionFormScreenState
       widget.existing?.isBuiltIn == true ||
       widget.existing?.isSystemField == true;
 
+  bool get _isCriticalField => widget.existing?.isDeletable == false;
+
   @override
   void initState() {
     super.initState();
     final e = widget.existing;
     if (e != null) {
       _displayNameController.text = e.displayName;
+      _displayNameArController.text = e.displayNameAr ?? '';
       _placeholderController.text = e.placeholder ?? '';
       _validationRegexController.text = e.validationRegex ?? '';
       _dataType = e.dataType;
@@ -88,6 +92,7 @@ class _CustomFieldDefinitionFormScreenState
   @override
   void dispose() {
     _displayNameController.dispose();
+    _displayNameArController.dispose();
     _placeholderController.dispose();
     _validationRegexController.dispose();
     for (final o in _options) {
@@ -98,16 +103,24 @@ class _CustomFieldDefinitionFormScreenState
   }
 
   void _ensureDefaultPosition(List<CustomFieldDefinitionReadDto> sortedActive) {
-    if (_displayPosition != null) return;
+    final positionCount = positionOptionCount(
+      isCreate: !_isEdit,
+      sortedActive: sortedActive,
+    );
 
-    if (_isEdit && widget.existing != null) {
-      _displayPosition = currentFieldPosition(widget.existing!, sortedActive);
-    } else {
-      _displayPosition = positionOptionCount(
-        isCreate: true,
-        sortedActive: sortedActive,
-      );
+    if (_displayPosition == null) {
+      if (_isEdit && widget.existing != null) {
+        _displayPosition = clampFieldPosition(
+          currentFieldPosition(widget.existing!, sortedActive),
+          positionCount,
+        );
+      } else {
+        _displayPosition = positionCount;
+      }
+      return;
     }
+
+    _displayPosition = clampFieldPosition(_displayPosition!, positionCount);
   }
 
   @override
@@ -115,7 +128,7 @@ class _CustomFieldDefinitionFormScreenState
     final l10n = AppLocalizations.of(context);
     final defsQuery = (
       entityName: widget.entityName,
-      includeInactive: false,
+      includeInactive: true,
     );
     final defsAsync = ref.watch(customFieldDefinitionsProvider(defsQuery));
 
@@ -140,6 +153,23 @@ class _CustomFieldDefinitionFormScreenState
             isCreate: !_isEdit,
             sortedActive: sortedActive,
           );
+          final selectedPosition = clampFieldPosition(
+            _displayPosition ?? positionCount,
+            positionCount,
+          );
+          if (_displayPosition != selectedPosition) {
+            _displayPosition = selectedPosition;
+          }
+
+          final positionItems = <int, String>{};
+          for (var index = 0; index < positionCount; index++) {
+            final position = index + 1;
+            positionItems[position] = fieldAppearancePositionLabel(
+              l10n,
+              position,
+              total: positionCount,
+            );
+          }
 
           return Form(
             key: _formKey,
@@ -172,10 +202,15 @@ class _CustomFieldDefinitionFormScreenState
                 if (_isSystemField) const SizedBox(height: 12),
                 AppTextField(
                   controller: _displayNameController,
-                  label: l10n.displayNameLabel,
+                  label: l10n.displayNameEnglishLabel,
                   validator: (v) => v == null || v.trim().isEmpty
                       ? l10n.displayNameRequired
                       : null,
+                ),
+                const SizedBox(height: 12),
+                AppTextField(
+                  controller: _displayNameArController,
+                  label: l10n.displayNameArabicLabel,
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<CustomFieldDataType>(
@@ -196,34 +231,32 @@ class _CustomFieldDefinitionFormScreenState
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<int>(
-                  initialValue: _displayPosition,
+                  value: selectedPosition,
                   decoration: InputDecoration(
                     labelText: l10n.fieldAppearancePositionLabel,
                   ),
-                  items: List.generate(positionCount, (index) {
-                    final position = index + 1;
-                    return DropdownMenuItem(
-                      value: position,
-                      child: Text(
-                        fieldAppearancePositionLabel(
-                          l10n,
-                          position,
-                          total: positionCount,
+                  items: positionItems.entries
+                      .map(
+                        (entry) => DropdownMenuItem(
+                          value: entry.key,
+                          child: Text(entry.value),
                         ),
-                      ),
-                    );
-                  }),
+                      )
+                      .toList(),
                   onChanged: (v) => setState(() => _displayPosition = v),
                 ),
                 SwitchListTile(
                   title: Text(l10n.fieldRequiredLabel),
                   value: _isRequired,
-                  onChanged: (v) => setState(() => _isRequired = v),
+                  onChanged: _isCriticalField
+                      ? null
+                      : (v) => setState(() => _isRequired = v),
                 ),
                 SwitchListTile(
                   title: Text(l10n.fieldReadOnlyLabel),
                   value: _isReadOnly,
-                  onChanged: _isSystemField && widget.existing?.isReadOnly == true
+                  onChanged: (_isCriticalField ||
+                          (_isSystemField && widget.existing?.isReadOnly == true))
                       ? null
                       : (v) => setState(() => _isReadOnly = v),
                 ),
@@ -231,7 +264,9 @@ class _CustomFieldDefinitionFormScreenState
                   title: Text(l10n.fieldHiddenLabel),
                   subtitle: Text(l10n.fieldHiddenHint),
                   value: _isHidden,
-                  onChanged: (v) => setState(() => _isHidden = v),
+                  onChanged: _isCriticalField
+                      ? null
+                      : (v) => setState(() => _isHidden = v),
                 ),
                 AppTextField(
                   controller: _placeholderController,
@@ -320,6 +355,8 @@ class _CustomFieldDefinitionFormScreenState
     final displayPosition = _displayPosition ??
         positionOptionCount(isCreate: !_isEdit, sortedActive: sortedActive);
 
+    final displayNameAr = _displayNameArController.text.trim();
+
     setState(() => _loading = true);
 
     try {
@@ -329,6 +366,7 @@ class _CustomFieldDefinitionFormScreenState
           widget.existing!.id,
           CustomFieldDefinitionUpdateDto(
             displayName: _displayNameController.text.trim(),
+            displayNameAr: displayNameAr.isEmpty ? '' : displayNameAr,
             isRequired: _isRequired,
             isReadOnly: _isReadOnly,
             isHidden: _isHidden,
@@ -346,6 +384,7 @@ class _CustomFieldDefinitionFormScreenState
         await repo.createDefinition(
           CustomFieldDefinitionCreateDto(
             displayName: _displayNameController.text.trim(),
+            displayNameAr: displayNameAr.isEmpty ? null : displayNameAr,
             entityName: widget.entityName,
             dataType: customFieldDataTypeToApi(_dataType),
             isRequired: _isRequired,

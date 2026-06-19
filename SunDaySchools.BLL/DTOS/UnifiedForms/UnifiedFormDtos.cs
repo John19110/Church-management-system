@@ -11,6 +11,7 @@ namespace SunDaySchools.BLL.DTOS.UnifiedForms
     {
         public string FieldKey { get; set; } = string.Empty;
         public string DisplayName { get; set; } = string.Empty;
+        public string? DisplayNameAr { get; set; }
         public string? Description { get; set; }
         public CustomFieldDataType DataType { get; set; }
         public bool IsRequired { get; set; }
