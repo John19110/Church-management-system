@@ -63,13 +63,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             if (_currentUser.IsInRole("SuperAdmin"))
             {
-                if (appUser.ChurchId == null)
-                    throw new ValidationException(new Dictionary<string, string[]>
-                    {
-                        ["Church"] = new[] { "Pastor is not assigned to a church." }
-                    });
-
-                meetings = await _meetingRepository.GetByChurchIdAsync(appUser.ChurchId.Value);
+                var churchId = ResolveSuperAdminChurchId(appUser);
+                meetings = await _meetingRepository.GetByChurchIdAsync(churchId);
             }
             else if (_currentUser.IsInRole("Admin"))
             {
@@ -127,13 +122,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             if (_currentUser.IsInRole("SuperAdmin"))
             {
-                if (appUser.ChurchId == null)
-                    throw new ValidationException(new Dictionary<string, string[]>
-                    {
-                        ["Church"] = new[] { "Pastor is not assigned to a church." }
-                    });
-
-                meetings = await _meetingRepository.GetByChurchIdAsync(appUser.ChurchId.Value);
+                var churchId = ResolveSuperAdminChurchId(appUser);
+                meetings = await _meetingRepository.GetByChurchIdAsync(churchId);
             }
             else if (_currentUser.IsInRole("Admin"))
             {
@@ -217,6 +207,30 @@ namespace SunDaySchools.BLL.Manager.Implementations
             await _meetingRepository.UpdateAsync(meeting);
         }
 
+        public async Task DeleteMeetingAsync(int id)
+        {
+            if (id <= 0)
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["MeetingId"] = new[] { "Meeting id must be a positive integer." }
+                });
+
+            if (!_currentUser.IsInRole("SuperAdmin"))
+                throw new UnauthorizedAccessException("Only Church Super Admin can delete meetings.");
+
+            var appUser = await RequireCurrentUserAsync();
+            var churchId = ResolveSuperAdminChurchId(appUser);
+
+            var meeting = await _meetingRepository.GetByIdAsync(id);
+            if (meeting == null)
+                throw new NotFoundException($"Meeting with id {id} not found.");
+
+            if (meeting.ChurchId != churchId)
+                throw new UnauthorizedAccessException("This meeting does not belong to your church.");
+
+            await _meetingRepository.DeleteWithDependenciesAsync(id);
+        }
+
         private async Task<ApplicationUser> RequireCurrentUserAsync()
         {
             if (!_currentUser.IsAuthenticated || string.IsNullOrEmpty(_currentUser.UserId))
@@ -227,6 +241,24 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 throw new NotFoundException("User not found.");
 
             return appUser;
+        }
+
+        /// <summary>
+        /// Super Admin flows (pending users, create meeting) scope by JWT <see cref="ITenantContext.ChurchId"/>.
+        /// Fall back to the persisted user row when the claim is absent.
+        /// </summary>
+        private int ResolveSuperAdminChurchId(ApplicationUser appUser)
+        {
+            var churchId = _tenantContext.ChurchId ?? appUser.ChurchId;
+            if (churchId is null or <= 0)
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["Church"] = new[] { "Pastor is not assigned to a church." }
+                });
+            }
+
+            return churchId.Value;
         }
     }
 }

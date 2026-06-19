@@ -37,4 +37,14 @@ class ClassroomRepository {
       await _dio.post(AppConstants.classroomEndpoint, data: dto.toJson());
     });
   }
+
+  /// DELETE /api/Classroom/{id}
+  Future<void> delete(int id) async {
+    if (id <= 0) {
+      throw ArgumentError.value(id, 'id', 'Classroom id must be a positive integer');
+    }
+    return apiCall(() async {
+      await _dio.delete('${AppConstants.classroomEndpoint}/$id');
+    });
+  }
 }

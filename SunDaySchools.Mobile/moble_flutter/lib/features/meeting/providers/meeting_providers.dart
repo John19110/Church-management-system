@@ -12,10 +12,8 @@ final meetingsForSelectionProvider =
     FutureProvider<List<SelectOption>>((ref) async {
   ref.watch(authSessionEpochProvider);
   ref.watch(authStateProvider);
-  return whenAuthenticated(
-    () => ref.watch(meetingRepositoryProvider).getForSelection(),
-    ifLoggedOut: const [],
-  );
+  if (!await hasStoredAuthToken()) return const [];
+  return ref.watch(meetingRepositoryProvider).getForSelection();
 });
 
 final visibleMeetingsProvider = FutureProvider<List<MeetingReadDto>>((ref) async {

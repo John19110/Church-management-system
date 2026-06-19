@@ -120,6 +120,18 @@ namespace SunDaySchools.DAL.Migrations
                     ChurchId = table.Column<int>(type: "int", nullable: true),
                     MeetingId = table.Column<int>(type: "int", nullable: true),
                     IsApproved = table.Column<bool>(type: "bit", nullable: false),
+                    RegistrationStatus = table.Column<int>(type: "int", nullable: false),
+                    RequestedChurchId = table.Column<int>(type: "int", nullable: true),
+                    RequestedMeetingName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    RequestedRole = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    MeetingAdminPhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ImageFileName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    BirthDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    JoiningDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    ApprovedByUserId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ApprovalDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    RejectionReason = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsPhoneVerified = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -205,6 +217,7 @@ namespace SunDaySchools.DAL.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    PublicId = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PastorId = table.Column<int>(type: "int", nullable: true)
                 },
@@ -403,6 +416,7 @@ namespace SunDaySchools.DAL.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    PublicId = table.Column<string>(type: "nvarchar(36)", maxLength: 36, nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ChurchId = table.Column<int>(type: "int", nullable: false),
                     Weekly_appointment = table.Column<TimeOnly>(type: "time", nullable: false),
@@ -704,6 +718,12 @@ namespace SunDaySchools.DAL.Migrations
                 column: "PastorId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Churches_PublicId",
+                table: "Churches",
+                column: "PublicId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Classrooms_ChurchId",
                 table: "Classrooms",
                 column: "ChurchId");
@@ -841,6 +861,12 @@ namespace SunDaySchools.DAL.Migrations
                 name: "IX_Meetings_LeaderServantId",
                 table: "Meetings",
                 column: "LeaderServantId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Meetings_PublicId",
+                table: "Meetings",
+                column: "PublicId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_MemberContacts_MemberId",

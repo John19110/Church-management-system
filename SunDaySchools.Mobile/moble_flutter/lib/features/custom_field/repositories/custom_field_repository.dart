@@ -112,6 +112,14 @@ class CustomFieldRepository {
     });
   }
 
+  Future<void> activateDefinition(int id) async {
+    return apiCall(() async {
+      await _dio.post(
+        '${AppConstants.customFieldEndpoint}/definitions/$id/activate',
+      );
+    });
+  }
+
   Future<EntityCustomFieldsReadDto> getEntityFields(
     String entityName,
     int entityId,

@@ -26,6 +26,18 @@ namespace SunDaySchools.DAL.Repository.Interfaces
 
         Task DeleteAsync(int id);
 
+        /// <summary>
+        /// Removes a member and dependent rows (exam results, custom field values).
+        /// Does not open its own transaction.
+        /// </summary>
+        Task DeleteWithDependenciesAsync(int memberId);
+
+        /// <summary>Deletes all members assigned to a classroom.</summary>
+        Task DeleteByClassroomIdAsync(int classroomId);
+
+        /// <summary>Deletes members scoped to a meeting (including orphans not in a classroom).</summary>
+        Task DeleteByMeetingIdAsync(int meetingId);
+
         Task<IEnumerable<Member>> GetSpecificClassroomAsync(int classroomId);
 
         Task SaveAsync();

@@ -22,6 +22,8 @@ String? systemFieldLabel(
           return l10n.totalMembersCountLabel;
         case 'leaderServantId':
           return l10n.leaderServantOptional;
+        case 'servantIds':
+          return l10n.classroomServantsOptional;
         case 'meetingId':
           return l10n.meetingId;
       }

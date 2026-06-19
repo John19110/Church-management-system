@@ -153,7 +153,7 @@ namespace SunDaySchools.API.Controllers
             {
                 var key = await _fileStorage.SaveImageAsync(form.Image, ct, "servants");
                 updateDto.ImageFileName = key;
-                updateDto.ImageUrl = _fileStorage.GetPublicUrl(key);
+                updateDto.ImageUrl = $"/uploads/{key}";
             }
 
             await _servantManager.UpdateAsync(updateDto);
@@ -175,13 +175,41 @@ namespace SunDaySchools.API.Controllers
         }
 
         [HttpGet("profile")]
+        [Authorize]
         public async Task<IActionResult> GetProfile(CancellationToken ct)
         {
             var profile = await _servantProfileService.GetForCurrentUserAsync(ct);
             return Ok(profile);
         }
 
-        [Authorize(Roles = "Servant")]
+        [HttpGet("profile/form-data")]
+        [Authorize]
+        [Produces(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<EntityFormDataDto>> GetProfileFormData(CancellationToken ct)
+        {
+            return Ok(await _servantProfileService.GetFormDataForCurrentUserAsync(ct));
+        }
+
+        [Authorize]
+        [HttpPut("profile/form-data")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        public async Task<IActionResult> SaveProfileFormData(
+            [FromBody] SaveEntityFormDto request,
+            CancellationToken ct)
+        {
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+            if (request == null)
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    [""] = new[] { "Request body is required." }
+                });
+
+            await _servantProfileService.SaveFormDataForCurrentUserAsync(request, ct);
+            return Ok(new { message = "Profile saved." });
+        }
+
+        [Authorize]
         [HttpPut("profile")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> UpdateProfile(
@@ -197,20 +225,18 @@ namespace SunDaySchools.API.Controllers
                 PhoneNumber = form.PhoneNumber,
                 BirthDate = form.BirthDate,
                 JoiningDate = form.JoiningDate,
-                ChurchId = form.ChurchId,
-                MeetingId = form.MeetingId,
-                ClassroomIds = form.ClassroomIds
             };
 
             if (form.Image is not null && form.Image.Length > 0)
             {
                 var key = await _fileStorage.SaveImageAsync(form.Image, ct, "servants");
                 command.ImageFileName = key;
-                command.ImageUrl = _fileStorage.GetPublicUrl(key);
+                command.ImageUrl = $"/uploads/{key}";
             }
 
             await _servantProfileService.UpdateForCurrentUserAsync(command, ct);
-            return NoContent();
+            var profile = await _servantProfileService.GetForCurrentUserAsync(ct);
+            return Ok(profile);
         }
     }
 }

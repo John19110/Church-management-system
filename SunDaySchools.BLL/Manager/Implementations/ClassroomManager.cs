@@ -87,11 +87,20 @@ namespace SunDaySchools.BLL.Manager.Implementations
                         "Your account has the Servant role but is not linked to a Servants table row. " +
                         "Link AspNetUsers.Id to Servants.ApplicationUserId (one row per servant user), or complete servant registration.");
 
-                classrooms = await _classroomRepository.GetByServantIdAsync(servant.Id);
+                classrooms = await _classroomRepository.GetAccessibleForServantAsync(servant.Id);
             }
             else
             {
                 throw new UnauthorizedAccessException("User role is not allowed.");
+            }
+
+            // Union classrooms where the user is assigned as leader or servant (any role).
+            var servantProfile = await _servantRepo.GetByApplicationUserIdAsync(_currentUser.UserId!);
+            if (servantProfile != null &&
+                (_currentUser.IsInRole("SuperAdmin") || _currentUser.IsInRole("Admin")))
+            {
+                var assigned = await _classroomRepository.GetAccessibleForServantAsync(servantProfile.Id);
+                classrooms = MergeDistinctClassrooms(classrooms, assigned);
             }
 
             return _mapper.Map<List<ClassroomReadDTO>>(classrooms);
@@ -152,21 +161,20 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             if (dto.ServantIds != null && dto.ServantIds.Any())
             {
-                var servants = await _servantRepo.GetByIdsAsync(dto.ServantIds);
-
-                var foundIds = servants.Select(s => s.Id).ToHashSet();
-                var missingServants = dto.ServantIds.Where(id => !foundIds.Contains(id)).ToList();
-
-                if (missingServants.Any())
-                {
-                    throw new ValidationException(new Dictionary<string, string[]>
-                    {
-                        ["ServantIds"] = missingServants
-                            .Select(id => $"Servant with id {id} was not found.")
-                            .ToArray()
-                    });
-                }
+                await ValidateServantIdsExistAsync(dto.ServantIds);
             }
+
+            if (dto.LeaderServantId is > 0)
+            {
+                var leader = await _servantRepo.GetByIdAsync(dto.LeaderServantId.Value);
+                if (leader == null)
+                    throw new NotFoundException($"Servant with id {dto.LeaderServantId.Value} not found.");
+                model.LeaderServantId = dto.LeaderServantId.Value;
+            }
+
+            var desiredServants = BuildDesiredServantIds(dto.ServantIds, model.LeaderServantId);
+            if (desiredServants.Count > 0)
+                await ValidateServantIdsExistAsync(desiredServants);
 
             if (dto.MemberIds != null && dto.MemberIds.Any())
             {
@@ -190,7 +198,13 @@ namespace SunDaySchools.BLL.Manager.Implementations
             }
 
             await _classroomRepository.AddAsync(model);
-            await _classroomRepository.SaveAsync();
+
+            if (desiredServants.Count > 0)
+            {
+                ApplyClassroomServantAssignments(model, desiredServants);
+                await _classroomRepository.UpdateAsync(model);
+            }
+
             return model.Id;
         }
 
@@ -279,20 +293,15 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             if (dto.ServantIds is not null)
             {
-                var desired = dto.ServantIds.Where(x => x > 0).Distinct().ToHashSet();
-
-                classroom.ClassroomServants ??= new List<ClassroomServant>();
-                var existing = classroom.ClassroomServants.Select(cs => cs.ServantId).ToHashSet();
-
-                var toRemove = classroom.ClassroomServants.Where(cs => !desired.Contains(cs.ServantId)).ToList();
-                foreach (var cs in toRemove)
-                    classroom.ClassroomServants.Remove(cs);
-
-                foreach (var sid in desired)
-                {
-                    if (existing.Contains(sid)) continue;
-                    classroom.ClassroomServants.Add(new ClassroomServant { ClassroomId = classroom.Id, ServantId = sid });
-                }
+                var desired = BuildDesiredServantIds(dto.ServantIds, classroom.LeaderServantId);
+                await ValidateServantIdsExistAsync(desired);
+                ApplyClassroomServantAssignments(classroom, desired);
+            }
+            else if (dto.LeaderServantId is > 0)
+            {
+                var desired = BuildDesiredServantIds(null, classroom.LeaderServantId);
+                await ValidateServantIdsExistAsync(desired);
+                ApplyClassroomServantAssignments(classroom, desired);
             }
 
             if (dto.MemberIds is not null)
@@ -320,6 +329,53 @@ namespace SunDaySchools.BLL.Manager.Implementations
             await _classroomRepository.UpdateAsync(classroom);
         }
 
+        public async Task DeleteAsync(int id)
+        {
+            if (id <= 0)
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["ClassroomId"] = new[] { "Classroom id must be a positive integer." }
+                });
+
+            if (!_currentUser.IsAuthenticated)
+                throw new UnauthorizedAccessException("User is not authenticated.");
+
+            var churchId = _tenantContext.ChurchId
+                ?? throw new UnauthorizedAccessException("ChurchId claim is missing.");
+
+            var classroom = await _classroomRepository.GetByIdAsync(id);
+            if (classroom == null)
+                throw new NotFoundException($"Classroom with id {id} not found.");
+
+            if (classroom.ChurchId != churchId)
+                throw new UnauthorizedAccessException("This classroom does not belong to your church.");
+
+            if (_currentUser.IsInRole("SuperAdmin"))
+            {
+                // Church Super Admin may delete any classroom in the church.
+            }
+            else if (_currentUser.IsInRole("Admin"))
+            {
+                var appUser = await RequireCurrentUserAsync();
+                if (appUser.MeetingId == null)
+                    throw new ValidationException(new Dictionary<string, string[]>
+                    {
+                        ["Meeting"] = new[] { "Admin is not assigned to a meeting." }
+                    });
+
+                if (classroom.MeetingId != appUser.MeetingId)
+                    throw new UnauthorizedAccessException(
+                        "You can only delete classrooms in your assigned meeting.");
+            }
+            else
+            {
+                throw new UnauthorizedAccessException(
+                    "Only Church Super Admin or Meeting Admin can delete classrooms.");
+            }
+
+            await _classroomRepository.DeleteWithDependenciesAsync(id);
+        }
+
         private async Task<ApplicationUser> RequireCurrentUserAsync()
         {
             if (!_currentUser.IsAuthenticated || string.IsNullOrEmpty(_currentUser.UserId))
@@ -331,6 +387,85 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 throw new UnauthorizedAccessException("User not found for the supplied token.");
 
             return appUser;
+        }
+
+        private static List<Classroom> MergeDistinctClassrooms(
+            List<Classroom> primary,
+            List<Classroom> additional)
+        {
+            var byId = primary.ToDictionary(c => c.Id);
+            foreach (var classroom in additional)
+            {
+                if (!byId.ContainsKey(classroom.Id))
+                    byId[classroom.Id] = classroom;
+            }
+
+            return byId.Values
+                .OrderBy(c => c.Name, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+
+        private static HashSet<int> BuildDesiredServantIds(
+            IEnumerable<int>? servantIds,
+            int? leaderServantId)
+        {
+            var desired = (servantIds ?? Array.Empty<int>())
+                .Where(x => x > 0)
+                .ToHashSet();
+
+            if (leaderServantId is > 0)
+                desired.Add(leaderServantId.Value);
+
+            return desired;
+        }
+
+        private async Task ValidateServantIdsExistAsync(IEnumerable<int> ids)
+        {
+            var list = ids.Distinct().ToList();
+            if (list.Count == 0)
+                return;
+
+            var servants = await _servantRepo.GetByIdsAsync(list);
+            var foundIds = servants.Select(s => s.Id).ToHashSet();
+            var missingServants = list.Where(id => !foundIds.Contains(id)).ToList();
+
+            if (missingServants.Count == 0)
+                return;
+
+            throw new ValidationException(new Dictionary<string, string[]>
+            {
+                ["ServantIds"] = missingServants
+                    .Select(id => $"Servant with id {id} was not found.")
+                    .ToArray()
+            });
+        }
+
+        private static void ApplyClassroomServantAssignments(
+            Classroom classroom,
+            HashSet<int> desired)
+        {
+            classroom.ClassroomServants ??= new List<ClassroomServant>();
+            var existing = classroom.ClassroomServants.Select(cs => cs.ServantId).ToHashSet();
+
+            var toRemove = classroom.ClassroomServants
+                .Where(cs => !desired.Contains(cs.ServantId))
+                .ToList();
+            foreach (var cs in toRemove)
+                classroom.ClassroomServants.Remove(cs);
+
+            foreach (var servantId in desired)
+            {
+                if (existing.Contains(servantId))
+                    continue;
+
+                classroom.ClassroomServants.Add(new ClassroomServant
+                {
+                    ClassroomId = classroom.Id,
+                    ServantId = servantId,
+                    ChurchId = classroom.ChurchId,
+                    MeetingId = classroom.MeetingId
+                });
+            }
         }
     }
 }

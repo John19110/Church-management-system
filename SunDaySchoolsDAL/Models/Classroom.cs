@@ -1,4 +1,6 @@
 ﻿using SunDaySchools.DAL.Models;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 
 namespace SunDaySchools.Models
 {
@@ -10,15 +12,18 @@ namespace SunDaySchools.Models
         public ICollection<Member>? Members { get; set; }
         public int? NumberOfDisplineMembers { get; set; }
         public int? TotalMembersCount => Members?.Count ?? 0;
-        //public ICollection<Servant>? Servants { get; set; }
-        public ICollection<AttendanceSession>? AttendanceHistory { get; set; }
+
+        /// <summary>Many-to-many assignment rows (source of truth for assigned servants).</summary>
         public ICollection<ClassroomServant> ClassroomServants { get; set; } = new List<ClassroomServant>();
 
+        /// <summary>Assigned servants (via <see cref="ClassroomServants"/>).</summary>
+        [NotMapped]
+        public IEnumerable<Servant> Servants =>
+            ClassroomServants.Select(cs => cs.Servant);
 
-        public int? LeaderServantId { get; set; }  // Nullable if a meeting may not have a leader yet
+        public ICollection<AttendanceSession>? AttendanceHistory { get; set; }
+
+        public int? LeaderServantId { get; set; }
         public Servant? LeaderServant { get; set; }
-
-
-
     }
 }

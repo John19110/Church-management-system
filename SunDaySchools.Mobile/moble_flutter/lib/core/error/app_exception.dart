@@ -109,6 +109,9 @@ ParsedApiError parseApiError(
 String userFriendlyMessage(Object error, [AppLocalizations? l10n]) {
   final loc = l10n ?? AppLocalizations.forLocale(const Locale('en'));
 
+  if (error is ApiException && error.errorCode == 'AUTH_FAILED') {
+    return loc.invalidCredentialsPleaseTryAgain;
+  }
   if (error is UnauthorizedException) return loc.sessionExpiredPleaseSignIn;
   if (error is NetworkException) return loc.networkErrorTryAgain;
   if (error is AppException && error.message.isNotEmpty) return error.message;
@@ -218,12 +221,22 @@ AppException mapDioException(DioException e) {
   }
 
   final statusCode = e.response?.statusCode;
-  if (statusCode == 401) return const UnauthorizedException();
-
   final parsed = parseApiError(
     e.response?.data,
     httpStatusCode: statusCode,
   );
+
+  // Login invalid credentials: 401 + AUTH_FAILED (not an expired session).
+  if (statusCode == 401) {
+    if (parsed.errorCode == 'AUTH_FAILED') {
+      return ApiException(
+        parsed.message,
+        statusCode: 401,
+        errorCode: 'AUTH_FAILED',
+      );
+    }
+    return const UnauthorizedException();
+  }
 
   if (parsed.requiresPhoneVerification || parsed.errorCode == 'OTP_RATE_LIMIT') {
     return _apiExceptionFromParsed(parsed);

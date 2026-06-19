@@ -19,5 +19,6 @@ namespace SunDaySchools.DAL.Repository.Interfaces
         Task AddAsync(Meeting meeting);
         Task UpdateAsync(Meeting meeting);
         Task DeleteAsync(int id);
+        Task DeleteWithDependenciesAsync(int id);
     }
 }

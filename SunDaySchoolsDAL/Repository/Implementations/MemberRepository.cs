@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SunDaySchools.DAL.Models.CustomFields;
 using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchools.Models;
 using SunDaySchoolsDAL.DBcontext;
@@ -88,13 +89,70 @@ namespace SunDaySchools.DAL.Repository.Implementations
             if (id <= 0)
                 return;
 
-            var member = await _context.Members.FindAsync(id);
+            await DeleteWithDependenciesAsync(id);
+            await _context.SaveChangesAsync();
+        }
 
-            if (member != null)
-            {
-                _context.Members.Remove(member);
-                await _context.SaveChangesAsync();
-            }
+        public async Task DeleteWithDependenciesAsync(int memberId)
+        {
+            if (memberId <= 0)
+                return;
+
+            await _context.ExamResults
+                .IgnoreQueryFilters()
+                .Where(er => er.MemberId == memberId)
+                .ExecuteDeleteAsync();
+
+            await _context.AttendanceRecords
+                .IgnoreQueryFilters()
+                .Where(r => r.MemberId == memberId)
+                .ExecuteDeleteAsync();
+
+            await _context.CustomFieldValues
+                .IgnoreQueryFilters()
+                .Where(v =>
+                    v.EntityName == CustomFieldEntityNames.Member &&
+                    v.EntityId == memberId)
+                .ExecuteDeleteAsync();
+
+            var member = await _context.Members
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(m => m.Id == memberId);
+
+            if (member == null)
+                return;
+
+            _context.Members.Remove(member);
+        }
+
+        public async Task DeleteByClassroomIdAsync(int classroomId)
+        {
+            if (classroomId <= 0)
+                return;
+
+            var memberIds = await _context.Members
+                .IgnoreQueryFilters()
+                .Where(m => m.ClassroomId == classroomId)
+                .Select(m => m.Id)
+                .ToListAsync();
+
+            foreach (var memberId in memberIds)
+                await DeleteWithDependenciesAsync(memberId);
+        }
+
+        public async Task DeleteByMeetingIdAsync(int meetingId)
+        {
+            if (meetingId <= 0)
+                return;
+
+            var memberIds = await _context.Members
+                .IgnoreQueryFilters()
+                .Where(m => m.MeetingId == meetingId)
+                .Select(m => m.Id)
+                .ToListAsync();
+
+            foreach (var memberId in memberIds)
+                await DeleteWithDependenciesAsync(memberId);
         }
 
         public async Task<IEnumerable<Member>> GetSpecificClassroomAsync(int classroomId)

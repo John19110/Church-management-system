@@ -62,6 +62,15 @@ namespace SunDaySchools.API.Controllers
             return NoContent();
         }
 
+        [HttpDelete("{id:int}")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            if (id <= 0) return BadRequest("Classroom id must be a positive integer.");
+            await _classroomManager.DeleteAsync(id);
+            return NoContent();
+        }
+
         [HttpGet("visible")]
         public async Task<IActionResult> GetVisibleClassrooms([FromQuery] int? meetingId = null)
         {

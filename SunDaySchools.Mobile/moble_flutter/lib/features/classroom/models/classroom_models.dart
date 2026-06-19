@@ -6,6 +6,8 @@ class ClassroomReadDto {
   final int? numberOfDisciplineMembers;
   final int? totalMembersCount;
   final int? pastAttendanceSessionsCount;
+  final int? leaderServantId;
+  final String? leaderServantName;
   final List<String> memberNames;
   final List<String> servantNames;
 
@@ -17,6 +19,8 @@ class ClassroomReadDto {
     this.numberOfDisciplineMembers,
     this.totalMembersCount,
     this.pastAttendanceSessionsCount,
+    this.leaderServantId,
+    this.leaderServantName,
     this.memberNames = const [],
     this.servantNames = const [],
   });
@@ -34,6 +38,8 @@ class ClassroomReadDto {
         totalMembersCount: json['totalMembersCount'] as int?,
         pastAttendanceSessionsCount:
             json['pastAttendanceSessionsCount'] as int?,
+        leaderServantId: json['leaderServantId'] as int?,
+        leaderServantName: json['leaderServantName'] as String?,
         memberNames: _extractDisplayNames(_asList(json['members'])),
         servantNames: _extractDisplayNames(_asList(json['servants'])),
       );
@@ -67,6 +73,7 @@ class ClassroomAddDto {
   final List<int>? servantIds;
   final List<int>? memberIds;
   final int? meetingId;
+  final int? leaderServantId;
 
   const ClassroomAddDto({
     this.name,
@@ -74,6 +81,7 @@ class ClassroomAddDto {
     this.servantIds,
     this.memberIds,
     this.meetingId,
+    this.leaderServantId,
   });
 
   Map<String, dynamic> toJson() => {
@@ -82,5 +90,6 @@ class ClassroomAddDto {
         if (servantIds != null) 'servantIds': servantIds,
         if (memberIds != null) 'memberIds': memberIds,
         if (meetingId != null) 'meetingId': meetingId,
+        if (leaderServantId != null) 'leaderServantId': leaderServantId,
       };
 }

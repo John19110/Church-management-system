@@ -8,12 +8,16 @@ mixin UnifiedFormScreenMixin {
   String fieldListSignature(List<UnifiedFieldDefinitionDto> fields) =>
       fields.map((f) => '${f.fieldKey}:${f.customFieldDefinitionId}').join('|');
 
+  String fieldValueSignature(List<UnifiedFieldDto> fields) =>
+      fields.map((f) => '${f.fieldKey}:${f.value ?? ''}').join('|');
+
   void syncFormController(
     UnifiedFormController controller,
     List<UnifiedFieldDefinitionDto> fields, {
     List<UnifiedFieldDto>? withValues,
   }) {
-    final sig = fieldListSignature(fields);
+    final valueFields = withValues ?? const <UnifiedFieldDto>[];
+    final sig = '${fieldListSignature(fields)}|${fieldValueSignature(valueFields)}';
     if (sig == _fieldListSignature) return;
     _fieldListSignature = sig;
     controller.initializeFromFields(fields, withValues: withValues);

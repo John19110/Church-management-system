@@ -153,6 +153,15 @@ class AppLocalizations {
   String get servantAddedSuccessfully => _t('servantAddedSuccessfully');
   String get servantUpdatedSuccessfully => _t('servantUpdatedSuccessfully');
   String get servantDeletedSuccessfully => _t('servantDeletedSuccessfully');
+  String get deleteMeeting => _t('deleteMeeting');
+  String get confirmDeleteMeeting => _t('confirmDeleteMeeting');
+  String get meetingDeletedSuccessfully => _t('meetingDeletedSuccessfully');
+  String get deleteClassroom => _t('deleteClassroom');
+  String get confirmDeleteClassroom => _t('confirmDeleteClassroom');
+  String get classroomDeletedSuccessfully => _t('classroomDeletedSuccessfully');
+  String get leaderServantLabel => _t('leaderServantLabel');
+  String get assignedServantsLabel => _t('assignedServantsLabel');
+  String get noServantsAssigned => _t('noServantsAssigned');
 
   // ── Registration ──────────────────────────────────────────────────────────
   String get churchId => _t('churchId');
@@ -350,6 +359,7 @@ class AppLocalizations {
   String get optional => _t('optional');
   String get visibleMeetings => _t('visibleMeetings');
   String get leaderServantOptional => _t('leaderServantOptional');
+  String get classroomServantsOptional => _t('classroomServantsOptional');
   String get selectServant => _t('selectServant');
   String get meetingUpdated => _t('meetingUpdated');
   String get attendanceSessionsCount => _t('attendanceSessionsCount');
@@ -421,6 +431,11 @@ class AppLocalizations {
       _t('deactivateFieldConfirm').replaceAll('{name}', name);
   String get deactivate => _t('deactivate');
   String get fieldDeactivated => _t('fieldDeactivated');
+  String get reactivateField => _t('reactivateField');
+  String reactivateFieldConfirm(String name) =>
+      _t('reactivateFieldConfirm').replaceAll('{name}', name);
+  String get reactivate => _t('reactivate');
+  String get fieldActivated => _t('fieldActivated');
   String get fieldActive => _t('fieldActive');
   String get fieldInactive => _t('fieldInactive');
   String get selectOptionsRequired => _t('selectOptionsRequired');
@@ -455,6 +470,8 @@ class AppLocalizations {
 
   // ── Errors (no context) ───────────────────────────────────────────────────
   String get genericErrorTryAgain => _t('genericErrorTryAgain');
+  String get invalidCredentialsPleaseTryAgain =>
+      _t('invalidCredentialsPleaseTryAgain');
   String get sessionExpiredPleaseSignIn => _t('sessionExpiredPleaseSignIn');
   String get networkErrorTryAgain => _t('networkErrorTryAgain');
   String get somethingWentWrongTryAgain => _t('somethingWentWrongTryAgain');
@@ -688,6 +705,17 @@ class AppLocalizations {
       'servantAddedSuccessfully': 'Servant added successfully',
       'servantUpdatedSuccessfully': 'Servant updated successfully',
       'servantDeletedSuccessfully': 'Servant deleted',
+      'deleteMeeting': 'Delete Meeting',
+      'confirmDeleteMeeting':
+          'Deleting this meeting will permanently delete all classrooms and all members inside these classrooms. This action cannot be undone. Do you want to continue?',
+      'meetingDeletedSuccessfully': 'Meeting deleted successfully',
+      'deleteClassroom': 'Delete Classroom',
+      'confirmDeleteClassroom':
+          'Delete this classroom and all members assigned to it? This cannot be undone.',
+      'classroomDeletedSuccessfully': 'Classroom deleted successfully',
+      'leaderServantLabel': 'Leader Servant',
+      'assignedServantsLabel': 'Assigned Servants',
+      'noServantsAssigned': 'No servants assigned',
       // Registration
       'churchId': 'Church ID',
       'enterChurchId': 'Enter your church ID',
@@ -733,7 +761,7 @@ class AppLocalizations {
       'load': 'Load',
       'markAllPresent': 'Mark All Present',
       'enterClassroomAndLoad':
-          'Enter a classroom ID and tap Load\nto see children.',
+          'Enter a classroom ID and tap Load\nto see members.',
       'attendanceSaved': 'Attendance saved!',
       'loadMembersFirst': 'Load members first',
       'enterClassroomId': 'Enter a classroom ID',
@@ -884,6 +912,7 @@ class AppLocalizations {
       'optional': 'optional',
       'visibleMeetings': 'Visible Meetings',
       'leaderServantOptional': 'Leader Servant (optional)',
+      'classroomServantsOptional': 'Servants (optional)',
       'selectServant': 'Select servant',
       'meetingUpdated': 'Meeting updated.',
       'attendanceSessionsCount': '{count} attendance sessions',
@@ -922,7 +951,7 @@ class AppLocalizations {
           'Database key "{name}" is fixed and cannot be changed.',
       'systemFieldKeyLockedLabel':
           '"{label}" is a system field; its internal property name cannot be changed.',
-      'systemFieldCannotDeactivate': 'Critical system fields cannot be deactivated.',
+      'systemFieldCannotDeactivate': 'The entity name field cannot be deactivated.',
       'systemFieldNotProvisioned':
           'This system field is not saved on the server yet. Deploy the latest API and reopen this screen.',
       'editCustomField': 'Edit custom field',
@@ -942,6 +971,10 @@ class AppLocalizations {
           'Deactivate "{name}"? Existing values are preserved.',
       'deactivate': 'Deactivate',
       'fieldDeactivated': 'Field deactivated',
+      'reactivateField': 'Reactivate field',
+      'reactivateFieldConfirm': 'Reactivate "{name}"? It will appear on forms and detail screens again.',
+      'reactivate': 'Reactivate',
+      'fieldActivated': 'Field activated',
       'fieldActive': 'Active',
       'fieldInactive': 'Inactive',
       'selectOptionsRequired': 'Add at least one option for this field type.',
@@ -984,6 +1017,8 @@ class AppLocalizations {
       'churchBrand': 'Church',
       // Errors
       'genericErrorTryAgain': 'An error occurred. Please try again.',
+      'invalidCredentialsPleaseTryAgain':
+          'Wrong credentials. Please try again.',
       'sessionExpiredPleaseSignIn':
           'Your session has expired. Please sign in again.',
       'networkErrorTryAgain':
@@ -1115,7 +1150,7 @@ class AppLocalizations {
       'disciplineStatus': 'عضو انضباط',
       'disciplineStatusHint': 'حدّد إذا كان العضو ضمن قائمة الانضباط',
       'fullNameComputedHint':
-          'يُولَّد الاسم الكامل تلقائياً من حقول الاسم',
+          'يُولَّد الاسم الكامل تلقائياً من معلومات الاسم',
       'optionalLabel': 'اختياري',
       'clearLabel': 'مسح',
       'haveBrothersQuestion': 'هل لدى العضو إخوة في البرنامج؟',
@@ -1155,6 +1190,17 @@ class AppLocalizations {
       'servantAddedSuccessfully': 'تمت إضافة الخادم بنجاح',
       'servantUpdatedSuccessfully': 'تم تحديث الخادم بنجاح',
       'servantDeletedSuccessfully': 'تم حذف الخادم',
+      'deleteMeeting': 'حذف الاجتماع',
+      'confirmDeleteMeeting':
+          'سيؤدي حذف هذا الاجتماع إلى حذف جميع الفصول وجميع الأعضاء داخل هذه الفصول نهائياً. لا يمكن التراجع عن هذا الإجراء. هل تريد المتابعة؟',
+      'meetingDeletedSuccessfully': 'تم حذف الاجتماع بنجاح',
+      'deleteClassroom': 'حذف الفصل',
+      'confirmDeleteClassroom':
+          'حذف هذا الفصل وجميع الأعضاء المعيّنين فيه؟ لا يمكن التراجع عن هذا الإجراء.',
+      'classroomDeletedSuccessfully': 'تم حذف الفصل بنجاح',
+      'leaderServantLabel': 'الخادم المسؤول',
+      'assignedServantsLabel': 'الخدام المعيّنون',
+      'noServantsAssigned': 'لا يوجد خدام معيّنون',
       // Registration
       'churchId': 'كود الكنيسه (اطلبه من الراعي)',
       'enterChurchId': 'أدخل كود كنيستك',
@@ -1170,15 +1216,15 @@ class AppLocalizations {
       'meetingNameRequired': 'اسم الاجتماع مطلوب',
       'selectRegistrationType': 'اختر نوع التسجيل',
       'registerTypeServant': 'خادم',
-      'registerTypeChurchAdmin': 'مشرف كنيسة',
-      'registerTypeMeetingAdmin': 'مشرف اجتماع',
+      'registerTypeChurchAdmin': 'قائد الكنيسة',
+      'registerTypeMeetingAdmin': 'قائد اجتماع',
       'churchExistsQuestion': 'هل كنيستك مسجّلة بالفعل في التطبيق؟',
       'churchExistsYes': 'نعم، كنيستي موجودة بالفعل',
       'churchExistsNo': 'لا، كنيستي غير موجودة بعد',
       'joinExistingChurchTitle': 'الانضمام إلى كنيسة موجودة',
-      'meetingAdminPhone': 'رقم هاتف مشرف الاجتماع',
-      'enterMeetingAdminPhone': 'أدخل رقم هاتف مشرف الاجتماع',
-      'meetingAdminPhoneRequired': 'رقم هاتف مشرف الاجتماع مطلوب',
+      'meetingAdminPhone': 'رقم هاتف قائد الاجتماع',
+      'enterMeetingAdminPhone': 'أدخل رقم هاتف قائد الاجتماع',
+      'meetingAdminPhoneRequired': 'رقم هاتف قائد الاجتماع مطلوب',
       'noMeetingsToAssign': 'لا توجد اجتماعات بعد. أنشئ اجتماعًا قبل الموافقة على هذا المستخدم.',
       'weeklyAppointment': 'الموعد الأسبوعي',
       'weeklyAppointmentRequired': 'الموعد الأسبوعي مطلوب',
@@ -1224,7 +1270,7 @@ class AppLocalizations {
       'assignClass': 'تعيين فصل',
       'assignClassroom': 'تعيين فصل',
       'classroom': 'الفصل',
-      'selectClassroom': 'اختر الفصل',
+      'Classrooms': 'الفصول',
       'pleaseSelectClassroom': 'يرجى اختيار فصل.',
       'classAssigned': 'تم تعيين الفصل.',
       'noPendingServants': 'لا يوجد خدام معلّقون.',
@@ -1252,7 +1298,7 @@ class AppLocalizations {
       'accountRejected': 'تم رفض طلب تسجيلك.',
       'assignClassTooltip': 'تعيين فصل',
       'couldNotVerifyRole': 'تعذر التحقق من الدور:',
-      'adminOnlyScreen': 'هذه الصفحة خاصة بالمشرفين فقط.',
+      'adminOnlyScreen': 'هذه الصفحة خاصة بالقاده فقط.',
       'noRoleFoundPleaseRelogin':
           'لم يتم العثور على دور في جلستك. يرجى تسجيل الخروج ثم تسجيل الدخول مرة أخرى.',
 
@@ -1298,7 +1344,7 @@ class AppLocalizations {
       'couldNotLoadMembers': 'تعذر تحميل الأعضاء:',
       'noMembersInClassroomYet': 'لا يوجد أعضاء في هذا الفصل بعد.',
       'memberNumber': 'عضو رقم {id}',
-      'classroomInvalidMissingId': 'فصل غير صالح: المعرف مفقود.',
+      'classroomInvalidMissingId': 'فصل غير صالح: الكود مفقود.',
       'membersHeading': 'الأعضاء',
       'ageGroupLabel': 'الفئة العمرية: {age}',
       'pastAttendanceSessions': '{count} سجلات حضور سابقة',
@@ -1328,9 +1374,9 @@ class AppLocalizations {
       'failedToLoadOptions': 'تعذر تحميل الخيارات:',
       'failedToLoadProfile': 'تعذر تحميل الملف الشخصي:',
       'profileUpdated': 'تم تحديث الملف الشخصي.',
-      'churchIdLabel': 'معرف الكنيسة',
+      'churchIdLabel': 'كود الكنيسة',
       'copyLabel': 'نسخ',
-      'churchIdCopied': 'تم نسخ معرف الكنيسة',
+      'churchIdCopied': 'تم نسخ كود الكنيسة',
       'meetingLabel': 'الاجتماع',
       'selectMeeting': 'اختر الاجتماع',
       'classroomsLabel': 'الفصول',
@@ -1349,6 +1395,7 @@ class AppLocalizations {
       'optional': 'اختياري',
       'visibleMeetings': 'الاجتماعات ',
       'leaderServantOptional': 'الخادم المسؤول (اختياري)',
+      'classroomServantsOptional': 'الخدام (اختياري)',
       'selectServant': 'اختر خادماً',
       'meetingUpdated': 'تم تحديث الاجتماع.',
       'attendanceSessionsCount': '{count} جلسات حضور',
@@ -1360,19 +1407,19 @@ class AppLocalizations {
       'required': 'هذا الحقل مطلوب',
       'tapToSelectImage': 'اضغط لاختيار صورة',
       // Custom fields
-      'customFields': 'الحقول المخصصة',
-      'customFieldsForEntity': 'حقول مخصصة — {entity}',
+      'customFields': 'المعلومات الجديده',
+      'customFieldsForEntity': 'معلومات جديده — {entity}',
       'entityMember': 'العضو',
       'entityClassroom': 'الفصل',
       'entityServant': 'الخادم',
       'entityMeeting': 'الاجتماع',
       'notAuthorized': 'غير مصرح',
-      'noCustomFieldsYet': 'لا توجد حقول مخصصة بعد.',
-      'noFieldsConfigured': 'لا توجد حقول مُعدّة بعد.',
-      'systemFieldsSection': 'حقول النظام',
+      'noCustomFieldsYet': 'لا توجد معلومات جديده بعد.',
+      'noFieldsConfigured': 'لا توجد معلومات مُعدّة بعد.',
+      'systemFieldsSection': 'معلومات النظام',
       'systemFieldsSectionHint':
-          'خصائص النموذج المدمجة. يمكنك تغيير التسميات وإخفاء الحقول وإعادة الترتيب وضبط التحقق. لا يمكن تغيير أسماء أعمدة قاعدة البيانات.',
-      'customFieldsSection': 'الحقول المخصصة',
+          'خصائص النموذج المدمجة. يمكنك تغيير التسميات وإخفاء المعلومات وإعادة الترتيب وضبط التحقق. لا يمكن تغيير أسماء أعمدة قاعدة البيانات.',
+      'customFieldsSection': 'المعلومات الجديده',
       'systemFieldBadge': 'نظام',
       'fieldStatusRequired': 'إلزامي',
       'fieldStatusOptional': 'اختياري',
@@ -1387,7 +1434,7 @@ class AppLocalizations {
           'مفتاح قاعدة البيانات "{name}" ثابت ولا يمكن تغييره.',
       'systemFieldKeyLockedLabel':
           '"{label}" حقل نظام؛ لا يمكن تغيير اسم الخاصية الداخلي له.',
-      'systemFieldCannotDeactivate': 'لا يمكن إلغاء تفعيل حقول النظام الأساسية.',
+      'systemFieldCannotDeactivate': 'لا يمكن إلغاء تفعيل حقل اسم الكيان.',
       'systemFieldNotProvisioned':
           'حقل النظام هذا غير محفوظ على الخادم بعد. انشر أحدث إصدار من الواجهة البرمجية وأعد فتح هذه الشاشة.',
       'editCustomField': 'تعديل حقل مخصص',
@@ -1407,11 +1454,16 @@ class AppLocalizations {
           'إلغاء تفعيل "{name}"؟ القيم الحالية تبقى محفوظة.',
       'deactivate': 'إلغاء التفعيل',
       'fieldDeactivated': 'تم إلغاء تفعيل الحقل',
+      'reactivateField': 'إعادة تفعيل الحقل',
+      'reactivateFieldConfirm':
+          'إعادة تفعيل "{name}"؟ سيظهر مرة أخرى في النماذج وشاشات التفاصيل.',
+      'reactivate': 'إعادة التفعيل',
+      'fieldActivated': 'تم تفعيل الحقل',
       'fieldActive': 'مفعّل',
       'fieldInactive': 'غير مفعّل',
       'selectOptionsRequired': 'أضف خياراً واحداً على الأقل لهذا النوع.',
-      'manageCustomFields': 'إدارة الحقول المخصصة',
-      'editEntityFields': 'تعديل الحقول',
+      'manageCustomFields': 'إدارة المعلومات الجديده',
+      'editEntityFields': 'تعديل المعلومات',
       'cfdt_text': 'نص قصير',
       'cfdt_longText': 'نص طويل',
       'cfdt_number': 'عدد صحيح',
@@ -1424,10 +1476,10 @@ class AppLocalizations {
       'cfdt_multiSelect': 'اختيار متعدد',
       'changesSaved': 'تم حفظ التغييرات.',
       'entityFieldsNotConfigured':
-          'يجب على المسؤول تحديد السمات التي تُخزَّن لهذا الكيان (الحقول المخصصة).',
+          'يجب على المسؤول تحديد السمات التي تُخزَّن لهذا الكيان (المعلومات الجديده).',
       'configureEntityAttributesTitle': 'إعداد سمات {entity}',
       'customFieldsAdminDescription':
-          'حقول النظام من نموذج الخادم تظهر في الأعلى. الحقول المخصصة التي تنشئها تظهر أدناه. اضبط التسميات والظهور والترتيب والتحقق؛ الحقول النشطة تظهر في الإنشاء والتعديل والتفاصيل.',
+          'معلومات النظام من نموذج الخادم تظهر في الأعلى. المعلومات الجديده التي تنشئها تظهر أدناه. اضبط التسميات والظهور والترتيب والتحقق؛ المعلومات النشطة تظهر في الإنشاء والتعديل والتفاصيل.',
       'recommendedSyncKeysHint':
           'نصيحة: المفاتيح الداخلية مثل name أو ageOfMembers أو leaderServantId (للفصل) تحدّث أيضاً عناوين القوائم عند توليدها من الاسم المعروض.',
       // Auth / OTP disabled
@@ -1449,6 +1501,8 @@ class AppLocalizations {
       'churchBrand': 'الكنيسة',
       // Errors
       'genericErrorTryAgain': 'حدث خطأ. يرجى المحاولة مرة أخرى.',
+      'invalidCredentialsPleaseTryAgain':
+          'بيانات الدخول غير صحيحة. يرجى المحاولة مرة أخرى.',
       'sessionExpiredPleaseSignIn':
           'انتهت جلستك. يرجى تسجيل الدخول مرة أخرى.',
       'networkErrorTryAgain':
@@ -1456,13 +1510,13 @@ class AppLocalizations {
       'somethingWentWrongTryAgain': 'حدث خطأ ما. يرجى المحاولة مرة أخرى.',
       'serverErrorTryLater': 'خطأ في الخادم. يرجى المحاولة لاحقاً.',
       // IDs / API
-      'invalidMemberId': 'معرف العضو غير صالح.',
+      'invalidMemberId': 'كود العضو غير صالح.',
       'invalidMemberIdDetail':
-          'معرف العضو غير صالح. افتح هذه الشاشة من القائمة بعد أن يعيد الخادم معرفات صحيحة.',
+          'كود العضو غير صالح. افتح هذه الشاشة من القائمة بعد أن يعيد الخادم كودات صحيحة.',
       'memberIdMissingFromApi':
-          'معرف العضو مفقود من استجابة الخادم. يجب أن يتضمن كل عضو حقل id.',
+          'كود العضو مفقود من استجابة الخادم. يجب أن يتضمن كل عضو حقل id.',
       'servantIdMissingFromApi':
-          'معرف الخادم مفقود من استجابة الخادم. يجب أن يتضمن كل خادم حقل id.',
+          'كود الخادم مفقود من استجابة الخادم. يجب أن يتضمن كل خادم حقل id.',
       // Attendance
       'noAttendanceSessionsYet': 'لا توجد جلسات حضور بعد.',
       'sessionNumber': 'جلسة رقم {id}',
@@ -1474,14 +1528,14 @@ class AppLocalizations {
       'editMeeting': 'تعديل الاجتماع',
       'editChurch': 'تعديل الكنيسة',
       'classroomDetails': 'تفاصيل الفصل',
-      'customFieldValues': 'قيم الحقول المخصصة',
+      'customFieldValues': 'قيم المعلومات الجديده',
       'entityChurch': 'الكنيسة',
       // Custom fields extras
-      'additionalFields': 'حقول إضافية',
-      'additionalFieldsSaved': 'تم حفظ الحقول الإضافية',
-      'saveAdditionalFields': 'حفظ الحقول الإضافية',
-      'entityAdditionalFieldsTitle': '{entity} — حقول إضافية',
-      'failedToLoadCustomFields': 'تعذر تحميل الحقول المخصصة:',
+      'additionalFields': 'معلومات إضافية',
+      'additionalFieldsSaved': 'تم حفظ المعلومات الإضافية',
+      'saveAdditionalFields': 'حفظ المعلومات الإضافية',
+      'entityAdditionalFieldsTitle': '{entity} — معلومات إضافية',
+      'failedToLoadCustomFields': 'تعذر تحميل المعلومات الجديده:',
       'isoDateTimeHint': 'تاريخ ووقت بصيغة ISO',
       'jsonExampleHint': '{"key": "value"}',
       // Admin

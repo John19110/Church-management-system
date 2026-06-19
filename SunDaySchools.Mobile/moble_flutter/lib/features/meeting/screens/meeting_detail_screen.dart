@@ -5,12 +5,14 @@ import 'package:go_router/go_router.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/routing/app_router.dart';
 import '../../auth/providers/auth_providers.dart';
+import '../../auth/utils/auth_role_utils.dart';
 import '../../custom_field/providers/custom_field_cache_providers.dart';
 import '../../unified_form/models/unified_form_models.dart';
 import '../../unified_form/providers/unified_form_providers.dart';
 import '../../unified_form/widgets/unified_entity_detail_header.dart';
 import '../../unified_form/widgets/unified_entity_form.dart';
 import '../models/meeting_models.dart';
+import '../utils/meeting_delete_actions.dart';
 
 class MeetingDetailScreen extends ConsumerWidget {
   final MeetingReadDto meeting;
@@ -70,6 +72,17 @@ class MeetingDetailScreen extends ConsumerWidget {
                 }
               },
             ),
+          if (meetingId != null && AuthRoleUtils.canDeleteMeeting(role))
+            IconButton(
+              icon: const Icon(Icons.delete_outline, color: Colors.red),
+              tooltip: l10n.deleteMeeting,
+              onPressed: () => confirmAndDeleteMeeting(
+                context,
+                ref,
+                meetingId: meetingId,
+                l10n: l10n,
+              ),
+            ),
         ],
       ),
       body: ListView(
@@ -124,6 +137,26 @@ class MeetingDetailScreen extends ConsumerWidget {
               icon: const Icon(Icons.person_add_alt_1),
               label: Text(l10n.manageServants),
             ),
+          if (meetingId != null && AuthRoleUtils.canDeleteMeeting(role)) ...[
+            const SizedBox(height: 24),
+            OutlinedButton.icon(
+              onPressed: () => confirmAndDeleteMeeting(
+                context,
+                ref,
+                meetingId: meetingId,
+                l10n: l10n,
+              ),
+              icon: const Icon(Icons.delete_outline, color: Colors.red),
+              label: Text(
+                l10n.deleteMeeting,
+                style: const TextStyle(color: Colors.red),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Colors.red),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+            ),
+          ],
         ],
       ),
     );

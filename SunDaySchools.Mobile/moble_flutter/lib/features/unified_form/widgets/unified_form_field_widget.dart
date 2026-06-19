@@ -95,6 +95,40 @@ class UnifiedFormFieldWidget extends StatelessWidget {
         );
 
       case UnifiedFieldDataType.multiSelect:
+        if (field.lookupEndpoint != null && field.lookupEndpoint!.isNotEmpty) {
+          return FormField<List<String>>(
+            initialValue: controller.multiFor(field.fieldKey),
+            validator: effectiveReadOnly
+                ? null
+                : (_) => validator(controller.valueFor(field)),
+            builder: (state) => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                EndpointMultiSelectField(
+                  endpoint: field.lookupEndpoint!,
+                  label: label,
+                  hintText: placeholder,
+                  selectedIds: controller.multiFor(field.fieldKey)
+                      .map(int.tryParse)
+                      .whereType<int>()
+                      .toList(),
+                  onChanged: effectiveReadOnly
+                      ? (_) {}
+                      : (ids) {
+                          final next = ids.map((id) => id.toString()).toList();
+                          controller.setMulti(field.fieldKey, next);
+                          state.didChange(next);
+                        },
+                ),
+                if (state.hasError)
+                  Text(
+                    state.errorText!,
+                    style: TextStyle(color: Theme.of(context).colorScheme.error),
+                  ),
+              ],
+            ),
+          );
+        }
         return FormField<List<String>>(
           initialValue: controller.multiFor(field.fieldKey),
           validator: (_) => validator(controller.valueFor(field)),

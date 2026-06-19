@@ -58,17 +58,54 @@ class UnifiedFormValidator {
         }
         break;
       case UnifiedFieldDataType.singleSelect:
+        if (field.lookupEndpoint != null && field.lookupEndpoint!.isNotEmpty) {
+          // Options are loaded from the API at render time, not in field.options.
+          final id = int.tryParse(value);
+          if (id == null || id <= 0) {
+            return loc.selectValidOptionFor(displayName);
+          }
+          break;
+        }
         final allowed = field.options.map((o) => o.value).toSet();
         if (!allowed.contains(value)) {
           return loc.selectValidOptionFor(displayName);
         }
         break;
       case UnifiedFieldDataType.multiSelect:
+        if (field.lookupEndpoint != null && field.lookupEndpoint!.isNotEmpty) {
+          final ids = _parseMultiIds(value);
+          if (ids.isEmpty) {
+            return field.isRequired ? loc.fieldIsRequired(displayName) : null;
+          }
+          if (ids.any((id) => id <= 0)) {
+            return loc.selectValidOptionFor(displayName);
+          }
+          break;
+        }
         break;
       default:
         break;
     }
 
     return null;
+  }
+
+  static List<int> _parseMultiIds(String raw) {
+    if (raw.startsWith('[')) {
+      try {
+        final decoded = jsonDecode(raw) as List<dynamic>;
+        return decoded
+            .map((e) => int.tryParse(e.toString()) ?? 0)
+            .where((id) => id > 0)
+            .toList();
+      } catch (_) {
+        return const [];
+      }
+    }
+    return raw
+        .split(',')
+        .map((s) => int.tryParse(s.trim()) ?? 0)
+        .where((id) => id > 0)
+        .toList();
   }
 }

@@ -68,7 +68,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             try
             {
-                var definitions = await _repository.GetDefinitionsByEntityAsync(entityName, includeInactive)
+                var definitions = await _repository.GetDefinitionsByEntityAsync(entityName, includeInactive: true)
                     ?? Array.Empty<CustomFieldDefinition>();
                 var dtos = CustomFieldDefinitionReadMapper.ToReadDtoList(definitions);
                 var merged = EntityDefaultFieldTemplates.MergeDefinitionDtos(entityName, dtos);
@@ -82,11 +82,14 @@ namespace SunDaySchools.BLL.Manager.Implementations
                         _tenantContext,
                         _currentUser);
 
-                    definitions = await _repository.GetDefinitionsByEntityAsync(entityName, includeInactive)
+                    definitions = await _repository.GetDefinitionsByEntityAsync(entityName, includeInactive: true)
                         ?? Array.Empty<CustomFieldDefinition>();
                     dtos = CustomFieldDefinitionReadMapper.ToReadDtoList(definitions);
                     merged = EntityDefaultFieldTemplates.MergeDefinitionDtos(entityName, dtos);
                 }
+
+                if (!includeInactive)
+                    merged = merged.Where(d => d.IsActive).ToList();
 
                 return merged;
             }
@@ -193,8 +196,17 @@ namespace SunDaySchools.BLL.Manager.Implementations
         {
             EnsureCanManageDefinitions();
 
-            var definition = await _repository.GetDefinitionByIdAsync(id, includeOptions: true)
+            var definition = await _repository.GetTrackedDefinitionByIdAsync(id, includeOptions: true)
                 ?? throw new NotFoundException($"Custom field definition {id} was not found.");
+
+            if (dto.IsActive == false
+                && EntityDefaultFieldTemplates.IsCriticalField(definition.EntityName, definition.Name))
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["isActive"] = new[] { "The entity name field cannot be deactivated." }
+                });
+            }
 
             if (EntityDefaultFieldTemplates.IsBuiltInField(definition.EntityName, definition.Name)
                 && dto.DataType.HasValue
@@ -269,18 +281,30 @@ namespace SunDaySchools.BLL.Manager.Implementations
         {
             EnsureCanManageDefinitions();
 
-            var definition = await _repository.GetDefinitionByIdAsync(id, includeOptions: false)
+            var definition = await _repository.GetTrackedDefinitionByIdAsync(id, includeOptions: false)
                 ?? throw new NotFoundException($"Custom field definition {id} was not found.");
 
             if (EntityDefaultFieldTemplates.IsCriticalField(definition.EntityName, definition.Name))
             {
                 throw new ValidationException(new Dictionary<string, string[]>
                 {
-                    ["name"] = new[] { "Critical system fields cannot be deactivated." }
+                    ["name"] = new[] { "The entity name field cannot be deactivated." }
                 });
             }
 
             definition.IsActive = false;
+            definition.UpdatedAt = DateTime.UtcNow;
+            await _repository.UpdateDefinitionAsync(definition);
+        }
+
+        public async Task ActivateDefinitionAsync(int id)
+        {
+            EnsureCanManageDefinitions();
+
+            var definition = await _repository.GetTrackedDefinitionByIdAsync(id, includeOptions: false)
+                ?? throw new NotFoundException($"Custom field definition {id} was not found.");
+
+            definition.IsActive = true;
             definition.UpdatedAt = DateTime.UtcNow;
             await _repository.UpdateDefinitionAsync(definition);
         }

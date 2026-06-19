@@ -17,6 +17,7 @@ namespace SunDaySchools.BLL.DTOS
         public int PastAttendanceSessionsCount { get; set; }
 
         public int? LeaderServantId { get; set; }  // Nullable if a meeting may not have a leader yet
+        public string? LeaderServantName { get; set; }
 
 
 
