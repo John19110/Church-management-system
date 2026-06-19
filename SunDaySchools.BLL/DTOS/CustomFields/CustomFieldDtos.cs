@@ -39,6 +39,9 @@ namespace SunDaySchools.BLL.DTOS.CustomFields
 
         /// <summary>False for critical system fields that cannot be deactivated.</summary>
         public bool IsDeletable { get; set; } = true;
+
+        /// <summary>False for built-in/system fields; permanent delete applies to user-created fields only.</summary>
+        public bool IsPermanentDeletable { get; set; } = true;
     }
 
     /// <summary>Lightweight field metadata for field-definitions endpoints.</summary>
@@ -71,6 +74,9 @@ namespace SunDaySchools.BLL.DTOS.CustomFields
         public string? ValidationRegex { get; set; }
         public int SortOrder { get; set; }
         public List<CustomFieldOptionDto>? Options { get; set; }
+
+        /// <summary>1-based appearance position among active fields. When set, overrides <see cref="SortOrder"/>.</summary>
+        public int? DisplayPosition { get; set; }
     }
 
     public class CustomFieldDefinitionUpdateDto
@@ -88,6 +94,9 @@ namespace SunDaySchools.BLL.DTOS.CustomFields
         public string? ValidationRegex { get; set; }
         public int? SortOrder { get; set; }
         public List<CustomFieldOptionDto>? Options { get; set; }
+
+        /// <summary>1-based appearance position among active fields. When set, overrides <see cref="SortOrder"/>.</summary>
+        public int? DisplayPosition { get; set; }
     }
 
     public class CustomFieldValueItemDto

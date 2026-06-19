@@ -17,6 +17,12 @@ namespace SunDaySchools.DAL.Repository.Interfaces
 
         Task AddDefinitionAsync(CustomFieldDefinition definition);
         Task UpdateDefinitionAsync(CustomFieldDefinition definition);
+        Task SaveChangesAsync(CancellationToken cancellationToken = default);
+
+        Task<IReadOnlyList<CustomFieldDefinition>> GetTrackedDefinitionsByEntityAsync(
+            string entityName, bool includeInactive = false);
+
+        Task DeleteDefinitionAsync(int id);
 
         Task<IReadOnlyList<CustomFieldValue>> GetValuesAsync(string entityName, int entityId);
         Task<CustomFieldValue?> GetValueAsync(int definitionId, string entityName, int entityId);
