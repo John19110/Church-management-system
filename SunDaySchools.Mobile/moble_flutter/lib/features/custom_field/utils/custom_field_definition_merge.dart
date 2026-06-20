@@ -46,6 +46,7 @@ CustomFieldDefinitionReadDto customFieldFromUnifiedField(
     id: field.customFieldDefinitionId ?? 0,
     name: field.fieldKey,
     displayName: field.displayName,
+    displayNameAr: field.displayNameAr,
     description: field.description,
     entityName: entityName,
     dataType: unifiedDataTypeToCustom(field.dataType),

@@ -1,14 +1,21 @@
 import '../../../core/l10n/app_localizations.dart';
 import '../models/custom_field_models.dart';
 
+import 'field_display_label.dart';
+
 /// Active provisioned fields sorted for appearance position UI.
 List<CustomFieldDefinitionReadDto> sortedActiveProvisionedFields(
-  Iterable<CustomFieldDefinitionReadDto> fields,
-) {
+  Iterable<CustomFieldDefinitionReadDto> fields, {
+  AppLocalizations? l10n,
+}) {
   final list = fields.where((d) => d.isActive && d.id > 0).toList()
     ..sort((a, b) {
       final order = a.sortOrder.compareTo(b.sortOrder);
-      return order != 0 ? order : a.displayName.compareTo(b.displayName);
+      if (order != 0) return order;
+      if (l10n != null) {
+        return compareFieldDefinitionLabels(a, b, l10n);
+      }
+      return a.displayName.compareTo(b.displayName);
     });
   return list;
 }

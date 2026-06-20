@@ -147,7 +147,7 @@ class _CustomFieldDefinitionFormScreenState
           onRetry: () => ref.invalidate(customFieldDefinitionsProvider(defsQuery)),
         ),
         data: (defs) {
-          final sortedActive = sortedActiveProvisionedFields(defs);
+          final sortedActive = sortedActiveProvisionedFields(defs, l10n: l10n);
           _ensureDefaultPosition(sortedActive);
           final positionCount = positionOptionCount(
             isCreate: !_isEdit,

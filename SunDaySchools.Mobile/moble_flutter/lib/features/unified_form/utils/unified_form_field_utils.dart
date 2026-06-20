@@ -5,6 +5,9 @@ import '../../../core/l10n/app_localizations.dart';
 import '../../custom_field/utils/field_display_label.dart';
 import '../models/unified_form_models.dart';
 
+export '../../custom_field/utils/field_display_label.dart'
+    show compareUnifiedFieldLabels, unifiedFieldLabel;
+
 /// Built-in photo field synced to legacy `imageUrl` column (shown via photo picker, not text field).
 const String kUnifiedPhotoFieldKey = 'imageUrl';
 
@@ -14,13 +17,19 @@ const Set<String> kUnifiedPhotoFieldKeys = {kUnifiedPhotoFieldKey};
 List<T> visibleUnifiedFields<T extends UnifiedFieldDefinitionDto>(
   List<T> fields, {
   Set<String> excludeFieldKeys = const {},
+  String? entityName,
+  AppLocalizations? l10n,
 }) {
   return fields
       .where((f) => !f.isHidden && !excludeFieldKeys.contains(f.fieldKey))
       .toList()
     ..sort((a, b) {
       final order = a.sortOrder.compareTo(b.sortOrder);
-      return order != 0 ? order : a.displayName.compareTo(b.displayName);
+      if (order != 0) return order;
+      if (l10n != null) {
+        return compareUnifiedFieldLabels(a, b, l10n, entityName: entityName);
+      }
+      return a.displayName.compareTo(b.displayName);
     });
 }
 
@@ -80,46 +89,6 @@ String unifiedDetailInitial(
     return title[0].toUpperCase();
   }
   return '?';
-}
-
-/// Localized label for built-in and custom fields from API display names.
-String unifiedFieldLabel(
-  UnifiedFieldDefinitionDto field, {
-  String? entityName,
-  AppLocalizations? l10n,
-}) {
-  final loc = l10n ?? AppLocalizations.forLocale(const Locale('en'));
-
-  if (field.customFieldDefinitionId != null && field.customFieldDefinitionId! > 0) {
-    return localizedDisplayNamePair(
-      displayName: field.displayName,
-      displayNameAr: field.displayNameAr,
-      l10n: loc,
-      fallbackKey: field.fieldKey,
-    );
-  }
-
-  final dbLabel = localizedDisplayNamePair(
-    displayName: field.displayName,
-    displayNameAr: field.displayNameAr,
-    l10n: loc,
-    fallbackKey: '',
-  );
-  if (dbLabel.isNotEmpty) {
-    return dbLabel;
-  }
-
-  if (entityName != null) {
-    final localized = systemFieldLabel(loc, entityName, field.fieldKey);
-    if (localized != null && localized.isNotEmpty) return localized;
-  }
-
-  return localizedDisplayNamePair(
-    displayName: field.displayName,
-    displayNameAr: field.displayNameAr,
-    l10n: loc,
-    fallbackKey: field.fieldKey,
-  );
 }
 
 /// Localized placeholder for built-in fields when the API sends English.

@@ -487,6 +487,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                         CustomFieldDefinitionId = v.CustomFieldDefinitionId,
                         Name = def.Name,
                         DisplayName = def.DisplayName,
+                        DisplayNameAr = def.DisplayNameAr,
                         DataType = def.DataType,
                         Value = v.Value,
                         IsReadOnly = def.IsReadOnly,
