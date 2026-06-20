@@ -286,6 +286,7 @@ class CustomFieldValueReadDto {
   final int customFieldDefinitionId;
   final String name;
   final String displayName;
+  final String? displayNameAr;
   final CustomFieldDataType dataType;
   final String? value;
   final bool isReadOnly;
@@ -295,6 +296,7 @@ class CustomFieldValueReadDto {
     required this.customFieldDefinitionId,
     required this.name,
     required this.displayName,
+    this.displayNameAr,
     required this.dataType,
     this.value,
     this.isReadOnly = false,
@@ -306,6 +308,7 @@ class CustomFieldValueReadDto {
       customFieldDefinitionId: json['customFieldDefinitionId'] as int,
       name: json['name'] as String? ?? '',
       displayName: json['displayName'] as String? ?? '',
+      displayNameAr: json['displayNameAr'] as String?,
       dataType: CustomFieldDataType.fromString(json['dataType'] as String?),
       value: json['value'] as String?,
       isReadOnly: json['isReadOnly'] as bool? ?? false,

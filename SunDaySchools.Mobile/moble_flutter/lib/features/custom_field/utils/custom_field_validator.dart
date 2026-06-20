@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/l10n/app_localizations.dart';
 import '../models/custom_field_models.dart';
+import 'field_display_label.dart';
 
 /// Client-side validation mirroring backend rules.
 class CustomFieldValidator {
@@ -13,7 +14,7 @@ class CustomFieldValidator {
     AppLocalizations? l10n,
   }) {
     final loc = l10n ?? AppLocalizations.forLocale(const Locale('en'));
-    final displayName = field.displayName;
+    final displayName = localizedFieldDisplayLabel(field, loc);
 
     final empty = rawValue == null || rawValue.trim().isEmpty;
     if (empty) {

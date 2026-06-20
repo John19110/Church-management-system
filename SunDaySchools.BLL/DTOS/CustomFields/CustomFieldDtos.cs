@@ -50,6 +50,7 @@ namespace SunDaySchools.BLL.DTOS.CustomFields
     {
         public string Name { get; set; } = string.Empty;
         public string DisplayName { get; set; } = string.Empty;
+        public string? DisplayNameAr { get; set; }
         public string Type { get; set; } = string.Empty;
         public bool Required { get; set; }
         public bool IsSystemField { get; set; }
@@ -113,6 +114,7 @@ namespace SunDaySchools.BLL.DTOS.CustomFields
         public int CustomFieldDefinitionId { get; set; }
         public string Name { get; set; } = string.Empty;
         public string DisplayName { get; set; } = string.Empty;
+        public string? DisplayNameAr { get; set; }
         public CustomFieldDataType DataType { get; set; }
         public string? Value { get; set; }
         public bool IsReadOnly { get; set; }

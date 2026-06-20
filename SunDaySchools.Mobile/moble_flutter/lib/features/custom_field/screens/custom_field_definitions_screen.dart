@@ -93,9 +93,9 @@ class _CustomFieldDefinitionsScreenState
                   ref.invalidate(customFieldDefinitionsProvider(defsQuery)),
             ),
             data: (defs) {
-              final ordered = sortedActiveProvisionedFields(defs);
+              final ordered = sortedActiveProvisionedFields(defs, l10n: l10n);
               final inactive = defs.where((d) => !d.isActive && d.id > 0).toList()
-                ..sort((a, b) => a.displayName.compareTo(b.displayName));
+                ..sort((a, b) => compareFieldDefinitionLabels(a, b, l10n));
 
               if (ordered.isEmpty && inactive.isEmpty) {
                 return RefreshIndicator(

@@ -45,9 +45,12 @@ class UnifiedEntityForm extends ConsumerStatefulWidget {
 class _UnifiedEntityFormState extends ConsumerState<UnifiedEntityForm> {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final visible = visibleUnifiedFields(
       widget.fields,
       excludeFieldKeys: widget.excludeFieldKeys,
+      entityName: widget.entityName,
+      l10n: l10n,
     );
 
     if (visible.isEmpty && widget.entityName != null) {
@@ -109,12 +112,15 @@ class UnifiedEntityDetailFields extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final visible = visibleUnifiedFields(
       fields,
       excludeFieldKeys: {
         ...kUnifiedPhotoFieldKeys,
         ...excludeFieldKeys,
       },
+      entityName: entityName,
+      l10n: l10n,
     );
 
     if (visible.isEmpty) return const SizedBox.shrink();
