@@ -1,14 +1,15 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SunDaySchools.API.Json;
 using SunDaySchools.BLL.Exceptions;
 using System;
+using System.Linq;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
 
 namespace SunDaySchools.API.Middlewares
 {
@@ -17,7 +18,8 @@ namespace SunDaySchools.API.Middlewares
         private readonly RequestDelegate _next;
         private readonly ILogger<GlobalExceptionMiddleware> _logger;
 
-        private static readonly JsonSerializerOptions _jsonOptions = ApiJsonSerializerOptions.Create();
+        private static readonly JsonSerializerOptions _jsonOptions =
+            ApiJsonSerializerOptions.Create();
 
         public GlobalExceptionMiddleware(
             RequestDelegate next,
@@ -26,6 +28,7 @@ namespace SunDaySchools.API.Middlewares
             _next = next;
             _logger = logger;
         }
+
 
         public async Task InvokeAsync(HttpContext context)
         {
@@ -39,23 +42,35 @@ namespace SunDaySchools.API.Middlewares
             }
         }
 
-        private async Task HandleExceptionAsync(HttpContext context, Exception exception)
+
+        private async Task HandleExceptionAsync(
+            HttpContext context,
+            Exception exception)
         {
             LogExceptionChain(exception, context);
 
+
             if (context.Response.HasStarted)
             {
-                _logger.LogWarning("Response already started, cannot write error response.");
+                _logger.LogWarning(
+                    "Response already started, cannot write error response.");
+
                 return;
             }
 
-            var (statusCode, errorCode, message) = MapException(exception);
+
+            var (statusCode, errorCode, message) =
+                MapException(exception);
+
 
             context.Response.StatusCode = statusCode;
 
+
             if (exception is PhoneNotVerifiedException phoneEx)
             {
-                context.Response.ContentType = "application/json; charset=utf-8";
+                context.Response.ContentType =
+                    "application/json; charset=utf-8";
+
                 var payload = new
                 {
                     success = false,
@@ -64,14 +79,17 @@ namespace SunDaySchools.API.Middlewares
                     requiresPhoneVerification = true,
                     phoneNumber = phoneEx.PhoneNumber
                 };
-                var jsonPhone = JsonSerializer.Serialize(payload, _jsonOptions);
-                await context.Response.WriteAsync(jsonPhone);
+
+                await WriteJsonAsync(context, payload);
                 return;
             }
 
+
             if (exception is OtpRateLimitException rateEx)
             {
-                context.Response.ContentType = "application/json; charset=utf-8";
+                context.Response.ContentType =
+                    "application/json; charset=utf-8";
+
                 var payload = new
                 {
                     success = false,
@@ -79,25 +97,30 @@ namespace SunDaySchools.API.Middlewares
                     message = rateEx.Message,
                     retryAfterSeconds = rateEx.RetryAfterSeconds
                 };
-                var jsonRate = JsonSerializer.Serialize(payload, _jsonOptions);
-                await context.Response.WriteAsync(jsonRate);
+
+                await WriteJsonAsync(context, payload);
                 return;
             }
 
-            context.Response.ContentType = "application/problem+json; charset=utf-8";
+
+            context.Response.ContentType =
+                "application/problem+json; charset=utf-8";
+
 
             var detail = GetSafeDetail(exception, message);
 
+
             if (exception is ValidationException validationException)
             {
-                if (validationException.Errors.Count > 0)
+                if (validationException.Errors.Any())
                 {
-                    var first = validationException.Errors.First();
-                    detail = $"{first.Key}: {string.Join("; ", first.Value)}";
-                    if (validationException.Errors.Count > 1)
-                        detail += $" (+{validationException.Errors.Count - 1} more)";
+                    detail = string.Join(
+                        Environment.NewLine,
+                        validationException.Errors
+                            .SelectMany(x => x.Value));
                 }
             }
+
 
             var problem = new ProblemDetails
             {
@@ -107,122 +130,253 @@ namespace SunDaySchools.API.Middlewares
                 Detail = detail
             };
 
-            if (exception is ValidationException validationEx && validationEx.Errors.Count > 0)
+
+            if (exception is ValidationException validationEx &&
+                validationEx.Errors.Any())
             {
-                problem.Extensions["errors"] = validationEx.Errors;
+                problem.Extensions["errors"] =
+                    validationEx.Errors;
             }
 
-            var json = JsonSerializer.Serialize(problem, _jsonOptions);
+
+            await WriteJsonAsync(context, problem);
+        }
+
+
+        private async Task WriteJsonAsync(
+            HttpContext context,
+            object data)
+        {
+            var json = JsonSerializer.Serialize(
+                data,
+                _jsonOptions);
+
             await context.Response.WriteAsync(json);
         }
 
-        private static string GetSafeDetail(Exception exception, string mappedMessage)
+
+
+        private static string GetSafeDetail(
+            Exception exception,
+            string mappedMessage)
         {
             if (exception is InvalidCredentialsException credEx)
                 return credEx.Message;
 
-            // Surface the human-friendly approval messages to the client.
-            if (exception is AccountNotApprovedException or AccountRejectedException)
+
+            if (exception is AccountNotApprovedException ||
+                exception is AccountRejectedException)
+            {
                 return exception.Message;
+            }
+
 
             return mappedMessage;
         }
 
-        private void LogExceptionChain(Exception exception, HttpContext context)
+
+
+        private void LogExceptionChain(
+            Exception exception,
+            HttpContext context)
         {
             var depth = 0;
-            for (var ex = exception; ex != null; ex = ex.InnerException, depth++)
+
+
+            for (var ex = exception;
+                 ex != null;
+                 ex = ex.InnerException, depth++)
             {
+
+                var message = ex.Message;
+
+
+                if (ex is ValidationException validationEx &&
+                    validationEx.Errors.Any())
+                {
+                    message += Environment.NewLine +
+                               string.Join(
+                                   Environment.NewLine,
+                                   validationEx.Errors
+                                       .SelectMany(x => x.Value));
+                }
+
+
                 _logger.LogError(
                     ex,
-                    "Unhandled exception (depth={Depth}). Type={ExceptionType}, Message={Message}, Method={Method}, Path={Path}, TraceId={TraceId}",
+                    "Unhandled exception depth={Depth}. " +
+                    "Type={ExceptionType}. " +
+                    "Message={Message}. " +
+                    "Method={Method}. " +
+                    "Path={Path}. " +
+                    "TraceId={TraceId}",
                     depth,
                     ex.GetType().FullName,
-                    ex.Message,
+                    message,
                     context.Request.Method,
                     context.Request.Path,
-                    context.TraceIdentifier);
-
-                if (!string.IsNullOrWhiteSpace(ex.StackTrace))
-                {
-                    _logger.LogError(
-                        "StackTrace depth={Depth}: {StackTrace}",
-                        depth,
-                        ex.StackTrace);
-                }
+                    context.TraceIdentifier
+                );
             }
         }
 
-        private static (int StatusCode, string ErrorCode, string Message) MapException(Exception exception)
+
+
+        private static (int StatusCode,
+                        string ErrorCode,
+                        string Message)
+            MapException(Exception exception)
         {
-            var root = exception;
-            while (root.InnerException != null)
-                root = root.InnerException;
 
             return exception switch
             {
-                ValidationException => ((int)HttpStatusCode.BadRequest, "VALIDATION_ERROR", "Validation error"),
-                ArgumentException argEx => ((int)HttpStatusCode.BadRequest, "BAD_REQUEST", argEx.Message),
-                InvalidOperationException opEx => ((int)HttpStatusCode.BadRequest, "INVALID_OPERATION", opEx.Message),
 
-                UnauthorizedAccessException => ((int)HttpStatusCode.Unauthorized, "UNAUTHORIZED", "Unauthorized"),
-                InvalidCredentialsException => ((int)HttpStatusCode.Unauthorized, "AUTH_FAILED", "Authentication failed"),
+                ValidationException =>
+                (
+                    (int)HttpStatusCode.BadRequest,
+                    "VALIDATION_ERROR",
+                    "Validation error"
+                ),
 
-                ServantProfileMissingException => ((int)HttpStatusCode.Forbidden, "FORBIDDEN", "Forbidden"),
-                AccountNotApprovedException pendingEx => ((int)HttpStatusCode.Forbidden, "ACCOUNT_PENDING", pendingEx.Message),
-                AccountRejectedException rejectedEx => ((int)HttpStatusCode.Forbidden, "ACCOUNT_REJECTED", rejectedEx.Message),
-                ProfileNotCompletedException => ((int)HttpStatusCode.Forbidden, "FORBIDDEN", "Forbidden"),
-                PhoneNotVerifiedException phoneEx => (
+
+                ArgumentException argEx =>
+                (
+                    (int)HttpStatusCode.BadRequest,
+                    "BAD_REQUEST",
+                    argEx.Message
+                ),
+
+
+                InvalidOperationException opEx =>
+                (
+                    (int)HttpStatusCode.BadRequest,
+                    "INVALID_OPERATION",
+                    opEx.Message
+                ),
+
+
+
+                UnauthorizedAccessException =>
+                (
+                    (int)HttpStatusCode.Unauthorized,
+                    "UNAUTHORIZED",
+                    "Unauthorized"
+                ),
+
+
+                InvalidCredentialsException =>
+                (
+                    (int)HttpStatusCode.Unauthorized,
+                    "AUTH_FAILED",
+                    "Authentication failed"
+                ),
+
+
+
+                ServantProfileMissingException =>
+                (
                     (int)HttpStatusCode.Forbidden,
-                    "PHONE_NOT_VERIFIED",
-                    phoneEx.Message),
+                    "FORBIDDEN",
+                    "Forbidden"
+                ),
 
-                InvalidOtpException otpEx => ((int)HttpStatusCode.BadRequest, "INVALID_OTP", otpEx.Message),
-                OtpRateLimitException rateEx => ((int)HttpStatusCode.TooManyRequests, "OTP_RATE_LIMIT", rateEx.Message),
 
-                NotFoundException notFound => ((int)HttpStatusCode.NotFound, "NOT_FOUND", notFound.Message),
+                AccountNotApprovedException ex =>
+                (
+                    (int)HttpStatusCode.Forbidden,
+                    "ACCOUNT_PENDING",
+                    ex.Message
+                ),
 
-                UserAlreadyExistsException => ((int)HttpStatusCode.Conflict, "CONFLICT", "Conflict"),
-                ServantAlreayAssigned => ((int)HttpStatusCode.Conflict, "CONFLICT", "Conflict"),
-                ChurchAlreadyExistsException => ((int)HttpStatusCode.Conflict, "CONFLICT", "Conflict"),
-                MeetingAlreadyExistsException => ((int)HttpStatusCode.Conflict, "CONFLICT", "Conflict"),
-                PassordsMissMatchException => ((int)HttpStatusCode.Conflict, "CONFLICT", "Conflict"),
 
-                DbUpdateException => (
+                AccountRejectedException ex =>
+                (
+                    (int)HttpStatusCode.Forbidden,
+                    "ACCOUNT_REJECTED",
+                    ex.Message
+                ),
+
+
+
+                InvalidOtpException ex =>
+                (
+                    (int)HttpStatusCode.BadRequest,
+                    "INVALID_OTP",
+                    ex.Message
+                ),
+
+
+
+                OtpRateLimitException ex =>
+                (
+                    (int)HttpStatusCode.TooManyRequests,
+                    "OTP_RATE_LIMIT",
+                    ex.Message
+                ),
+
+
+
+                NotFoundException ex =>
+                (
+                    (int)HttpStatusCode.NotFound,
+                    "NOT_FOUND",
+                    ex.Message
+                ),
+
+
+
+                DbUpdateException =>
+                (
                     (int)HttpStatusCode.InternalServerError,
                     "DATABASE_ERROR",
-                    FriendlyDatabaseMessage),
+                    FriendlyDatabaseMessage
+                ),
 
-                AutoMapper.AutoMapperMappingException => (
-                    (int)HttpStatusCode.InternalServerError,
-                    "MAPPING_ERROR",
-                    "A server error occurred while processing your request."),
 
-                _ when IsDatabaseException(exception) => (
+
+                _ when IsDatabaseException(exception) =>
+                (
                     (int)HttpStatusCode.InternalServerError,
                     "DATABASE_ERROR",
-                    FriendlyDatabaseMessage),
+                    FriendlyDatabaseMessage
+                ),
 
-                _ => ((int)HttpStatusCode.InternalServerError, "SERVER_ERROR", FriendlyServerMessage)
+
+
+                _ =>
+                (
+                    (int)HttpStatusCode.InternalServerError,
+                    "SERVER_ERROR",
+                    FriendlyServerMessage
+                )
             };
         }
+
+
 
         private const string FriendlyDatabaseMessage =
             "A database error occurred. Please try again later or contact support.";
 
+
         private const string FriendlyServerMessage =
             "An unexpected error occurred. Please try again later.";
 
+
+
         private static bool IsDatabaseException(Exception exception)
         {
-            for (var ex = exception; ex != null; ex = ex.InnerException)
+            for (var ex = exception;
+                 ex != null;
+                 ex = ex.InnerException)
             {
-                if (ex is SqlException or DbUpdateException)
+                if (ex is SqlException ||
+                    ex is DbUpdateException)
+                {
                     return true;
+                }
             }
 
             return false;
         }
-
     }
 }

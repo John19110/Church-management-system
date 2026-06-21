@@ -51,19 +51,19 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             if (_currentUser.IsInRole("SuperAdmin"))
             {
-                if (meetingId.HasValue)
-                {
-                    var meeting = await _meetingRepository.GetByIdAsync(meetingId.Value);
-                    if (meeting == null)
-                        throw new NotFoundException($"Meeting with id {meetingId.Value} not found.");
+                ////if (meetingId.HasValue)
+                ////{
+                ////    var meeting = await _meetingRepository.GetByIdAsync(meetingId.Value);
+                ////    if (meeting == null)
+                ////        throw new NotFoundException($"Meeting with id {meetingId.Value} not found.");
 
-                    if (meeting.ChurchId != appUser.ChurchId)
-                        throw new UnauthorizedAccessException(
-                            "This meeting does not belong to your church.");
+                ////    if (meeting.ChurchId != appUser.ChurchId)
+                ////        throw new UnauthorizedAccessException(
+                ////            "This meeting does not belong to your church.");
 
-                    classrooms = await _classroomRepository.GetByMeetingIdAsync(meetingId.Value);
-                }
-                else
+                ////    classrooms = await _classroomRepository.GetByMeetingIdAsync(meetingId.Value);
+                ////}
+                //else
                 {
                     classrooms = await _classroomRepository.GetByChurchIdAsync(appUser.ChurchId);
                 }
