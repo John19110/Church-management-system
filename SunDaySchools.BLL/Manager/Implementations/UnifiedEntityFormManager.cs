@@ -14,6 +14,7 @@ using SunDaySchools.BLL.Services.UnifiedForms;
 using SunDaySchools.DAL.Models.CustomFields;
 using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchools.Models;
+using SunDaySchoolsDAL.Models;
 
 namespace SunDaySchools.BLL.Manager.Implementations
 {
@@ -383,12 +384,16 @@ namespace SunDaySchools.BLL.Manager.Implementations
         {
             var name = ExtractStringFieldValue(dto, "name") ?? "Classroom";
             var meetingId = meetingIdFromRequest ?? ExtractIntFieldValue(dto, "meetingId");
+            var leaderServantId = ExtractIntFieldValue(dto, "leaderServantId");
+            var servantIds = ExtractIntListFieldValue(dto, "servantIds");
 
             var addDto = new ClassroomAddDTO
             {
                 Name = name,
                 AgeOfMembers = "-",
-                MeetingId = meetingId
+                MeetingId = meetingId,
+                LeaderServantId = leaderServantId,
+                ServantIds = servantIds
             };
 
             return await _classroomManager.AddAsync(addDto);
@@ -404,6 +409,15 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 return null;
 
             return int.TryParse(raw.Trim(), out var id) && id > 0 ? id : null;
+        }
+
+        private static List<int>? ExtractIntListFieldValue(SaveEntityFormDto dto, string fieldKey)
+        {
+            var raw = dto.Fields
+                .FirstOrDefault(f => string.Equals(f.FieldKey, fieldKey, StringComparison.OrdinalIgnoreCase))
+                ?.Value;
+
+            return EntityFormValueSerializer.ParseIntList(raw);
         }
 
         private static string? ExtractMemberDisplayName(SaveEntityFormDto dto)
@@ -518,13 +532,19 @@ namespace SunDaySchools.BLL.Manager.Implementations
             var c = await _classroomRepository.GetByIdAsync(id)
                 ?? throw new NotFoundException($"Classroom with id {id} not found.");
 
+            var servantIds = (c.ClassroomServants ?? Array.Empty<ClassroomServant>())
+                .Select(cs => cs.ServantId)
+                .Where(id => c.LeaderServantId is not int leaderId || id != leaderId)
+                .OrderBy(id => id)
+                .ToList();
+
             return new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
             {
                 ["name"] = c.Name,
                 ["ageOfMembers"] = c.AgeOfMembers,
                 ["leaderServantId"] = c.LeaderServantId?.ToString(),
-                ["servantIds"] = c.ClassroomServants?.Count > 0
-                    ? JsonSerializer.Serialize(c.ClassroomServants.Select(cs => cs.ServantId).OrderBy(id => id))
+                ["servantIds"] = servantIds.Count > 0
+                    ? JsonSerializer.Serialize(servantIds)
                     : null
             };
         }
@@ -662,8 +682,14 @@ namespace SunDaySchools.BLL.Manager.Implementations
             var update = new ClassroomUpdateDTO { Id = id };
             if (values.TryGetValue("name", out var v)) update.Name = v;
             if (values.TryGetValue("ageOfMembers", out v)) update.AgeOfMembers = v;
-            if (values.TryGetValue("leaderServantId", out v)) update.LeaderServantId = EntityFormValueSerializer.ParseInt(v);
             if (values.TryGetValue("meetingId", out v)) update.MeetingId = EntityFormValueSerializer.ParseInt(v);
+            if (values.TryGetValue("leaderServantId", out v))
+            {
+                update.LeaderServantId = string.IsNullOrWhiteSpace(v)
+                    ? 0
+                    : EntityFormValueSerializer.ParseInt(v) ?? 0;
+            }
+
             if (values.TryGetValue("servantIds", out v))
                 update.ServantIds = EntityFormValueSerializer.ParseIntList(v) ?? new List<int>();
 

@@ -61,7 +61,9 @@ namespace SunDaySchools.BLL.Manager.Implementations
             var relation = new ClassroomServant
             {
                 ServantId = servantId,
-                ClassroomId = classroomId
+                ClassroomId = classroomId,
+                ChurchId = classroom.ChurchId,
+                MeetingId = classroom.MeetingId
             };
 
             await _adminRepository.AddClassroomServantAsync(relation);

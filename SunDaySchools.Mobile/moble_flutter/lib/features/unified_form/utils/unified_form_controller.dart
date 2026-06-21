@@ -86,7 +86,14 @@ class UnifiedFormController {
         return boolFor(field.fieldKey) ? 'true' : 'false';
       case UnifiedFieldDataType.multiSelect:
         final selected = multiFor(field.fieldKey);
-        return selected.isEmpty ? null : jsonEncode(selected);
+        if (selected.isEmpty) return null;
+        final ids = selected
+            .map((s) => int.tryParse(s))
+            .whereType<int>()
+            .where((id) => id > 0)
+            .toList();
+        if (ids.isEmpty) return null;
+        return jsonEncode(ids);
       default:
         final text = _text[field.fieldKey]?.text.trim();
         return text == null || text.isEmpty ? null : text;

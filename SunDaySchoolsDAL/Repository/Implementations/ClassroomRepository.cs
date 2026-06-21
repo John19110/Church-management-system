@@ -72,8 +72,10 @@ namespace SunDaySchools.DAL.Repository.Implementations
 
         public async Task UpdateAsync(Classroom classroom)
         {
-            // No need to attach if the entity is already tracked.
-            _context.Classrooms.Update(classroom);
+            var entry = _context.Entry(classroom);
+            if (entry.State == EntityState.Detached)
+                _context.Classrooms.Update(classroom);
+
             await _context.SaveChangesAsync();
         }
 
