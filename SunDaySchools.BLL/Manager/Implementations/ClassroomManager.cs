@@ -161,7 +161,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
 
             if (dto.ServantIds != null && dto.ServantIds.Any())
             {
-                await ValidateServantIdsExistAsync(dto.ServantIds);
+                await ValidateAndEnsureServantsAsync(dto.ServantIds, churchId);
             }
 
             if (dto.LeaderServantId is > 0)
@@ -169,12 +169,18 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 var leader = await _servantRepo.GetByIdAsync(dto.LeaderServantId.Value);
                 if (leader == null)
                     throw new NotFoundException($"Servant with id {dto.LeaderServantId.Value} not found.");
+
+                await EnsureServantsBelongToChurchAsync(
+                    new[] { leader },
+                    churchId,
+                    "LeaderServantId");
+
                 model.LeaderServantId = dto.LeaderServantId.Value;
             }
 
             var desiredServants = BuildDesiredServantIds(dto.ServantIds, model.LeaderServantId);
             if (desiredServants.Count > 0)
-                await ValidateServantIdsExistAsync(desiredServants);
+                await ValidateAndEnsureServantsAsync(desiredServants, churchId);
 
             if (dto.MemberIds != null && dto.MemberIds.Any())
             {
@@ -280,27 +286,34 @@ namespace SunDaySchools.BLL.Manager.Implementations
             if (dto.LeaderServantId.HasValue)
             {
                 if (dto.LeaderServantId.Value <= 0)
-                    throw new ValidationException(new Dictionary<string, string[]>
-                    {
-                        ["LeaderServantId"] = new[] { "Leader servant id must be a positive integer." }
-                    });
-                var leader = await _servantRepo.GetByIdAsync(dto.LeaderServantId.Value);
-                if (leader == null)
-                    throw new NotFoundException($"Servant with id {dto.LeaderServantId.Value} not found.");
+                {
+                    classroom.LeaderServantId = null;
+                }
+                else
+                {
+                    var leader = await _servantRepo.GetByIdAsync(dto.LeaderServantId.Value);
+                    if (leader == null)
+                        throw new NotFoundException($"Servant with id {dto.LeaderServantId.Value} not found.");
 
-                classroom.LeaderServantId = dto.LeaderServantId.Value;
+                    await EnsureServantsBelongToChurchAsync(
+                        new[] { leader },
+                        churchId,
+                        "LeaderServantId");
+
+                    classroom.LeaderServantId = dto.LeaderServantId.Value;
+                }
             }
 
             if (dto.ServantIds is not null)
             {
                 var desired = BuildDesiredServantIds(dto.ServantIds, classroom.LeaderServantId);
-                await ValidateServantIdsExistAsync(desired);
+                await ValidateAndEnsureServantsAsync(desired, churchId);
                 ApplyClassroomServantAssignments(classroom, desired);
             }
-            else if (dto.LeaderServantId is > 0)
+            else if (dto.LeaderServantId.HasValue)
             {
                 var desired = BuildDesiredServantIds(null, classroom.LeaderServantId);
-                await ValidateServantIdsExistAsync(desired);
+                await ValidateAndEnsureServantsAsync(desired, churchId);
                 ApplyClassroomServantAssignments(classroom, desired);
             }
 
@@ -419,13 +432,15 @@ namespace SunDaySchools.BLL.Manager.Implementations
             return desired;
         }
 
-        private async Task ValidateServantIdsExistAsync(IEnumerable<int> ids)
+        private async Task ValidateAndEnsureServantsAsync(IEnumerable<int> ids, int churchId)
         {
             var list = ids.Distinct().ToList();
             if (list.Count == 0)
                 return;
 
             var servants = await _servantRepo.GetByIdsAsync(list);
+            await EnsureServantsBelongToChurchAsync(servants, churchId, "ServantIds");
+
             var foundIds = servants.Select(s => s.Id).ToHashSet();
             var missingServants = list.Where(id => !foundIds.Contains(id)).ToList();
 
@@ -436,6 +451,27 @@ namespace SunDaySchools.BLL.Manager.Implementations
             {
                 ["ServantIds"] = missingServants
                     .Select(id => $"Servant with id {id} was not found.")
+                    .ToArray()
+            });
+        }
+
+        private static Task EnsureServantsBelongToChurchAsync(
+            IEnumerable<Servant> servants,
+            int churchId,
+            string fieldName)
+        {
+            var invalid = servants
+                .Where(s => s.ChurchId != churchId)
+                .Select(s => s.Id)
+                .ToList();
+
+            if (invalid.Count == 0)
+                return Task.CompletedTask;
+
+            throw new ValidationException(new Dictionary<string, string[]>
+            {
+                [fieldName] = invalid
+                    .Select(id => $"Servant with id {id} does not belong to your church.")
                     .ToArray()
             });
         }
