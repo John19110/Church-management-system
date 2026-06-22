@@ -30,6 +30,15 @@ namespace SunDaySchools.BLL.DTOS.AccountDtos
         /// <summary>Public church identifier the user entered at registration.</summary>
         public string? RequestedChurchPublicId { get; set; }
 
+        /// <summary>Resolved meeting id when the user registered with a public Meeting ID.</summary>
+        public int? RequestedMeetingId { get; set; }
+
+        /// <summary>Public meeting identifier when registration used a Meeting ID.</summary>
+        public string? RequestedMeetingPublicId { get; set; }
+
+        /// <summary>True when the user registered via a public Meeting ID (not church-only).</summary>
+        public bool RegisteredViaMeetingId { get; set; }
+
         public string? ImageUrl { get; set; }
         public string? ImageFileName { get; set; }
 

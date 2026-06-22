@@ -379,11 +379,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 if (_selectedType == _RegisterType.servant) ...[
                   AppTextField(
                     controller: _churchIdController,
-                    label: l10n.churchId,
-                    hint: l10n.enterChurchId,
+                    label: l10n.churchOrMeetingIdLabel,
+                    hint: l10n.enterChurchOrMeetingId,
                     validator: (v) {
                       if (v == null || v.trim().isEmpty) {
-                        return l10n.churchIdRequired;
+                        return l10n.churchOrMeetingIdRequired;
                       }
                       return null;
                     },
@@ -417,12 +417,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       controller: _requestedMeetingController,
                       label: l10n.requestedMeetingName,
                       hint: l10n.enterRequestedMeetingName,
-                      validator: (v) {
-                        if (v == null || v.trim().isEmpty) {
-                          return l10n.requestedMeetingNameRequired;
-                        }
-                        return null;
-                      },
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        l10n.requestedMeetingNameChurchIdHint,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
                     ),
                   ],
                   if (_requestedRole == 'Servant') ...[
@@ -432,13 +433,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       label: l10n.meetingAdminPhone,
                       hint: l10n.enterMeetingAdminPhone,
                       keyboardType: TextInputType.phone,
-                      validator: (v) {
-                        if (_requestedRole == 'Servant' &&
-                            (v == null || v.trim().isEmpty)) {
-                          return l10n.meetingAdminPhoneRequired;
-                        }
-                        return null;
-                      },
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        l10n.meetingAdminPhoneChurchIdHint,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
                     ),
                   ],
                 ],

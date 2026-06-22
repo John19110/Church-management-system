@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SunDaySchools.BLL.Authorization;
+using SunDaySchools.BLL.DTOS.CustomFields;
 using SunDaySchools.BLL.DTOS.Meeting;
 using SunDaySchools.BLL.DTOS.MeetingDtos;
-using SunDaySchools.BLL.Manager.Implementations;
 using SunDaySchools.BLL.DTOS.UnifiedForms;
 using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Interfaces;
@@ -19,27 +20,27 @@ namespace SunDaySchools.API.Controllers
     {
         private readonly IMeetingManager _meetingManager;
         private readonly IUnifiedEntityFormManager _unifiedFormManager;
+        private readonly ICustomFieldManager _customFieldManager;
 
         public MeetingController(
             IMeetingManager meetingManager,
-            IUnifiedEntityFormManager unifiedFormManager)
+            IUnifiedEntityFormManager unifiedFormManager,
+            ICustomFieldManager customFieldManager)
         {
             _meetingManager = meetingManager;
             _unifiedFormManager = unifiedFormManager;
+            _customFieldManager = customFieldManager;
         }
 
         [HttpPost]
+        [Authorize(Roles = "SuperAdmin")]
         public async Task<IActionResult> Create(MeetingAddDTO meeting)
         {
             await _meetingManager.AddMeeting(meeting);
             return Ok(new { message = "Meeting added successfully" });
-
-
-
         }
 
         [HttpGet("select")]
-        //[Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> GetMeetingsForSelection()
         {
             var result = await _meetingManager.GetMeetingsForSelection();
@@ -47,11 +48,23 @@ namespace SunDaySchools.API.Controllers
         }
 
         [HttpGet("visible")]
-        //[Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> GetvisibleMeetings()
         {
             var result = await _meetingManager.GetVisibleMeetings();
             return Ok(result);
+        }
+
+        /// <summary>System + custom field metadata for Meeting (admin configuration screen).</summary>
+        [HttpGet("field-definitions")]
+        [Authorize(Policy = CustomFieldPolicies.ReadDefinitions)]
+        [Produces(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<IReadOnlyList<EntityFieldDefinitionDto>>> GetFieldDefinitions(
+            [FromQuery] bool includeInactive = true)
+        {
+            var defs = await _customFieldManager.GetDefinitionsByEntityAsync(
+                CustomFieldEntityNames.Meeting,
+                includeInactive);
+            return Ok(defs.Select(CustomFieldDefinitionReadMapper.ToFieldDefinitionSummary).ToList());
         }
 
         [HttpGet("form-schema")]
@@ -73,6 +86,7 @@ namespace SunDaySchools.API.Controllers
 
         [HttpPut("{id:int}/form-data")]
         [Consumes(MediaTypeNames.Application.Json)]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> SaveFormData(int id, [FromBody] SaveEntityFormDto request)
         {
             if (id <= 0) return BadRequest("Meeting id must be a positive integer.");
@@ -88,7 +102,7 @@ namespace SunDaySchools.API.Controllers
         }
 
         [HttpPut("{id:int}")]
-        //[Authorize(Roles = "SuperAdmin")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> UpdateMeeting(
             int id,
             [FromBody] MeetingUpdateDto dto,
@@ -106,10 +120,5 @@ namespace SunDaySchools.API.Controllers
             await _meetingManager.DeleteMeetingAsync(id);
             return NoContent();
         }
-
-
-
-
-
     }
 }

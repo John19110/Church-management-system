@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../core/l10n/app_localizations.dart';
-import '../../../core/routing/app_router.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_session.dart';
 import '../../classroom/screens/classrooms_home_screen.dart';
+import 'admin_pending_users_screen.dart';
 
 class AdminHomeScreen extends ConsumerWidget {
   const AdminHomeScreen({super.key});
@@ -26,7 +25,7 @@ class AdminHomeScreen extends ConsumerWidget {
               Tab(icon: const Icon(Icons.class_), text: l10n.classrooms),
               Tab(
                 icon: const Icon(Icons.pending_actions),
-                text: l10n.pendingServants,
+                text: l10n.pendingUsers,
               ),
             ],
           ),
@@ -43,7 +42,7 @@ class AdminHomeScreen extends ConsumerWidget {
               return const TabBarView(
                 children: [
                   ClassroomsHomeScreen(showAppBar: false),
-                  _PendingServantsRouteShim(),
+                  AdminPendingUsersScreen(),
                 ],
               );
             }
@@ -79,26 +78,6 @@ class AdminHomeScreen extends ConsumerWidget {
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _PendingServantsRouteShim extends StatelessWidget {
-  const _PendingServantsRouteShim();
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    // Uses a dedicated route/screen so it can also be opened directly.
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ElevatedButton.icon(
-          onPressed: () => context.go(AppRoutes.pendingServants),
-          icon: const Icon(Icons.open_in_new),
-          label: Text(l10n.openPendingServants),
         ),
       ),
     );

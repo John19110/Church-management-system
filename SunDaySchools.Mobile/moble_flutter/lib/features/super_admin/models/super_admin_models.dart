@@ -17,6 +17,9 @@ class PendingChurchUserDto {
   final String? meetingAdminPhoneNumber;
   final int? requestedChurchId;
   final String? requestedChurchPublicId;
+  final int? requestedMeetingId;
+  final String? requestedMeetingPublicId;
+  final bool registeredViaMeetingId;
   final String? imageUrl;
   final String? imageFileName;
   final DateTime? createdAt;
@@ -31,6 +34,9 @@ class PendingChurchUserDto {
     this.meetingAdminPhoneNumber,
     this.requestedChurchId,
     this.requestedChurchPublicId,
+    this.requestedMeetingId,
+    this.requestedMeetingPublicId,
+    this.registeredViaMeetingId = false,
     this.imageUrl,
     this.imageFileName,
     this.createdAt,
@@ -44,6 +50,10 @@ class PendingChurchUserDto {
     final r = role.toLowerCase();
     return r == 'servant' || r == 'admin';
   }
+
+  /// Meeting was chosen at registration via public Meeting ID.
+  bool get hasPrelinkedMeeting =>
+      registeredViaMeetingId && requestedMeetingId != null;
 
   /// Best image reference for the avatar (falls back to file name).
   String? get displayImageUrl {
@@ -66,6 +76,9 @@ class PendingChurchUserDto {
       meetingAdminPhoneNumber: json['meetingAdminPhoneNumber'] as String?,
       requestedChurchId: (json['requestedChurchId'] as num?)?.toInt(),
       requestedChurchPublicId: json['requestedChurchPublicId'] as String?,
+      requestedMeetingId: (json['requestedMeetingId'] as num?)?.toInt(),
+      requestedMeetingPublicId: json['requestedMeetingPublicId'] as String?,
+      registeredViaMeetingId: json['registeredViaMeetingId'] as bool? ?? false,
       imageUrl: json['imageUrl'] as String?,
       imageFileName: json['imageFileName'] as String?,
       createdAt: json['createdAt'] == null

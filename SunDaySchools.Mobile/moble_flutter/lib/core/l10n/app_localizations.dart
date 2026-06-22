@@ -167,6 +167,13 @@ class AppLocalizations {
   String get churchId => _t('churchId');
   String get enterChurchId => _t('enterChurchId');
   String get churchIdRequired => _t('churchIdRequired');
+  String get churchOrMeetingIdLabel => _t('churchOrMeetingIdLabel');
+  String get enterChurchOrMeetingId => _t('enterChurchOrMeetingId');
+  String get churchOrMeetingIdRequired => _t('churchOrMeetingIdRequired');
+  String get requestedMeetingNameChurchIdHint =>
+      _t('requestedMeetingNameChurchIdHint');
+  String get meetingAdminPhoneChurchIdHint =>
+      _t('meetingAdminPhoneChurchIdHint');
   String get meetingId => _t('meetingId');
   String get enterMeetingId => _t('enterMeetingId');
   String get meetingIdRequired => _t('meetingIdRequired');
@@ -341,6 +348,10 @@ class AppLocalizations {
   String get churchIdLabel => _t('churchIdLabel');
   String get copyLabel => _t('copyLabel');
   String get churchIdCopied => _t('churchIdCopied');
+  String get meetingIdLabel => _t('meetingIdLabel');
+  String get meetingIdCopied => _t('meetingIdCopied');
+  String get churchMeetingsIdsTitle => _t('churchMeetingsIdsTitle');
+  String get publicMeetingIdLabel => _t('publicMeetingIdLabel');
   String get meetingLabel => _t('meetingLabel');
   String get selectMeeting => _t('selectMeeting');
   String get classroomsLabel => _t('classroomsLabel');
@@ -766,6 +777,13 @@ class AppLocalizations {
       'churchId': 'Church ID',
       'enterChurchId': 'Enter your church ID',
       'churchIdRequired': 'Church ID is required',
+      'churchOrMeetingIdLabel': 'Church ID or Meeting ID',
+      'enterChurchOrMeetingId': 'Enter church ID or meeting ID',
+      'churchOrMeetingIdRequired': 'Church ID or Meeting ID is required',
+      'requestedMeetingNameChurchIdHint':
+          'Required only when registering with a Church ID (not a Meeting ID).',
+      'meetingAdminPhoneChurchIdHint':
+          'Required for servants registering with a Church ID only.',
       'meetingId': 'Meeting ID',
       'enterMeetingId': 'Enter your meeting ID',
       'meetingIdRequired': 'Meeting ID is required',
@@ -853,6 +871,7 @@ class AppLocalizations {
       'requestedRoleLabel': 'Role',
       'registrationDateLabel': 'Registration Date',
       'publicChurchIdLabel': 'Public Church ID',
+      'publicMeetingIdLabel': 'Public Meeting ID',
       'approveUserTitle': 'Approve User',
       'meetingSelectionRequired': 'Please select a meeting for this user.',
       'rejectReasonOptional': 'Reason (optional)',
@@ -937,9 +956,12 @@ class AppLocalizations {
       'failedToLoadOptions': 'Failed to load options:',
       'failedToLoadProfile': 'Failed to load profile:',
       'profileUpdated': 'Profile updated.',
-      'churchIdLabel': 'Church id',
+      'churchIdLabel': 'Church ID',
       'copyLabel': 'Copy',
       'churchIdCopied': 'Church ID copied to clipboard',
+      'meetingIdLabel': 'Meeting ID',
+      'meetingIdCopied': 'Meeting ID copied to clipboard',
+      'churchMeetingsIdsTitle': 'Meeting IDs in your church',
       'meetingLabel': 'Meeting',
       'selectMeeting': 'Select meeting',
       'classroomsLabel': 'Classrooms',
@@ -1274,6 +1296,13 @@ class AppLocalizations {
       'churchId': 'كود الكنيسه (اطلبه من الراعي)',
       'enterChurchId': 'أدخل كود كنيستك',
       'churchIdRequired': 'كود الكنيسة مطلوب',
+      'churchOrMeetingIdLabel': 'كود الكنيسة أو كود الاجتماع',
+      'enterChurchOrMeetingId': 'أدخل كود الكنيسة أو كود الاجتماع',
+      'churchOrMeetingIdRequired': 'كود الكنيسة أو كود الاجتماع مطلوب',
+      'requestedMeetingNameChurchIdHint':
+          'مطلوب فقط عند التسجيل بكود الكنيسة (وليس كود الاجتماع).',
+      'meetingAdminPhoneChurchIdHint':
+          'مطلوب للخدام المسجّلين بكود الكنيسة فقط.',
       'meetingId': 'كود الاجتماع',
       'enterMeetingId': 'أدخل كود الاجتماع',
       'meetingIdRequired': 'كود الاجتماع مطلوب',
@@ -1360,6 +1389,7 @@ class AppLocalizations {
       'requestedRoleLabel': 'الدور',
       'registrationDateLabel': 'تاريخ التسجيل',
       'publicChurchIdLabel': 'معرّف الكنيسة العام',
+      'publicMeetingIdLabel': 'معرّف الاجتماع العام',
       'approveUserTitle': 'قبول المستخدم',
       'meetingSelectionRequired': 'يرجى اختيار اجتماع لهذا المستخدم.',
       'rejectReasonOptional': 'السبب (اختياري)',
@@ -1446,6 +1476,9 @@ class AppLocalizations {
       'churchIdLabel': 'كود الكنيسة',
       'copyLabel': 'نسخ',
       'churchIdCopied': 'تم نسخ كود الكنيسة',
+      'meetingIdLabel': 'كود الاجتماع',
+      'meetingIdCopied': 'تم نسخ كود الاجتماع',
+      'churchMeetingsIdsTitle': 'أكواد الاجتماعات في كنيستك',
       'meetingLabel': 'الاجتماع',
       'selectMeeting': 'اختر الاجتماع',
       'classroomsLabel': 'الفصول',

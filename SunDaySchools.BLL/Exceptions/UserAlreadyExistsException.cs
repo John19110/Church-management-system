@@ -1,4 +1,4 @@
 ﻿public class UserAlreadyExistsException : Exception
 {
-    public UserAlreadyExistsException(string message = "User already exists.") : base(message) { }
+    public UserAlreadyExistsException(string message = "Phone number already exists.") : base(message) { }
 }

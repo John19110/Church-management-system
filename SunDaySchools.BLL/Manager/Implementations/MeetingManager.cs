@@ -9,6 +9,7 @@ using SunDaySchools.BLL.DTOS.Meeting;
 using SunDaySchools.BLL.DTOS.MeetingDtos;
 using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Interfaces;
+using SunDaySchools.BLL.Services;
 using SunDaySchools.DAL.Models;
 using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchools.Models;
@@ -34,6 +35,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IMeetingRepository _meetingRepository;
         private readonly ServantProfileOptions _servantProfileOptions;
+        private readonly IMeetingPublicIdService _meetingPublicIdService;
 
 
         public MeetingManager(ICurrentUserContext currentUser,
@@ -41,7 +43,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 IClassroomRepository classroomRepository, IMapper mapper,
                 UserManager<ApplicationUser> userManager, IMemberRepository memberRepository
                 , IServantRepository servantRepository, IMeetingRepository meetingRepository,
-                IOptions<ServantProfileOptions> servantProfileOptions)
+                IOptions<ServantProfileOptions> servantProfileOptions,
+                IMeetingPublicIdService meetingPublicIdService)
         {
             _userManager = userManager;
             _classroomRepository = classroomRepository;
@@ -52,6 +55,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
             _memberRepo = memberRepository;
             _meetingRepository = meetingRepository;
             _servantProfileOptions = servantProfileOptions.Value;
+            _meetingPublicIdService = meetingPublicIdService;
 
         }
 
@@ -163,8 +167,11 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 throw new UnauthorizedAccessException("User role is not allowed.");
             }
 
-            return _mapper.Map<List<MeetingReadDTO>>(meetings);
+            var dtos = _mapper.Map<List<MeetingReadDTO>>(meetings);
+            foreach (var dto in dtos)
+                dto.PublicId = string.Empty;
 
+            return dtos;
         }
 
         public async Task AddMeeting(MeetingAddDTO meeting)
@@ -175,6 +182,7 @@ namespace SunDaySchools.BLL.Manager.Implementations
                 ?? throw new UnauthorizedAccessException("ChurchId claim is missing");
 
             model.ChurchId = churchId;
+            model.PublicId = await _meetingPublicIdService.GenerateUniqueAsync(churchId);
             await  _meetingRepository.AddAsync(model);
         }
 
@@ -189,6 +197,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
             var meeting = await _meetingRepository.GetByIdAsync(id);
             if (meeting == null)
                 throw new NotFoundException($"Meeting with id {id} not found.");
+
+            await EnsureCanModifyMeetingAsync(meeting);
 
             if (dto.Name != null)
                 meeting.Name = dto.Name.Trim();
@@ -259,6 +269,36 @@ namespace SunDaySchools.BLL.Manager.Implementations
             }
 
             return churchId.Value;
+        }
+
+        private async Task EnsureCanModifyMeetingAsync(Meeting meeting)
+        {
+            var appUser = await RequireCurrentUserAsync();
+
+            if (_currentUser.IsInRole("SuperAdmin"))
+            {
+                var churchId = ResolveSuperAdminChurchId(appUser);
+                if (meeting.ChurchId != churchId)
+                {
+                    throw new UnauthorizedAccessException(
+                        "This meeting does not belong to your church.");
+                }
+
+                return;
+            }
+
+            if (_currentUser.IsInRole("Admin"))
+            {
+                if (appUser.MeetingId != meeting.Id)
+                {
+                    throw new UnauthorizedAccessException(
+                        "You can only edit the meeting you manage.");
+                }
+
+                return;
+            }
+
+            throw new UnauthorizedAccessException("You are not allowed to edit this meeting.");
         }
     }
 }

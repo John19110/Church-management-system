@@ -43,7 +43,8 @@ namespace SunDaySchools.DAL.Repository.Implementations
 
             return await _context.Churches
                 .AsNoTracking()
-                .FirstOrDefaultAsync(c => c.PublicId == publicId.Trim());
+                .FirstOrDefaultAsync(c => c.PublicId == publicId.Trim()
+                    || c.PublicId == publicId.Trim().ToUpperInvariant());
         }
 
         public async Task<int?> GetChurchIdByPublicIdAsync(string publicId)
@@ -51,6 +52,31 @@ namespace SunDaySchools.DAL.Repository.Implementations
             var church = await GetByPublicIdAsync(publicId);
             return church?.Id;
         }
+
+        public async Task<bool> ExistsPublicIdAsync(string publicId, int? excludeChurchId = null)
+        {
+            if (string.IsNullOrWhiteSpace(publicId))
+                return false;
+
+            var normalized = publicId.Trim().ToUpperInvariant();
+            var query = _context.Churches.AsNoTracking()
+                .Where(c => c.PublicId == normalized || c.PublicId == publicId.Trim());
+
+            if (excludeChurchId.HasValue)
+                query = query.Where(c => c.Id != excludeChurchId.Value);
+
+            return await query.AnyAsync();
+        }
+
+        public async Task<List<Church>> GetChurchesNeedingShortPublicIdAsync()
+        {
+            return await _context.Churches
+                .Where(c => c.PublicId == null
+                    || c.PublicId == string.Empty
+                    || c.PublicId.Length > 10)
+                .ToListAsync();
+        }
+
         public async Task<Church?> GetByNameAsync(string churchName)
         {
             return await _context.Churches

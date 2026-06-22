@@ -323,6 +323,13 @@ namespace SunDaySchools.API.Middlewares
                     ex.Message
                 ),
 
+                UserAlreadyExistsException ex =>
+                (
+                    (int)HttpStatusCode.BadRequest,
+                    "VALIDATION_ERROR",
+                    ex.Message
+                ),
+
 
 
                 DbUpdateException =>

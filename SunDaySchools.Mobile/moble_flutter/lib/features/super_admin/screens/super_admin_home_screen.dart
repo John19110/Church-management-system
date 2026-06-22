@@ -7,6 +7,8 @@ import '../../../core/startup/deferred_startup_mixin.dart';
 import '../../../core/routing/app_router.dart';
 import '../../auth/utils/auth_session.dart';
 import '../../../shared/widgets/common_widgets.dart';
+import '../../custom_field/providers/custom_field_cache_providers.dart';
+import '../../unified_form/models/unified_form_models.dart';
 import '../../meeting/models/meeting_models.dart';
 import '../../meeting/providers/meeting_providers.dart';
 import '../../meeting/utils/meeting_delete_actions.dart';
@@ -266,34 +268,56 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen>
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        IconButton(
-                          icon: const Icon(Icons.delete_outline, color: Colors.red),
-                          tooltip: l10n.deleteMeeting,
-                          onPressed: () {
+                        PopupMenuButton<String>(
+                          icon: const Icon(Icons.more_vert),
+                          onSelected: (value) {
                             final meetingId = m.id;
                             if (meetingId == null || meetingId <= 0) return;
-                            confirmAndDeleteMeeting(
-                              context,
-                              ref,
-                              meetingId: meetingId,
-                              l10n: l10n,
-                            );
+                            if (value == 'edit') {
+                              context.push('/meetings/$meetingId/edit');
+                            } else if (value == 'delete') {
+                              confirmAndDeleteMeeting(
+                                context,
+                                ref,
+                                meetingId: meetingId,
+                                l10n: l10n,
+                              );
+                            }
                           },
+                          itemBuilder: (context) => [
+                            PopupMenuItem(
+                              value: 'edit',
+                              child: ListTile(
+                                leading: const Icon(Icons.edit_outlined),
+                                title: Text(l10n.editMeeting),
+                                contentPadding: EdgeInsets.zero,
+                                visualDensity: VisualDensity.compact,
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: 'delete',
+                              child: ListTile(
+                                leading: const Icon(
+                                  Icons.delete_outline,
+                                  color: Colors.red,
+                                ),
+                                title: Text(
+                                  l10n.deleteMeeting,
+                                  style: const TextStyle(color: Colors.red),
+                                ),
+                                contentPadding: EdgeInsets.zero,
+                                visualDensity: VisualDensity.compact,
+                              ),
+                            ),
+                          ],
                         ),
                         const Icon(Icons.chevron_right),
                       ],
                     ),
-                    onTap: () {
-                      final meetingId = m.id;
-                      if (meetingId == null || meetingId <= 0) return;
-                      context.push(
-                        AppRoutes.classroomsHome,
-                        extra: {
-                          'meetingId': meetingId,
-                          'meetingName': m.name ?? '',
-                        },
-                      );
-                    },
+                    onTap: () => context.push(
+                      AppRoutes.meetingDetail,
+                      extra: m,
+                    ),
                   ),
                 ),
               )
@@ -327,6 +351,20 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen>
       appBar: AppBar(
         title: Text(l10n.superAdminHome),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.tune),
+            tooltip: l10n.manageCustomFields,
+            onPressed: () async {
+              await context.push('/custom-fields/${UnifiedEntityNames.meeting}');
+              if (context.mounted) {
+                refreshEntityFormsAfterDefinitionChange(
+                  ref,
+                  UnifiedEntityNames.meeting,
+                );
+                ref.invalidate(visibleMeetingsProvider);
+              }
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () => logoutSession(ref, context),

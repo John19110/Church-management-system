@@ -18,24 +18,43 @@ namespace SunDaySchools.BLL.Application.Servants
         private readonly IServantRepository _servantRepository;
         private readonly IUnifiedEntityFormManager _unifiedFormManager;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IMeetingRepository _meetingRepository;
 
         public ServantProfileService(
             ICurrentUserContext currentUser,
             IServantRepository servantRepository,
             IUnifiedEntityFormManager unifiedFormManager,
-            UserManager<ApplicationUser> userManager)
+            UserManager<ApplicationUser> userManager,
+            IMeetingRepository meetingRepository)
         {
             _currentUser = currentUser;
             _servantRepository = servantRepository;
             _unifiedFormManager = unifiedFormManager;
             _userManager = userManager;
+            _meetingRepository = meetingRepository;
         }
 
         public async Task<ServantProfileDto> GetForCurrentUserAsync(
             CancellationToken cancellationToken = default)
         {
             var servant = await RequireProfileAsync(cancellationToken);
-            return MapToDto(servant);
+            var dto = MapToDto(servant);
+
+            if (_currentUser.IsInRole("SuperAdmin") && servant.ChurchId.HasValue)
+            {
+                var meetings = await _meetingRepository.GetByChurchIdAsync(servant.ChurchId.Value);
+                dto.ChurchMeetings = meetings
+                    .OrderBy(m => m.Name)
+                    .Select(m => new ServantProfileMeetingDto
+                    {
+                        Id = m.Id,
+                        PublicId = m.PublicId,
+                        Name = m.Name
+                    })
+                    .ToList();
+            }
+
+            return dto;
         }
 
         public async Task<EntityFormDataDto> GetFormDataForCurrentUserAsync(

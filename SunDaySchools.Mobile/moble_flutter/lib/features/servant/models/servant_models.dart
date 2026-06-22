@@ -109,6 +109,7 @@ class ServantProfileDto {
   final String? spiritualBirthDate;
   final NamedEntityDto? church;
   final NamedEntityDto? meeting;
+  final List<NamedEntityDto> churchMeetings;
   final List<ClassroomSummaryDto> classrooms;
 
   const ServantProfileDto({
@@ -121,6 +122,7 @@ class ServantProfileDto {
     this.spiritualBirthDate,
     this.church,
     this.meeting,
+    this.churchMeetings = const [],
     this.classrooms = const [],
   });
 
@@ -144,6 +146,10 @@ class ServantProfileDto {
             : (json['Meeting'] is Map<String, dynamic>
                 ? NamedEntityDto.fromJson(json['Meeting'] as Map<String, dynamic>)
                 : null),
+        churchMeetings: ((json['churchMeetings'] ?? json['ChurchMeetings']) as List<dynamic>?)
+                ?.map((e) => NamedEntityDto.fromJson(e as Map<String, dynamic>))
+                .toList() ??
+            [],
         classrooms: ((json['classrooms'] ?? json['Classrooms']) as List<dynamic>?)
                 ?.map((e) => ClassroomSummaryDto.fromJson(e as Map<String, dynamic>))
                 .toList() ??

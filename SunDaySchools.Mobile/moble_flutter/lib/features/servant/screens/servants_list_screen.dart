@@ -41,6 +41,12 @@ class ServantsListScreen extends ConsumerWidget {
                 tooltip: l10n.pendingUsers,
                 onPressed: () => context.push(AppRoutes.pendingUsers),
               ),
+            if (role == 'admin')
+              IconButton(
+                icon: const Icon(Icons.pending_actions),
+                tooltip: l10n.pendingUsers,
+                onPressed: () => context.push(AppRoutes.adminPendingUsers),
+              ),
             if (role == 'admin' || role == 'superadmin')
               IconButton(
                 icon: const Icon(Icons.tune),

@@ -11,6 +11,10 @@ namespace SunDaySchools.BLL.DTOS
         public DateOnly? SpiritualBirthDate { get; set; }
         public ServantProfileChurchDto? Church { get; set; }
         public ServantProfileMeetingDto? Meeting { get; set; }
+
+        /// <summary>All meetings in the church (Super Admin profile only).</summary>
+        public List<ServantProfileMeetingDto> ChurchMeetings { get; set; } = new();
+
         public List<ServantProfileClassroomDto> Classrooms { get; set; } = new();
     }
 
