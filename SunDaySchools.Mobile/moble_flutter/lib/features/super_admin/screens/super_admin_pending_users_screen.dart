@@ -203,7 +203,8 @@ class _PendingUserCardState extends ConsumerState<_PendingUserCard> {
                   if ((user.meetingAdminPhoneNumber ?? '').isNotEmpty)
                     _line(context, l10n.meetingAdminPhone,
                         user.meetingAdminPhoneNumber!),
-                  if ((user.requestedChurchPublicId ?? '').isNotEmpty)
+                  if ((user.requestedChurchPublicId ?? '').isNotEmpty
+                      && !user.registeredViaMeetingId)
                     _line(context, l10n.publicChurchIdLabel,
                         user.requestedChurchPublicId!),
                   _line(context, l10n.registrationDateLabel,
@@ -257,6 +258,11 @@ class _PendingUserCardState extends ConsumerState<_PendingUserCard> {
 
       if (!user.requiresMeeting) {
         await _runApprove(context, meetingId: null);
+        return;
+      }
+
+      if (user.hasPrelinkedMeeting) {
+        await _runApprove(context, meetingId: user.requestedMeetingId);
         return;
       }
 

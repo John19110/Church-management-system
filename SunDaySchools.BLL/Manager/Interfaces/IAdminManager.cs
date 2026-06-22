@@ -15,6 +15,13 @@ namespace SunDaySchools.BLL.Manager.Interfaces
 
         Task RejectServant(string userId);
 
+        /// <summary>Pending users who registered with this Meeting Admin's public Meeting ID.</summary>
+        Task<List<PendingUserDTO>> GetPendingUsers();
+
+        Task ApproveUser(string userId, int? meetingId);
+
+        Task RejectUser(string userId, string? reason);
+
 
     }
 }

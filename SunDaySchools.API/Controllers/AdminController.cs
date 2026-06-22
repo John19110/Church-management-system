@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SunDaySchools.API.Mapping;
 using SunDaySchools.API.Requests;
@@ -90,6 +91,32 @@ namespace SunDaySchools.API.Controllers
         {
             await _adminManager.RejectServant(userId);
             return Ok(new { message = "Servant rejected successfully" });
+        }
+
+        // ---- Meeting Admin pending user workflow ----
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("pending-users")]
+        public async Task<ActionResult<List<PendingUserDTO>>> GetPendingUsers()
+        {
+            var pending = await _adminManager.GetPendingUsers();
+            return Ok(pending);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("approve-user/{userId}")]
+        public async Task<IActionResult> ApproveUser(string userId, [FromBody] ApproveUserDTO? dto)
+        {
+            await _adminManager.ApproveUser(userId, dto?.MeetingId);
+            return Ok(new { message = "User approved successfully." });
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("reject-user/{userId}")]
+        public async Task<IActionResult> RejectUser(string userId, [FromBody] RejectUserDTO? dto)
+        {
+            await _adminManager.RejectUser(userId, dto?.Reason);
+            return Ok(new { message = "User rejected successfully." });
         }
 
 

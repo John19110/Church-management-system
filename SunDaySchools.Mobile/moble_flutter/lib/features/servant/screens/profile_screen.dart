@@ -228,6 +228,7 @@ class _RoleContextCard extends StatelessWidget {
 
     final churchName = profile.church?.name?.trim() ?? '';
     final churchPublicId = profile.church?.publicId.trim() ?? '';
+    final meetingPublicId = profile.meeting?.publicId.trim() ?? '';
     final meetingName = profile.meeting?.name?.trim() ?? '';
 
     final churchDisplay =
@@ -295,6 +296,60 @@ class _RoleContextCard extends StatelessWidget {
                     ),
               ),
             ),
+          ],
+          if (role == 'admin' && meetingPublicId.isNotEmpty) ...[
+            const Divider(height: 0),
+            ListTile(
+              leading: const Icon(Icons.tag_outlined),
+              title: Text(l10n.meetingIdLabel),
+              subtitle: SelectableText(
+                meetingPublicId,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              trailing: IconButton(
+                icon: const Icon(Icons.copy),
+                tooltip: l10n.copyLabel,
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: meetingPublicId));
+                  cw.showSuccessSnackbar(context, l10n.meetingIdCopied);
+                },
+              ),
+            ),
+          ],
+          if (isSuperAdmin && profile.churchMeetings.isNotEmpty) ...[
+            const Divider(height: 0),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+              child: Text(
+                l10n.churchMeetingsIdsTitle,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+            ),
+            ...profile.churchMeetings.map((m) {
+              final id = m.publicId.trim();
+              final name = (m.name?.trim().isNotEmpty == true)
+                  ? m.name!.trim()
+                  : l10n.meetingLabel;
+              return ListTile(
+                dense: true,
+                title: Text(name),
+                subtitle: id.isNotEmpty ? SelectableText(id) : null,
+                trailing: id.isEmpty
+                    ? null
+                    : IconButton(
+                        icon: const Icon(Icons.copy),
+                        tooltip: l10n.copyLabel,
+                        onPressed: () {
+                          Clipboard.setData(ClipboardData(text: id));
+                          cw.showSuccessSnackbar(context, l10n.meetingIdCopied);
+                        },
+                      ),
+              );
+            }),
           ],
         ],
       ),

@@ -91,7 +91,10 @@ class ChurchDetailScreen extends ConsumerWidget {
                   fields: form.fields,
                 ),
                 const SizedBox(height: 16),
-                UnifiedEntityDetailFields(fields: form.fields),
+                UnifiedEntityDetailFields(
+                  entityName: UnifiedEntityNames.church,
+                  fields: form.fields,
+                ),
               ],
             ),
           ),

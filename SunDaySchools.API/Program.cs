@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SunDaySchoolsDAL.DBcontext;
@@ -139,6 +140,9 @@ builder.Services.AddHttpClient("WhatsApp");
 builder.Services.AddScoped<IChurchRepository, ChurchRepository>();
 builder.Services.AddScoped<IChurchManager, ChurchManager>();
 builder.Services.AddScoped<IPublicIdResolver, PublicIdResolver>();
+builder.Services.AddScoped<IChurchPublicIdService, ChurchPublicIdService>();
+builder.Services.AddScoped<IMeetingPublicIdService, MeetingPublicIdService>();
+builder.Services.AddScoped<UserRegistrationApprovalService>();
 
 builder.Services.AddScoped<IClassroomManager, ClassroomManager>();
 builder.Services.AddScoped<IClassroomRepository, ClassroomRepository>();
@@ -238,6 +242,9 @@ builder.Services
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ProgramContext>()
     .AddDefaultTokenProviders();
+
+builder.Services.RemoveAll<IUserValidator<ApplicationUser>>();
+builder.Services.AddScoped<IUserValidator<ApplicationUser>, SunDaySchools.BLL.Identity.ApplicationUserValidator>();
 
 // AutoMapper
 builder.Services.AddAutoMapper(m => m.AddProfile(new MappingProfile()));

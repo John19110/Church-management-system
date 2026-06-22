@@ -134,9 +134,24 @@ namespace SunDaySchoolsDAL.DBcontext
                 entity.HasIndex(o => new { o.PhoneNumber, o.Purpose, o.CreatedAt });
             });
 
-            builder.Entity<ApplicationUser>()
-                .Property(u => u.IsPhoneVerified)
-                .HasDefaultValue(true);
+            builder.Entity<ApplicationUser>(entity =>
+            {
+                entity.Property(u => u.IsPhoneVerified)
+                    .HasDefaultValue(true);
+
+                entity.Property(u => u.PhoneNumber)
+                    .HasMaxLength(32);
+
+                entity.HasIndex(u => u.NormalizedUserName)
+                    .HasDatabaseName("UserNameIndex")
+                    .IsUnique(false)
+                    .HasFilter("[NormalizedUserName] IS NOT NULL");
+
+                entity.HasIndex(u => u.PhoneNumber)
+                    .IsUnique()
+                    .HasDatabaseName("IX_AspNetUsers_PhoneNumber")
+                    .HasFilter("[PhoneNumber] IS NOT NULL AND [PhoneNumber] <> ''");
+            });
 
             // Exam relations
             builder.Entity<ExamResult>()
@@ -161,7 +176,7 @@ namespace SunDaySchoolsDAL.DBcontext
             builder.Entity<Church>()
                 .Property(c => c.PublicId)
                 .IsRequired()
-                .HasMaxLength(36);
+                .HasMaxLength(16);
 
             builder.Entity<Church>()
                 .HasIndex(c => c.PublicId)
@@ -177,7 +192,7 @@ namespace SunDaySchoolsDAL.DBcontext
             builder.Entity<Meeting>()
                 .Property(m => m.PublicId)
                 .IsRequired()
-                .HasMaxLength(36);
+                .HasMaxLength(16);
 
             builder.Entity<Meeting>()
                 .HasIndex(m => m.PublicId)

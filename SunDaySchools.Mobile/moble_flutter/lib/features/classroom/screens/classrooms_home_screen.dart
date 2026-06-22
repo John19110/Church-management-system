@@ -89,6 +89,16 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen>
             ? AppBar(
                 title: Text(title),
                 actions: [
+                  if (AuthRoleUtils.canEditMeeting(role) &&
+                      widget.meetingId != null &&
+                      widget.meetingId! > 0)
+                    IconButton(
+                      icon: const Icon(Icons.edit_outlined),
+                      tooltip: l10n.editMeeting,
+                      onPressed: () => context.push(
+                        '/meetings/${widget.meetingId}/edit',
+                      ),
+                    ),
                   if (role == 'admin' || role == 'superadmin')
                     IconButton(
                       icon: const Icon(Icons.tune),

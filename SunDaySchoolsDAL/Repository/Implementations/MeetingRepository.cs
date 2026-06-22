@@ -53,9 +53,57 @@ namespace SunDaySchools.DAL.Repository.Implementations
             if (string.IsNullOrWhiteSpace(publicId))
                 return null;
 
+            var normalized = publicId.Trim();
             return await _context.Meetings
                 .AsNoTracking()
-                .FirstOrDefaultAsync(m => m.PublicId == publicId.Trim());
+                .FirstOrDefaultAsync(m => m.PublicId == normalized
+                    || m.PublicId == normalized.ToUpperInvariant());
+        }
+
+        public async Task<bool> ExistsPublicIdAsync(string publicId, int? excludeMeetingId = null)
+        {
+            if (string.IsNullOrWhiteSpace(publicId))
+                return false;
+
+            var normalized = publicId.Trim().ToUpperInvariant();
+            var query = _context.Meetings.AsNoTracking()
+                .Where(m => m.PublicId == normalized || m.PublicId == publicId.Trim());
+
+            if (excludeMeetingId.HasValue)
+                query = query.Where(m => m.Id != excludeMeetingId.Value);
+
+            return await query.AnyAsync();
+        }
+
+        public async Task<bool> ExistsPublicIdInChurchAsync(
+            int churchId,
+            string publicId,
+            int? excludeMeetingId = null)
+        {
+            if (string.IsNullOrWhiteSpace(publicId))
+                return false;
+
+            var normalized = publicId.Trim().ToUpperInvariant();
+            var query = _context.Meetings.AsNoTracking()
+                .Where(m => m.ChurchId == churchId
+                    && (m.PublicId == normalized || m.PublicId == publicId.Trim()));
+
+            if (excludeMeetingId.HasValue)
+                query = query.Where(m => m.Id != excludeMeetingId.Value);
+
+            return await query.AnyAsync();
+        }
+
+        public async Task<List<Meeting>> GetMeetingsWithLegacyPublicIdsAsync() =>
+            await GetMeetingsNeedingShortPublicIdAsync();
+
+        public async Task<List<Meeting>> GetMeetingsNeedingShortPublicIdAsync()
+        {
+            return await _context.Meetings
+                .Where(m => m.PublicId == null
+                    || m.PublicId == string.Empty
+                    || m.PublicId.Length > 10)
+                .ToListAsync();
         }
 
         public async Task<int?> GetMeetingIdByPublicIdAsync(string publicId)

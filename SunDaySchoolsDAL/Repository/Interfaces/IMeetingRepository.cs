@@ -11,6 +11,10 @@ namespace SunDaySchools.DAL.Repository.Interfaces
         Task<Meeting?> GetByIdAsync(int id);
         Task<Meeting?> GetByPublicIdAsync(string publicId);
         Task<int?> GetMeetingIdByPublicIdAsync(string publicId);
+        Task<bool> ExistsPublicIdAsync(string publicId, int? excludeMeetingId = null);
+        Task<bool> ExistsPublicIdInChurchAsync(int churchId, string publicId, int? excludeMeetingId = null);
+        Task<List<Meeting>> GetMeetingsWithLegacyPublicIdsAsync();
+        Task<List<Meeting>> GetMeetingsNeedingShortPublicIdAsync();
         Task<Meeting?> GetByNameAsync(string name);
 
        Task<List<(int Id, string Name)>> GetMeetingsForSelection();

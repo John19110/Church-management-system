@@ -1,18 +1,18 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
+using SunDaySchools.BLL.Abstractions;
 using SunDaySchools.DAL.Abstractions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.JsonWebTokens;
 using SunDaySchools.BLL.DTOS.AccountDtos;
 using SunDaySchools.BLL.DTOS.Meeting;
 using SunDaySchools.BLL.Exceptions;
 using SunDaySchools.BLL.Manager.Interfaces;
+using SunDaySchools.BLL.Services;
 using SunDaySchools.DAL.Models;
 using SunDaySchools.DAL.Repository.Implementations;
 using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchools.Models;
 using SunDaySchoolsDAL.Models;
-using System.IdentityModel.Tokens.Jwt;
 
 
 
@@ -28,12 +28,14 @@ namespace SunDaySchools.BLL.Manager.Implementations
     private readonly ITenantContext _tenantContext;
     private readonly IAccountManager _accountManager;
     private readonly IMeetingRepository _meetingRepository;
-
-
+    private readonly ICurrentUserContext _currentUser;
+    private readonly UserRegistrationApprovalService _approvalService;
 
         public AdminManager(IAdminRepository adminRepository,IMapper mapper
             , UserManager<ApplicationUser> usermanager, ITenantContext tenantContext
-            ,IAccountManager accountManager,IMeetingRepository meetingRepository)
+            ,IAccountManager accountManager,IMeetingRepository meetingRepository
+            , ICurrentUserContext currentUser
+            , UserRegistrationApprovalService approvalService)
         {
             _adminRepository = adminRepository;
             _mapper = mapper;
@@ -41,6 +43,8 @@ namespace SunDaySchools.BLL.Manager.Implementations
             _tenantContext = tenantContext;
             _accountManager = accountManager;
             _meetingRepository = meetingRepository;
+            _currentUser = currentUser;
+            _approvalService = approvalService;
         }
 
         public async Task AssignClassToServant(int servantId, int classroomId)
@@ -182,6 +186,74 @@ namespace SunDaySchools.BLL.Manager.Implementations
             }
         }
 
+        public async Task<List<PendingUserDTO>> GetPendingUsers()
+        {
+            var churchId = _tenantContext.ChurchId
+                ?? throw new UnauthorizedAccessException("ChurchId claim is missing");
 
+            var approver = await RequireCurrentAdminUserAsync();
+            var meetingId = approver.MeetingId
+                ?? throw new UnauthorizedAccessException("Meeting Admin must be assigned to a meeting.");
+
+            var users = await _userManager.Users
+                .Where(u => u.RegistrationStatus == RegistrationStatus.Pending
+                            && u.RequestedMeetingId == meetingId
+                            && (u.RequestedChurchId == churchId || u.ChurchId == churchId))
+                .ToListAsync();
+
+            return await _approvalService.MapPendingUsersAsync(users, churchId);
+        }
+
+        public async Task ApproveUser(string userId, int? meetingId)
+        {
+            var churchId = _tenantContext.ChurchId
+                ?? throw new UnauthorizedAccessException("ChurchId claim is missing");
+
+            var approver = await RequireCurrentAdminUserAsync();
+            var approverMeetingId = approver.MeetingId
+                ?? throw new UnauthorizedAccessException("Meeting Admin must be assigned to a meeting.");
+
+            var user = await _userManager.FindByIdAsync(userId)
+                ?? throw new NotFoundException($"User with id {userId} not found.");
+
+            await _approvalService.ApproveUserAsync(
+                user,
+                churchId,
+                _currentUser.UserId ?? string.Empty,
+                meetingId,
+                approverMeetingId);
+        }
+
+        public async Task RejectUser(string userId, string? reason)
+        {
+            var churchId = _tenantContext.ChurchId
+                ?? throw new UnauthorizedAccessException("ChurchId claim is missing");
+
+            var approver = await RequireCurrentAdminUserAsync();
+            var approverMeetingId = approver.MeetingId
+                ?? throw new UnauthorizedAccessException("Meeting Admin must be assigned to a meeting.");
+
+            var user = await _userManager.FindByIdAsync(userId)
+                ?? throw new NotFoundException($"User with id {userId} not found.");
+
+            await _approvalService.RejectUserAsync(
+                user,
+                churchId,
+                _currentUser.UserId ?? string.Empty,
+                reason,
+                approverMeetingId);
+        }
+
+        private async Task<ApplicationUser> RequireCurrentAdminUserAsync()
+        {
+            if (!_currentUser.IsAuthenticated || string.IsNullOrWhiteSpace(_currentUser.UserId))
+                throw new UnauthorizedAccessException("User is not authenticated.");
+
+            var appUser = await _userManager.FindByIdAsync(_currentUser.UserId);
+            if (appUser == null)
+                throw new UnauthorizedAccessException("User account not found.");
+
+            return appUser;
+        }
     }
-       }
+}

@@ -15,13 +15,8 @@ namespace SunDaySchools.BLL.DTOS.AccountDtos
 
         public string ConfirmPassword { get; set; }
 
+        /// <summary>Public Church ID or public Meeting ID entered at registration.</summary>
         public string ChurchPublicId { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Legacy field: public meeting identifier. No longer required for public
-        /// servant registration — the meeting is assigned by the Super Admin on approval.
-        /// </summary>
-        public string MeetingPublicId { get; set; } = string.Empty;
 
         /// <summary>Free-text meeting/class name the user wants to join (e.g. "Preparatory Boys").</summary>
         public string RequestedMeetingName { get; set; } = string.Empty;

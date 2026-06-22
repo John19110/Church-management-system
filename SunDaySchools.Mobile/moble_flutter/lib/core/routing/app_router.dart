@@ -37,6 +37,7 @@ import '../../features/classroom/screens/classroom_add_screen.dart';
 import '../../features/classroom/screens/classrooms_home_screen.dart';
 import '../../features/admin/screens/admin_home_screen.dart';
 import '../../features/admin/screens/admin_pending_servants_screen.dart';
+import '../../features/admin/screens/admin_pending_users_screen.dart';
 import '../../features/servant/screens/servant_home_screen.dart';
 import '../../features/notifications/screens/notifications_screen.dart';
 import '../../features/custom_field/screens/custom_field_definitions_screen.dart';
@@ -69,6 +70,7 @@ class AppRoutes {
   static const pendingAdmins = '/super-admin/pending-admins';
   static const pendingUsers = '/super-admin/pending-users';
   static const pendingServants = '/admin/pending-servants';
+  static const adminPendingUsers = '/admin/pending-users';
   static const meetingDetail = '/meeting-detail';
   static const churchSettings = '/church';
   static const classroomDetail = '/classroom-detail';
@@ -223,6 +225,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.pendingServants,
         builder: (_, __) => const AdminPendingServantsScreen(),
+      ),
+
+      GoRoute(
+        path: AppRoutes.adminPendingUsers,
+        builder: (_, __) => const AdminPendingUsersScreen(),
       ),
 
       GoRoute(

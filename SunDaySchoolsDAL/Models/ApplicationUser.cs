@@ -32,6 +32,12 @@ namespace SunDaySchoolsDAL.Models
         /// <summary>Free-text meeting/class name the user requested to join (e.g. "Preparatory Boys").</summary>
         public string? RequestedMeetingName { get; set; }
 
+        /// <summary>
+        /// When the user registers with a public Meeting ID, the resolved meeting they asked to join.
+        /// Church-only registrations leave this null.
+        /// </summary>
+        public int? RequestedMeetingId { get; set; }
+
         /// <summary>Role the user requested at registration: Servant / MeetingAdmin / ChurchAdmin.</summary>
         public string? RequestedRole { get; set; }
 

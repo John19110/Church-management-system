@@ -68,6 +68,10 @@ class AuthRoleUtils {
 
   static bool canDeleteMeeting(String? role) => role == 'superadmin';
 
+  /// Super Admin can edit any church meeting; Meeting Admin only their own meeting.
+  static bool canEditMeeting(String? role) =>
+      role == 'admin' || role == 'superadmin';
+
   static bool canDeleteClassroom(String? role) =>
       role == 'admin' || role == 'superadmin';
 }

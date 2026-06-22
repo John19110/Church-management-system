@@ -1,5 +1,7 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using SunDaySchools.BLL.Services;
+using SunDaySchools.DAL.Repository.Interfaces;
 using SunDaySchoolsDAL.DBcontext;
 
 namespace SunDaySchools.API.Infrastructure
@@ -38,8 +40,8 @@ namespace SunDaySchools.API.Infrastructure
 
             try
             {
-                EnsurePublicIdColumn(db, logger, tableName: "Churches", indexName: "IX_Churches_PublicId");
-                EnsurePublicIdColumn(db, logger, tableName: "Meetings", indexName: "IX_Meetings_PublicId");
+                EnsureChurchPublicIdColumn(db, services, logger);
+                EnsureMeetingPublicIdColumn(db, services, logger);
                 logger.LogInformation("PublicId schema verification/repair completed successfully.");
             }
             catch (Exception ex)
@@ -69,7 +71,107 @@ namespace SunDaySchools.API.Infrastructure
                 logger.LogCritical(ex, "Custom field definition schema repair failed. API will not work until columns exist.");
                 throw;
             }
+
+            try
+            {
+                EnsureUserIdentityIndexes(db, logger);
+                logger.LogInformation("User identity index schema verification/repair completed successfully.");
+            }
+            catch (Exception ex)
+            {
+                logger.LogCritical(ex, "User identity index schema repair failed.");
+                throw;
+            }
         }
+
+        /// <summary>
+        /// Allows duplicate usernames and enforces unique phone numbers on AspNetUsers.
+        /// </summary>
+        private static void EnsureUserIdentityIndexes(ProgramContext db, ILogger logger)
+        {
+            const string table = "AspNetUsers";
+
+            if (IndexExists(db, table, "UserNameIndex"))
+            {
+                var isUnique = IndexIsUnique(db, table, "UserNameIndex");
+                if (isUnique)
+                {
+                    logger.LogWarning("Dropping unique UserNameIndex to allow duplicate usernames.");
+                    TryExecute(db, logger, "DROP INDEX [UserNameIndex] ON [AspNetUsers]");
+                    TryExecute(
+                        db,
+                        logger,
+                        """
+                        CREATE INDEX [UserNameIndex] ON [AspNetUsers]([NormalizedUserName])
+                        WHERE [NormalizedUserName] IS NOT NULL
+                        """);
+                }
+            }
+
+            if (ColumnExists(db, table, "PhoneNumber"))
+            {
+                var maxLength = db.Database
+                    .SqlQueryRaw<int>(
+                        """
+                        SELECT COALESCE(c.max_length, 0)
+                        FROM sys.columns c
+                        INNER JOIN sys.types t ON c.user_type_id = t.user_type_id
+                        WHERE c.object_id = OBJECT_ID({0}) AND c.name = 'PhoneNumber'
+                        """,
+                        table)
+                    .AsEnumerable()
+                    .FirstOrDefault();
+
+                if (maxLength <= 0 || maxLength > 64)
+                {
+                    logger.LogWarning("Altering AspNetUsers.PhoneNumber to nvarchar(32).");
+                    TryExecute(
+                        db,
+                        logger,
+                        "ALTER TABLE [AspNetUsers] ALTER COLUMN [PhoneNumber] nvarchar(32) NULL");
+                }
+            }
+
+            if (!IndexExists(db, table, "IX_AspNetUsers_PhoneNumber"))
+            {
+                logger.LogWarning("Creating unique phone index on AspNetUsers.PhoneNumber.");
+                TryExecute(
+                    db,
+                    logger,
+                    """
+                    CREATE UNIQUE INDEX [IX_AspNetUsers_PhoneNumber] ON [AspNetUsers]([PhoneNumber])
+                    WHERE [PhoneNumber] IS NOT NULL AND [PhoneNumber] <> ''
+                    """);
+            }
+        }
+
+        private static bool IndexExists(ProgramContext db, string tableName, string indexName) =>
+            db.Database
+                .SqlQueryRaw<int>(
+                    """
+                    SELECT COUNT(1)
+                    FROM sys.indexes
+                    WHERE name = {0} AND object_id = OBJECT_ID({1})
+                    """,
+                    indexName,
+                    tableName)
+                .AsEnumerable()
+                .First() > 0;
+
+        private static bool IndexIsUnique(ProgramContext db, string tableName, string indexName) =>
+            db.Database
+                .SqlQueryRaw<int>(
+                    """
+                    SELECT COUNT(1)
+                    FROM sys.indexes
+                    WHERE name = {0}
+                      AND object_id = OBJECT_ID({1})
+                      AND is_unique = 1
+                    """,
+                    indexName,
+                    tableName)
+                .AsEnumerable()
+                .First() > 0;
 
         /// <summary>
         /// Adds bilingual display name and permanent-delete columns to
@@ -98,6 +200,7 @@ namespace SunDaySchools.API.Infrastructure
 
             EnsureColumn(db, logger, table, "RegistrationStatus", "int NOT NULL CONSTRAINT [DF_AspNetUsers_RegistrationStatus] DEFAULT(0)");
             EnsureColumn(db, logger, table, "RequestedChurchId", "int NULL");
+            EnsureColumn(db, logger, table, "RequestedMeetingId", "int NULL");
             EnsureColumn(db, logger, table, "RequestedMeetingName", "nvarchar(256) NULL");
             EnsureColumn(db, logger, table, "ApprovedByUserId", "nvarchar(450) NULL");
             EnsureColumn(db, logger, table, "ApprovalDate", "datetime2 NULL");
@@ -215,19 +318,7 @@ namespace SunDaySchools.API.Infrastructure
             if (!ColumnExists(db, tableName, "PublicId"))
                 return;
 
-            var indexExists = db.Database
-                .SqlQueryRaw<int>(
-                    """
-                    SELECT COUNT(1)
-                    FROM sys.indexes
-                    WHERE name = {0} AND object_id = OBJECT_ID({1})
-                    """,
-                    indexName,
-                    tableName)
-                .AsEnumerable()
-                .First();
-
-            if (indexExists > 0)
+            if (IndexExists(db, tableName, indexName))
                 return;
 
             TryExecute(
@@ -235,6 +326,198 @@ namespace SunDaySchools.API.Infrastructure
                 logger,
                 $"CREATE UNIQUE INDEX [{indexName}] ON [{tableName}]([PublicId])");
             logger.LogInformation("Created unique index {Index} on {Table}.", indexName, tableName);
+        }
+
+        private static void EnsureChurchPublicIdColumn(
+            ProgramContext db,
+            IServiceProvider services,
+            ILogger logger)
+        {
+            const string tableName = "Churches";
+            const string indexName = "IX_Churches_PublicId";
+
+            if (!ColumnExists(db, tableName, "PublicId"))
+            {
+                TryExecute(db, logger, $"ALTER TABLE [{tableName}] ADD [PublicId] nvarchar(36) NULL");
+            }
+
+            BackfillChurchShortPublicIds(services, logger);
+
+            DropIndexIfExists(db, logger, tableName, indexName);
+
+            var maxLength = GetColumnMaxLength(db, tableName, "PublicId");
+            if (maxLength is null or > 16)
+            {
+                TryExecute(
+                    db,
+                    logger,
+                    $"ALTER TABLE [{tableName}] ALTER COLUMN [PublicId] nvarchar(16) NOT NULL");
+            }
+            else
+            {
+                EnsureNotNullForColumn(db, logger, tableName, "PublicId", "nvarchar(16)");
+            }
+
+            EnsureUniqueIndex(db, logger, tableName, indexName);
+        }
+
+        private static void BackfillChurchShortPublicIds(IServiceProvider services, ILogger logger)
+        {
+            using var scope = services.CreateScope();
+            var churchRepository = scope.ServiceProvider.GetRequiredService<IChurchRepository>();
+            var churchPublicIdService = scope.ServiceProvider.GetRequiredService<IChurchPublicIdService>();
+
+            var legacyChurches = churchRepository.GetChurchesNeedingShortPublicIdAsync()
+                .GetAwaiter()
+                .GetResult();
+
+            if (legacyChurches.Count == 0)
+            {
+                logger.LogInformation("All church PublicIds are already short codes.");
+                return;
+            }
+
+            logger.LogWarning(
+                "Backfilling {Count} church(es) to short PublicIds.",
+                legacyChurches.Count);
+
+            foreach (var church in legacyChurches)
+            {
+                church.PublicId = churchPublicIdService
+                    .GenerateUniqueAsync()
+                    .GetAwaiter()
+                    .GetResult();
+                churchRepository.UpdateAsync(church).GetAwaiter().GetResult();
+            }
+
+            logger.LogInformation("Church short PublicId backfill completed.");
+        }
+
+        private static void EnsureMeetingPublicIdColumn(
+            ProgramContext db,
+            IServiceProvider services,
+            ILogger logger)
+        {
+            const string tableName = "Meetings";
+            const string indexName = "IX_Meetings_PublicId";
+
+            if (!ColumnExists(db, tableName, "PublicId"))
+            {
+                TryExecute(db, logger, $"ALTER TABLE [{tableName}] ADD [PublicId] nvarchar(36) NULL");
+            }
+
+            // GUID/long values must become short codes before the column is narrowed.
+            BackfillMeetingShortPublicIds(services, logger);
+
+            DropIndexIfExists(db, logger, tableName, indexName);
+
+            var maxLength = GetColumnMaxLength(db, tableName, "PublicId");
+            if (maxLength is null or > 16)
+            {
+                TryExecute(
+                    db,
+                    logger,
+                    $"ALTER TABLE [{tableName}] ALTER COLUMN [PublicId] nvarchar(16) NOT NULL");
+            }
+            else
+            {
+                EnsureNotNullForColumn(db, logger, tableName, "PublicId", "nvarchar(16)");
+            }
+
+            EnsureUniqueIndex(db, logger, tableName, indexName);
+        }
+
+        private static void BackfillMeetingShortPublicIds(IServiceProvider services, ILogger logger)
+        {
+            using var scope = services.CreateScope();
+            var meetingRepository = scope.ServiceProvider.GetRequiredService<IMeetingRepository>();
+            var meetingPublicIdService = scope.ServiceProvider.GetRequiredService<IMeetingPublicIdService>();
+
+            var legacyMeetings = meetingRepository.GetMeetingsNeedingShortPublicIdAsync()
+                .GetAwaiter()
+                .GetResult();
+
+            if (legacyMeetings.Count == 0)
+            {
+                logger.LogInformation("All meeting PublicIds are already short codes.");
+                return;
+            }
+
+            logger.LogWarning(
+                "Backfilling {Count} meeting(s) to short PublicIds.",
+                legacyMeetings.Count);
+
+            foreach (var meeting in legacyMeetings)
+            {
+                meeting.PublicId = meetingPublicIdService
+                    .GenerateUniqueAsync(meeting.ChurchId)
+                    .GetAwaiter()
+                    .GetResult();
+                meetingRepository.UpdateAsync(meeting).GetAwaiter().GetResult();
+            }
+
+            logger.LogInformation("Meeting short PublicId backfill completed.");
+        }
+
+        private static void DropIndexIfExists(
+            ProgramContext db,
+            ILogger logger,
+            string tableName,
+            string indexName)
+        {
+            if (!IndexExists(db, tableName, indexName))
+                return;
+
+            logger.LogWarning("Dropping index {Index} on {Table} for schema repair.", indexName, tableName);
+            TryExecute(db, logger, $"DROP INDEX [{indexName}] ON [{tableName}]");
+        }
+
+        private static int? GetColumnMaxLength(ProgramContext db, string tableName, string columnName)
+        {
+            if (!ColumnExists(db, tableName, columnName))
+                return null;
+
+            return db.Database
+                .SqlQueryRaw<int?>(
+                    """
+                    SELECT CHARACTER_MAXIMUM_LENGTH
+                    FROM INFORMATION_SCHEMA.COLUMNS
+                    WHERE TABLE_NAME = {0} AND COLUMN_NAME = {1}
+                    """,
+                    tableName,
+                    columnName)
+                .AsEnumerable()
+                .FirstOrDefault();
+        }
+
+        private static void EnsureNotNullForColumn(
+            ProgramContext db,
+            ILogger logger,
+            string tableName,
+            string columnName,
+            string columnType)
+        {
+            var isNullable = db.Database
+                .SqlQueryRaw<int>(
+                    """
+                    SELECT COUNT(1)
+                    FROM sys.columns
+                    WHERE object_id = OBJECT_ID({0})
+                      AND name = {1}
+                      AND is_nullable = 1
+                    """,
+                    tableName,
+                    columnName)
+                .AsEnumerable()
+                .First();
+
+            if (isNullable == 0)
+                return;
+
+            TryExecute(
+                db,
+                logger,
+                $"ALTER TABLE [{tableName}] ALTER COLUMN [{columnName}] {columnType} NOT NULL");
         }
 
         private static void TryExecute(ProgramContext db, ILogger logger, string sql)
