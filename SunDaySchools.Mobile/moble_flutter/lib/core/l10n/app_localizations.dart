@@ -350,6 +350,7 @@ class AppLocalizations {
   String get churchIdCopied => _t('churchIdCopied');
   String get meetingIdLabel => _t('meetingIdLabel');
   String get meetingIdCopied => _t('meetingIdCopied');
+  String get meetingMoreActions => _t('meetingMoreActions');
   String get churchMeetingsIdsTitle => _t('churchMeetingsIdsTitle');
   String get publicMeetingIdLabel => _t('publicMeetingIdLabel');
   String get meetingLabel => _t('meetingLabel');
@@ -961,6 +962,7 @@ class AppLocalizations {
       'churchIdCopied': 'Church ID copied to clipboard',
       'meetingIdLabel': 'Meeting ID',
       'meetingIdCopied': 'Meeting ID copied to clipboard',
+      'meetingMoreActions': 'More actions',
       'churchMeetingsIdsTitle': 'Meeting IDs in your church',
       'meetingLabel': 'Meeting',
       'selectMeeting': 'Select meeting',
@@ -1478,6 +1480,7 @@ class AppLocalizations {
       'churchIdCopied': 'تم نسخ كود الكنيسة',
       'meetingIdLabel': 'كود الاجتماع',
       'meetingIdCopied': 'تم نسخ كود الاجتماع',
+      'meetingMoreActions': 'المزيد من الإجراءات',
       'churchMeetingsIdsTitle': 'أكواد الاجتماعات في كنيستك',
       'meetingLabel': 'الاجتماع',
       'selectMeeting': 'اختر الاجتماع',
