@@ -1,0 +1,566 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="NONE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="fb5dc214-d5c2-4171-afc5-38fff87423d1" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../../Gemini_Generated_Image_pcpp5ypcpp5ypcpp.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../Gemini_Generated_Image_w50dtjw50dtjw50d.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../README.md" beforeDir="false" afterPath="$PROJECT_DIR$/../../README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Authorization/CustomFieldAuthorizationExtensions.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Controllers/AccountController.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Controllers/AdminController.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Controllers/AttendanceSessionController.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Controllers/AuthController.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Controllers/AuthResponseHelper.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Controllers/ChurchController.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Controllers/ClassroomController.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Controllers/CustomFieldController.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Controllers/MeetingController.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Controllers/MemberController.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Controllers/ServantController.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Controllers/SuperAdminController.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Filters/FormDataExceptionFilter.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Infrastructure/Auth/JwtTokenService.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Infrastructure/DatabaseBootstrap.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Infrastructure/Tenant/HttpCurrentUserContext.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Infrastructure/Tenant/TenantContextPopulationMiddleware.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Json/ApiJsonSerializerOptions.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Json/TimeOnlyJsonConverter.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Mapping/ChildFormMappings.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Mapping/ServantFormMapping.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Middlewares/ChurchMiddleware.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Middlewares/GlobalExceptionMiddleware.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Middlewares/MeetingMiddleware.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Program.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Properties/PublishProfiles/site63373-WebDeploy.pubxml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Properties/launchSettings.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Requests/ChildFormRequest.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Requests/ServantFormRequest.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Requests/ServantProfileFormRequest.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Services/Implementations/LocalFileStorage.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/Services/Interfaces/IFileStorage.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/SunDaySchools.API.csproj" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/SunDaySchools.http" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/appsettings.Development.json.example" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/appsettings.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/wwwroot/images/057b3411-10c9-44af-ac2c-f5a3b29468c9.jpeg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/wwwroot/images/09dafbab-9cca-4fe8-9f99-1441c4875747.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/wwwroot/images/22e5b4ea-c683-4e36-896f-3952b137503b.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/wwwroot/images/464f0878-8d6c-4e75-a568-2884d48446df.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/wwwroot/images/519bc44f-2219-4678-bd27-dc8299dd9d9f.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/wwwroot/images/541089b2-2409-4486-866c-ee336bd6a6e5.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/wwwroot/images/5b762f49-548f-473d-b2b8-1785af512535.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/wwwroot/images/6e0ca70e-3e57-491d-aad6-740f78cde342.jfif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/wwwroot/images/8fa6fa6c-c7a2-4a93-88d5-be29a897fda8.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/wwwroot/images/948a3969-f122-43ab-a268-bca088f594de.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/wwwroot/images/9babb68a-c834-4705-89c7-184c7cf74b71.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/wwwroot/images/9ff02723-78f4-4ed1-94eb-46e066334430.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/wwwroot/images/b35593e5-1c85-4593-bfb2-62fea773ecce.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/wwwroot/images/c5f3b596-ee37-420d-85ef-3021a9783552.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/wwwroot/uploads/servants/39fb6c4e-554c-4624-99bc-f0ef9a3ce3c3.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.API/wwwroot/uploads/servants/e24f8d0a-635f-4848-b911-38f105153db1.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Abstractions/ICurrentUserContext.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Abstractions/ITokenService.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Application/Servants/IServantProfileService.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Application/Servants/ServantProfileFieldPolicy.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Application/Servants/ServantProfileService.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Authorization/CustomFieldPolicies.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/AutoMapper/MappingProfile.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Configuration/OtpOptions.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Configuration/ServantProfileOptions.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Configuration/WhatsAppOptions.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/AccountDtos/AdminAddServantDTO.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/AccountDtos/ApproveUserDTO.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/AccountDtos/AuthFlowResultDto.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/AccountDtos/LoginDTO.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/AccountDtos/PendingServantDTO.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/AccountDtos/PendingUserDTO.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/AccountDtos/RegisterChurchAdminDTO.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/AccountDtos/RegisterMeetingAdminExistingChurch.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/AccountDtos/RegisterMeetingAdminNewChurchDTO.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/AccountDtos/RegisterServamtinAddAdmin.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/AccountDtos/RegisterServantDTO.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/AccountDtos/RejectUserDTO.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/AccountDtos/WhatsAppOtpDtos.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/AttendanceRecordAddDTO.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/AttendanceRecordReadDTO.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/AttendanceRecordUpdateDTO.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/AttendanceSessionAddDTO.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/AttendanceSessionReadDTO.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/AttendanceSessionSummaryDTO.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/AttendanceSessionUpdateDTO.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/ChurchDtos/ChurchReadDTO.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/ChurchDtos/ChurchUpdateDTO.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/ClassroomDtos/ClassroomAddDTO.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/ClassroomDtos/ClassroomReadDTO.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/ClassroomDtos/ClassroomUpdateDTO.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/CustomFields/CustomFieldDtos.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/MeetingDtos/MeetingAddDTO.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/MeetingDtos/MeetingReadDTO.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/MeetingDtos/MeetingUpdateDto.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/MemberAddDTO.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/MemberContactDTO.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/MemberCreatedResponseDto.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/MemberReadDTO.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/MemberUpdateDTO.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/SelectOptionDTO.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/ServantAddDTO.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/ServantProfileDto.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/ServantReadDTO.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/ServantUpdateDTO.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/DTOS/UnifiedForms/UnifiedFormDtos.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Exceptions/AccountNotApprovedException.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Exceptions/AccountRejectedException.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Exceptions/ChurchAlreadyExistsException.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Exceptions/InvalidCredentialsException.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Exceptions/InvalidOtpException.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Exceptions/MeetingAlreadyExistsException.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Exceptions/NotFoundException..cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Exceptions/OtpRateLimitException.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Exceptions/PassordsMissMatchException.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Exceptions/PhoneNotVerifiedException.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Exceptions/ProfileNotCompletedException.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Exceptions/ServantAlreayAssigned.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Exceptions/ServantProfileMessages.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Exceptions/ServantProfileMissingException.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Exceptions/UserAlreadyExistsException.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Exceptions/ValidationException.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Identity/ApplicationUserValidator.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Json/FlexibleFormValueJsonConverter.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Manager/Implementations/AccountManager.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Manager/Implementations/AdminManager.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Manager/Implementations/AttendanceManager.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Manager/Implementations/ChurchManager.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Manager/Implementations/ClassroomManager.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Manager/Implementations/CustomFieldManager.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Manager/Implementations/FileManager.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Manager/Implementations/MeetingManager.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Manager/Implementations/MemberManager.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Manager/Implementations/ServantManager.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Manager/Implementations/SuperAdminManager.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Manager/Implementations/UnifiedEntityFormManager.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Manager/Interfaces/IAccountManager.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Manager/Interfaces/IAdminManager.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Manager/Interfaces/IAttendanceManager.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Manager/Interfaces/IChurchManager.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Manager/Interfaces/IClassroomManager.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Manager/Interfaces/ICustomFieldManager.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Manager/Interfaces/IFileManager.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Manager/Interfaces/IMeetingManager.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Manager/Interfaces/IMemberManager.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Manager/Interfaces/IServantManager.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Manager/Interfaces/ISuperAdminManager.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/Manager/Interfaces/IUnifiedEntityFormManager.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.BLL/SunDaySchools.BLL.csproj" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.metadata" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.metals/metals.mv.db" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.vscode/settings.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/FLUTTER_README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/LOCALIZATION_AUDIT_REPORT.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/STARTUP_PERFORMANCE_REPORT.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/analysis_options.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/build.gradle.kts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/debug/AndroidManifest.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/AndroidManifest.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/kotlin/com/example/moble_flutter/MainActivity.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/drawable-v21/launch_background.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/drawable/launch_background.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-hdpi/ic_launcher.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-mdpi/ic_launcher.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xhdpi/ic_launcher.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/values-night/styles.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/values/styles.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/profile/AndroidManifest.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/build.gradle.kts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/gradle.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/gradle/local.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/gradle/wrapper/gradle-wrapper.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/settings.gradle.kts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/flags/eg.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/flags/uk.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/icon/app_icon.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Flutter/AppFrameworkInfo.plist" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Flutter/Debug.xcconfig" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Flutter/Release.xcconfig" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner.xcodeproj/project.pbxproj" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner.xcodeproj/project.xcworkspace/contents.xcworkspacedata" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner.xcodeproj/xcshareddata/xcschemes/Runner.xcscheme" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner.xcworkspace/contents.xcworkspacedata" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/AppDelegate.swift" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-1024x1024@1x.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-20x20@1x.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-20x20@2x.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-20x20@3x.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-29x29@1x.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-29x29@2x.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-29x29@3x.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-40x40@1x.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-40x40@2x.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-40x40@3x.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-50x50@1x.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-50x50@2x.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-57x57@1x.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-57x57@2x.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-60x60@2x.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-60x60@3x.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-72x72@1x.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-72x72@2x.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-76x76@1x.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-76x76@2x.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-83.5x83.5@2x.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/Assets.xcassets/LaunchImage.imageset/Contents.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage@2x.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage@3x.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/Assets.xcassets/LaunchImage.imageset/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/Base.lproj/LaunchScreen.storyboard" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/Base.lproj/Main.storyboard" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/Info.plist" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/Runner-Bridging-Header.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/Runner/SceneDelegate.swift" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ios/RunnerTests/RunnerTests.swift" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/api/dio_client.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/api/dio_retry_interceptor.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/api/select_api.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/api/selection_service.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/constants/app_constants.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/error/app_exception.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/field_labels/system_field_labels.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/l10n/app_localizations.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/l10n/locale_format.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/models/select_option.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/providers/locale_provider.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/providers/shared_preferences_provider.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/providers/theme_provider.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/routing/app_router.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/startup/deferred_startup_mixin.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/storage/token_storage.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/theme/app_theme.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/utils/member_image_url.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/admin/models/admin_models.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/admin/providers/admin_providers.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/admin/repositories/admin_repository.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/admin/screens/admin_home_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/admin/screens/admin_pending_servants_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/admin/screens/admin_pending_users_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/attendance/models/attendance_models.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/attendance/providers/attendance_providers.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/attendance/repositories/attendance_repository.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/attendance/screens/attendance_history_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/attendance/screens/attendance_take_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/attendance/screens/attendance_view_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/auth/models/auth_models.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/auth/providers/auth_providers.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/auth/repositories/auth_repository.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/auth/screens/forgot_password_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/auth/screens/login_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/auth/screens/new_church_role_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/auth/screens/otp_verification_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/auth/screens/register_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/auth/screens/registration_type_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/auth/screens/reset_password_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/auth/utils/auth_role_utils.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/auth/utils/auth_session.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/auth/widgets/otp_pin_input.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/auth/widgets/registration_choice_card.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/church/screens/church_detail_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/classroom/models/classroom_models.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/classroom/providers/classroom_providers.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/classroom/repositories/classroom_repository.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/classroom/screens/classroom_add_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/classroom/screens/classroom_detail_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/classroom/screens/classrooms_home_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/classroom/widgets/classrooms_list_section.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/custom_field/models/custom_field_models.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/custom_field/providers/custom_field_cache_providers.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/custom_field/providers/custom_field_providers.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/custom_field/providers/custom_field_revision_provider.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/custom_field/repositories/custom_field_repository.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/custom_field/screens/custom_field_definition_form_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/custom_field/screens/custom_field_definitions_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/custom_field/screens/entity_custom_fields_edit_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/custom_field/utils/custom_field_definition_merge.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/custom_field/utils/custom_field_l10n.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/custom_field/utils/custom_field_validator.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/custom_field/utils/field_display_label.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/custom_field/utils/field_position_utils.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/custom_field/widgets/custom_fields_detail_section.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/custom_field/widgets/dynamic_custom_field_widget.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/custom_field/widgets/dynamic_custom_fields_form.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/custom_field/widgets/field_definition_card.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/dashboard/screens/dashboard_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/meeting/models/meeting_models.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/meeting/providers/meeting_providers.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/meeting/repositories/meeting_repository.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/meeting/screens/meeting_detail_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/meeting/utils/meeting_delete_actions.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/meeting/widgets/meeting_list_card.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/member/models/member_models.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/member/providers/members_providers.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/member/repositories/members_repository.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/member/screens/member_add_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/member/screens/member_detail_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/member/screens/member_edit_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/member/screens/members_list_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/member/utils/member_form_controller.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/member/utils/member_form_validator.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/member/utils/member_native_form_mapper.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/member/utils/member_phone_relations.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/member/widgets/member_detail_header.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/member/widgets/member_form.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/member/widgets/member_form_section_card.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/notifications/screens/notifications_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/servant/models/servant_models.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/servant/providers/servants_providers.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/servant/repositories/servants_repository.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/servant/screens/edit_profile_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/servant/screens/profile_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/servant/screens/servant_detail_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/servant/screens/servant_edit_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/servant/screens/servant_home_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/servant/screens/servants_list_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/super_admin/models/super_admin_models.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/super_admin/providers/super_admin_providers.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/super_admin/repositories/super_admin_repository.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/super_admin/screens/super_admin_home_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/super_admin/screens/super_admin_pending_admins_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/super_admin/screens/super_admin_pending_users_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/unified_form/models/unified_form_models.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/unified_form/providers/unified_form_providers.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/unified_form/repositories/unified_form_repository.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/unified_form/screens/unified_entity_edit_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/unified_form/utils/member_form_mapper.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/unified_form/utils/unified_form_controller.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/unified_form/utils/unified_form_field_utils.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/unified_form/utils/unified_form_screen_mixin.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/unified_form/utils/unified_form_validator.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/unified_form/widgets/entity_fields_empty_state.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/unified_form/widgets/unified_entity_detail_header.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/unified_form/widgets/unified_entity_form.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/unified_form/widgets/unified_entity_photo_picker.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/unified_form/widgets/unified_form_field_widget.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/main.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/shared/widgets/app_form_fields.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/shared/widgets/app_network_avatar.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/shared/widgets/app_section_bottom_navigation_bar.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/shared/widgets/common_widgets.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/shared/widgets/endpoint_select_fields.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/shared/widgets/locale_date_text.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/shared/widgets/select_option_fields.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/linux/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/linux/CMakeLists.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/linux/flutter/CMakeLists.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/linux/flutter/generated_plugin_registrant.cc" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/linux/flutter/generated_plugin_registrant.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/linux/flutter/generated_plugins.cmake" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/linux/runner/CMakeLists.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/linux/runner/main.cc" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/linux/runner/my_application.cc" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/linux/runner/my_application.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/macos/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/macos/Flutter/Flutter-Debug.xcconfig" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/macos/Flutter/Flutter-Release.xcconfig" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/macos/Flutter/GeneratedPluginRegistrant.swift" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/macos/Runner.xcodeproj/project.pbxproj" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/macos/Runner.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/macos/Runner.xcodeproj/xcshareddata/xcschemes/Runner.xcscheme" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/macos/Runner.xcworkspace/contents.xcworkspacedata" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/macos/Runner.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/macos/Runner/AppDelegate.swift" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/macos/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_1024.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_128.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_16.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_256.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_32.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_512.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_64.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/macos/Runner/Base.lproj/MainMenu.xib" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/macos/Runner/Configs/AppInfo.xcconfig" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/macos/Runner/Configs/Debug.xcconfig" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/macos/Runner/Configs/Release.xcconfig" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/macos/Runner/Configs/Warnings.xcconfig" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/macos/Runner/DebugProfile.entitlements" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/macos/Runner/Info.plist" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/macos/Runner/MainFlutterWindow.swift" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/macos/Runner/Release.entitlements" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/macos/RunnerTests/RunnerTests.swift" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pubspec.lock" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pubspec.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/widget_test.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/web/favicon.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/web/icons/Icon-192.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/web/icons/Icon-512.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/web/icons/Icon-maskable-192.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/web/icons/Icon-maskable-512.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/web/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/web/manifest.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/windows/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/windows/CMakeLists.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/windows/flutter/CMakeLists.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/windows/flutter/generated_plugin_registrant.cc" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/windows/flutter/generated_plugin_registrant.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/windows/flutter/generated_plugins.cmake" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/windows/runner/CMakeLists.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/windows/runner/Runner.rc" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/windows/runner/flutter_window.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/windows/runner/flutter_window.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/windows/runner/main.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/windows/runner/resource.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/windows/runner/resources/app_icon.ico" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/windows/runner/runner.exe.manifest" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/windows/runner/utils.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/windows/runner/utils.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/windows/runner/win32_window.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/windows/runner/win32_window.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchools.sln" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Abstractions/ITenantContext.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Abstractions/TenantContextState.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Configurations/CustomFieldConfiguration.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/DBcontext/IdentitySeeder.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/DBcontext/ProgramContext.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/DBcontext/ProgramContextFactory.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Migrations/20260618130310_initial.Designer.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Migrations/20260618130310_initial.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Migrations/20260619093342_custom-property-fix.Designer.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Migrations/20260619093342_custom-property-fix.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Migrations/20260619120000_AddCustomFieldPermanentDeleteAndDisplayNameAr.Designer.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Migrations/20260619120000_AddCustomFieldPermanentDeleteAndDisplayNameAr.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Migrations/20260621193000_AllowDuplicateUserNameUniquePhone.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Migrations/20260622010000_AddRequestedMeetingId.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Migrations/20260622120000_ShortMeetingPublicIds.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Migrations/20260622130000_ShortChurchPublicIds.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Migrations/20260622163917_hello.Designer.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Migrations/20260622163917_hello.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Migrations/ProgramContextModelSnapshot.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Models/ApplicationUser.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Models/AttendanceRecord.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Models/AttendanceSession.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Models/AttendanceStatus.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Models/Church.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Models/ChurchEntity.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Models/Classroom.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Models/ClassroomServant .cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Models/CustomFields/CustomFieldDataType.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Models/CustomFields/CustomFieldDefinition.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Models/CustomFields/CustomFieldEntityNames.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Models/CustomFields/CustomFieldOption.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Models/CustomFields/CustomFieldValue.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Models/Exam.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Models/ExamResult.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Models/IClassroomScoped.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Models/Meeting.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Models/Member.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Models/MemberContact.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Models/OtpPurpose.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Models/OtpVerification.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Models/PhoneCall.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Models/RegistrationStatus.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Models/Servant.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Models/SpiritualCurriculum.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Models/Tool.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Repository/Implementations/AdminRepository.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Repository/Implementations/AttendanceRepository.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Repository/Implementations/ChurchRepository.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Repository/Implementations/ClassroomRepository.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Repository/Implementations/CustomFieldRepository.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Repository/Implementations/MeetingRepository.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Repository/Implementations/MemberRepository.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Repository/Implementations/OtpRepository.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Repository/Implementations/ServantRepository.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Repository/Implementations/SuperAdminRepository.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Repository/Implementations/UnitOfWork.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Repository/Interfaces/IAdminRepository.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Repository/Interfaces/IAttendanceRepository.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Repository/Interfaces/IChurchRepository.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Repository/Interfaces/IClassroomRepository.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Repository/Interfaces/ICustomFieldRepository.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Repository/Interfaces/IMeetingRepository.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Repository/Interfaces/IMemberRepository.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Repository/Interfaces/IOtpRepository.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Repository/Interfaces/IServantRepository.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Repository/Interfaces/ISuperAdminRepository.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Repository/Interfaces/IUnitOfWork.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Scripts/20260619120000_AddCustomFieldPermanentDeleteAndDisplayNameAr.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Scripts/20260621193000_AllowDuplicateUserNameUniquePhone.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Scripts/ApplyAddWhatsAppOtpVerification.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/Scripts/README-Migrations.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../SunDaySchoolsDAL/SunDaySchools.DAL.csproj" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="CopilotPersistence">
+    <persistenceIdMap>
+      <entry key="_C:/Users/JOhn/source/repos/SunDaySchools/SunDaySchools.Mobile/moble_flutter" value="3GEE9X0qrgEieKPPJTXZJ5PuaJO" />
+    </persistenceIdMap>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 8
+}</component>
+  <component name="ProjectId" id="3GEE9X0qrgEieKPPJTXZJ5PuaJO" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Flutter.main.dart.executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;io.flutter.project.isFirstOpen&quot;: &quot;true&quot;,
+    &quot;io.flutter.reload.alreadyRun&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;AndroidSdkUpdater&quot;,
+    &quot;show.migrate.to.gradle.popup&quot;: &quot;false&quot;
+  }
+}</component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="fb5dc214-d5c2-4171-afc5-38fff87423d1" name="Changes" comment="" />
+      <created>1783528182021</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1783528182021</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="github-copilot-workspace">
+    <instructionFileLocations>
+      <option value=".github/instructions" />
+    </instructionFileLocations>
+    <promptFileLocations>
+      <option value=".github/prompts" />
+    </promptFileLocations>
+  </component>
+</project>

@@ -1,0 +1,23 @@
+using Church.DAL.Models;
+using Church.DAL.Models;
+
+namespace Church.Domain
+{
+    public class Servant : ChurchEntity
+    {
+        public int Id { get; set; }
+        public string ApplicationUserId { get; set; } = default!;
+        public ApplicationUser ApplicationUser { get; set; } = default!;
+        public string? ImageFileName { get; set; }   // e.g. "c3c2... .jpg"
+        public string? ImageUrl { get; set; }
+        public string? Name { get; set; }
+        public DateOnly? BirthDate { get; set; }
+        public DateOnly? JoiningDate { get; set; }
+        public string? PhoneNumber { get; set; }
+        //public List<Classroom>? Classrooms { get; set; } = new();
+
+        public ICollection<ClassroomServant> ClassroomServants { get; set; } = new List<ClassroomServant>();
+        
+
+    }
+}

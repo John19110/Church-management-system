@@ -1,0 +1,126 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Church.API.Mapping;
+using Church.API.Requests;
+using Church.API.Services.Implementations;
+using Church.API.Services.Interfaces;
+using Church.BLL.DTOS;
+using Church.BLL.DTOS.AccountDtos;
+using Church.BLL.DTOS.Meeting;
+using Church.BLL.Exceptions;
+using Church.BLL.Manager.Interfaces;
+
+namespace Church.API.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class AdminController : ControllerBase
+    {
+        private readonly IAdminManager _adminManager;
+        private readonly IFileStorage _filestorage;
+        private readonly IWebHostEnvironment _env;
+        private readonly IServantManager _servantManager;
+
+
+
+        public AdminController(IAdminManager adminmanager, IFileStorage filestorage, IWebHostEnvironment env, IServantManager servantManager)
+        {
+            _adminManager = adminmanager;
+            _filestorage = filestorage;
+            _env = env;
+            _servantManager = servantManager;
+        }
+
+        //// Add servant (admin flow)
+        //[HttpPost("add-servant")]
+        //[Consumes("multipart/form-data")]
+        //public async Task<IActionResult> AddServant([FromForm(Name = "")] AdminAddServantDTO servant)
+        //{
+        //    if (servant == null)
+        //    {
+        //        var errors = new Dictionary<string, string[]>
+        //        {
+        //            ["servant"] = new[] { "The request body cannot be empty." }
+        //        };
+        //        throw new ValidationException(errors);
+        //    }
+
+        //    await _servantManager.AddAsync(servant, _env.WebRootPath);
+
+        //    return StatusCode(201, new { message = "Created Successfully" });
+        //}
+
+
+        // Get pending servants
+        [HttpGet("pending-servants")]
+        public async Task<ActionResult<List<PendingServantDTO>>> GetPendingServants()
+        {
+            var result = await _adminManager.GetPendingServants();
+            return Ok(result);
+        }
+
+        [HttpPut("assign-class/{servantId}/{classroomId}")]
+        public async Task<ActionResult> AssignClassToServant(int servantId, int classroomId)
+        { 
+            try
+            {
+                await _adminManager.AssignClassToServant(servantId, classroomId);
+                return Ok(new { message = "Class assigned successfully" });
+            }
+            catch (NotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // Approve servant
+        [HttpPut("approve-servant/{userId}")]
+        public async Task<IActionResult> ApproveServant(string userId)
+        {
+            await _adminManager.ApproveServant(userId);
+            return Ok(new { message = "Servant approved successfully" });
+        }
+
+        // Reject servant
+        [HttpDelete("reject-servant/{userId}")]
+        public async Task<IActionResult> RejectServant(string userId)
+        {
+            await _adminManager.RejectServant(userId);
+            return Ok(new { message = "Servant rejected successfully" });
+        }
+
+        // ---- Meeting Admin pending user workflow ----
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("pending-users")]
+        public async Task<ActionResult<List<PendingUserDTO>>> GetPendingUsers()
+        {
+            var pending = await _adminManager.GetPendingUsers();
+            return Ok(pending);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("approve-user/{userId}")]
+        public async Task<IActionResult> ApproveUser(string userId, [FromBody] ApproveUserDTO? dto)
+        {
+            await _adminManager.ApproveUser(userId, dto?.MeetingId);
+            return Ok(new { message = "User approved successfully." });
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("reject-user/{userId}")]
+        public async Task<IActionResult> RejectUser(string userId, [FromBody] RejectUserDTO? dto)
+        {
+            await _adminManager.RejectUser(userId, dto?.Reason);
+            return Ok(new { message = "User rejected successfully." });
+        }
+
+
+
+
+    }
+}

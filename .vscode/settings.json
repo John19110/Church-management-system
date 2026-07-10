@@ -1,0 +1,9 @@
+{
+  "dart.projectSearchDepth": 6,
+  "dart.flutterRunAdditionalArgs": [],
+  "files.watcherExclude": {
+    "**/target": true,
+    "**/bin": true,
+    "**/obj": true
+  }
+}
