@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas"
+            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+            xmlns:o="urn:schemas-microsoft-com:office:office"
+            xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+            xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"
+            xmlns:v="urn:schemas-microsoft-com:vml"
+            xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing"
+            xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
+            xmlns:w10="urn:schemas-microsoft-com:office:word"
+            xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+            xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml"
+            xmlns:wpg="http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"
+            xmlns:wpi="http://schemas.microsoft.com/office/word/2010/wordprocessingInk"
+            xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml"
+            xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            mc:Ignorable="w14 wp14">
+  <w:body>
+    <w:p>
+      <w:pPr><w:pStyle w:val="Title"/></w:pPr>
+      <w:r><w:t>John Polis Sobhy Azmy</w:t></w:r>
+    </w:p>
+    <w:p>
+      <w:r><w:t>Cairo, Egypt | +20 127 303 6464 | johnpolis122@gmail.com</w:t></w:r>
+    </w:p>
+    <w:p>
+      <w:r><w:t>LinkedIn: linkedin.com/in/john-polis | GitHub: github.com/John190110</w:t></w:r>
+    </w:p>
+
+    <w:p><w:r><w:t xml:space="preserve"> </w:t></w:r></w:p>
+
+    <w:p><w:r><w:t>Professional Summary</w:t></w:r></w:p>
+    <w:p>
+      <w:r><w:t>Junior .NET Developer with hands-on experience building ASP.NET Core MVC and ASP.NET Core Web API applications. Strong foundation in C#, Entity Framework (EF) / LINQ, and SQL Server, with a focus on Clean Architecture, Repository Pattern, and scalable backend design. Comfortable collaborating in teams using Git/GitHub and delivering full-stack solutions.</w:t></w:r>
+    </w:p>
+
+    <w:p><w:r><w:t xml:space="preserve"> </w:t></w:r></w:p>
+
+    <w:p><w:r><w:t>Technical Skills</w:t></w:r></w:p>
+    <w:p><w:r><w:t>Programming Languages: C#, Java, SQL, JavaScript, Python, C, C++, HTML, CSS</w:t></w:r></w:p>
+    <w:p><w:r><w:t>Frameworks &amp; Platforms: ASP.NET Core Web API, ASP.NET Core MVC, .NET Core, Entity Framework (EF), LINQ, Flutter</w:t></w:r></w:p>
+    <w:p><w:r><w:t>Databases: SQL Server, MySQL</w:t></w:r></w:p>
+    <w:p><w:r><w:t>Tools &amp; Technologies: Git, GitHub, Visual Studio, Firebase, Power BI, Figma</w:t></w:r></w:p>
+    <w:p><w:r><w:t>Concepts: Object-Oriented Programming (OOP), Data Structures, Algorithms Analysis &amp; Design, REST APIs, Clean Architecture, Repository Pattern, Role-Based Authorization, Authentication (ASP.NET Identity)</w:t></w:r></w:p>
+
+    <w:p><w:r><w:t xml:space="preserve"> </w:t></w:r></w:p>
+
+    <w:p><w:r><w:t>Experience</w:t></w:r></w:p>
+    <w:p><w:r><w:t>LEOS International — Sales Agent | Sep 2025 – Dec 2025</w:t></w:r></w:p>
+    <w:p><w:r><w:t>• Managed outbound international sales calls promoting Dubai real-estate developments to English-speaking clients across multiple countries.</w:t></w:r></w:p>
+    <w:p><w:r><w:t>• Maintained consistent communication, handled objections, and supported the sales pipeline through high-volume outreach.</w:t></w:r></w:p>
+
+    <w:p><w:r><w:t xml:space="preserve"> </w:t></w:r></w:p>
+
+    <w:p><w:r><w:t>Projects</w:t></w:r></w:p>
+    <w:p><w:r><w:t>Church Management System — Flutter + ASP.NET Core Web API | GitHub</w:t></w:r></w:p>
+    <w:p><w:r><w:t>• Built a Flutter mobile app integrated with an ASP.NET Core Web API backend using REST principles.</w:t></w:r></w:p>
+    <w:p><w:r><w:t>• Implemented authentication with ASP.NET Identity and enforced role-based authorization to control access by user role.</w:t></w:r></w:p>
+    <w:p><w:r><w:t>• Structured the backend with Clean Architecture and the Repository Pattern to improve maintainability and separation of concerns.</w:t></w:r></w:p>
+    <w:p><w:r><w:t>SafeTraQ — AI-Based Crash Detection Android App (Graduation Project) | GitHub</w:t></w:r></w:p>
+    <w:p><w:r><w:t>• Developed an Android application in Java for real-time crash detection.</w:t></w:r></w:p>
+    <w:p><w:r><w:t>• Integrated a TensorFlow Lite model to detect accidents using smartphone sensor data for on-device inference.</w:t></w:r></w:p>
+
+    <w:p><w:r><w:t xml:space="preserve"> </w:t></w:r></w:p>
+
+    <w:p><w:r><w:t>Education</w:t></w:r></w:p>
+    <w:p><w:r><w:t>B.Sc. in Computer Science | Faculty of Computers and Information Sciences, Ain Shams University | Oct 2022 – Jul 2026</w:t></w:r></w:p>
+
+    <w:p><w:r><w:t xml:space="preserve"> </w:t></w:r></w:p>
+
+    <w:p><w:r><w:t>Certifications</w:t></w:r></w:p>
+    <w:p><w:r><w:t>• Google Career Certificate (Coursera) — Foundations: Data, Data Everywhere | Nov 2023</w:t></w:r></w:p>
+    <w:p><w:r><w:t>• POTENTIA — Data Engineering Summer Training, Ain Shams University | Aug 2023</w:t></w:r></w:p>
+    <w:p><w:r><w:t>• Ain Shams University Career Center — Upskill Program: Soft Skills Training | Oct 2024</w:t></w:r></w:p>
+
+    <w:p><w:r><w:t xml:space="preserve"> </w:t></w:r></w:p>
+
+    <w:p><w:r><w:t>Additional Information</w:t></w:r></w:p>
+    <w:p><w:r><w:t>Languages: Arabic (Native), English (Very Good)</w:t></w:r></w:p>
+
+    <w:sectPr>
+      <w:pgSz w:w="12240" w:h="15840"/>
+      <w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="720" w:footer="720" w:gutter="0"/>
+    </w:sectPr>
+  </w:body>
+</w:document>

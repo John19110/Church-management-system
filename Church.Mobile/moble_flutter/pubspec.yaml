@@ -1,0 +1,77 @@
+name: church_app
+description: Church Management System — Flutter mobile client.
+
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # UI / Core
+  cupertino_icons: ^1.0.9
+  google_fonts: ^8.1.0
+  image_picker: ^1.2.2
+
+  # Navigation
+  go_router: ^17.3.0
+
+  # Networking
+  dio: ^5.4.0
+
+  # STATE MANAGEMENT (STABLE - COMPATIBLE WITH YOUR FLUTTER SDK)
+  flutter_riverpod: ^2.6.1
+  riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+
+  # Storage
+  flutter_secure_storage: ^10.3.1
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+
+  # Utils
+  path_provider: ^2.1.6
+  shared_preferences: ^2.4.26
+  intl: ^0.20.2
+
+  # Image processing
+  image: ^4.9.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^3.0.0
+
+  # CODE GENERATION (MATCHED TO RIVERPOD 2 STACK)
+  build_runner: ^2.4.0
+  json_serializable: ^6.8.0
+  json_annotation: ^4.9.0
+  riverpod_generator: ^2.6.5
+
+  # Tools
+  flutter_launcher_icons: ^0.14.4
+
+  # Testing (Downgraded to be compatible with riverpod_generator)
+  mockito: ^5.4.6
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/flags/eg.png
+    - assets/flags/uk.png
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/app_logo_adjusted.png"
+  adaptive_icon_foreground: "assets/app_logo_adjusted.png"
+  adaptive_icon_foreground_inset: 22
+  adaptive_icon_background: "#FFFFFF"
+  remove_alpha_ios: true

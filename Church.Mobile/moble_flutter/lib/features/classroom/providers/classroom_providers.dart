@@ -1,0 +1,64 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../auth/providers/auth_providers.dart';
+import '../../../core/providers/cache_providers.dart';
+import '../../../core/models/select_option.dart';
+import '../models/classroom_models.dart';
+import '../repositories/classroom_repository.dart';
+
+final classroomRepositoryProvider = Provider((ref) {
+  return ClassroomRepository(ref.watch(dioProvider), ref.watch(cacheManagerProvider));
+});
+
+final visibleClassroomsProvider =
+    FutureProvider<List<ClassroomReadDto>>((ref) async {
+  ref.watch(authSessionEpochProvider);
+  ref.watch(authStateProvider);
+  return whenAuthenticated(
+    () => ref.watch(classroomRepositoryProvider).getVisible(),
+    ifLoggedOut: const [],
+  );
+});
+
+final visibleClassroomsCacheFirstProvider =
+    StreamProvider<List<ClassroomReadDto>>((ref) async* {
+  ref.watch(authSessionEpochProvider);
+  ref.watch(authStateProvider);
+  final tenantId = await ref.watch(currentChurchIdProvider.future) ?? 0;
+  final role = (await ref.watch(currentUserRoleProvider.future)) ?? '';
+  if (tenantId <= 0 || role.isEmpty) {
+    yield const <ClassroomReadDto>[];
+    return;
+  }
+  yield* ref.watch(classroomRepositoryProvider).watchVisibleCacheFirst(
+        tenantId: tenantId,
+        role: role,
+      );
+});
+
+final visibleClassroomsByMeetingProvider =
+    FutureProvider.family<List<ClassroomReadDto>, int?>((ref, meetingId) async {
+  ref.watch(authSessionEpochProvider);
+  ref.watch(authStateProvider);
+  return whenAuthenticated(
+    () => ref.watch(classroomRepositoryProvider).getVisible(meetingId: meetingId),
+    ifLoggedOut: const [],
+  );
+});
+
+/// Refreshes classroom list providers after create/edit/delete.
+void invalidateVisibleClassrooms(WidgetRef ref, {int? meetingId}) {
+  ref.invalidate(visibleClassroomsProvider);
+  if (meetingId != null && meetingId > 0) {
+    ref.invalidate(visibleClassroomsByMeetingProvider(meetingId));
+  }
+}
+
+final classroomsForSelectionProvider =
+    FutureProvider<List<SelectOption>>((ref) async {
+  ref.watch(authSessionEpochProvider);
+  ref.watch(authStateProvider);
+  return whenAuthenticated(
+    () => ref.watch(classroomRepositoryProvider).getForSelection(),
+    ifLoggedOut: const [],
+  );
+});

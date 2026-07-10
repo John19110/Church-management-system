@@ -1,0 +1,25 @@
+using Church.DAL.Models;
+using Church.Domain;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Church.BLL.DTOS.ClsssroomDtos
+{
+    public class ClassroomAddDTO
+    {
+        public string? Name { get; set; }
+        public string? AgeOfMembers { get; set; }
+        public List<int>? ServantIds { get; set; }
+        public List<int>? MemberIds { get; set; }
+        public int? MeetingId { get; set; }
+
+        public int? LeaderServantId { get; set; }  // Nullable if a meeting may not have a leader yet
+
+
+
+
+    }
+}

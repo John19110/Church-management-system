@@ -1,0 +1,30 @@
+using Church.API.Requests;
+using Church.BLL.DTOS;
+
+namespace Church.API.Mapping
+{
+    public static class MemberFormMappings
+    {
+
+        //Extension Method here 
+        public static MemberAddDTO ToDto(this MemberFormRequest form)
+        {
+            return new MemberAddDTO
+            {
+                Name1 = form.Name1,
+                Name2 = form.Name2,
+                Name3 = form.Name3,
+                Gender = form.Gender,
+                Address = form.Address,
+                DateOfBirth = form.DateOfBirth,
+                JoiningDate = form.JoiningDate,
+                SpiritualDateOfBirth = form.SpiritualDateOfBirth,
+                Notes = form.Notes,
+                BrothersNames = form.BrothersNames,
+                HaveBrothers = form.HaveBrothers,
+                PhoneNumbers=form.PhoneNumbers
+
+    };
+        }
+    }
+}
