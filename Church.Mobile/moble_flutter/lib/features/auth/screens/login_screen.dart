@@ -29,11 +29,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _loading = false;
   bool _obscurePassword = true;
 
-  @override
-  void initState() {
-    super.initState();
-    _passwordController.text = "TestPassword@12345";
-  }
 
   @override
   void dispose() {
@@ -167,14 +162,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               color: theme.colorScheme.primary,
                             ),
                           ),
-                          const SizedBox(height: AppSpacing.xxs),
-                          Text(
-                            l10n.managementSystem,
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              color: palette.textSecondary,
-                            ),
-                          ),
+
                           const SizedBox(height: AppSpacing.xxl),
                           AppTextField(
                             controller: _phoneController,
@@ -236,13 +224,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         height: 96,
         width: 96,
         decoration: BoxDecoration(
-          color: theme.colorScheme.primary.withValues(alpha: 0.10),
+          color: theme.colorScheme.surface,
           borderRadius: AppRadius.xlAll,
+          border: Border.all(
+            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+          ),
         ),
-        child: Icon(
-          Icons.church_rounded,
-          size: 52,
-          color: theme.colorScheme.primary,
+        clipBehavior: Clip.antiAlias,
+        child: Image.asset(
+          'assets/app_logo_adjusted.png',
+          fit: BoxFit.cover,
         ),
       ),
     );

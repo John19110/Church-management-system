@@ -1,20 +1,40 @@
-{
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "name": "Flutter (church_app)",
-      "request": "launch",
-      "type": "dart",
-      "cwd": "${workspaceFolder}/Church.Mobile/moble_flutter",
-      "program": "lib/main.dart"
-    },
-    {
-      "name": "Flutter (church_app) — Chrome",
-      "request": "launch",
-      "type": "dart",
-      "cwd": "${workspaceFolder}/Church.Mobile/moble_flutter",
-      "program": "lib/main.dart",
-      "deviceId": "chrome"
-    }
-  ]
-}
+{
+
+  "version": "0.2.0",
+
+  "configurations": [
+
+    {
+
+      "name": "Flutter (church_app)",
+
+      "request": "launch",
+
+      "type": "dart",
+
+      "cwd": "${workspaceFolder}/Church.Mobile/moble_flutter",
+
+      "program": "lib/main.dart"
+
+    },
+
+    {
+
+      "name": "Flutter (church_app) — Chrome",
+
+      "request": "launch",
+
+      "type": "dart",
+
+      "cwd": "${workspaceFolder}/Church.Mobile/moble_flutter",
+
+      "program": "lib/main.dart",
+
+      "deviceId": "chrome"
+
+    }
+
+  ]
+
+}
+

@@ -664,7 +664,6 @@ class AppLocalizations {
       // Dashboard
       'dashboard': 'Dashboard',
       'welcome': 'Welcome!',
-      'sundaySchoolManagement': 'Sunday School Management',
       'quickAccess': 'Quick Access',
       'members': 'Members',
       'attendance': 'Attendance',
@@ -673,7 +672,6 @@ class AppLocalizations {
       'servants': 'Servants',
       'logout': 'Logout',
       'sundaySchool': 'Sunday School',
-      'managementSystem': 'Management System',
       // Children
       'noMembers': 'No members yet. Tap + to add one.',
       'addMember': 'Add Member',
@@ -1111,7 +1109,7 @@ class AppLocalizations {
       'unknownName': 'Unknown',
       'notAvailable': '—',
       'timeFormatHint': 'HH:mm',
-      'churchBrand': 'Church',
+      'churchBrand': 'MY Church',
       // Errors
       'genericErrorTryAgain': 'An error occurred. Please try again.',
       'invalidCredentialsPleaseTryAgain':
@@ -1634,7 +1632,7 @@ class AppLocalizations {
       'unknownName': 'غير معروف',
       'notAvailable': '—',
       'timeFormatHint': 'س:د',
-      'churchBrand': 'الكنيسة',
+      'churchBrand': 'كنيستي',
       // Errors
       'genericErrorTryAgain': 'حدث خطأ. يرجى المحاولة مرة أخرى.',
       'invalidCredentialsPleaseTryAgain':

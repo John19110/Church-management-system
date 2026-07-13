@@ -6,7 +6,8 @@ publish_to: "none"
 version: 1.0.0+1
 
 environment:
-  sdk: ">=3.3.0 <4.0.0"
+  # Aligned with path_provider 2.1.6 (requires Dart ^3.10 / Flutter >=3.38).
+  sdk: ">=3.10.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -36,7 +37,11 @@ dependencies:
   hive_flutter: ^1.1.0
 
   # Utils
+  # Keep Android impl on MethodChannel (2.2.x). 2.3.x migrated to JNI and
+  # pulls package:jni; a corrupt empty jni install in the pub cache caused
+  # hundreds of "Pointer isn't a type" errors in path_provider.g.dart.
   path_provider: ^2.1.6
+  path_provider_android: 2.2.22
   shared_preferences: ^2.4.26
   intl: ^0.20.2
 
@@ -67,6 +72,7 @@ flutter:
   assets:
     - assets/flags/eg.png
     - assets/flags/uk.png
+    - assets/app_logo_adjusted.png
 flutter_launcher_icons:
   android: true
   ios: true
