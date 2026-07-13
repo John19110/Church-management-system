@@ -220,21 +220,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Widget _brandMark(ThemeData theme) {
     return Center(
-      child: Container(
-        height: 96,
+      child: Image.asset(
+        'assets/app_logo_adjusted.png',
         width: 96,
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          borderRadius: AppRadius.xlAll,
-          border: Border.all(
-            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
-          ),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Image.asset(
-          'assets/app_logo_adjusted.png',
-          fit: BoxFit.cover,
-        ),
+        height: 96,
+        fit: BoxFit.contain,
       ),
     );
   }
