@@ -72,8 +72,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   void initState() {
     super.initState();
-    _passwordController.text = 'TestPassword@12345';
-    _confirmPasswordController.text = 'TestPassword@12345';
+
     _selectedType = switch (widget.mode) {
       RegisterFormMode.existingChurchMember => _RegisterType.servant,
       RegisterFormMode.newChurchMeetingAdmin => _RegisterType.meetingAdmin,

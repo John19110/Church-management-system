@@ -5,5 +5,13 @@
     "**/target": true,
     "**/bin": true,
     "**/obj": true
+  },
+  "java.project.importOnFirstTimeStartup": "disabled",
+  "java.import.exclusions": [
+    "**/Church.Mobile/moble_flutter/android/**",
+    "**/Church.Mobile/**/GeneratedPluginRegistrant.java"
+  ],
+  "files.associations": {
+    "**/GeneratedPluginRegistrant.java": "plaintext"
   }
 }
