@@ -26,9 +26,6 @@ using Church.API.Middlewares;
 using System.Text.Json.Serialization;
 using Church.BLL.Services;
 using Church.BLL.Services.CustomFields;
-using Church.BLL.Configuration;
-using Church.BLL.Services.Auth.Interfaces;
-using Church.BLL.Services.Auth.Implementations;
 using Church.BLL.Abstractions;
 using Church.BLL.Application.Servants;
 using Church.DAL.Abstractions;
@@ -42,10 +39,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<ServantProfileOptions>(
     builder.Configuration.GetSection(ServantProfileOptions.SectionName));
-builder.Services.Configure<WhatsAppOptions>(
-    builder.Configuration.GetSection(WhatsAppOptions.SectionName));
-builder.Services.Configure<OtpOptions>(
-    builder.Configuration.GetSection(OtpOptions.SectionName));
 
 builder.Services.AddScoped<IFileStorage, LocalFileStorage>();
 builder.Services.AddProblemDetails();
@@ -76,7 +69,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
         {
             success = false,
             errorCode = "MODEL_BINDING_ERROR",
-            message = "One or more fields failed model binding or validation.",
+            message = "Validation failed",
             errors
         });
     };
@@ -134,10 +127,6 @@ builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
 builder.Services.AddScoped<IAttendanceManager, AttendanceManager>();
 
 builder.Services.AddScoped<IAccountManager, AccountManager>();
-builder.Services.AddScoped<IOtpRepository, OtpRepository>();
-builder.Services.AddScoped<IAuthOtpManager, AuthOtpManager>();
-builder.Services.AddScoped<IWhatsAppMessagingService, WhatsAppCloudMessagingService>();
-builder.Services.AddHttpClient("WhatsApp");
 
 builder.Services.AddScoped<IChurchRepository, ChurchRepository>();
 builder.Services.AddScoped<IChurchManager, ChurchManager>();
@@ -257,18 +246,6 @@ var app = builder.Build();
 
 // Apply EF migrations and repair PublicId columns if hosting DB is out of sync.
 DatabaseBootstrap.ApplyMigrationsAndRepairSchema(app.Services, app.Logger);
-
-var whatsAppConfig = app.Configuration.GetSection(WhatsAppOptions.SectionName).Get<WhatsAppOptions>();
-if (whatsAppConfig == null || !whatsAppConfig.Enabled)
-{
-    app.Logger.LogWarning("WhatsApp OTP delivery is disabled (WhatsApp:Enabled = false).");
-}
-else if (string.IsNullOrWhiteSpace(whatsAppConfig.AccessToken)
-         || string.IsNullOrWhiteSpace(whatsAppConfig.PhoneNumberId))
-{
-    app.Logger.LogWarning(
-        "WhatsApp is enabled but AccessToken or PhoneNumberId is missing. Set environment variables WhatsApp__AccessToken and WhatsApp__PhoneNumberId on the host.");
-}
 
 try
 {

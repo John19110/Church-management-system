@@ -219,7 +219,12 @@ void _showSnackbar(
         children: [
           Icon(icon, color: Colors.white, size: 20),
           const SizedBox(width: AppSpacing.sm),
-          Expanded(child: Text(message)),
+          Expanded(
+            child: Text(
+              message,
+              softWrap: true,
+            ),
+          ),
         ],
       ),
       backgroundColor: background,

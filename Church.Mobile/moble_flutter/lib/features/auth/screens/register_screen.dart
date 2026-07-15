@@ -12,6 +12,9 @@ import '../../../core/l10n/app_localizations.dart';
 import '../../../core/error/app_exception.dart';
 import '../../../core/routing/app_router.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/l10n/validation_message_localizer.dart';
+import '../utils/registration_navigation.dart';
+import '../utils/phone_number_validator.dart';
 
 enum _RegisterType { servant, churchAdmin, meetingAdmin }
 
@@ -37,6 +40,18 @@ class RegisterScreen extends ConsumerStatefulWidget {
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _scrollController = ScrollController();
+
+  final _nameFocus = FocusNode();
+  final _phoneFocus = FocusNode();
+  final _passwordFocus = FocusNode();
+  final _confirmFocus = FocusNode();
+  final _churchIdFocus = FocusNode();
+  final _requestedMeetingFocus = FocusNode();
+  final _meetingAdminPhoneFocus = FocusNode();
+  final _churchNameFocus = FocusNode();
+  final _meetingNameFocus = FocusNode();
+  final _weeklyFocus = FocusNode();
 
   // Shared controllers
   final _nameController = TextEditingController();
@@ -68,6 +83,21 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   bool _loading = false;
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
+  AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
+  Map<String, List<String>> _serverFieldErrors = {};
+
+  static const _fieldOrder = [
+    'name',
+    'phone',
+    'password',
+    'confirmPassword',
+    'churchPublicId',
+    'requestedMeetingName',
+    'meetingAdminPhone',
+    'churchName',
+    'meetingName',
+    'weeklyAppointment',
+  ];
 
   @override
   void initState() {
@@ -82,6 +112,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   void dispose() {
+    _scrollController.dispose();
+    _nameFocus.dispose();
+    _phoneFocus.dispose();
+    _passwordFocus.dispose();
+    _confirmFocus.dispose();
+    _churchIdFocus.dispose();
+    _requestedMeetingFocus.dispose();
+    _meetingAdminPhoneFocus.dispose();
+    _churchNameFocus.dispose();
+    _meetingNameFocus.dispose();
+    _weeklyFocus.dispose();
     _nameController.dispose();
     _phoneController.dispose();
     _passwordController.dispose();
@@ -97,6 +138,165 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     super.dispose();
   }
 
+  FocusNode? _focusForField(String key) => switch (key) {
+        'name' => _nameFocus,
+        'phone' => _phoneFocus,
+        'password' => _passwordFocus,
+        'confirmPassword' => _confirmFocus,
+        'churchPublicId' => _churchIdFocus,
+        'requestedMeetingName' => _requestedMeetingFocus,
+        'meetingAdminPhone' => _meetingAdminPhoneFocus,
+        'churchName' => _churchNameFocus,
+        'meetingName' => _meetingNameFocus,
+        'weeklyAppointment' => _weeklyFocus,
+        _ => null,
+      };
+
+  String? _serverError(String key) {
+    final messages = _serverFieldErrors[key];
+    if (messages == null || messages.isEmpty) return null;
+    return messages.join('\n');
+  }
+
+  void _clearServerError(String key) {
+    if (!_serverFieldErrors.containsKey(key)) return;
+    setState(() {
+      _serverFieldErrors = Map<String, List<String>>.from(_serverFieldErrors)
+        ..remove(key);
+    });
+  }
+
+  String? Function(String?) _composeValidator(
+    String key,
+    String? Function(String?) local,
+  ) {
+    return (value) => _serverError(key) ?? local(value);
+  }
+
+  String? _mapApiFieldKey(String rawKey) {
+    final key = rawKey.trim();
+    final normalized = key.toLowerCase().replaceAll('_', '');
+
+    if (normalized == 'name' || normalized == 'username') return 'name';
+    if (normalized == 'phonenumber' || normalized == 'phone') return 'phone';
+    if (normalized.startsWith('password') ||
+        normalized.contains('passwordrequires') ||
+        normalized == 'passwordtooshort') {
+      return 'password';
+    }
+    if (normalized == 'confirmpassword') return 'confirmPassword';
+    if (normalized == 'churchpublicid' ||
+        normalized == 'meetingpublicid' ||
+        normalized == 'organizationpublicid') {
+      return 'churchPublicId';
+    }
+    if (normalized == 'requestedmeetingname') return 'requestedMeetingName';
+    if (normalized == 'meetingadminphonenumber') return 'meetingAdminPhone';
+    if (normalized == 'churchname') return 'churchName';
+    if (normalized == 'meetingname') return 'meetingName';
+    if (normalized == 'weeklyappointment' ||
+        normalized == 'weekly_appointment'.replaceAll('_', '')) {
+      return 'weeklyAppointment';
+    }
+    return null;
+  }
+
+  Map<String, List<String>> _mapApiErrors(
+    AppLocalizations l10n,
+    Map<String, List<String>> apiErrors,
+  ) {
+    final mapped = <String, List<String>>{};
+    apiErrors.forEach((apiKey, messages) {
+      final localKey = _mapApiFieldKey(apiKey);
+      if (localKey == null) return;
+      final localized = ValidationMessageLocalizer.localizeAll(
+        l10n,
+        messages,
+        apiFieldKey: apiKey,
+      );
+      mapped.putIfAbsent(localKey, () => []).addAll(localized);
+    });
+    return mapped;
+  }
+
+  List<String> _unmappedApiMessages(
+    AppLocalizations l10n,
+    Map<String, List<String>> apiErrors,
+  ) {
+    final messages = <String>[];
+    apiErrors.forEach((apiKey, values) {
+      if (_mapApiFieldKey(apiKey) == null) {
+        messages.addAll(
+          ValidationMessageLocalizer.localizeAll(
+            l10n,
+            values,
+            apiFieldKey: apiKey,
+          ),
+        );
+      }
+    });
+    return messages;
+  }
+
+  Future<void> _focusFirstInvalidField({
+    Iterable<String>? preferKeys,
+  }) async {
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) return;
+
+    final candidates = [
+      ...?preferKeys,
+      ..._fieldOrder,
+    ];
+
+    for (final key in candidates) {
+      final hasServerError = _serverError(key) != null;
+      if (!hasServerError) continue;
+      final focus = _focusForField(key);
+      if (focus == null || !focus.canRequestFocus) continue;
+      focus.requestFocus();
+      final ctx = focus.context;
+      if (ctx != null && ctx.mounted) {
+        await Scrollable.ensureVisible(
+          ctx,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          alignment: 0.15,
+        );
+      }
+      return;
+    }
+
+    if (!mounted) return;
+
+    // Fall back: walk FormField states under the form.
+    final formContext = _formKey.currentContext;
+    if (formContext == null) return;
+    final invalid = <BuildContext>[];
+    void visitor(Element element) {
+      if (element is StatefulElement && element.state is FormFieldState) {
+        final state = element.state as FormFieldState;
+        if (state.hasError) {
+          invalid.add(element);
+        }
+      }
+      element.visitChildren(visitor);
+    }
+
+    formContext.visitChildElements(visitor);
+    if (invalid.isEmpty) return;
+    final first = invalid.first;
+    if (!first.mounted) return;
+    await Scrollable.ensureVisible(
+      first,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      alignment: 0.15,
+    );
+    if (!first.mounted) return;
+    FocusScope.of(first).requestFocus();
+  }
+
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final picked = await picker.pickImage(source: ImageSource.gallery);
@@ -104,23 +304,48 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   Future<void> _register() async {
-    if (!_formKey.currentState!.validate()) return;
-    final l10n = AppLocalizations.of(context);
-    if (_selectedType == _RegisterType.meetingAdmin) {
-      if (_selectedWeeklyTime == null) {
-        showErrorSnackbar(context, l10n.weeklyAppointmentRequired);
-        return;
-      }
+    if (_loading) return;
+
+    setState(() {
+      _serverFieldErrors = {};
+      _autovalidateMode = AutovalidateMode.always;
+    });
+
+    final formValid = _formKey.currentState?.validate() ?? false;
+    if (!formValid) {
+      await _focusFirstInvalidField();
+      return;
     }
+
+    final l10n = AppLocalizations.of(context);
+    if (_selectedType == _RegisterType.meetingAdmin &&
+        _selectedWeeklyTime == null) {
+      setState(() {
+        _serverFieldErrors = {
+          'weeklyAppointment': [l10n.weeklyAppointmentRequired],
+        };
+      });
+      _formKey.currentState?.validate();
+      await _focusFirstInvalidField(preferKeys: ['weeklyAppointment']);
+      return;
+    }
+
     setState(() => _loading = true);
     try {
+      final phone = PhoneNumberValidator.normalize(_phoneController.text) ??
+          _phoneController.text.trim();
+      final meetingAdminPhone = _requestedRole == 'Servant'
+          ? (PhoneNumberValidator.normalize(_meetingAdminPhoneController.text) ??
+              _meetingAdminPhoneController.text.trim().nullIfEmpty)
+          : null;
+
       AuthFlowResult result;
       switch (_selectedType) {
         case _RegisterType.servant:
           result = await ref.read(authRepositoryProvider).registerServant(
             RegisterServantDto(
               name: _nameController.text.trim(),
-              phoneNumber: _phoneController.text.trim(),
+              phoneNumber: phone,
               password: _passwordController.text,
               confirmPassword: _confirmPasswordController.text,
               churchPublicId: _churchIdController.text.trim(),
@@ -128,9 +353,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ? ''
                   : _requestedMeetingController.text.trim(),
               requestedRole: _requestedRole,
-              meetingAdminPhoneNumber: _requestedRole == 'Servant'
-                  ? _meetingAdminPhoneController.text.trim().nullIfEmpty
-                  : null,
+              meetingAdminPhoneNumber: meetingAdminPhone,
               birthDate: _birthController.text.trim().nullIfEmpty,
               joiningDate: _joiningController.text.trim().nullIfEmpty,
               image: _image,
@@ -143,7 +366,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               .registerChurchSuperAdmin(
             RegisterChurchSuperAdminDto(
               name: _nameController.text.trim(),
-              phoneNumber: _phoneController.text.trim(),
+              phoneNumber: phone,
               password: _passwordController.text,
               confirmPassword: _confirmPasswordController.text,
               churchName: _churchNameController.text.trim(),
@@ -158,7 +381,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           result = await ref.read(authRepositoryProvider).registerMeetingAdmin(
             RegisterMeetingAdminDto(
               name: _nameController.text.trim(),
-              phoneNumber: _phoneController.text.trim(),
+              phoneNumber: phone,
               password: _passwordController.text,
               confirmPassword: _confirmPasswordController.text,
               churchName: _churchNameController.text.trim(),
@@ -173,31 +396,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           break;
       }
 
-      if (result.requiresPhoneVerification) {
+      if (!result.hasToken) {
         if (mounted) {
-          // Phone verification disabled — account created; send user to login.
-          // final phone = result.phoneNumber ?? _phoneController.text.trim();
-          // showSuccessSnackbar(
-          //   context,
-          //   result.message ?? 'Check WhatsApp for your verification code.',
-          // );
-          // context.go(
-          //   '${AppRoutes.verifyPhone}?phone=${Uri.encodeComponent(phone)}',
-          // );
+          // Never surface phone-verification copy from any API payload.
           showSuccessSnackbar(
             context,
-            result.message ?? l10n.registrationSuccessfulPleaseSignIn,
+            l10n.registrationSuccessfulPleaseSignIn,
           );
           context.go(AppRoutes.login);
         }
         return;
       }
 
-      final token = result.token;
-      if (token == null || token.isEmpty) {
-        throw Exception('Registration did not return a token.');
-      }
-
+      final token = result.token!;
       final role = AuthRoleUtils.extractPrimaryRole(token);
 
       ref.read(authSessionEpochProvider.notifier).state++;
@@ -210,8 +421,31 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       if (!mounted) return;
       final l10n = AppLocalizations.of(context);
 
-      // Names can repeat; phone must be unique (login identifier).
+      if (e is ApiException && e.hasFieldErrors) {
+        final mapped = _mapApiErrors(l10n, e.fieldErrors);
+        final unmapped = _unmappedApiMessages(l10n, e.fieldErrors);
+
+        setState(() {
+          _serverFieldErrors = mapped;
+          _autovalidateMode = AutovalidateMode.always;
+        });
+        _formKey.currentState?.validate();
+        await _focusFirstInvalidField(preferKeys: mapped.keys);
+
+        if (unmapped.isNotEmpty) {
+          showErrorSnackbar(context, unmapped.join('\n'));
+        } else if (mapped.isEmpty) {
+          showErrorSnackbar(
+            context,
+            ValidationMessageLocalizer.localize(l10n, e.message),
+          );
+        }
+        return;
+      }
+
       if (e is ApiException) {
+        final localizedMessage =
+            ValidationMessageLocalizer.localize(l10n, e.message);
         final msg = e.message.toLowerCase();
         final isPhoneDuplicate = (e.statusCode == 409 || e.statusCode == 400) &&
             (msg.contains('phone') ||
@@ -224,9 +458,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 msg.contains('use'));
 
         if (isPhoneDuplicate) {
-          showErrorSnackbar(context, l10n.phoneAlreadyUsed);
+          setState(() {
+            _serverFieldErrors = {
+              'phone': [l10n.phoneAlreadyUsed],
+            };
+            _autovalidateMode = AutovalidateMode.always;
+          });
+          _formKey.currentState?.validate();
+          await _focusFirstInvalidField(preferKeys: ['phone']);
           return;
         }
+
+        showErrorSnackbar(context, localizedMessage);
+        return;
       }
 
       showErrorSnackbar(context, userFriendlyMessage(e, l10n));
@@ -274,16 +518,31 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 
+  String get _backFallbackRoute => switch (widget.mode) {
+        RegisterFormMode.existingChurchMember => AppRoutes.register,
+        RegisterFormMode.newChurchMeetingAdmin => AppRoutes.registerNewChurch,
+        RegisterFormMode.newChurchSuperAdmin => AppRoutes.registerNewChurch,
+      };
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.createAccount)),
-      body: SafeArea(
+    return registrationBackScope(
+      context: context,
+      fallbackRoute: _backFallbackRoute,
+      child: Scaffold(
+        appBar: registrationAppBar(
+          context: context,
+          title: l10n.createAccount,
+          fallbackRoute: _backFallbackRoute,
+        ),
+        body: SafeArea(
         child: SingleChildScrollView(
+          controller: _scrollController,
           padding: const EdgeInsets.all(24),
           child: Form(
             key: _formKey,
+            autovalidateMode: _autovalidateMode,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -305,30 +564,46 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 // Shared fields
                 AppTextField(
                   controller: _nameController,
+                  focusNode: _nameFocus,
                   label: l10n.fullName,
                   hint: l10n.enterName,
-                  validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? l10n.nameRequired : null,
+                  onChanged: (_) => _clearServerError('name'),
+                  validator: _composeValidator(
+                    'name',
+                    (v) => (v == null || v.trim().isEmpty)
+                        ? l10n.nameRequired
+                        : null,
+                  ),
                 ),
                 const SizedBox(height: 16),
 
                 AppTextField(
                   controller: _phoneController,
+                  focusNode: _phoneFocus,
                   label: l10n.phoneNumber,
                   hint: l10n.enterPhoneNumber,
                   keyboardType: TextInputType.phone,
-                  validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? l10n.phoneRequired : null,
+                  onChanged: (_) => _clearServerError('phone'),
+                  validator: _composeValidator(
+                    'phone',
+                    (v) => PhoneNumberValidator.validate(v, l10n: l10n),
+                  ),
                 ),
                 const SizedBox(height: 16),
 
                 AppTextField(
                   controller: _passwordController,
+                  focusNode: _passwordFocus,
                   label: l10n.password,
                   hint: l10n.enterPassword,
                   obscureText: _obscurePassword,
-                  validator: (v) =>
-                      (v == null || v.length < 6) ? l10n.passwordTooShort : null,
+                  onChanged: (_) => _clearServerError('password'),
+                  validator: _composeValidator(
+                    'password',
+                    (v) => (v == null || v.length < 6)
+                        ? l10n.passwordTooShort
+                        : null,
+                  ),
                   suffixIcon: IconButton(
                     icon: Icon(_obscurePassword
                         ? Icons.visibility
@@ -342,18 +617,23 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
                 AppTextField(
                   controller: _confirmPasswordController,
+                  focusNode: _confirmFocus,
                   label: l10n.confirmPassword,
                   hint: l10n.enterConfirmPassword,
                   obscureText: _obscureConfirm,
-                  validator: (v) {
-                    if (v == null || v.isEmpty) {
-                      return l10n.pleaseConfirmPassword;
-                    }
-                    if (v != _passwordController.text) {
-                      return l10n.passwordsDoNotMatch;
-                    }
-                    return null;
-                  },
+                  onChanged: (_) => _clearServerError('confirmPassword'),
+                  validator: _composeValidator(
+                    'confirmPassword',
+                    (v) {
+                      if (v == null || v.isEmpty) {
+                        return l10n.pleaseConfirmPassword;
+                      }
+                      if (v != _passwordController.text) {
+                        return l10n.passwordsDoNotMatch;
+                      }
+                      return null;
+                    },
+                  ),
                   suffixIcon: IconButton(
                     icon: Icon(_obscureConfirm
                         ? Icons.visibility
@@ -379,19 +659,27 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 if (_selectedType == _RegisterType.servant) ...[
                   AppTextField(
                     controller: _churchIdController,
+                    focusNode: _churchIdFocus,
                     label: l10n.churchOrMeetingIdLabel,
                     hint: l10n.enterChurchOrMeetingId,
-                    validator: (v) {
-                      if (v == null || v.trim().isEmpty) {
-                        return l10n.churchOrMeetingIdRequired;
-                      }
-                      return null;
-                    },
+                    onChanged: (_) => _clearServerError('churchPublicId'),
+                    validator: _composeValidator(
+                      'churchPublicId',
+                      (v) {
+                        if (v == null || v.trim().isEmpty) {
+                          return l10n.churchOrMeetingIdRequired;
+                        }
+                        return null;
+                      },
+                    ),
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
                     value: _requestedRole,
-                    decoration: InputDecoration(labelText: l10n.requestedRoleLabel),
+                    decoration: InputDecoration(
+                      labelText: l10n.requestedRoleLabel,
+                      errorMaxLines: 6,
+                    ),
                     items: [
                       DropdownMenuItem(
                         value: 'Servant',
@@ -407,7 +695,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       ),
                     ],
                     onChanged: (v) {
-                      if (v != null) setState(() => _requestedRole = v);
+                      if (v == null) return;
+                      setState(() {
+                        _requestedRole = v;
+                        _serverFieldErrors = Map<String, List<String>>.from(
+                          _serverFieldErrors,
+                        )
+                          ..remove('requestedMeetingName')
+                          ..remove('meetingAdminPhone');
+                      });
                     },
                   ),
                   // Church Admin manages the whole church, so no meeting is requested.
@@ -415,8 +711,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     const SizedBox(height: 16),
                     AppTextField(
                       controller: _requestedMeetingController,
+                      focusNode: _requestedMeetingFocus,
                       label: l10n.requestedMeetingName,
                       hint: l10n.enterRequestedMeetingName,
+                      onChanged: (_) =>
+                          _clearServerError('requestedMeetingName'),
+                      validator: _composeValidator(
+                        'requestedMeetingName',
+                        (v) {
+                          if (v == null || v.trim().isEmpty) {
+                            return l10n.requestedMeetingNameRequired;
+                          }
+                          return null;
+                        },
+                      ),
                     ),
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
@@ -430,9 +738,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     const SizedBox(height: 16),
                     AppTextField(
                       controller: _meetingAdminPhoneController,
+                      focusNode: _meetingAdminPhoneFocus,
                       label: l10n.meetingAdminPhone,
                       hint: l10n.enterMeetingAdminPhone,
                       keyboardType: TextInputType.phone,
+                      onChanged: (_) =>
+                          _clearServerError('meetingAdminPhone'),
+                      validator: _composeValidator(
+                        'meetingAdminPhone',
+                        (v) => PhoneNumberValidator.validate(v, l10n: l10n),
+                      ),
                     ),
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
@@ -447,40 +762,53 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 if (_selectedType == _RegisterType.churchAdmin) ...[
                   AppTextField(
                     controller: _churchNameController,
+                    focusNode: _churchNameFocus,
                     label: l10n.churchName,
                     hint: l10n.enterChurchName,
-                    validator: (v) =>
-                        (v == null || v.trim().isEmpty)
-                            ? l10n.churchNameRequired
-                            : null,
+                    onChanged: (_) => _clearServerError('churchName'),
+                    validator: _composeValidator(
+                      'churchName',
+                      (v) => (v == null || v.trim().isEmpty)
+                          ? l10n.churchNameRequired
+                          : null,
+                    ),
                   ),
                 ],
 
                 if (_selectedType == _RegisterType.meetingAdmin) ...[
                   AppTextField(
                     controller: _churchNameController,
+                    focusNode: _churchNameFocus,
                     label: l10n.churchName,
                     hint: l10n.enterChurchName,
-                    validator: (v) =>
-                        (v == null || v.trim().isEmpty)
-                            ? l10n.churchNameRequired
-                            : null,
+                    onChanged: (_) => _clearServerError('churchName'),
+                    validator: _composeValidator(
+                      'churchName',
+                      (v) => (v == null || v.trim().isEmpty)
+                          ? l10n.churchNameRequired
+                          : null,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   AppTextField(
                     controller: _meetingNameController,
+                    focusNode: _meetingNameFocus,
                     label: l10n.meetingName,
                     hint: l10n.enterMeetingName,
-                    validator: (v) =>
-                        (v == null || v.trim().isEmpty)
-                            ? l10n.meetingNameRequired
-                            : null,
+                    onChanged: (_) => _clearServerError('meetingName'),
+                    validator: _composeValidator(
+                      'meetingName',
+                      (v) => (v == null || v.trim().isEmpty)
+                          ? l10n.meetingNameRequired
+                          : null,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
                     value: _selectedMeetingDay,
                     decoration: InputDecoration(
                       labelText: l10n.meetingDayOfWeek,
+                      errorMaxLines: 6,
                     ),
                     items: [
                       DropdownMenuItem(
@@ -520,9 +848,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   const SizedBox(height: 16),
                   AppTextField(
                     controller: _weeklyAppointmentController,
+                    focusNode: _weeklyFocus,
                     label: l10n.weeklyAppointment,
                     hint: l10n.weeklyAppointmentHint,
                     readOnly: true,
+                    onChanged: (_) => _clearServerError('weeklyAppointment'),
                     onTap: () async {
                       if (_loading) return;
                       final picked = await showTimePicker(
@@ -533,11 +863,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       if (picked == null) return;
                       setState(() {
                         _selectedWeeklyTime = picked;
-                        _weeklyAppointmentController.text = picked.format(context);
+                        _weeklyAppointmentController.text =
+                            picked.format(context);
+                        _serverFieldErrors =
+                            Map<String, List<String>>.from(_serverFieldErrors)
+                              ..remove('weeklyAppointment');
                       });
                     },
-                    validator: (_) =>
-                        _selectedWeeklyTime == null ? l10n.weeklyAppointmentRequired : null,
+                    validator: _composeValidator(
+                      'weeklyAppointment',
+                      (_) => _selectedWeeklyTime == null
+                          ? l10n.weeklyAppointmentRequired
+                          : null,
+                    ),
                   ),
                 ],
 
@@ -554,6 +892,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           ),
         ),
       ),
+    ),
     );
   }
 }

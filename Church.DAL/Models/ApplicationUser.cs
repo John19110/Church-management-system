@@ -69,9 +69,6 @@ namespace Church.DAL.Models
         /// <summary>Optional reason captured when a registration is rejected.</summary>
         public string? RejectionReason { get; set; }
 
-        /// <summary>True after WhatsApp OTP phone verification succeeds.</summary>
-        public bool IsPhoneVerified { get; set; }
-
         // auditing
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }

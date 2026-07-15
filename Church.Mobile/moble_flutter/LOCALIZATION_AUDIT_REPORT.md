@@ -19,7 +19,7 @@ This audit identified and fixed hardcoded strings across auth screens, admin flo
 | Main / dashboard screens | Localized |
 | Settings / profile | Localized |
 | Auth (login, register) | Localized |
-| Auth disabled stubs (OTP, forgot/reset password) | Localized |
+| Auth registration success copy | Localized |
 | Super admin / admin screens | Localized |
 | Classrooms / meetings | Localized |
 | Members / servants | Localized |
@@ -111,7 +111,7 @@ This audit identified and fixed hardcoded strings across auth screens, admin flo
 |--------|-------------|
 | `"Church"` | `churchBrand` |
 | `'Registration successful. Please sign in.'` | `registrationSuccessfulPleaseSignIn` |
-| `'Forgot password'` / `'Verify phone'` / `'Reset password'` | `forgotPassword` / `verifyPhone` / `resetPassword` |
+| Auth registration success | `registrationSuccessfulPleaseSignIn` |
 | `'Back to login'` | `backToLogin` |
 | `'Visible Classrooms'` | `visibleClassrooms` |
 | `'Servants: X • Members: Y'` | `meetingServantsMembersSummary` |
@@ -160,7 +160,7 @@ All identified user-facing strings now have both `en` and `ar` entries in `app_l
 | Item | Notes |
 |------|-------|
 | Language toggle label `EN` / `AR` | Intentional ISO codes on dashboard/profile toggles; shows target language |
-| Commented OTP/password-reset code | Large `/* */` blocks retain English for future re-enable; not executed |
+| Auth registration success screens | Localized registration completion message |
 | Repository `throw Exception('...')` strings | Shown via `userFriendlyMessage()` which sanitizes technical text; could be migrated to typed exceptions with l10n keys in a follow-up |
 | `AttendanceStatus.label` in model | Unused; screens use localized `_statusLabel()` |
 | API error bodies from server | Displayed as returned (typically English from backend); client-side fallbacks are localized |

@@ -7,17 +7,13 @@ namespace Church.API.Controllers
     {
         public static ActionResult ToActionResult(this AuthFlowResultDto result)
         {
-            if (result.RequiresPhoneVerification)
+            if (!string.IsNullOrEmpty(result.Token))
             {
-                return new OkObjectResult(new
-                {
-                    requiresPhoneVerification = true,
-                    phoneNumber = result.PhoneNumber,
-                    message = result.Message
-                });
+                return new OkObjectResult(new { token = result.Token });
             }
 
-            return new OkObjectResult(new { token = result.Token });
+            // Registration complete — no phone-verification payload.
+            return new OkObjectResult(new { registered = true });
         }
     }
 }

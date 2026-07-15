@@ -13,6 +13,8 @@ import '../../../core/providers/theme_provider.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../core/theme/app_palette.dart';
 import '../../../core/error/app_exception.dart';
+import '../../../core/routing/app_router.dart';
+import '../utils/phone_number_validator.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -43,23 +45,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _loading = true);
 
     try {
+      final phone = PhoneNumberValidator.normalize(_phoneController.text) ??
+          _phoneController.text.trim();
       final result = await ref.read(authRepositoryProvider).login(
         LoginDto(
-          phoneNumber: _phoneController.text.trim(),
+          phoneNumber: phone,
           password: _passwordController.text,
         ),
       );
-
-      // Phone verification disabled
-      // if (result.requiresPhoneVerification) {
-      //   if (mounted) {
-      //     final phone = result.phoneNumber ?? _phoneController.text.trim();
-      //     context.go(
-      //       '${AppRoutes.verifyPhone}?phone=${Uri.encodeComponent(phone)}',
-      //     );
-      //   }
-      //   return;
-      // }
 
       final token = result.token;
       if (token == null || token.isEmpty) {
@@ -169,9 +162,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             label: l10n.phoneNumber,
                             hint: l10n.enterPhoneNumber,
                             keyboardType: TextInputType.phone,
-                            validator: (v) => (v == null || v.trim().isEmpty)
-                                ? l10n.phoneRequired
-                                : null,
+                            validator: (v) =>
+                                PhoneNumberValidator.validate(v, l10n: l10n),
                           ),
                           const SizedBox(height: AppSpacing.md),
                           AppTextField(
@@ -202,7 +194,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                           const SizedBox(height: AppSpacing.md),
                           TextButton(
-                            onPressed: () => context.go('/register'),
+                            onPressed: () =>
+                                context.push(AppRoutes.register),
                             child: Text(l10n.dontHaveAccount),
                           ),
                         ],

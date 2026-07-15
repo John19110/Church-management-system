@@ -200,6 +200,24 @@ class AppLocalizations {
   String get weeklyAppointment => _t('weeklyAppointment');
   String get weeklyAppointmentRequired => _t('weeklyAppointmentRequired');
   String get phoneAlreadyUsed => _t('phoneAlreadyUsed');
+  String get phoneInvalid => _t('phoneInvalid');
+  String get churchNameAlreadyExists => _t('churchNameAlreadyExists');
+  String get churchOrMeetingNotFound => _t('churchOrMeetingNotFound');
+  String get churchOrMeetingIdInvalid => _t('churchOrMeetingIdInvalid');
+  String get meetingAdminPhoneRequiredForServants =>
+      _t('meetingAdminPhoneRequiredForServants');
+  String get registrationUsernameConflict => _t('registrationUsernameConflict');
+  String get meetingNotInChurch => _t('meetingNotInChurch');
+  String get validationFailed => _t('validationFailed');
+  String get confirmPasswordRequired => _t('confirmPasswordRequired');
+  String get passwordRequiresDigit => _t('passwordRequiresDigit');
+  String get passwordRequiresLower => _t('passwordRequiresLower');
+  String get passwordRequiresUpper => _t('passwordRequiresUpper');
+  String get passwordRequiresNonAlphanumeric =>
+      _t('passwordRequiresNonAlphanumeric');
+  String get registrationDataInvalid => _t('registrationDataInvalid');
+  String get churchAlreadyExists => _t('churchAlreadyExists');
+  String get passwordMustContainAtLeast6 => _t('passwordMustContainAtLeast6');
 
   // ── Attendance ────────────────────────────────────────────────────────────
   String get takeAttendance => _t('takeAttendance');
@@ -503,15 +521,9 @@ class AppLocalizations {
   String get customFieldsAdminDescription => _t('customFieldsAdminDescription');
   String get recommendedSyncKeysHint => _t('recommendedSyncKeysHint');
 
-  // ── Auth / OTP (disabled flows) ───────────────────────────────────────────
-  String get backToLogin => _t('backToLogin');
-  String get passwordResetDisabled => _t('passwordResetDisabled');
-  String get phoneVerificationDisabled => _t('phoneVerificationDisabled');
+  // ── Auth extras ─────────────────────────────────────────────────────────────
   String get registrationSuccessfulPleaseSignIn =>
       _t('registrationSuccessfulPleaseSignIn');
-  String get forgotPassword => _t('forgotPassword');
-  String get verifyPhone => _t('verifyPhone');
-  String get resetPassword => _t('resetPassword');
 
   // ── Common booleans / placeholders ────────────────────────────────────────
   String get yes => _t('yes');
@@ -811,6 +823,31 @@ class AppLocalizations {
       'weeklyAppointment': 'Weekly Appointment',
       'weeklyAppointmentRequired': 'Weekly appointment is required',
       'phoneAlreadyUsed': 'This phone number is already in use. Please sign in or use a different number.',
+      'phoneInvalid':
+          'Enter a valid phone number (e.g. +201001234567).',
+      'churchNameAlreadyExists': 'A church with this name already exists.',
+      'churchOrMeetingNotFound': 'Church or meeting not found.',
+      'churchOrMeetingIdInvalid':
+          'A valid church or meeting identifier is required.',
+      'meetingAdminPhoneRequiredForServants':
+          'Meeting admin phone number is required for servants.',
+      'registrationUsernameConflict':
+          'Registration failed due to a username conflict. Please try again.',
+      'meetingNotInChurch':
+          'The selected meeting does not belong to the selected church.',
+      'validationFailed': 'Validation failed',
+      'confirmPasswordRequired': 'Confirm password is required.',
+      'passwordRequiresDigit': 'Password must contain at least one digit.',
+      'passwordRequiresLower':
+          'Password must contain at least one lowercase letter.',
+      'passwordRequiresUpper':
+          'Password must contain at least one uppercase letter.',
+      'passwordRequiresNonAlphanumeric':
+          'Password must contain at least one non-alphanumeric character.',
+      'registrationDataInvalid': 'Registration data is invalid.',
+      'churchAlreadyExists': 'Church already exists.',
+      'passwordMustContainAtLeast6':
+          'Password must contain at least 6 characters.',
       // Attendance
       'takeAttendance': 'Take Attendance',
       'viewAttendance': 'View Attendance',
@@ -1093,16 +1130,9 @@ class AppLocalizations {
           'System fields from the backend model appear at the top. Custom fields you create appear below. Configure labels, visibility, order, and validation; active fields appear on create, edit, and detail screens.',
       'recommendedSyncKeysHint':
           'Tip: use internal keys like name, ageOfMembers, or leaderServantId (classroom) to also update list titles when auto-generated from display names.',
-      // Auth / OTP disabled
-      'backToLogin': 'Back to login',
-      'passwordResetDisabled':
-          'Password reset via WhatsApp is currently disabled.',
-      'phoneVerificationDisabled': 'Phone verification is currently disabled.',
+      // Auth
       'registrationSuccessfulPleaseSignIn':
           'Registration successful. Please sign in.',
-      'forgotPassword': 'Forgot password',
-      'verifyPhone': 'Verify phone',
-      'resetPassword': 'Reset password',
       // Common
       'yes': 'Yes',
       'no': 'No',
@@ -1336,6 +1366,30 @@ class AppLocalizations {
       'weeklyAppointment': 'الموعد الأسبوعي',
       'weeklyAppointmentRequired': 'الموعد الأسبوعي مطلوب',
       'phoneAlreadyUsed': 'رقم الهاتف مستخدم بالفعل. يرجى تسجيل الدخول أو استخدام رقم آخر.',
+      'phoneInvalid':
+          'أدخل رقم هاتف صالح (مثال: +201001234567).',
+      'churchNameAlreadyExists': 'كنيسة بهذا الاسم موجودة بالفعل.',
+      'churchOrMeetingNotFound': 'الكنيسة أو الاجتماع غير موجود.',
+      'churchOrMeetingIdInvalid': 'يلزم إدخال معرّف كنيسة أو اجتماع صالح.',
+      'meetingAdminPhoneRequiredForServants':
+          'رقم هاتف قائد الاجتماع مطلوب للخدام.',
+      'registrationUsernameConflict':
+          'فشل التسجيل بسبب تعارض في اسم المستخدم. يرجى المحاولة مرة أخرى.',
+      'meetingNotInChurch':
+          'الاجتماع المحدد لا ينتمي إلى الكنيسة المحددة.',
+      'validationFailed': 'فشل التحقق من البيانات',
+      'confirmPasswordRequired': 'تأكيد كلمة المرور مطلوب.',
+      'passwordRequiresDigit': 'يجب أن تحتوي كلمة المرور على رقم واحد على الأقل.',
+      'passwordRequiresLower':
+          'يجب أن تحتوي كلمة المرور على حرف صغير واحد على الأقل.',
+      'passwordRequiresUpper':
+          'يجب أن تحتوي كلمة المرور على حرف كبير واحد على الأقل.',
+      'passwordRequiresNonAlphanumeric':
+          'يجب أن تحتوي كلمة المرور على رمز خاص واحد على الأقل.',
+      'registrationDataInvalid': 'بيانات التسجيل غير صالحة.',
+      'churchAlreadyExists': 'الكنيسة موجودة بالفعل.',
+      'passwordMustContainAtLeast6':
+          'يجب أن تحتوي كلمة المرور على 6 أحرف على الأقل.',
       // Attendance
       'takeAttendance': 'تسجيل الحضور',
       'viewAttendance': 'عرض الحضور',
@@ -1616,16 +1670,9 @@ class AppLocalizations {
           'معلومات النظام من نموذج الخادم تظهر في الأعلى. المعلومات الجديده التي تنشئها تظهر أدناه. اضبط التسميات والظهور والترتيب والتحقق؛ المعلومات النشطة تظهر في الإنشاء والتعديل والتفاصيل.',
       'recommendedSyncKeysHint':
           'نصيحة: المفاتيح الداخلية مثل name أو ageOfMembers أو leaderServantId (للفصل) تحدّث أيضاً عناوين القوائم عند توليدها من الاسم المعروض.',
-      // Auth / OTP disabled
-      'backToLogin': 'العودة لتسجيل الدخول',
-      'passwordResetDisabled':
-          'إعادة تعيين كلمة المرور عبر واتساب غير متاحة حالياً.',
-      'phoneVerificationDisabled': 'التحقق من الهاتف غير متاح حالياً.',
+      // Auth
       'registrationSuccessfulPleaseSignIn':
           'تم التسجيل بنجاح. يرجى تسجيل الدخول.',
-      'forgotPassword': 'نسيت كلمة المرور',
-      'verifyPhone': 'التحقق من الهاتف',
-      'resetPassword': 'إعادة تعيين كلمة المرور',
       // Common
       'yes': 'نعم',
       'no': 'لا',

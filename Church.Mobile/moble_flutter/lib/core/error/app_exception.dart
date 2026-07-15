@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
+import '../l10n/validation_message_localizer.dart';
 
 const String _defaultApiErrorMessage = 'An error occurred. Please try again.';
 
@@ -17,18 +18,17 @@ class AppException implements Exception {
 
 class ApiException extends AppException {
   final String? errorCode;
-  final bool requiresPhoneVerification;
-  final String? phoneNumber;
-  final int? retryAfterSeconds;
+  /// Field name → list of messages from API validation (`errors` map).
+  final Map<String, List<String>> fieldErrors;
 
   const ApiException(
     super.message, {
     super.statusCode,
     this.errorCode,
-    this.requiresPhoneVerification = false,
-    this.phoneNumber,
-    this.retryAfterSeconds,
+    this.fieldErrors = const {},
   });
+
+  bool get hasFieldErrors => fieldErrors.isNotEmpty;
 }
 
 class UnauthorizedException extends AppException {
@@ -46,17 +46,13 @@ class ParsedApiError {
   final String? errorCode;
   final String message;
   final int? status;
-  final bool requiresPhoneVerification;
-  final String? phoneNumber;
-  final int? retryAfterSeconds;
+  final Map<String, List<String>> fieldErrors;
 
   const ParsedApiError({
     required this.message,
     this.errorCode,
     this.status,
-    this.requiresPhoneVerification = false,
-    this.phoneNumber,
-    this.retryAfterSeconds,
+    this.fieldErrors = const {},
   });
 }
 
@@ -77,31 +73,14 @@ ParsedApiError parseApiError(
 
   final errorCode = _errorCodeFromMap(map);
   final status = httpStatusCode ?? _statusFromMap(map);
-  final message = _primaryMessage(map) ?? defaultMessage;
-
-  if (_isPhoneNotVerified(map, errorCode)) {
-    return ParsedApiError(
-      errorCode: 'PHONE_NOT_VERIFIED',
-      message: message,
-      status: status ?? 403,
-      requiresPhoneVerification: true,
-      phoneNumber: map['phoneNumber']?.toString(),
-    );
-  }
-
-  if (_isOtpRateLimit(map, errorCode)) {
-    return ParsedApiError(
-      errorCode: 'OTP_RATE_LIMIT',
-      message: message,
-      status: status ?? 429,
-      retryAfterSeconds: _retryAfterSecondsFromMap(map),
-    );
-  }
+  final fieldErrors = _fieldErrorsFromMap(map);
+  final message = _primaryMessage(map, fieldErrors) ?? defaultMessage;
 
   return ParsedApiError(
     errorCode: errorCode,
     message: message,
     status: status,
+    fieldErrors: fieldErrors,
   );
 }
 
@@ -111,6 +90,19 @@ String userFriendlyMessage(Object error, [AppLocalizations? l10n]) {
 
   if (error is ApiException && error.errorCode == 'AUTH_FAILED') {
     return loc.invalidCredentialsPleaseTryAgain;
+  }
+  if (error is ApiException &&
+      (error.errorCode == 'VALIDATION_ERROR' ||
+          error.errorCode == 'MODEL_BINDING_ERROR')) {
+    if (error.hasFieldErrors) {
+      final localized = ValidationMessageLocalizer.localizeFieldErrors(
+        loc,
+        error.fieldErrors,
+      );
+      final joined = localized.values.expand((m) => m).join('\n');
+      if (joined.isNotEmpty) return joined;
+    }
+    return ValidationMessageLocalizer.localize(loc, error.message);
   }
   if (error is UnauthorizedException) return loc.sessionExpiredPleaseSignIn;
   if (error is NetworkException) return loc.networkErrorTryAgain;
@@ -171,33 +163,70 @@ int? _statusFromMap(Map<String, dynamic> map) {
   return int.tryParse(raw.toString());
 }
 
-int? _retryAfterSecondsFromMap(Map<String, dynamic> map) {
-  final raw = map['retryAfterSeconds'];
-  if (raw is int) return raw;
-  if (raw == null) return null;
-  return int.tryParse(raw.toString());
+bool _isGenericValidationTitle(String text) {
+  final lower = text.trim().toLowerCase();
+  return lower == 'validation error' ||
+      lower == 'validation failed' ||
+      lower == 'one or more validation errors occurred.' ||
+      lower == 'one or more fields failed model binding or validation.';
 }
 
-/// Priority: title (ProblemDetails) → message (legacy) → detail (ProblemDetails).
-String? _primaryMessage(Map<String, dynamic> map) {
-  for (final key in const ['title', 'message', 'detail']) {
-    final value = map[key];
-    if (value == null) continue;
-    final text = value.toString().trim();
-    if (text.isNotEmpty) return text;
-  }
+/// Prefer concrete detail / field messages over generic ProblemDetails titles.
+String? _primaryMessage(
+  Map<String, dynamic> map,
+  Map<String, List<String>> fieldErrors,
+) {
+  final title = _stringField(map, 'title');
+  final message = _stringField(map, 'message');
+  final detail = _stringField(map, 'detail');
+  final joinedErrors = fieldErrors.values
+      .expand((messages) => messages)
+      .map((m) => m.trim())
+      .where((m) => m.isNotEmpty)
+      .toList();
+
+  if (message != null && !_isGenericValidationTitle(message)) return message;
+  if (detail != null && !_isGenericValidationTitle(detail)) return detail;
+  if (joinedErrors.isNotEmpty) return joinedErrors.join('\n');
+  if (message != null) return message;
+  if (detail != null) return detail;
+  if (title != null && !_isGenericValidationTitle(title)) return title;
+  if (title != null) return title;
   return null;
 }
 
-bool _isPhoneNotVerified(Map<String, dynamic> map, String? errorCode) {
-  if (errorCode == 'PHONE_NOT_VERIFIED') return true;
-  return map['requiresPhoneVerification'] == true &&
-      (map['errorCode'] == 'PHONE_NOT_VERIFIED' || map['type'] == 'PHONE_NOT_VERIFIED');
+String? _stringField(Map<String, dynamic> map, String key) {
+  final value = map[key];
+  if (value == null) return null;
+  final text = value.toString().trim();
+  return text.isEmpty ? null : text;
 }
 
-bool _isOtpRateLimit(Map<String, dynamic> map, String? errorCode) {
-  if (errorCode == 'OTP_RATE_LIMIT') return true;
-  return map['errorCode'] == 'OTP_RATE_LIMIT' || map['type'] == 'OTP_RATE_LIMIT';
+Map<String, List<String>> _fieldErrorsFromMap(Map<String, dynamic> map) {
+  final raw = map['errors'];
+  if (raw is! Map) return const {};
+
+  final result = <String, List<String>>{};
+  raw.forEach((key, value) {
+    final field = key.toString().trim();
+    if (field.isEmpty) return;
+
+    final messages = <String>[];
+    if (value is List) {
+      for (final item in value) {
+        final text = item?.toString().trim() ?? '';
+        if (text.isNotEmpty) messages.add(text);
+      }
+    } else if (value != null) {
+      final text = value.toString().trim();
+      if (text.isNotEmpty) messages.add(text);
+    }
+
+    if (messages.isNotEmpty) {
+      result[field] = messages;
+    }
+  });
+  return result;
 }
 
 ApiException _apiExceptionFromParsed(ParsedApiError parsed) {
@@ -205,9 +234,7 @@ ApiException _apiExceptionFromParsed(ParsedApiError parsed) {
     parsed.message,
     statusCode: parsed.status,
     errorCode: parsed.errorCode,
-    requiresPhoneVerification: parsed.requiresPhoneVerification,
-    phoneNumber: parsed.phoneNumber,
-    retryAfterSeconds: parsed.retryAfterSeconds,
+    fieldErrors: parsed.fieldErrors,
   );
 }
 
@@ -233,18 +260,16 @@ AppException mapDioException(DioException e) {
         parsed.message,
         statusCode: 401,
         errorCode: 'AUTH_FAILED',
+        fieldErrors: parsed.fieldErrors,
       );
     }
     return const UnauthorizedException();
   }
 
-  if (parsed.requiresPhoneVerification || parsed.errorCode == 'OTP_RATE_LIMIT') {
-    return _apiExceptionFromParsed(parsed);
-  }
-
   if (parsed.message != _defaultApiErrorMessage ||
       parsed.errorCode != null ||
-      parsed.status != null) {
+      parsed.status != null ||
+      parsed.fieldErrors.isNotEmpty) {
     return _apiExceptionFromParsed(parsed);
   }
 
@@ -253,6 +278,7 @@ AppException mapDioException(DioException e) {
       AppLocalizations.forLocale(const Locale('en')).serverErrorTryLater,
       statusCode: statusCode,
       errorCode: parsed.errorCode ?? 'SERVER_ERROR',
+      fieldErrors: parsed.fieldErrors,
     );
   }
 
@@ -260,5 +286,6 @@ AppException mapDioException(DioException e) {
     e.message ?? AppLocalizations.forLocale(const Locale('en')).genericErrorTryAgain,
     statusCode: statusCode,
     errorCode: parsed.errorCode,
+    fieldErrors: parsed.fieldErrors,
   );
 }

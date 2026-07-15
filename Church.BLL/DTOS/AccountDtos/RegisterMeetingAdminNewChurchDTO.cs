@@ -1,38 +1,36 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Church.BLL.DTOS.AccountDtos
 {
     public class RegisterMeetingAdminNewChurchDTO
     {
-            public string Name { get; set; }
+        [Required(ErrorMessage = "Name is required.")]
+        public string Name { get; set; } = string.Empty;
 
-            public IFormFile? Image { get; set; }
+        public IFormFile? Image { get; set; }
 
-            public string PhoneNumber { get; set; }
+        [Required(ErrorMessage = "Phone number is required.")]
+        public string PhoneNumber { get; set; } = string.Empty;
 
-            public string Password { get; set; }
+        [Required(ErrorMessage = "Password is required.")]
+        [MinLength(6, ErrorMessage = "Password must contain at least 6 characters.")]
+        public string Password { get; set; } = string.Empty;
 
-            public string ConfirmPassword { get; set; }
+        [Required(ErrorMessage = "Confirm password is required.")]
+        [Compare(nameof(Password), ErrorMessage = "Password and confirm password do not match.")]
+        public string ConfirmPassword { get; set; } = string.Empty;
 
-            public string ChurchName { get; set; }
+        [Required(ErrorMessage = "Church name is required.")]
+        public string ChurchName { get; set; } = string.Empty;
 
-            public string MeetingName { get; set; }
+        [Required(ErrorMessage = "Meeting name is required.")]
+        public string MeetingName { get; set; } = string.Empty;
 
-            public DateTime Weekly_appointment { get; set; }
+        [Required(ErrorMessage = "Weekly appointment is required.")]
+        public DateTime Weekly_appointment { get; set; }
 
         public DateOnly? BirthDate { get; set; }
         public DateOnly? JoiningDate { get; set; }
-     //   public List<int>? classroomsIds { get; set; }
-
-
-
-
-
     }
-    
 }

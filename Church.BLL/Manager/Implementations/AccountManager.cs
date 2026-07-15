@@ -6,11 +6,9 @@ using Church.BLL.Exceptions;
 using Church.BLL.Manager.Interfaces;
 using Church.BLL.Services;
 using Church.BLL.Services.Auth;
-using Church.BLL.Services.Auth.Interfaces;
 using Church.DAL.Models;
 using Church.DAL.Repository.Interfaces;
 using Church.Domain;
-using Church.DAL.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,7 +29,6 @@ namespace Church.BLL.Manager.Implementations
         private readonly IClassroomRepository _classroomRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IFileManager _fileManager;
-        private readonly IAuthOtpManager _authOtpManager;
         private readonly IPublicIdResolver _publicIdResolver;
         private readonly IChurchPublicIdService _churchPublicIdService;
         private readonly IMeetingPublicIdService _meetingPublicIdService;
@@ -40,7 +37,7 @@ namespace Church.BLL.Manager.Implementations
         public AccountManager(UserManager<ApplicationUser>usermagaer, ITokenService tokenService,
             IServantRepository servantRepo, IChurchRepository churchRepo, IAdminRepository adminRepo,
             IMeetingRepository meetingRepo, IClassroomRepository classroomRepository, IUnitOfWork unitOfWork,IFileManager fileManager,
-            IAuthOtpManager authOtpManager, IPublicIdResolver publicIdResolver,
+            IPublicIdResolver publicIdResolver,
             IChurchPublicIdService churchPublicIdService,
             IMeetingPublicIdService meetingPublicIdService)
         {
@@ -54,7 +51,6 @@ namespace Church.BLL.Manager.Implementations
             _classroomRepository = classroomRepository;
             _unitOfWork = unitOfWork;
             _fileManager = fileManager;
-            _authOtpManager = authOtpManager;
             _publicIdResolver = publicIdResolver;
             _churchPublicIdService = churchPublicIdService;
             _meetingPublicIdService = meetingPublicIdService;
@@ -81,7 +77,13 @@ namespace Church.BLL.Manager.Implementations
             if (errors.Any())
                 throw new ValidationException(errors);
 
-            var phoneNumber = loginDto.PhoneNumber.Trim().Replace(" ", "");
+            if (!PhoneNumberNormalizer.TryNormalize(loginDto.PhoneNumber, out var phoneNumber))
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["PhoneNumber"] = new[] { "Phone number is invalid." }
+                });
+            }
 
             var existingUser = await _userManager.Users
                 .FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber);
@@ -96,10 +98,6 @@ namespace Church.BLL.Manager.Implementations
 
             if (existingUser.RegistrationStatus == RegistrationStatus.Pending || !existingUser.IsApproved)
                 throw new AccountNotApprovedException();
-
-            // TODO: Re-enable WhatsApp/phone verification after verification module is completed.
-            //if (!existingUser.IsPhoneVerified)
-            //    throw new PhoneNotVerifiedException(phoneNumber);
 
             var check = await _userManager.CheckPasswordAsync(existingUser, loginDto.Password);
             if (!check)
@@ -122,10 +120,6 @@ namespace Church.BLL.Manager.Implementations
 
             var errors = new Dictionary<string, string[]>();
 
-
-            if (dto.Password != dto.ConfirmPassword)
-                errors["Name"] = new[] { "Password and confirm doesnt match." };
-
             if (string.IsNullOrWhiteSpace(dto.Name))
                 errors["Name"] = new[] { "Name is required." };
 
@@ -138,21 +132,15 @@ namespace Church.BLL.Manager.Implementations
             if (string.IsNullOrWhiteSpace(dto.Password))
                 errors["Password"] = new[] { "Password is required." };
 
+            if (dto.Password != dto.ConfirmPassword)
+                errors["ConfirmPassword"] = new[] { "Password and confirm password do not match." };
+
             if (errors.Any())
                 throw new ValidationException(errors);
 
             var phoneNumber = NormalizeRegistrationPhone(dto.PhoneNumber);
 
             await EnsurePhoneNumberAvailableAsync(phoneNumber);
-
-            var existingChurch = await _churchRepo.GetByNameAsync(dto.ChurchName.Trim());
-            if (existingChurch != null)
-            {
-                throw new ValidationException(new Dictionary<string, string[]>
-                {
-                    ["ChurchName"] = new[] { "A church with this name already exists." }
-                });
-            }
 
             await RunInTransactionAsync(async () =>
             {
@@ -172,7 +160,6 @@ namespace Church.BLL.Manager.Implementations
                     IsApproved = true,
                     RegistrationStatus = RegistrationStatus.Approved,
                     ApprovalDate = DateTime.Now,
-                    IsPhoneVerified = false,
                     ChurchId = church.Id
                 };
 
@@ -218,9 +205,7 @@ namespace Church.BLL.Manager.Implementations
                 await _unitOfWork.SaveChangesAsync();
             });
 
-            // TODO: Re-enable WhatsApp verification after verification module is completed.
-            // await _authOtpManager.SendPhoneVerificationAfterRegistrationAsync(phoneNumber);
-            return AuthFlowResultDto.RequiresVerification(phoneNumber);
+            return AuthFlowResultDto.Registered();
         }
         public async Task<AuthFlowResultDto> RegisterMeetingAdminNewChurch(RegisterMeetingAdminNewChurchDTO registerMeetingAdminDTO,string webRootPath)
         {
@@ -230,23 +215,41 @@ namespace Church.BLL.Manager.Implementations
                     ["registerDto"] = new[] { "Registration data cannot be null." }
                 });
 
-                 if (registerMeetingAdminDTO.Password != registerMeetingAdminDTO.ConfirmPassword)
-                throw new PassordsMissMatchException();
+            var errors = new Dictionary<string, string[]>();
 
+            if (string.IsNullOrWhiteSpace(registerMeetingAdminDTO.Name))
+                errors["Name"] = new[] { "Name is required." };
+
+            if (string.IsNullOrWhiteSpace(registerMeetingAdminDTO.PhoneNumber))
+                errors["PhoneNumber"] = new[] { "Phone number is required." };
+
+            if (string.IsNullOrWhiteSpace(registerMeetingAdminDTO.Password))
+                errors["Password"] = new[] { "Password is required." };
+
+            if (registerMeetingAdminDTO.Password != registerMeetingAdminDTO.ConfirmPassword)
+                errors["ConfirmPassword"] = new[] { "Password and confirm password do not match." };
+
+            if (string.IsNullOrWhiteSpace(registerMeetingAdminDTO.ChurchName))
+                errors["ChurchName"] = new[] { "Church name is required." };
+
+            if (string.IsNullOrWhiteSpace(registerMeetingAdminDTO.MeetingName))
+                errors["MeetingName"] = new[] { "Meeting name is required." };
+
+            if (registerMeetingAdminDTO.Weekly_appointment == default)
+                errors["Weekly_appointment"] = new[] { "Weekly appointment is required." };
+
+            if (errors.Any())
+                throw new ValidationException(errors);
 
             var meetingPhone = NormalizeRegistrationPhone(registerMeetingAdminDTO.PhoneNumber);
 
             await EnsurePhoneNumberAvailableAsync(meetingPhone);
 
-            var existingChurch = await _churchRepo.GetByNameAsync(registerMeetingAdminDTO.ChurchName);
-            if (existingChurch != null)
-                throw new ChurchAlreadyExistsException();
-
             await RunInTransactionAsync(async () =>
             {
                 var church = new ChurchModel
                 {
-                    Name = registerMeetingAdminDTO.ChurchName,
+                    Name = registerMeetingAdminDTO.ChurchName.Trim(),
                     PublicId = await _churchPublicIdService.GenerateUniqueAsync()
                 };
                 await _churchRepo.AddAsync(church);
@@ -254,7 +257,7 @@ namespace Church.BLL.Manager.Implementations
 
                 var meeting = new Meeting
                 {
-                    Name = registerMeetingAdminDTO.MeetingName,
+                    Name = registerMeetingAdminDTO.MeetingName.Trim(),
                     PublicId = await _meetingPublicIdService.GenerateUniqueAsync(church.Id),
                     ChurchId = church.Id,
                     Weekly_appointment = TimeOnly.FromDateTime(registerMeetingAdminDTO.Weekly_appointment),
@@ -270,7 +273,6 @@ namespace Church.BLL.Manager.Implementations
                     IsApproved = true,
                     RegistrationStatus = RegistrationStatus.Approved,
                     ApprovalDate = DateTime.Now,
-                    IsPhoneVerified = false,
                     ChurchId = church.Id,
                     MeetingId = meeting.Id
                 };
@@ -307,10 +309,7 @@ namespace Church.BLL.Manager.Implementations
                 await _servantRepo.AddAsync(servant);
                 await _unitOfWork.SaveChangesAsync();
             });
-
-            // TODO: Re-enable WhatsApp verification after verification module is completed.
-            // await _authOtpManager.SendPhoneVerificationAfterRegistrationAsync(meetingPhone);
-            return AuthFlowResultDto.RequiresVerification(meetingPhone);
+            return AuthFlowResultDto.Registered();
         }
     
         public async Task<AuthFlowResultDto> RegisterServant(RegisterServantDTO registerDto, string webRootPath)
@@ -428,7 +427,36 @@ namespace Church.BLL.Manager.Implementations
                 });
 
             if (registerDto.Password != registerDto.ConfirmPassword)
-                throw new PassordsMissMatchException();
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["ConfirmPassword"] = new[] { "Password and confirm password do not match." }
+                });
+            }
+
+            if (string.IsNullOrWhiteSpace(registerDto.Name))
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["Name"] = new[] { "Name is required." }
+                });
+            }
+
+            if (string.IsNullOrWhiteSpace(registerDto.PhoneNumber))
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["PhoneNumber"] = new[] { "Phone number is required." }
+                });
+            }
+
+            if (string.IsNullOrWhiteSpace(registerDto.Password))
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["Password"] = new[] { "Password is required." }
+                });
+            }
 
             var servantPhone = NormalizeRegistrationPhone(registerDto.PhoneNumber);
             await EnsurePhoneNumberAvailableAsync(servantPhone);
@@ -472,11 +500,10 @@ namespace Church.BLL.Manager.Implementations
                     RequestedMeetingId = requestedMeetingId,
                     RequestedMeetingName = requestedMeetingName,
                     RequestedRole = requestedRole,
-                    MeetingAdminPhoneNumber = string.IsNullOrWhiteSpace(registerDto.MeetingAdminPhoneNumber)
-                        ? null
-                        : registerDto.MeetingAdminPhoneNumber.Trim().Replace(" ", ""),
+                    MeetingAdminPhoneNumber = NormalizeOptionalPhone(
+                        registerDto.MeetingAdminPhoneNumber,
+                        "MeetingAdminPhoneNumber"),
                     ApprovalDate = isApproved ? DateTime.Now : null,
-                    IsPhoneVerified = false,
                     // Photo/dates are held on the user; they move to the Servant profile on creation.
                     ImageUrl = imageUrl,
                     ImageFileName = imageFileName,
@@ -519,10 +546,7 @@ namespace Church.BLL.Manager.Implementations
                 await _servantRepo.AddAsync(servant);
                 await _unitOfWork.SaveChangesAsync();
             });
-
-            // TODO: Re-enable WhatsApp verification after verification module is completed.
-            // await _authOtpManager.SendPhoneVerificationAfterRegistrationAsync(servantPhone);
-            return AuthFlowResultDto.RequiresVerification(servantPhone);
+            return AuthFlowResultDto.Registered();
         }
         /// <summary>
         /// Users with <c>Admin</c>, <c>Servant</c>, or <c>SuperAdmin</c> must have a <c>Servants</c> row linked by <see cref="Servant.ApplicationUserId"/>.
@@ -616,8 +640,34 @@ namespace Church.BLL.Manager.Implementations
             _ => "Servant"
         };
 
-        private static string NormalizeRegistrationPhone(string rawPhone) =>
-            rawPhone.Trim().Replace(" ", "");
+        private static string NormalizeRegistrationPhone(string rawPhone)
+        {
+            if (!PhoneNumberNormalizer.TryNormalize(rawPhone, out var normalized))
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["PhoneNumber"] = new[] { "Phone number is invalid." }
+                });
+            }
+
+            return normalized;
+        }
+
+        private static string? NormalizeOptionalPhone(string? rawPhone, string fieldKey)
+        {
+            if (string.IsNullOrWhiteSpace(rawPhone))
+                return null;
+
+            if (!PhoneNumberNormalizer.TryNormalize(rawPhone, out var normalized))
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    [fieldKey] = new[] { "Phone number is invalid." }
+                });
+            }
+
+            return normalized;
+        }
 
         private async Task EnsurePhoneNumberAvailableAsync(string storedPhone)
         {
@@ -629,8 +679,7 @@ namespace Church.BLL.Manager.Implementations
                 });
             }
 
-            var candidates = PhoneNumberNormalizer.GetLookupCandidates(storedPhone);
-            if (candidates.Count == 0)
+            if (!PhoneNumberNormalizer.TryNormalize(storedPhone, out var normalized))
             {
                 throw new ValidationException(new Dictionary<string, string[]>
                 {
@@ -638,6 +687,7 @@ namespace Church.BLL.Manager.Implementations
                 });
             }
 
+            var candidates = PhoneNumberNormalizer.GetLookupCandidates(normalized);
             var exists = await _userManager.Users
                 .AnyAsync(u => u.PhoneNumber != null && candidates.Contains(u.PhoneNumber));
 

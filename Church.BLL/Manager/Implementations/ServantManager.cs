@@ -66,7 +66,6 @@ namespace Church.BLL.Manager.Implementations
                 throw new InvalidOperationException("Servant user was not created.");
 
             user.IsApproved = true;
-            user.IsPhoneVerified = true;
             user.PhoneNumberConfirmed = true;
             await _userManager.UpdateAsync(user);
         }

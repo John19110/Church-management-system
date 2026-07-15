@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Church.API.Json;
 using Church.BLL.Exceptions;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text.Json;
@@ -66,43 +67,6 @@ namespace Church.API.Middlewares
             context.Response.StatusCode = statusCode;
 
 
-            if (exception is PhoneNotVerifiedException phoneEx)
-            {
-                context.Response.ContentType =
-                    "application/json; charset=utf-8";
-
-                var payload = new
-                {
-                    success = false,
-                    errorCode = "PHONE_NOT_VERIFIED",
-                    message = phoneEx.Message,
-                    requiresPhoneVerification = true,
-                    phoneNumber = phoneEx.PhoneNumber
-                };
-
-                await WriteJsonAsync(context, payload);
-                return;
-            }
-
-
-            if (exception is OtpRateLimitException rateEx)
-            {
-                context.Response.ContentType =
-                    "application/json; charset=utf-8";
-
-                var payload = new
-                {
-                    success = false,
-                    errorCode = "OTP_RATE_LIMIT",
-                    message = rateEx.Message,
-                    retryAfterSeconds = rateEx.RetryAfterSeconds
-                };
-
-                await WriteJsonAsync(context, payload);
-                return;
-            }
-
-
             context.Response.ContentType =
                 "application/problem+json; charset=utf-8";
 
@@ -120,6 +84,14 @@ namespace Church.API.Middlewares
                             .SelectMany(x => x.Value));
                 }
             }
+            else if (exception is PassordsMissMatchException)
+            {
+                detail = exception.Message;
+            }
+            else if (exception is ChurchAlreadyExistsException)
+            {
+                detail = exception.Message;
+            }
 
 
             var problem = new ProblemDetails
@@ -136,6 +108,20 @@ namespace Church.API.Middlewares
             {
                 problem.Extensions["errors"] =
                     validationEx.Errors;
+            }
+            else if (exception is PassordsMissMatchException)
+            {
+                problem.Extensions["errors"] = new Dictionary<string, string[]>
+                {
+                    ["ConfirmPassword"] = new[] { exception.Message }
+                };
+            }
+            else if (exception is ChurchAlreadyExistsException)
+            {
+                problem.Extensions["errors"] = new Dictionary<string, string[]>
+                {
+                    ["ChurchName"] = new[] { exception.Message }
+                };
             }
 
 
@@ -235,7 +221,23 @@ namespace Church.API.Middlewares
                 (
                     (int)HttpStatusCode.BadRequest,
                     "VALIDATION_ERROR",
-                    "Validation error"
+                    "Validation failed"
+                ),
+
+
+                PassordsMissMatchException ex =>
+                (
+                    (int)HttpStatusCode.BadRequest,
+                    "VALIDATION_ERROR",
+                    ex.Message
+                ),
+
+
+                ChurchAlreadyExistsException ex =>
+                (
+                    (int)HttpStatusCode.BadRequest,
+                    "VALIDATION_ERROR",
+                    ex.Message
                 ),
 
 
@@ -293,24 +295,6 @@ namespace Church.API.Middlewares
                 (
                     (int)HttpStatusCode.Forbidden,
                     "ACCOUNT_REJECTED",
-                    ex.Message
-                ),
-
-
-
-                InvalidOtpException ex =>
-                (
-                    (int)HttpStatusCode.BadRequest,
-                    "INVALID_OTP",
-                    ex.Message
-                ),
-
-
-
-                OtpRateLimitException ex =>
-                (
-                    (int)HttpStatusCode.TooManyRequests,
-                    "OTP_RATE_LIMIT",
                     ex.Message
                 ),
 

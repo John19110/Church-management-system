@@ -151,6 +151,11 @@ class AppTheme {
           color: scheme.primary,
           fontWeight: FontWeight.w600,
         ),
+        errorMaxLines: 6,
+        errorStyle: textTheme.bodySmall?.copyWith(
+          color: AppColors.danger,
+          height: 1.35,
+        ),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         enabledBorder: OutlineInputBorder(
