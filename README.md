@@ -230,8 +230,6 @@ VS Code launch configs are in `.vscode/launch.json` (`cwd` → `Church.Mobile/mo
 |---------|----------|---------|
 | `ConnectionStrings:cs` | `appsettings.Development.json` | SQL Server connection |
 | `SecretKey` | `appsettings.Development.json` | JWT signing key |
-| `WhatsApp` | `appsettings.json` | Optional OTP / WhatsApp integration |
-| `Otp` | `appsettings.json` | OTP length, expiry, rate limits |
 | `baseUrl` | Flutter `app_constants.dart` | API base URL for Dio |
 
 > **Security:** Never commit real credentials. Use `appsettings.Development.json` locally (gitignored) or environment variables in production.

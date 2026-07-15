@@ -11,13 +11,6 @@ class AppConstants {
   static const String registerMeetingAdminEndpoint =
       '/api/Account/register-meeting-admin-new-church';
 
-  // Phone verification disabled
-  // // WhatsApp OTP auth (extends existing JWT flow)
-  // static const String sendWhatsAppOtpEndpoint = '/api/auth/send-whatsapp-otp';
-  // static const String verifyWhatsAppOtpEndpoint = '/api/auth/verify-whatsapp-otp';
-  // static const String forgotPasswordEndpoint = '/api/auth/forgot-password';
-  // static const String resetPasswordEndpoint = '/api/auth/reset-password';
-
   // Members (children) endpoints
   static const String membersEndpoint = '/api/Member';
   static const String classroomMembersBasePath = '/api/classrooms';

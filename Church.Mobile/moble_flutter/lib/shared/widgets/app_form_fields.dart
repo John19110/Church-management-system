@@ -16,6 +16,9 @@ class AppTextField extends StatelessWidget {
   final bool enabled;
   final bool readOnly;
   final VoidCallback? onTap;
+  final FocusNode? focusNode;
+  final ValueChanged<String>? onChanged;
+  final AutovalidateMode? autovalidateMode;
 
   const AppTextField({
     super.key,
@@ -30,15 +33,21 @@ class AppTextField extends StatelessWidget {
     this.enabled = true,
     this.readOnly = false,
     this.onTap,
+    this.focusNode,
+    this.onChanged,
+    this.autovalidateMode,
   });
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       controller: controller,
+      focusNode: focusNode,
       obscureText: obscureText,
       keyboardType: keyboardType,
       validator: validator,
+      onChanged: onChanged,
+      autovalidateMode: autovalidateMode,
       maxLines: obscureText ? 1 : maxLines,
       enabled: enabled,
       readOnly: readOnly,
@@ -47,6 +56,7 @@ class AppTextField extends StatelessWidget {
         labelText: label,
         hintText: hint,
         suffixIcon: suffixIcon,
+        errorMaxLines: 6,
       ),
     );
   }
@@ -128,6 +138,7 @@ class _AppDateFieldState extends State<AppDateField> {
       decoration: InputDecoration(
         labelText: widget.label,
         suffixIcon: const Icon(Icons.calendar_today),
+        errorMaxLines: 6,
       ),
       onTap: () async {
         final picked = await showDatePicker(
@@ -252,6 +263,7 @@ class _AppDateTimeFieldState extends State<AppDateTimeField> {
       decoration: InputDecoration(
         labelText: widget.label,
         suffixIcon: const Icon(Icons.calendar_today),
+        errorMaxLines: 6,
       ),
       onTap: _pickDateTime,
     );

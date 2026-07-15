@@ -7,10 +7,6 @@ import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
 import '../../features/auth/screens/registration_type_screen.dart';
 import '../../features/auth/screens/new_church_role_screen.dart';
-// Phone verification disabled
-// import '../../features/auth/screens/otp_verification_screen.dart';
-// import '../../features/auth/screens/forgot_password_screen.dart';
-// import '../../features/auth/screens/reset_password_screen.dart';
 import '../../features/auth/utils/auth_role_utils.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
 import '../../features/member/screens/members_list_screen.dart';
@@ -56,10 +52,6 @@ class AppRoutes {
       '/register/new-church/meeting-admin';
   static const registerNewChurchSuperAdmin =
       '/register/new-church/super-admin';
-  // Phone verification disabled
-  // static const verifyPhone = '/verify-phone';
-  // static const forgotPassword = '/forgot-password';
-  // static const resetPassword = '/reset-password';
   static const dashboard = '/dashboard';
   static const superAdminHome = '/super-admin-home';
   static const adminHome = '/admin-home';
@@ -94,10 +86,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       final onAuthPage = loc == AppRoutes.login ||
           loc == AppRoutes.register ||
           loc.startsWith(AppRoutes.register);
-          // Phone verification disabled
-          // loc.startsWith(AppRoutes.verifyPhone) ||
-          // loc == AppRoutes.forgotPassword ||
-          // loc.startsWith(AppRoutes.resetPassword);
 
       if (!hasToken && !onAuthPage) {
         return AppRoutes.login;
@@ -140,25 +128,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, __) =>
             const RegisterScreen(mode: RegisterFormMode.newChurchSuperAdmin),
       ),
-      // Phone verification disabled
-      // GoRoute(
-      //   path: AppRoutes.verifyPhone,
-      //   builder: (_, state) {
-      //     final phone = state.uri.queryParameters['phone'] ?? '';
-      //     return OtpVerificationScreen(phoneNumber: phone);
-      //   },
-      // ),
-      // GoRoute(
-      //   path: AppRoutes.forgotPassword,
-      //   builder: (_, __) => const ForgotPasswordScreen(),
-      // ),
-      // GoRoute(
-      //   path: AppRoutes.resetPassword,
-      //   builder: (_, state) {
-      //     final phone = state.uri.queryParameters['phone'] ?? '';
-      //     return ResetPasswordScreen(phoneNumber: phone);
-      //   },
-      // ),
       GoRoute(path: AppRoutes.dashboard, builder: (_, __) => const DashboardScreen()),
 
       GoRoute(
