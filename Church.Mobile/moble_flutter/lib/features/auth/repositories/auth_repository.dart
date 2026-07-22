@@ -49,7 +49,8 @@ class AuthRepository {
         if (dto.meetingAdminPhoneNumber != null &&
             dto.meetingAdminPhoneNumber!.isNotEmpty)
           'MeetingAdminPhoneNumber': dto.meetingAdminPhoneNumber,
-        if (dto.meetingPublicId.isNotEmpty) 'MeetingPublicId': dto.meetingPublicId,
+        if (dto.meetingPublicId.isNotEmpty)
+          'MeetingPublicId': dto.meetingPublicId,
         if (dto.birthDate != null) 'BirthDate': dto.birthDate,
         if (dto.joiningDate != null) 'JoiningDate': dto.joiningDate,
         if (dto.image != null)
@@ -75,7 +76,8 @@ class AuthRepository {
   }
 
   Future<AuthFlowResult> registerChurchSuperAdmin(
-      RegisterChurchSuperAdminDto dto) async {
+    RegisterChurchSuperAdminDto dto,
+  ) async {
     return apiCall(() async {
       final map = <String, dynamic>{
         'Name': dto.name,
@@ -104,7 +106,9 @@ class AuthRepository {
     });
   }
 
-  Future<AuthFlowResult> registerMeetingAdmin(RegisterMeetingAdminDto dto) async {
+  Future<AuthFlowResult> registerMeetingAdmin(
+    RegisterMeetingAdminDto dto,
+  ) async {
     return apiCall(() async {
       final map = <String, dynamic>{
         'Name': dto.name,
@@ -145,5 +149,12 @@ class AuthRepository {
     } finally {
       await TokenStorage.deleteToken();
     }
+  }
+
+  /// Permanently deletes the authenticated account on the server.
+  Future<void> deleteAccount() async {
+    await apiCall(() async {
+      await _dio.delete<void>(AppConstants.deleteAccountEndpoint);
+    });
   }
 }

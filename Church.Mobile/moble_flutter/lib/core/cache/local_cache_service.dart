@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 /// Simple persistent cache with TTL using Hive.
 ///
@@ -13,19 +13,30 @@ import 'package:hive/hive.dart';
 class LocalCacheService {
   static const String _boxName = 'local_cache_v1';
   static Box<String>? _box;
+  static Future<void>? _opening;
+  static bool _hiveReady = false;
 
-  static Future<void> ensureInitialized() async {
-    _box ??= await Hive.openBox<String>(_boxName);
+  /// Opens Hive + the cache box. Safe to call multiple times; used after the
+  /// first frame from [main] and lazily from cache read/write methods.
+  static Future<void> ensureInitialized() {
+    if (_box != null) return Future.value();
+    return _opening ??= () async {
+      try {
+        if (!_hiveReady) {
+          await Hive.initFlutter();
+          _hiveReady = true;
+        }
+        _box = await Hive.openBox<String>(_boxName);
+      } catch (_) {
+        _opening = null;
+        rethrow;
+      }
+    }();
   }
 
-  Box<String> get _b {
-    final box = _box;
-    if (box == null) {
-      throw StateError(
-        'LocalCacheService not initialized. Call LocalCacheService.ensureInitialized() at startup.',
-      );
-    }
-    return box;
+  Future<Box<String>> _boxAsync() async {
+    await ensureInitialized();
+    return _box!;
   }
 
   Future<void> putJson({
@@ -33,44 +44,59 @@ class LocalCacheService {
     required String payloadJson,
     required Duration ttl,
   }) async {
+    final box = await _boxAsync();
     final expiresAt = DateTime.now().toUtc().add(ttl);
     final envelope = jsonEncode({
       'expiresAtUtcMillis': expiresAt.millisecondsSinceEpoch,
       'payloadJson': payloadJson,
     });
-    await _b.put(key, envelope);
+    await box.put(key, envelope);
   }
 
   /// Returns the raw payload JSON if present and not expired.
   Future<String?> getJson(String key) async {
-    final envelopeStr = _b.get(key);
+    final box = await _boxAsync();
+    final envelopeStr = box.get(key);
     if (envelopeStr == null) return null;
     try {
       final env = jsonDecode(envelopeStr) as Map<String, dynamic>;
       final expiresAtUtcMillis = env['expiresAtUtcMillis'];
       final payloadJson = env['payloadJson'];
       if (expiresAtUtcMillis is! int || payloadJson is! String) return null;
-      final expiresAt =
-          DateTime.fromMillisecondsSinceEpoch(expiresAtUtcMillis, isUtc: true);
+      final expiresAt = DateTime.fromMillisecondsSinceEpoch(
+        expiresAtUtcMillis,
+        isUtc: true,
+      );
       if (DateTime.now().toUtc().isAfter(expiresAt)) {
-        await _b.delete(key);
+        await box.delete(key);
         return null;
       }
       return payloadJson;
     } catch (_) {
       // Corrupt entry: delete to avoid infinite failures.
-      await _b.delete(key);
+      await box.delete(key);
       return null;
     }
   }
 
-  Future<void> remove(String key) => _b.delete(key);
+  Future<void> remove(String key) async {
+    final box = await _boxAsync();
+    await box.delete(key);
+  }
 
   /// Deletes only entries that belong to a specific tenant prefix.
   Future<void> clearTenant(int tenantId) async {
+    final box = await _boxAsync();
     final prefix = 'tenant_${tenantId}_';
-    final keys = _b.keys.whereType<String>().where((k) => k.startsWith(prefix));
-    await _b.deleteAll(keys.toList());
+    final keys = box.keys.whereType<String>().where(
+      (k) => k.startsWith(prefix),
+    );
+    await box.deleteAll(keys.toList());
+  }
+
+  /// Removes all cached data, including every tenant and user cache entry.
+  Future<void> clearAll() async {
+    final box = await _boxAsync();
+    await box.clear();
   }
 }
-

@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../startup/splash_theme_sync.dart';
 import 'shared_preferences_provider.dart';
 
-const _themePrefsKey = 'app_theme_mode'; // light | dark | system
+const themePrefsKey = 'app_theme_mode'; // light | dark | system
 
-ThemeMode _themeModeFromPrefs(String? raw) {
+ThemeMode themeModeFromPrefs(String? raw) {
   switch (raw) {
     case 'dark':
       return ThemeMode.dark;
@@ -18,7 +19,7 @@ ThemeMode _themeModeFromPrefs(String? raw) {
   }
 }
 
-String _themeModeToPrefs(ThemeMode mode) {
+String themeModeToPrefs(ThemeMode mode) {
   return switch (mode) {
     ThemeMode.dark => 'dark',
     ThemeMode.system => 'system',
@@ -34,12 +35,13 @@ class ThemeController extends StateNotifier<ThemeMode> {
         super(initial);
 
   static ThemeMode loadInitial(SharedPreferences prefs) {
-    return _themeModeFromPrefs(prefs.getString(_themePrefsKey));
+    return themeModeFromPrefs(prefs.getString(themePrefsKey));
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {
     state = mode;
-    await _prefs.setString(_themePrefsKey, _themeModeToPrefs(mode));
+    await _prefs.setString(themePrefsKey, themeModeToPrefs(mode));
+    await SplashThemeSync.sync(mode);
   }
 
   Future<void> toggle() async {
