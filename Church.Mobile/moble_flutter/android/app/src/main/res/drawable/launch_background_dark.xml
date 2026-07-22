@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Light scaffold + centered logo (app ThemeMode.light / default). -->
+<!-- Dark scaffold + centered logo (app ThemeMode.dark). -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@color/splash_background_light" />
+    <item android:drawable="@color/splash_background_dark" />
     <item>
         <bitmap
             android:gravity="center"

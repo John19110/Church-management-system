@@ -5,8 +5,9 @@
 
     <application
         android:label="My Church"
-        android:name="${applicationName}"
+        android:name=".ChurchApplication"
         android:icon="@mipmap/ic_launcher"
+        android:theme="@style/LaunchTheme"
         android:usesCleartextTraffic="true">
 
         <activity
@@ -17,8 +18,10 @@
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
-            android:windowSoftInputMode="adjustResize">
+            android:windowSoftInputMode="adjustResize"
+            android:enableOnBackInvokedCallback="true">
 
+            <!-- Flutter replaces LaunchTheme with NormalTheme after the first frame. -->
             <meta-data
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme" />

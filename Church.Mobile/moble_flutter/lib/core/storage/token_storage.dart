@@ -41,6 +41,13 @@ class TokenStorage {
     await _storage.delete(key: AppConstants.tokenKey);
   }
 
+  /// Removes every secure-storage value owned by this application.
+  static Future<void> clearAll() async {
+    _cachedToken = null;
+    _cacheLoaded = true;
+    await _storage.deleteAll();
+  }
+
   static Future<bool> hasToken() async {
     final token = await getToken();
     return token != null && token.isNotEmpty;

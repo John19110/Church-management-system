@@ -3,7 +3,7 @@ description: Church Management System — Flutter mobile client.
 
 publish_to: "none"
 
-version: 1.0.0+2
+version: 1.0.0+3
 
 environment:
   # Aligned with path_provider 2.1.6 (requires Dart ^3.10 / Flutter >=3.38).
@@ -73,6 +73,8 @@ flutter:
     - assets/flags/eg.png
     - assets/flags/uk.png
     - assets/app_logo_adjusted.png
+    - assets/app_logo_splash.png
+
 flutter_launcher_icons:
   android: true
   ios: true

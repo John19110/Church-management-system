@@ -5,6 +5,7 @@ class AppConstants {
   // Auth endpoints
   static const String loginEndpoint = '/api/Account/login';
   static const String logoutEndpoint = '/api/Account/logout';
+  static const String deleteAccountEndpoint = '/api/Account';
   static const String registerServantEndpoint = '/api/Account/register-servant';
   static const String registerChurchSuperAdminEndpoint =
       '/api/Account/register-church-superadmin';

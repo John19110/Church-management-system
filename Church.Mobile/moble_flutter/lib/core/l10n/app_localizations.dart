@@ -63,6 +63,12 @@ class AppLocalizations {
   String get classrooms => _t('classrooms');
   String get servants => _t('servants');
   String get logout => _t('logout');
+  String get deleteAccount => _t('deleteAccount');
+  String get deleteAccountTitle => _t('deleteAccountTitle');
+  String get deleteAccountWarning => _t('deleteAccountWarning');
+  String get deleteAccountSuccess => _t('deleteAccountSuccess');
+  String get deleteAccountFailure => _t('deleteAccountFailure');
+  String get deletingAccount => _t('deletingAccount');
   String get sundaySchool => _t('sundaySchool');
   String get managementSystem => _t('managementSystem');
 
@@ -301,7 +307,8 @@ class AppLocalizations {
   String get meetingNameRequiredGeneric => _t('meetingNameRequiredGeneric');
   String get dayOfWeekRequired => _t('dayOfWeekRequired');
   String get weeklyAppointmentTime => _t('weeklyAppointmentTime');
-  String get weeklyAppointmentTimeRequired => _t('weeklyAppointmentTimeRequired');
+  String get weeklyAppointmentTimeRequired =>
+      _t('weeklyAppointmentTimeRequired');
 
   // ── Servant ───────────────────────────────────────────────────────────────
   String get servant => _t('servant');
@@ -383,7 +390,8 @@ class AppLocalizations {
   String get pendingCount => _t('pendingCount');
   String get noVisibleMeetingsFound => _t('noVisibleMeetingsFound');
   String get failedToLoadVisibleMeetings => _t('failedToLoadVisibleMeetings');
-  String get failedToLoadVisibleClassrooms => _t('failedToLoadVisibleClassrooms');
+  String get failedToLoadVisibleClassrooms =>
+      _t('failedToLoadVisibleClassrooms');
   String get failedToLoadClassrooms => _t('failedToLoadClassrooms');
   String get editMeetingTitle => _t('editMeetingTitle');
   String get pageNotFound => _t('pageNotFound');
@@ -406,8 +414,9 @@ class AppLocalizations {
 
   // ── Custom fields (admin) ─────────────────────────────────────────────────
   String get customFields => _t('customFields');
-  String customFieldsForEntity(String entityName) =>
-      _t('customFieldsForEntity').replaceAll('{entity}', entityDisplayName(entityName));
+  String customFieldsForEntity(String entityName) => _t(
+    'customFieldsForEntity',
+  ).replaceAll('{entity}', entityDisplayName(entityName));
   String entityDisplayName(String entityName) {
     switch (entityName) {
       case 'Member':
@@ -424,6 +433,7 @@ class AppLocalizations {
         return entityName;
     }
   }
+
   String get notAuthorized => _t('notAuthorized');
   String get noCustomFieldsYet => _t('noCustomFieldsYet');
   String get noFieldsConfigured => _t('noFieldsConfigured');
@@ -466,6 +476,7 @@ class AppLocalizations {
         return _t('fieldPositionNumber').replaceAll('{n}', '$position');
     }
   }
+
   String get fieldPositionLast => _t('fieldPositionLast');
   String get deleteFieldPermanently => _t('deleteFieldPermanently');
   String deleteFieldPermanentlyConfirm(String name) =>
@@ -515,9 +526,9 @@ class AppLocalizations {
   String get editEntityFields => _t('editEntityFields');
   String get changesSaved => _t('changesSaved');
   String get entityFieldsNotConfigured => _t('entityFieldsNotConfigured');
-  String configureEntityAttributesTitle(String entityName) =>
-      _t('configureEntityAttributesTitle')
-          .replaceAll('{entity}', entityDisplayName(entityName));
+  String configureEntityAttributesTitle(String entityName) => _t(
+    'configureEntityAttributesTitle',
+  ).replaceAll('{entity}', entityDisplayName(entityName));
   String get customFieldsAdminDescription => _t('customFieldsAdminDescription');
   String get recommendedSyncKeysHint => _t('recommendedSyncKeysHint');
 
@@ -629,8 +640,7 @@ class AppLocalizations {
   String attendanceSessionsCountText(int count) =>
       attendanceSessionsCount.replaceAll('{count}', formatInteger(count));
 
-  String membersCountLine(int count) =>
-      '${formatInteger(count)} $members';
+  String membersCountLine(int count) => '${formatInteger(count)} $members';
 
   String membersAndSessionsLine(int members, int sessions) =>
       '${membersCountLine(members)} · ${attendanceSessionsCountText(sessions)}';
@@ -643,12 +653,14 @@ class AppLocalizations {
     if (classroomName == null || classroomName.trim().isEmpty) {
       return attendanceHistory;
     }
-    return _t('attendanceHistoryWithClassroom')
-        .replaceAll('{classroom}', classroomName);
+    return _t(
+      'attendanceHistoryWithClassroom',
+    ).replaceAll('{classroom}', classroomName);
   }
-  String entityAdditionalFieldsTitle(String entityName) =>
-      _t('entityAdditionalFieldsTitle')
-          .replaceAll('{entity}', entityDisplayName(entityName));
+
+  String entityAdditionalFieldsTitle(String entityName) => _t(
+    'entityAdditionalFieldsTitle',
+  ).replaceAll('{entity}', entityDisplayName(entityName));
 
   // ── Translation tables ────────────────────────────────────────────────────
   static const Map<String, Map<String, String>> _translations = {
@@ -683,6 +695,14 @@ class AppLocalizations {
       'classrooms': 'Classrooms',
       'servants': 'Servants',
       'logout': 'Logout',
+      'deleteAccount': 'Delete Account',
+      'deleteAccountTitle': 'Delete your account?',
+      'deleteAccountWarning':
+          'Deleting your account is permanent and cannot be undone. All personal data associated with your account will be permanently deleted.',
+      'deleteAccountSuccess': 'Your account was permanently deleted.',
+      'deleteAccountFailure':
+          'We could not delete your account. Please try again.',
+      'deletingAccount': 'Deleting account…',
       'sundaySchool': 'Sunday School',
       // Children
       'noMembers': 'No members yet. Tap + to add one.',
@@ -716,7 +736,7 @@ class AppLocalizations {
       'firstNameRequired': 'First name is required',
       'dobRequired': 'Date of birth is required',
       'joiningDateRequired': 'Joining date is required',
-      'spiritualDateOfBirth': 'Spiritual date of birth (optional)',
+      'spiritualDateOfBirth': 'Spiritual date of birth',
       'haveBrothersInProgram': 'Has brothers in the program',
       'brothersNamesSection': 'Brothers\' names',
       'brotherName': 'Brother name',
@@ -732,8 +752,7 @@ class AppLocalizations {
       'memberSectionPersonal': 'Personal information',
       'memberSectionDates': 'Dates',
       'disciplineStatus': 'Discipline member',
-      'disciplineStatusHint':
-          'Mark if this member is on the discipline list',
+      'disciplineStatusHint': 'Mark if this member is on the discipline list',
       'fullNameComputedHint':
           'Full name is generated automatically from the name fields',
       'optionalLabel': 'Optional',
@@ -753,10 +772,8 @@ class AppLocalizations {
       'invalidPhoneFormat': 'Enter a valid phone number',
       'relationRequiredWhenPhone':
           'Select a relation when a phone number is entered',
-      'classroomIdsOptional':
-          'Classroom IDs (comma-separated, optional)',
-      'weeklyAppointmentHint':
-          'Time only, e.g. 09:00',
+      'classroomIdsOptional': 'Classroom IDs (comma-separated)',
+      'weeklyAppointmentHint': 'Time only, e.g. 09:00',
       'invalidWeeklyAppointment': 'Enter a valid time',
       'meetingDayOfWeek': 'Day of week',
       'weekdaySaturday': 'Saturday',
@@ -812,19 +829,21 @@ class AppLocalizations {
       'registerTypeServant': 'Servant',
       'registerTypeChurchAdmin': 'Church Admin',
       'registerTypeMeetingAdmin': 'Meeting Admin',
-      'churchExistsQuestion': 'Does your church already exist in the application?',
+      'churchExistsQuestion':
+          'Does your church already exist in the application?',
       'churchExistsYes': 'Yes, my church already exists',
       'churchExistsNo': 'No, my church does not exist yet',
       'joinExistingChurchTitle': 'Join an Existing Church',
       'meetingAdminPhone': 'Meeting Admin Phone Number',
       'enterMeetingAdminPhone': 'Enter the meeting admin\'s phone number',
       'meetingAdminPhoneRequired': 'Meeting admin phone number is required',
-      'noMeetingsToAssign': 'No meetings exist yet. Create a meeting before approving this user.',
+      'noMeetingsToAssign':
+          'No meetings exist yet. Create a meeting before approving this user.',
       'weeklyAppointment': 'Weekly Appointment',
       'weeklyAppointmentRequired': 'Weekly appointment is required',
-      'phoneAlreadyUsed': 'This phone number is already in use. Please sign in or use a different number.',
-      'phoneInvalid':
-          'Enter a valid phone number (e.g. +201001234567).',
+      'phoneAlreadyUsed':
+          'This phone number is already in use. Please sign in or use a different number.',
+      'phoneInvalid': 'Enter a valid phone number (e.g. +201001234567).',
       'churchNameAlreadyExists': 'A church with this name already exists.',
       'churchOrMeetingNotFound': 'Church or meeting not found.',
       'churchOrMeetingIdInvalid':
@@ -852,7 +871,7 @@ class AppLocalizations {
       'takeAttendance': 'Take Attendance',
       'viewAttendance': 'View Attendance',
       'notes': 'Notes',
-      'sessionNotes': 'Session Notes (optional)',
+      'sessionNotes': 'Session Notes',
       'present': 'Present',
       'absent': 'Absent',
       'late': 'Late',
@@ -905,7 +924,8 @@ class AppLocalizations {
       'pendingUsers': 'Pending Users',
       'noPendingUsers': 'No pending users.',
       'requestedMeetingName': 'Requested Meeting Name',
-      'enterRequestedMeetingName': 'e.g. Preparatory Boys, College, Servants Meeting',
+      'enterRequestedMeetingName':
+          'e.g. Preparatory Boys, College, Servants Meeting',
       'requestedMeetingNameRequired': 'Requested meeting name is required.',
       'requestedMeetingLabel': 'Requested Meeting',
       'requestedRoleLabel': 'Role',
@@ -1020,8 +1040,8 @@ class AppLocalizations {
       'missingRequiredData': 'Missing required data for this screen.',
       'optional': 'optional',
       'visibleMeetings': 'Visible Meetings',
-      'leaderServantOptional': 'Leader Servant (optional)',
-      'classroomServantsOptional': 'Servants (optional)',
+      'leaderServantOptional': 'Leader Servant ',
+      'classroomServantsOptional': 'Servants ',
       'selectServant': 'Select servant',
       'meetingUpdated': 'Meeting updated.',
       'attendanceSessionsCount': '{count} attendance sessions',
@@ -1051,7 +1071,8 @@ class AppLocalizations {
       'fieldStatusOptional': 'Optional',
       'fieldHiddenInForms': 'Hidden in forms',
       'fieldHiddenLabel': 'Hidden in forms',
-      'fieldHiddenHint': 'When enabled, this field is not shown on create/edit screens.',
+      'fieldHiddenHint':
+          'When enabled, this field is not shown on create/edit screens.',
       'sortOrderLabel': 'Sort order',
       'fieldAppearancePositionLabel': 'Appearance position',
       'fieldPos_1': 'First',
@@ -1081,7 +1102,8 @@ class AppLocalizations {
           'Database key "{name}" is fixed and cannot be changed.',
       'systemFieldKeyLockedLabel':
           '"{label}" is a system field; its internal property name cannot be changed.',
-      'systemFieldCannotDeactivate': 'The entity name field cannot be deactivated.',
+      'systemFieldCannotDeactivate':
+          'The entity name field cannot be deactivated.',
       'systemFieldNotProvisioned':
           'This system field is not saved on the server yet. Deploy the latest API and reopen this screen.',
       'editCustomField': 'Edit custom field',
@@ -1104,7 +1126,8 @@ class AppLocalizations {
       'deactivate': 'Deactivate',
       'fieldDeactivated': 'Field deactivated',
       'reactivateField': 'Reactivate field',
-      'reactivateFieldConfirm': 'Reactivate "{name}"? It will appear on forms and detail screens again.',
+      'reactivateFieldConfirm':
+          'Reactivate "{name}"? It will appear on forms and detail screens again.',
       'reactivate': 'Reactivate',
       'fieldActivated': 'Field activated',
       'fieldActive': 'Active',
@@ -1218,7 +1241,7 @@ class AppLocalizations {
       // Dashboard
       'dashboard': 'لوحة التحكم',
       'welcome': 'مرحباً!',
-      'sundaySchoolManagement': 'إدارة مدرسة الأحد',
+      'sundaySchoolManagement': 'إدارة الكنيسه',
       'quickAccess': 'الوصول السريع',
       'members': 'الأعضاء',
       'attendance': 'الحضور',
@@ -1226,7 +1249,14 @@ class AppLocalizations {
       'classrooms': 'المجموعات',
       'servants': 'الخدام',
       'logout': 'تسجيل الخروج',
-      'sundaySchool': 'مدرسة الأحد',
+      'deleteAccount': 'حذف الحساب',
+      'deleteAccountTitle': 'هل تريد حذف حسابك؟',
+      'deleteAccountWarning':
+          'حذف حسابك نهائي ولا يمكن التراجع عنه. سيتم حذف جميع البيانات الشخصية المرتبطة بحسابك نهائياً.',
+      'deleteAccountSuccess': 'تم حذف حسابك نهائياً.',
+      'deleteAccountFailure': 'تعذر حذف حسابك. يرجى المحاولة مرة أخرى.',
+      'deletingAccount': 'جارٍ حذف الحساب…',
+      'sundaySchool': 'كنيستي',
       'managementSystem': 'نظام الإدارة',
       // Children
       'noMembers': 'لا يوجد أعضاء بعد. اضغط + للإضافة.',
@@ -1277,8 +1307,7 @@ class AppLocalizations {
       'memberSectionDates': 'التواريخ',
       'disciplineStatus': 'ملتزم',
       'disciplineStatusHint': 'حدّد إذا كان المخدوم ضمن قائمة الانضباط',
-      'fullNameComputedHint':
-          'يُولَّد الاسم الكامل تلقائياً من معلومات الاسم',
+      'fullNameComputedHint': 'يُولَّد الاسم الكامل تلقائياً من معلومات الاسم',
       'optionalLabel': 'اختياري',
       'clearLabel': 'مسح',
       'haveBrothersQuestion': 'هل لدى المخدوم إخوة في البرنامج؟',
@@ -1294,9 +1323,8 @@ class AppLocalizations {
       'phoneRelationGuardian': 'ولي الأمر',
       'phoneRelationOther': 'أخرى',
       'invalidPhoneFormat': 'أدخل رقماً هاتفياً صالحاً',
-      'relationRequiredWhenPhone':
-          'اختر صلة القرابة عند إدخال رقم هاتف',
-      'classroomIdsOptional': ' المجموعه (مفصولة بفاصلة، اختياري)',
+      'relationRequiredWhenPhone': 'اختر صلة القرابة عند إدخال رقم هاتف',
+      'classroomIdsOptional': ' المجموعه (مفصولة بفاصلة )',
       'weeklyAppointmentHint': 'وقت فقط، مثال 09:00',
       'invalidWeeklyAppointment': 'أدخل وقتاً صحيحاً',
       'meetingDayOfWeek': 'يوم الأسبوع',
@@ -1362,12 +1390,13 @@ class AppLocalizations {
       'meetingAdminPhone': 'رقم هاتف قائد الاجتماع',
       'enterMeetingAdminPhone': 'أدخل رقم هاتف قائد الاجتماع',
       'meetingAdminPhoneRequired': 'رقم هاتف قائد الاجتماع مطلوب',
-      'noMeetingsToAssign': 'لا توجد اجتماعات بعد. أنشئ اجتماعًا قبل الموافقة على هذا المستخدم.',
+      'noMeetingsToAssign':
+          'لا توجد اجتماعات بعد. أنشئ اجتماعًا قبل الموافقة على هذا المستخدم.',
       'weeklyAppointment': 'الموعد الأسبوعي',
       'weeklyAppointmentRequired': 'الموعد الأسبوعي مطلوب',
-      'phoneAlreadyUsed': 'رقم الهاتف مستخدم بالفعل. يرجى تسجيل الدخول أو استخدام رقم آخر.',
-      'phoneInvalid':
-          'أدخل رقم هاتف صالح (مثال: +201001234567).',
+      'phoneAlreadyUsed':
+          'رقم الهاتف مستخدم بالفعل. يرجى تسجيل الدخول أو استخدام رقم آخر.',
+      'phoneInvalid': 'أدخل رقم هاتف صالح (مثال: +201001234567).',
       'churchNameAlreadyExists': 'كنيسة بهذا الاسم موجودة بالفعل.',
       'churchOrMeetingNotFound': 'الكنيسة أو الاجتماع غير موجود.',
       'churchOrMeetingIdInvalid': 'يلزم إدخال معرّف كنيسة أو اجتماع صالح.',
@@ -1375,11 +1404,11 @@ class AppLocalizations {
           'رقم هاتف قائد الاجتماع مطلوب للخدام.',
       'registrationUsernameConflict':
           'فشل التسجيل بسبب تعارض في اسم المستخدم. يرجى المحاولة مرة أخرى.',
-      'meetingNotInChurch':
-          'الاجتماع المحدد لا ينتمي إلى الكنيسة المحددة.',
+      'meetingNotInChurch': 'الاجتماع المحدد لا ينتمي إلى الكنيسة المحددة.',
       'validationFailed': 'فشل التحقق من البيانات',
       'confirmPasswordRequired': 'تأكيد كلمة المرور مطلوب.',
-      'passwordRequiresDigit': 'يجب أن تحتوي كلمة المرور على رقم واحد على الأقل.',
+      'passwordRequiresDigit':
+          'يجب أن تحتوي كلمة المرور على رقم واحد على الأقل.',
       'passwordRequiresLower':
           'يجب أن تحتوي كلمة المرور على حرف صغير واحد على الأقل.',
       'passwordRequiresUpper':
@@ -1559,8 +1588,8 @@ class AppLocalizations {
       'missingRequiredData': 'بيانات مطلوبة مفقودة لهذه الصفحة.',
       'optional': 'اختياري',
       'visibleMeetings': 'الاجتماعات ',
-      'leaderServantOptional': 'الخادم المسؤول (اختياري)',
-      'classroomServantsOptional': 'الخدام (اختياري)',
+      'leaderServantOptional': 'الخادم المسؤول',
+      'classroomServantsOptional': 'الخدام ',
       'selectServant': 'اختر خادماً',
       'meetingUpdated': 'تم تحديث الاجتماع.',
       'attendanceSessionsCount': '{count} جلسات حضور',
@@ -1590,7 +1619,8 @@ class AppLocalizations {
       'fieldStatusOptional': 'اختياري',
       'fieldHiddenInForms': 'مخفي في النماذج',
       'fieldHiddenLabel': 'مخفي في النماذج',
-      'fieldHiddenHint': 'عند التفعيل، لا يظهر هذا الحقل في شاشات الإنشاء أو التعديل.',
+      'fieldHiddenHint':
+          'عند التفعيل، لا يظهر هذا الحقل في شاشات الإنشاء أو التعديل.',
       'sortOrderLabel': 'ترتيب العرض',
       'fieldAppearancePositionLabel': 'موضع الظهور',
       'fieldPos_1': 'الأول',
@@ -1611,8 +1641,7 @@ class AppLocalizations {
       'deletePermanently': 'حذف نهائي',
       'fieldMoreOptions': 'خيارات الحقل',
       'fieldDeletedPermanently': 'تم حذف الحقل نهائياً',
-      'systemFieldCannotDelete':
-          'لا يمكن حذف حقل اسم الكيان نهائياً.',
+      'systemFieldCannotDelete': 'لا يمكن حذف حقل اسم الكيان نهائياً.',
       'placeholderLabel': 'نص توضيحي',
       'validationRegexLabel': 'نمط التحقق (تعبير نمطي)',
       'editSystemField': 'تعديل حقل النظام',
@@ -1684,10 +1713,8 @@ class AppLocalizations {
       'genericErrorTryAgain': 'حدث خطأ. يرجى المحاولة مرة أخرى.',
       'invalidCredentialsPleaseTryAgain':
           'بيانات الدخول غير صحيحة. يرجى المحاولة مرة أخرى.',
-      'sessionExpiredPleaseSignIn':
-          'انتهت جلستك. يرجى تسجيل الدخول مرة أخرى.',
-      'networkErrorTryAgain':
-          'خطأ في الشبكة. تحقق من الاتصال وحاول مرة أخرى.',
+      'sessionExpiredPleaseSignIn': 'انتهت جلستك. يرجى تسجيل الدخول مرة أخرى.',
+      'networkErrorTryAgain': 'خطأ في الشبكة. تحقق من الاتصال وحاول مرة أخرى.',
       'somethingWentWrongTryAgain': 'حدث خطأ ما. يرجى المحاولة مرة أخرى.',
       'serverErrorTryLater': 'خطأ في الخادم. يرجى المحاولة لاحقاً.',
       // IDs / API
@@ -1742,8 +1769,7 @@ class _AppLocalizationsDelegate
   const _AppLocalizationsDelegate();
 
   @override
-  bool isSupported(Locale locale) =>
-      ['en', 'ar'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => ['en', 'ar'].contains(locale.languageCode);
 
   @override
   Future<AppLocalizations> load(Locale locale) async =>

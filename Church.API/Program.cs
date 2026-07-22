@@ -33,6 +33,10 @@ using Church.API.Infrastructure;
 using Church.API.Infrastructure.Auth;
 using Church.API.Infrastructure.Tenant;
 using Church.API.Infrastructure.Caching;
+using Church.BLL.Services.AccountDeletion;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -127,6 +131,7 @@ builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
 builder.Services.AddScoped<IAttendanceManager, AttendanceManager>();
 
 builder.Services.AddScoped<IAccountManager, AccountManager>();
+builder.Services.AddScoped<IAccountDeletionService, AccountDeletionService>();
 
 builder.Services.AddScoped<IChurchRepository, ChurchRepository>();
 builder.Services.AddScoped<IChurchManager, ChurchManager>();
@@ -194,6 +199,32 @@ builder.Services.AddAuthentication(option =>
             // we use them if we have another independent server for validation
             ValidateIssuer = false,
             ValidateAudience = false
+        };
+
+        // Stateless JWTs must stop authorizing immediately after account deletion.
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                var userId = context.Principal?.FindFirstValue(JwtRegisteredClaimNames.Sub)
+                    ?? context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (string.IsNullOrWhiteSpace(userId))
+                {
+                    context.Fail("Token has no user identifier.");
+                    return;
+                }
+
+                await using var scope = context.HttpContext.RequestServices.CreateAsyncScope();
+                var db = scope.ServiceProvider.GetRequiredService<ProgramContext>();
+                var userStillExists = await db.Users
+                    .AsNoTracking()
+                    .IgnoreQueryFilters()
+                    .AnyAsync(u => u.Id == userId, context.HttpContext.RequestAborted);
+
+                if (!userStillExists)
+                    context.Fail("Account no longer exists.");
+            }
         };
     }
     );
@@ -318,6 +349,16 @@ app.UseAuthorization();
 app.UseMiddleware<TenantContextPopulationMiddleware>();
 
 app.MapControllers();
+app.MapGet(
+    "/account-deletion",
+    (IWebHostEnvironment environment) => Results.File(
+        Path.Combine(environment.WebRootPath, "account-deletion", "index.html"),
+        "text/html; charset=utf-8"));
+app.MapGet(
+    "/privacy-policy",
+    (IWebHostEnvironment environment) => Results.File(
+        Path.Combine(environment.WebRootPath, "privacy-policy", "index.html"),
+        "text/html; charset=utf-8"));
 //if (app.Environment.IsDevelopment())
 //{
     app.MapGet("/", () => Results.Redirect("/swagger"));

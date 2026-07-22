@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Church.BLL.DTOS.AccountDtos;
 using Church.BLL.Manager.Interfaces;
+using Church.BLL.Services.AccountDeletion;
 
 namespace Church.API.Controllers
 {
@@ -11,12 +12,16 @@ namespace Church.API.Controllers
     public class AccountController : ControllerBase
     {
         private readonly IAccountManager _accountManager;
+        private readonly IAccountDeletionService _accountDeletionService;
         private readonly IWebHostEnvironment _env;
 
-        // ✅ Inject BOTH dependencies
-        public AccountController(IAccountManager accountManager, IWebHostEnvironment env)
+        public AccountController(
+            IAccountManager accountManager,
+            IAccountDeletionService accountDeletionService,
+            IWebHostEnvironment env)
         {
             _accountManager = accountManager;
+            _accountDeletionService = accountDeletionService;
             _env = env;
         }
 
@@ -56,6 +61,26 @@ namespace Church.API.Controllers
         [Authorize]
         public IActionResult Logout()
         {
+            return NoContent();
+        }
+
+        /// <summary>
+        /// Permanently deletes the authenticated account and its linked personal data.
+        /// </summary>
+        /// <response code="204">The account was permanently deleted.</response>
+        /// <response code="401">Authentication is missing or invalid.</response>
+        /// <response code="404">The authenticated account no longer exists.</response>
+        [HttpDelete]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteCurrentAccount(
+            CancellationToken cancellationToken)
+        {
+            await _accountDeletionService.DeleteCurrentAccountAsync(
+                _env.WebRootPath,
+                cancellationToken);
             return NoContent();
         }
     }
