@@ -7,6 +7,8 @@ import '../../auth/utils/auth_role_utils.dart';
 import '../../custom_field/providers/custom_field_cache_providers.dart';
 import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/theme/app_dimens.dart';
+import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../unified_form/models/unified_form_models.dart';
 import '../../unified_form/providers/unified_form_providers.dart';
@@ -100,6 +102,7 @@ class _ClassroomAddScreenState extends ConsumerState<ClassroomAddScreen>
         final canManage = AuthRoleUtils.canManageCustomFields(role);
 
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           appBar: AppBar(
             title: Text(l10n.addClassroom),
             actions: [
@@ -112,15 +115,22 @@ class _ClassroomAddScreenState extends ConsumerState<ClassroomAddScreen>
             ],
           ),
           body: schemaAsync.when(
-            loading: () => const LoadingWidget(),
-            error: (e, _) => AppErrorWidget(message: userFriendlyMessage(e, l10n)),
+            loading: () => const LoadingWidget(useSkeleton: true),
+            error: (e, _) => AppErrorWidget(
+              message: userFriendlyMessage(e, l10n),
+              onRetry: () => ref.invalidate(
+                entityFormSchemaProvider(
+                  (entity: UnifiedEntityNames.classroom, mode: 'Create'),
+                ),
+              ),
+            ),
             data: (schema) {
               syncFormController(_formController, schema.fields);
 
               return Form(
                 key: _formKey,
-                child: ListView(
-                  padding: const EdgeInsets.all(16),
+                child: AppFormListView(
+                  padding: const EdgeInsets.all(AppSpacing.page),
                   children: [
                     UnifiedEntityForm(
                       fields: schema.fields,
@@ -137,13 +147,17 @@ class _ClassroomAddScreenState extends ConsumerState<ClassroomAddScreen>
                         'numberOfDisciplineMembers',
                       },
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSpacing.xl),
                     _loading
                         ? const Center(child: CircularProgressIndicator())
                         : FilledButton(
                             onPressed: schema.fields.isEmpty
                                 ? null
-                                : () => _submit(schema.fields),
+                                : () {
+                                    FocusManager.instance.primaryFocus
+                                        ?.unfocus();
+                                    _submit(schema.fields);
+                                  },
                             child: Text(l10n.add),
                           ),
                   ],

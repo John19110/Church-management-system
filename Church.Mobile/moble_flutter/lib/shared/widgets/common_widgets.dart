@@ -4,34 +4,51 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_dimens.dart';
 import '../../core/theme/app_palette.dart';
 import 'app_button.dart';
+import 'app_form_shell.dart';
+import 'app_skeleton.dart';
 
 /// A full-page loading indicator.
 class LoadingWidget extends StatelessWidget {
   final String? message;
-  const LoadingWidget({super.key, this.message});
+  final bool useSkeleton;
+
+  const LoadingWidget({
+    super.key,
+    this.message,
+    this.useSkeleton = false,
+  });
 
   @override
   Widget build(BuildContext context) {
+    if (useSkeleton) {
+      return const AppSkeletonList();
+    }
+
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(
-            height: 34,
-            width: 34,
-            child: CircularProgressIndicator(strokeWidth: 3),
-          ),
-          if (message != null) ...[
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              message!,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(color: context.palette.textSecondary),
+      child: Semantics(
+        liveRegion: true,
+        label: message ?? 'Loading',
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(
+              height: 34,
+              width: 34,
+              child: CircularProgressIndicator(strokeWidth: 3),
             ),
+            if (message != null) ...[
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                message!,
+                textAlign: TextAlign.center,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: context.palette.textSecondary),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -134,45 +151,55 @@ class EmptyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SoftIconBadge(
-              icon: icon,
-              color: palette.textTertiary,
-              background: palette.neutralSoft,
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            if (title != null) ...[
-              Text(
-                title!,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleMedium,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final minHeight = constraints.hasBoundedHeight
+            ? constraints.maxHeight
+            : 240.0;
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: minHeight),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SoftIconBadge(
+                    icon: icon,
+                    color: palette.textTertiary,
+                    background: palette.neutralSoft,
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  if (title != null) ...[
+                    Text(
+                      title!,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                  ],
+                  Text(
+                    message,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(color: palette.textSecondary),
+                  ),
+                  if (actionLabel != null && onAction != null) ...[
+                    const SizedBox(height: AppSpacing.lg),
+                    AppButton(
+                      label: actionLabel!,
+                      expand: false,
+                      onPressed: onAction,
+                    ),
+                  ],
+                ],
               ),
-              const SizedBox(height: AppSpacing.xs),
-            ],
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(color: palette.textSecondary),
             ),
-            if (actionLabel != null && onAction != null) ...[
-              const SizedBox(height: AppSpacing.lg),
-              AppButton(
-                label: actionLabel!,
-                expand: false,
-                onPressed: onAction,
-              ),
-            ],
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
@@ -185,6 +212,16 @@ void showErrorSnackbar(BuildContext context, String message) {
 /// Shows a snackbar with a success message.
 void showSuccessSnackbar(BuildContext context, String message) {
   showSuccessSnackbarFixed(context, message);
+}
+
+/// Shows a snackbar with an informational message.
+void showInfoSnackbar(BuildContext context, String message) {
+  _showSnackbar(
+    context,
+    message,
+    background: Theme.of(context).colorScheme.primary,
+    icon: Icons.info_outline_rounded,
+  );
 }
 
 void showErrorSnackbarFixed(BuildContext context, String message) {
@@ -216,6 +253,7 @@ void _showSnackbar(
   messenger.showSnackBar(
     SnackBar(
       content: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, color: Colors.white, size: 20),
           const SizedBox(width: AppSpacing.sm),
@@ -229,6 +267,13 @@ void _showSnackbar(
       ),
       backgroundColor: background,
       behavior: SnackBarBehavior.floating,
+      margin: EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.md + MediaQuery.viewInsetsOf(context).bottom,
+      ),
+      duration: const Duration(seconds: 4),
     ),
   );
 }
@@ -244,23 +289,30 @@ Future<bool> showConfirmDialog(
   final l10n = AppLocalizations.of(context);
   final result = await showDialog<bool>(
     context: context,
-    builder: (ctx) => AlertDialog(
-      title: Text(title),
-      content: Text(content),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(ctx, false),
-          child: Text(l10n.cancel),
+    builder: (ctx) {
+      return AlertDialog(
+        insetPadding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.xl,
         ),
-        TextButton(
-          onPressed: () => Navigator.pop(ctx, true),
-          child: Text(
-            confirmText ?? l10n.delete,
-            style: TextStyle(color: confirmColor),
+        title: Text(title),
+        content: AppDialogFormBody(
+          child: Text(content),
+        ),
+        actionsAlignment: MainAxisAlignment.end,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.cancel),
           ),
-        ),
-      ],
-    ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: confirmColor),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(confirmText ?? l10n.delete),
+          ),
+        ],
+      );
+    },
   );
   return result ?? false;
 }

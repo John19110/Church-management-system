@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../../../core/routing/app_router.dart';
 import '../models/classroom_models.dart';
 import '../providers/classroom_providers.dart';
@@ -34,11 +36,10 @@ class ClassroomsListSection extends ConsumerWidget {
         padding: EdgeInsets.symmetric(vertical: 16),
         child: Center(child: CircularProgressIndicator()),
       ),
-      error: (e, _) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Text('${l10n.failedToLoadVisibleClassrooms} $e'),
-        ),
+      error: (e, _) => cw.AppErrorWidget(
+        message: userFriendlyMessage(e, l10n),
+        onRetry: () =>
+            ref.invalidate(visibleClassroomsByMeetingProvider(meetingId)),
       ),
       data: (classrooms) {
         final filtered =

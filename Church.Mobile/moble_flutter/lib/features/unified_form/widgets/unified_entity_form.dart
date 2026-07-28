@@ -78,7 +78,7 @@ class _UnifiedEntityFormState extends ConsumerState<UnifiedEntityForm> {
         if (widget.leading != null) ...widget.leading!,
         ...visible.map(
           (field) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.only(bottom: AppSpacing.md),
             child: UnifiedFormFieldWidget(
               field: field,
               controller: widget.controller,

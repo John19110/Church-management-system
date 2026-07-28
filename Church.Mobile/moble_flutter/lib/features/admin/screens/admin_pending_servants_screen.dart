@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/theme/app_dimens.dart';
+import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../providers/admin_providers.dart';
 import '../../../shared/widgets/endpoint_select_fields.dart';
@@ -25,13 +28,19 @@ class AdminPendingServantsScreen extends ConsumerWidget {
         return StatefulBuilder(
           builder: (dialogContext, setState) {
             return AlertDialog(
+              insetPadding: const EdgeInsets.symmetric(
+                horizontal: 24,
+                vertical: 24,
+              ),
               title: Text(l10n.assignClassroom),
-              content: EndpointSelectDropdown(
-                endpoint: SelectionEndpoints.classrooms,
-                label: l10n.classroom,
-                hintText: l10n.selectClassroom,
-                value: selectedClassroomId,
-                onChanged: (v) => setState(() => selectedClassroomId = v),
+              content: AppDialogFormBody(
+                child: EndpointSelectDropdown(
+                  endpoint: SelectionEndpoints.classrooms,
+                  label: l10n.classroom,
+                  hintText: l10n.selectClassroom,
+                  value: selectedClassroomId,
+                  onChanged: (v) => setState(() => selectedClassroomId = v),
+                ),
               ),
               actions: [
                 TextButton(
@@ -39,6 +48,9 @@ class AdminPendingServantsScreen extends ConsumerWidget {
                   child: Text(l10n.cancel),
                 ),
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(88, 48),
+                  ),
                   onPressed: () async {
                     if (selectedClassroomId == null) {
                       cw.showErrorSnackbar(ctx, l10n.pleaseSelectClassroom);
@@ -54,7 +66,12 @@ class AdminPendingServantsScreen extends ConsumerWidget {
                         cw.showSuccessSnackbar(context, l10n.classAssigned);
                       }
                     } catch (e) {
-                      if (ctx.mounted) cw.showErrorSnackbar(ctx, e.toString());
+                      if (ctx.mounted) {
+                        cw.showErrorSnackbar(
+                          ctx,
+                          userFriendlyMessage(e, l10n),
+                        );
+                      }
                     }
                   },
                   child: Text(l10n.assign),
@@ -75,9 +92,9 @@ class AdminPendingServantsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.pendingServants)),
       body: pendingAsync.when(
-        loading: () => const cw.LoadingWidget(),
+        loading: () => const cw.LoadingWidget(useSkeleton: true),
         error: (e, _) => cw.AppErrorWidget(
-          message: e.toString(),
+          message: userFriendlyMessage(e, l10n),
           onRetry: () => ref.invalidate(pendingServantsProvider),
         ),
         data: (list) {
@@ -90,7 +107,7 @@ class AdminPendingServantsScreen extends ConsumerWidget {
           return RefreshIndicator(
             onRefresh: () async => ref.invalidate(pendingServantsProvider),
             child: ListView.builder(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(AppSpacing.page),
               itemCount: list.length,
               itemBuilder: (context, index) {
                 final u = list[index];
@@ -123,7 +140,10 @@ class AdminPendingServantsScreen extends ConsumerWidget {
                               }
                             } catch (e) {
                               if (context.mounted) {
-                                cw.showErrorSnackbar(context, e.toString());
+                                cw.showErrorSnackbar(
+                                  context,
+                                  userFriendlyMessage(e, l10n),
+                                );
                               }
                             }
                           },
@@ -154,7 +174,10 @@ class AdminPendingServantsScreen extends ConsumerWidget {
                               }
                             } catch (e) {
                               if (context.mounted) {
-                                cw.showErrorSnackbar(context, e.toString());
+                                cw.showErrorSnackbar(
+                                  context,
+                                  userFriendlyMessage(e, l10n),
+                                );
                               }
                             }
                           },

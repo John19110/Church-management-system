@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../providers/members_providers.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../../../shared/widgets/section_header.dart';
+import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../auth/providers/auth_providers.dart';
@@ -47,7 +48,7 @@ class MemberDetailScreen extends ConsumerWidget {
       ),
       error: (e, _) => Scaffold(
         appBar: AppBar(title: Text(l10n.memberDetails)),
-        body: cw.AppErrorWidget(message: e.toString()),
+        body: cw.AppErrorWidget(message: userFriendlyMessage(e, l10n)),
       ),
       data: (role) {
         final canManage = AuthRoleUtils.canManageCustomFields(role);
@@ -110,7 +111,10 @@ class MemberDetailScreen extends ConsumerWidget {
                     }
                   } catch (e) {
                     if (context.mounted) {
-                      cw.showErrorSnackbar(context, e.toString());
+                      cw.showErrorSnackbar(
+                        context,
+                        userFriendlyMessage(e, l10n),
+                      );
                     }
                   }
                 },
@@ -120,13 +124,13 @@ class MemberDetailScreen extends ConsumerWidget {
           body: memberAsync.when(
             loading: () => const cw.LoadingWidget(),
             error: (e, _) => cw.AppErrorWidget(
-              message: e.toString(),
+              message: userFriendlyMessage(e, l10n),
               onRetry: () => ref.invalidate(memberDetailProvider(id)),
             ),
             data: (member) => formAsync.when(
               loading: () => const cw.LoadingWidget(),
               error: (e, _) => cw.AppErrorWidget(
-                message: e.toString(),
+                message: userFriendlyMessage(e, l10n),
                 onRetry: () => ref.invalidate(
                   entityFormDataProvider((
                     entity: UnifiedEntityNames.member,

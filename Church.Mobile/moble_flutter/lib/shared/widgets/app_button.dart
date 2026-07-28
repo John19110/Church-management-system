@@ -43,8 +43,9 @@ class AppButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final height = size == AppButtonSize.regular ? 52.0 : 44.0;
-    final minSize = Size(expand ? double.infinity : 0, height);
+    // Compact stays ≥48 for accessibility tap targets.
+    final height = size == AppButtonSize.regular ? 52.0 : 48.0;
+    final minSize = Size(expand ? double.infinity : 48, height);
     final effectiveOnPressed = loading ? null : onPressed;
 
     final child = loading

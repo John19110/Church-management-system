@@ -224,6 +224,14 @@ class AppTheme {
       listTileTheme: ListTileThemeData(
         iconColor: palette.textSecondary,
         shape: const RoundedRectangleBorder(borderRadius: AppRadius.mdAll),
+        minVerticalPadding: AppSpacing.sm,
+      ),
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: ZoomPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+        },
       ),
     );
   }

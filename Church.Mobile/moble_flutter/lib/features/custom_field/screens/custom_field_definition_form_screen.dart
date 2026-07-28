@@ -11,7 +11,9 @@ import '../utils/custom_field_l10n.dart';
 import '../utils/field_display_label.dart';
 import '../utils/field_position_utils.dart';
 import '../../../shared/widgets/app_form_fields.dart';
+import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/common_widgets.dart';
+import '../../../core/theme/app_dimens.dart';
 
 class CustomFieldDefinitionFormScreen extends ConsumerStatefulWidget {
   final String entityName;
@@ -133,6 +135,7 @@ class _CustomFieldDefinitionFormScreenState
     final defsAsync = ref.watch(customFieldDefinitionsProvider(defsQuery));
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: Text(
           _isEdit
@@ -141,7 +144,7 @@ class _CustomFieldDefinitionFormScreenState
         ),
       ),
       body: defsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const LoadingWidget(useSkeleton: true),
         error: (e, _) => AppErrorWidget(
           message: userFriendlyMessage(e, l10n),
           onRetry: () => ref.invalidate(customFieldDefinitionsProvider(defsQuery)),
@@ -173,14 +176,14 @@ class _CustomFieldDefinitionFormScreenState
 
           return Form(
             key: _formKey,
-            child: ListView(
-              padding: const EdgeInsets.all(16),
+            child: AppFormListView(
+              padding: const EdgeInsets.all(AppSpacing.page),
               children: [
                 if (_isSystemField)
                   Card(
                     color: Theme.of(context).colorScheme.primaryContainer,
                     child: Padding(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(AppSpacing.sm),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -188,7 +191,7 @@ class _CustomFieldDefinitionFormScreenState
                             l10n.systemFieldBadge,
                             style: Theme.of(context).textTheme.titleSmall,
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: AppSpacing.xxs),
                           Text(
                             l10n.systemFieldKeyLockedLabel(
                               localizedFieldDisplayLabel(widget.existing!, l10n),
@@ -199,10 +202,12 @@ class _CustomFieldDefinitionFormScreenState
                       ),
                     ),
                   ),
-                if (_isSystemField) const SizedBox(height: 12),
+                if (_isSystemField) const SizedBox(height: AppSpacing.sm),
                 AppTextField(
                   controller: _displayNameController,
                   label: l10n.displayNameEnglishLabel,
+                  textInputAction: TextInputAction.next,
+                  textCapitalization: TextCapitalization.sentences,
                   validator: (v) => v == null || v.trim().isEmpty
                       ? l10n.displayNameRequired
                       : null,

@@ -6,6 +6,8 @@ import '../providers/custom_field_providers.dart';
 import '../widgets/dynamic_custom_fields_form.dart';
 import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/theme/app_dimens.dart';
+import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/common_widgets.dart';
 
 /// Edit custom field values for any entity (Classroom, Meeting, etc.).
@@ -80,22 +82,26 @@ class _EntityCustomFieldsEditScreenState
         l10n.entityAdditionalFieldsTitle(widget.entityName);
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(title: Text(title)),
       body: Form(
         key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
+        child: AppFormListView(
+          padding: const EdgeInsets.all(AppSpacing.page),
           children: [
             DynamicCustomFieldsForm(
               entityName: widget.entityName,
               entityId: widget.entityId,
               controller: _controller,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xl),
             _loading
                 ? const Center(child: CircularProgressIndicator())
                 : FilledButton(
-                    onPressed: _save,
+                    onPressed: () {
+                      FocusManager.instance.primaryFocus?.unfocus();
+                      _save();
+                    },
                     child: Text(l10n.saveAdditionalFields),
                   ),
           ],

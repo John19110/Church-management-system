@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/theme/app_dimens.dart';
+import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../unified_form/models/unified_form_models.dart';
@@ -113,9 +115,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
     final formAsync = ref.watch(servantProfileFormDataProvider);
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(title: Text(l10n.editProfile)),
       body: profileAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const LoadingWidget(useSkeleton: true),
         error: (e, _) => AppErrorWidget(
           message: userFriendlyMessage(e, l10n),
           onRetry: () {
@@ -129,7 +132,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
           }
 
           return formAsync.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
+            loading: () => const LoadingWidget(useSkeleton: true),
             error: (e, _) => AppErrorWidget(
               message: userFriendlyMessage(e, l10n),
               onRetry: () => ref.invalidate(servantProfileFormDataProvider),
@@ -146,8 +149,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
               return SafeArea(
                 child: Form(
                   key: _formKey,
-                  child: ListView(
-                    padding: const EdgeInsets.all(16),
+                  child: AppFormListView(
+                    padding: const EdgeInsets.all(AppSpacing.page),
                     children: [
                       UnifiedEntityPhotoPicker(
                         fields: formData.fields,
@@ -155,20 +158,24 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                         pickedFile: _image,
                         onPick: _pickImage,
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: AppSpacing.md),
                       UnifiedEntityForm(
                         fields: formData.fields,
                         controller: _formController,
                         entityName: UnifiedEntityNames.servant,
                         excludeFieldKeys: kServantProfileReadOnlyFieldKeys,
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: AppSpacing.xl),
                       _loading
                           ? const Center(child: CircularProgressIndicator())
                           : FilledButton(
                               onPressed: (editable.isEmpty && _image == null)
                                   ? null
-                                  : () => _submit(formData.fields),
+                                  : () {
+                                      FocusManager.instance.primaryFocus
+                                          ?.unfocus();
+                                      _submit(formData.fields);
+                                    },
                               child: Text(l10n.saveLabel),
                             ),
                     ],

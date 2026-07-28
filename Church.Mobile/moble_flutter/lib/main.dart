@@ -15,6 +15,7 @@ import 'core/cache/tenant_cache_sync.dart';
 import 'core/startup/app_launch_splash.dart';
 import 'core/startup/splash_theme_sync.dart';
 import 'features/auth/providers/auth_providers.dart';
+import 'shared/widgets/app_form_shell.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -125,7 +126,9 @@ class _ChurchAppState extends ConsumerState<ChurchApp>
                 final bg = Theme.of(context).scaffoldBackgroundColor;
                 return ColoredBox(
                   color: bg,
-                  child: child ?? const SizedBox.shrink(),
+                  child: AppKeyboardDismiss(
+                    child: child ?? const SizedBox.shrink(),
+                  ),
                 );
               },
             ),

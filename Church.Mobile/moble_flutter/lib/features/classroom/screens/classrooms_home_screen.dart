@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/startup/deferred_startup_mixin.dart';
 import '../../../core/routing/app_router.dart';
@@ -8,6 +9,7 @@ import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
 import '../../auth/utils/auth_session.dart';
 import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
+import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../../custom_field/providers/custom_field_cache_providers.dart';
 import '../../unified_form/models/unified_form_models.dart';
 import '../models/classroom_models.dart';
@@ -227,11 +229,9 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen>
             error: (e, _) => ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text('${l10n.failedToLoadVisibleClassrooms} $e'),
-                  ),
+                cw.AppErrorWidget(
+                  message: userFriendlyMessage(e, l10n),
+                  onRetry: _refresh,
                 ),
               ],
             ),

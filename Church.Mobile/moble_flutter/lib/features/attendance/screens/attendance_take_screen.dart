@@ -7,6 +7,9 @@ import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
 import '../../member/providers/members_providers.dart';
 import '../../member/models/member_models.dart';
+import '../../../core/theme/app_dimens.dart';
+import '../../../shared/widgets/app_button.dart';
+import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../../shared/widgets/endpoint_select_fields.dart';
@@ -101,6 +104,7 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
       showErrorSnackbarFixed(context, l10n.enterClassroomId);
       return;
     }
+    if (_submitting) return;
     setState(() => _submitting = true);
     try {
       final dto = AttendanceSessionAddDto(
@@ -147,6 +151,7 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
     final role = ref.watch(currentUserRoleProvider).resolvedRoleOrNull;
     final homeRoute = AuthRoleUtils.routeForRole(role);
     final currentLocation = GoRouterState.of(context).matchedLocation;
+    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
 
     return PopScope(
       canPop: currentLocation == homeRoute,
@@ -159,7 +164,7 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
         body: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppSpacing.page),
               child: Row(
                 children: [
                   Expanded(
@@ -172,10 +177,10 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
                           setState(() => _selectedClassroomId = v),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.sm),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(80, 48),
+                      minimumSize: const Size(88, 48),
                     ),
                     onPressed: _loading ? null : _loadMembers,
                     child: _loading
@@ -190,26 +195,46 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: TextField(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.page),
+              child: AppTextField(
                 controller: _notesController,
-                decoration: InputDecoration(
-                  labelText: l10n.sessionNotes,
-                  border: const OutlineInputBorder(),
-                ),
+                label: l10n.sessionNotes,
+                maxLines: 2,
+                textInputAction: TextInputAction.newline,
+                textCapitalization: TextCapitalization.sentences,
               ),
             ),
-            const SizedBox(height: 8),
-            if (_records != null) ...[
+            const SizedBox(height: AppSpacing.xs),
+            if (_loading)
+              const Expanded(child: LoadingWidget(useSkeleton: true))
+            else if (_records == null)
+              Expanded(
+                child: EmptyWidget(
+                  message: l10n.enterClassroomAndLoad,
+                  icon: Icons.search,
+                ),
+              )
+            else if (_records!.isEmpty)
+              Expanded(
+                child: EmptyWidget(
+                  message: l10n.noMembersInClassroomYet,
+                  icon: Icons.people_outline,
+                ),
+              )
+            else ...[
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.page,
+                  vertical: AppSpacing.xxs,
+                ),
                 child: Row(
                   children: [
-                    Text(
-                      '${_records!.length} ${l10n.members.toLowerCase()}',
-                      style: Theme.of(context).textTheme.bodySmall,
+                    Flexible(
+                      child: Text(
+                        '${_records!.length} ${l10n.members.toLowerCase()}',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
                     ),
-                    const Spacer(),
                     TextButton(
                       onPressed: () => setState(() {
                         for (final r in _records!) {
@@ -223,14 +248,21 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
               ),
               Expanded(
                 child: ListView.builder(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  padding: EdgeInsets.only(
+                    bottom: AppSpacing.md + keyboardInset,
+                  ),
                   itemCount: _records!.length,
                   itemBuilder: (context, index) {
                     final record = _records![index];
                     return Card(
                       margin: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 4),
+                        horizontal: AppSpacing.page,
+                        vertical: AppSpacing.xxs,
+                      ),
                       child: Padding(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(AppSpacing.sm),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -239,7 +271,9 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
                                 Expanded(
                                   child: Text(
                                     record.member.fullName ??
-                                        l10n.memberNumberLabel(record.member.id),
+                                        l10n.memberNumberLabel(
+                                          record.member.id,
+                                        ),
                                     style: Theme.of(context)
                                         .textTheme
                                         .titleSmall
@@ -260,22 +294,35 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 4),
-                            Row(
+                            const SizedBox(height: AppSpacing.xxs),
+                            Wrap(
+                              spacing: AppSpacing.md,
+                              crossAxisAlignment: WrapCrossAlignment.center,
                               children: [
-                                Checkbox(
-                                  value: record.madeHomework,
-                                  onChanged: (v) =>
-                                      setState(() => record.madeHomework = v!),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Checkbox(
+                                      value: record.madeHomework,
+                                      onChanged: (v) => setState(
+                                        () => record.madeHomework = v!,
+                                      ),
+                                    ),
+                                    Text(l10n.homework),
+                                  ],
                                 ),
-                                Text(l10n.homework),
-                                const SizedBox(width: 16),
-                                Checkbox(
-                                  value: record.hasTools,
-                                  onChanged: (v) =>
-                                      setState(() => record.hasTools = v!),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Checkbox(
+                                      value: record.hasTools,
+                                      onChanged: (v) => setState(
+                                        () => record.hasTools = v!,
+                                      ),
+                                    ),
+                                    Text(l10n.tools),
+                                  ],
                                 ),
-                                Text(l10n.tools),
                               ],
                             ),
                           ],
@@ -285,25 +332,20 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
                   },
                 ),
               ),
-            ] else
-              Expanded(
-                child: EmptyWidget(
-                  message: l10n.enterClassroomAndLoad,
-                  icon: Icons.search,
-                ),
-              ),
+            ],
             SafeArea(
               top: false,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: _submitting
-                      ? const Center(child: CircularProgressIndicator())
-                      : ElevatedButton(
-                          onPressed: _submit,
-                          child: Text(l10n.submit),
-                        ),
+                padding: EdgeInsets.fromLTRB(
+                  AppSpacing.page,
+                  AppSpacing.xs,
+                  AppSpacing.page,
+                  AppSpacing.xs + keyboardInset,
+                ),
+                child: AppButton(
+                  label: l10n.submit,
+                  loading: _submitting,
+                  onPressed: _submitting ? null : _submit,
                 ),
               ),
             ),

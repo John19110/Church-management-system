@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/theme/app_dimens.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/app_network_avatar.dart';
 import '../../../shared/widgets/locale_date_text.dart';
@@ -53,6 +54,10 @@ class MemberForm extends StatelessWidget {
             controller: controller.addressController,
             label: l10n.address,
             maxLines: 3,
+            keyboardType: TextInputType.streetAddress,
+            textInputAction: TextInputAction.newline,
+            textCapitalization: TextCapitalization.sentences,
+            autofillHints: const [AutofillHints.fullStreetAddress],
           ),
         ),
         MemberFormSectionCard(
@@ -165,19 +170,28 @@ class _PersonalSection extends StatelessWidget {
         AppTextField(
           controller: controller.name1Controller,
           label: '${l10n.firstName} *',
+          textInputAction: TextInputAction.next,
+          textCapitalization: TextCapitalization.words,
+          autofillHints: const [AutofillHints.givenName],
           validator: (v) => MemberFormValidator.validateFirstName(v, l10n),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.sm),
         AppTextField(
           controller: controller.name2Controller,
           label: l10n.fatherName,
+          textInputAction: TextInputAction.next,
+          textCapitalization: TextCapitalization.words,
+          autofillHints: const [AutofillHints.middleName],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.sm),
         AppTextField(
           controller: controller.name3Controller,
           label: l10n.familyName,
+          textInputAction: TextInputAction.next,
+          textCapitalization: TextCapitalization.words,
+          autofillHints: const [AutofillHints.familyName],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.xs),
         Text(
           l10n.fullNameComputedHint,
           style: theme.textTheme.bodySmall?.copyWith(
@@ -420,11 +434,15 @@ class _PhonesSection extends StatelessWidget {
                         l10n,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    TextFormField(
+                    const SizedBox(height: AppSpacing.xs),
+                    AppTextField(
                       controller: entry.phoneController,
-                      decoration: InputDecoration(labelText: l10n.phone),
+                      label: l10n.phone,
                       keyboardType: TextInputType.phone,
+                      textInputAction: TextInputAction.next,
+                      textCapitalization: TextCapitalization.none,
+                      autocorrect: false,
+                      autofillHints: const [AutofillHints.telephoneNumber],
                       validator: (v) =>
                           MemberFormValidator.validatePhone(v, l10n),
                       onChanged: (_) => onChanged(),
@@ -482,21 +500,25 @@ class _BrothersSection extends StatelessWidget {
           ...List.generate(controller.brotherNameControllers.length, (index) {
             final field = controller.brotherNameControllers[index];
             return Padding(
-              padding: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.only(bottom: AppSpacing.xs),
               child: Row(
                 children: [
                   Expanded(
-                    child: TextFormField(
+                    child: AppTextField(
                       controller: field,
-                      decoration: InputDecoration(
-                        labelText: l10n.brotherName,
-                      ),
+                      label: l10n.brotherName,
+                      textInputAction: TextInputAction.next,
+                      textCapitalization: TextCapitalization.words,
                       onChanged: (_) => onChanged(),
                     ),
                   ),
                   IconButton(
                     icon: const Icon(Icons.remove_circle_outline),
                     tooltip: l10n.removeBrother,
+                    constraints: const BoxConstraints(
+                      minWidth: 48,
+                      minHeight: 48,
+                    ),
                     onPressed: () {
                       controller.removeBrother(index);
                       onChanged();
@@ -507,6 +529,9 @@ class _BrothersSection extends StatelessWidget {
             );
           }),
           OutlinedButton.icon(
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size.fromHeight(48),
+            ),
             onPressed: () {
               controller.addBrother();
               onChanged();
@@ -539,23 +564,27 @@ class _NotesSection extends StatelessWidget {
         ...List.generate(controller.noteControllers.length, (index) {
           final field = controller.noteControllers[index];
           return Padding(
-            padding: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.only(bottom: AppSpacing.xs),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: TextFormField(
+                  child: AppTextField(
                     controller: field,
-                    decoration: InputDecoration(
-                      labelText: '${l10n.noteLine} ${index + 1}',
-                    ),
+                    label: '${l10n.noteLine} ${index + 1}',
                     maxLines: 3,
+                    textInputAction: TextInputAction.newline,
+                    textCapitalization: TextCapitalization.sentences,
                     onChanged: (_) => onChanged(),
                   ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline),
                   tooltip: l10n.removeNote,
+                  constraints: const BoxConstraints(
+                    minWidth: 48,
+                    minHeight: 48,
+                  ),
                   onPressed: () {
                     controller.removeNote(index);
                     onChanged();
@@ -566,6 +595,9 @@ class _NotesSection extends StatelessWidget {
           );
         }),
         OutlinedButton.icon(
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size.fromHeight(48),
+          ),
           onPressed: () {
             controller.addNote();
             onChanged();

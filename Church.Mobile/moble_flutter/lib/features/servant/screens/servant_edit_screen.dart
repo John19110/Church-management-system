@@ -4,8 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/servants_providers.dart';
+import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/common_widgets.dart';
+import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/theme/app_dimens.dart';
 import '../../unified_form/widgets/unified_entity_photo_picker.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
@@ -77,7 +80,9 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen>
         context.pop(true);
       }
     } catch (e) {
-      if (mounted) showErrorSnackbar(context, e.toString());
+      if (mounted) {
+        showErrorSnackbar(context, userFriendlyMessage(e, l10n));
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -109,12 +114,13 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen>
       ),
       error: (e, _) => Scaffold(
         appBar: AppBar(title: Text(l10n.editServant)),
-        body: AppErrorWidget(message: e.toString()),
+        body: AppErrorWidget(message: userFriendlyMessage(e, l10n)),
       ),
       data: (role) {
         final canManage = AuthRoleUtils.canManageCustomFields(role);
 
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           appBar: AppBar(
             title: Text(l10n.editServant),
             actions: [
@@ -127,8 +133,15 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen>
             ],
           ),
           body: formAsync.when(
-            loading: () => const LoadingWidget(),
-            error: (e, _) => AppErrorWidget(message: e.toString()),
+            loading: () => const LoadingWidget(useSkeleton: true),
+            error: (e, _) => AppErrorWidget(
+              message: userFriendlyMessage(e, l10n),
+              onRetry: () => ref.invalidate(
+                entityFormDataProvider(
+                  (entity: UnifiedEntityNames.servant, id: widget.id),
+                ),
+              ),
+            ),
             data: (formData) {
               syncFormController(
                 _formController,
@@ -138,28 +151,32 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen>
 
               return Form(
                 key: _formKey,
-                child: ListView(
-                  padding: const EdgeInsets.all(16),
+                child: AppFormListView(
+                  padding: const EdgeInsets.all(AppSpacing.page),
                   children: [
                     UnifiedEntityPhotoPicker(
                       fields: formData.fields,
                       pickedFile: _image,
                       onPick: _pickImage,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.md),
                     UnifiedEntityForm(
                       fields: formData.fields,
                       controller: _formController,
                       entityName: UnifiedEntityNames.servant,
                       canManageDefinitions: canManage,
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSpacing.xl),
                     _loading
                         ? const Center(child: CircularProgressIndicator())
                         : FilledButton(
                             onPressed: formData.fields.isEmpty
                                 ? null
-                                : () => _submit(formData.fields),
+                                : () {
+                                    FocusManager.instance.primaryFocus
+                                        ?.unfocus();
+                                    _submit(formData.fields);
+                                  },
                             child: Text(l10n.save),
                           ),
                   ],

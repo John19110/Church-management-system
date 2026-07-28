@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/theme/app_dimens.dart';
+import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
@@ -69,7 +72,9 @@ class _UnifiedEntityEditScreenState extends ConsumerState<UnifiedEntityEditScree
         context.pop(true);
       }
     } catch (e) {
-      if (mounted) showErrorSnackbar(context, e.toString());
+      if (mounted) {
+        showErrorSnackbar(context, userFriendlyMessage(e, l10n));
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -109,12 +114,13 @@ class _UnifiedEntityEditScreenState extends ConsumerState<UnifiedEntityEditScree
             widget.title ?? l10n.customFieldsForEntity(widget.entityName),
           ),
         ),
-        body: AppErrorWidget(message: e.toString()),
+        body: AppErrorWidget(message: userFriendlyMessage(e, l10n)),
       ),
       data: (role) {
         final canManage = AuthRoleUtils.canManageCustomFields(role);
 
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           appBar: AppBar(
             title: Text(
               widget.title ??
@@ -130,8 +136,15 @@ class _UnifiedEntityEditScreenState extends ConsumerState<UnifiedEntityEditScree
             ],
           ),
           body: formAsync.when(
-            loading: () => const LoadingWidget(),
-            error: (e, _) => AppErrorWidget(message: e.toString()),
+            loading: () => const LoadingWidget(useSkeleton: true),
+            error: (e, _) => AppErrorWidget(
+              message: userFriendlyMessage(e, l10n),
+              onRetry: () => ref.invalidate(
+                entityFormDataProvider(
+                  (entity: widget.entityName, id: widget.entityId),
+                ),
+              ),
+            ),
             data: (data) {
               syncFormController(
                 _controller,
@@ -141,8 +154,8 @@ class _UnifiedEntityEditScreenState extends ConsumerState<UnifiedEntityEditScree
 
               return Form(
                 key: _formKey,
-                child: ListView(
-                  padding: const EdgeInsets.all(16),
+                child: AppFormListView(
+                  padding: const EdgeInsets.all(AppSpacing.page),
                   children: [
                     UnifiedEntityForm(
                       fields: data.fields,
@@ -150,13 +163,17 @@ class _UnifiedEntityEditScreenState extends ConsumerState<UnifiedEntityEditScree
                       entityName: widget.entityName,
                       canManageDefinitions: canManage,
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSpacing.xl),
                     _loading
                         ? const Center(child: CircularProgressIndicator())
                         : FilledButton(
                             onPressed: data.fields.isEmpty
                                 ? null
-                                : () => _save(data.fields),
+                                : () {
+                                    FocusManager.instance.primaryFocus
+                                        ?.unfocus();
+                                    _save(data.fields);
+                                  },
                             child: Text(l10n.saveLabel),
                           ),
                   ],

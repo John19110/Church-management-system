@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/theme/app_dimens.dart';
+import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../unified_form/widgets/unified_entity_photo_picker.dart';
 import '../providers/members_providers.dart';
@@ -90,10 +92,11 @@ class _MemberEditScreenState extends ConsumerState<MemberEditScreen> {
     final memberAsync = ref.watch(memberDetailProvider(widget.id));
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(title: Text(l10n.editMember)),
       body: SafeArea(
         child: memberAsync.when(
-          loading: () => const LoadingWidget(),
+          loading: () => const LoadingWidget(useSkeleton: true),
           error: (e, _) => AppErrorWidget(
             message: userFriendlyMessage(e, l10n),
             onRetry: () => ref.invalidate(memberDetailProvider(widget.id)),
@@ -107,8 +110,8 @@ class _MemberEditScreenState extends ConsumerState<MemberEditScreen> {
 
             return Form(
               key: _formKey,
-              child: ListView(
-                padding: const EdgeInsets.all(16),
+              child: AppFormListView(
+                padding: const EdgeInsets.all(AppSpacing.page),
                 children: [
                   MemberForm(
                     controller: _memberForm,
@@ -117,11 +120,14 @@ class _MemberEditScreenState extends ConsumerState<MemberEditScreen> {
                     onChanged: _rebuild,
                     showLastAttendanceDate: true,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.xl),
                   _loading
                       ? const Center(child: CircularProgressIndicator())
                       : FilledButton(
-                          onPressed: _submit,
+                          onPressed: () {
+                            FocusManager.instance.primaryFocus?.unfocus();
+                            _submit();
+                          },
                           child: Text(l10n.save),
                         ),
                 ],

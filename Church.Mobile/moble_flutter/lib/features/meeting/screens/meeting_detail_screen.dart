@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../../auth/providers/auth_providers.dart';
@@ -110,8 +111,11 @@ class MeetingDetailScreen extends ConsumerWidget {
         padding: const EdgeInsets.all(16),
         children: [
           formAsync.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => cw.AppErrorWidget(message: e.toString()),
+            loading: () => const cw.LoadingWidget(useSkeleton: true),
+            error: (e, _) => cw.AppErrorWidget(
+              message: userFriendlyMessage(e, l10n),
+              onRetry: () => ref.invalidate(entityFormDataProvider(formQuery)),
+            ),
             data: (form) {
               final visible = visibleUnifiedFields(
                 form.fields,

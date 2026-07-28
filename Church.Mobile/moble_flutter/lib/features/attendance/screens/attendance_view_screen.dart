@@ -19,7 +19,7 @@ class AttendanceViewScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.sessionNumberLabel(sessionId))),
       body: sessionAsync.when(
-        loading: () => const cw.LoadingWidget(),
+        loading: () => const cw.LoadingWidget(useSkeleton: true),
         error: (e, _) => cw.AppErrorWidget(
           message: userFriendlyMessage(e, l10n),
           onRetry: () => ref.invalidate(attendanceSessionProvider(sessionId)),

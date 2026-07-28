@@ -5,8 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/models/select_option.dart';
+import '../../../shared/widgets/app_form_fields.dart';
+import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/app_network_avatar.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
+import '../../../core/theme/app_dimens.dart';
 import '../../meeting/providers/meeting_providers.dart';
 import '../models/super_admin_models.dart';
 import '../providers/super_admin_providers.dart';
@@ -458,22 +461,29 @@ class _PendingUserCardState extends ConsumerState<_PendingUserCard> {
         barrierDismissible: false,
         builder: (ctx) {
           return AlertDialog(
+            insetPadding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg,
+              vertical: AppSpacing.xl,
+            ),
             title: Text(l10n.reject),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(l10n.rejectUserConfirm(
-                  user.name.isEmpty ? l10n.rejectThisUser : user.name,
-                )),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: reasonController,
-                  decoration: InputDecoration(
-                    labelText: l10n.rejectReasonOptional,
+            content: AppDialogFormBody(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(l10n.rejectUserConfirm(
+                    user.name.isEmpty ? l10n.rejectThisUser : user.name,
+                  )),
+                  const SizedBox(height: AppSpacing.md),
+                  AppTextField(
+                    controller: reasonController,
+                    label: l10n.rejectReasonOptional,
+                    maxLines: 2,
+                    textInputAction: TextInputAction.done,
+                    textCapitalization: TextCapitalization.sentences,
                   ),
-                  maxLines: 2,
-                ),
-              ],
+                ],
+              ),
             ),
             actions: [
               TextButton(
@@ -483,6 +493,7 @@ class _PendingUserCardState extends ConsumerState<_PendingUserCard> {
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
+                  minimumSize: const Size(88, 48),
                 ),
                 onPressed: () => Navigator.of(ctx).pop(true),
                 child: Text(l10n.reject),
@@ -492,10 +503,17 @@ class _PendingUserCardState extends ConsumerState<_PendingUserCard> {
         },
       );
 
-      if (confirmed != true) return;
-      if (!context.mounted) return;
+      if (confirmed != true) {
+        reasonController.dispose();
+        return;
+      }
+      if (!context.mounted) {
+        reasonController.dispose();
+        return;
+      }
 
       final reason = reasonController.text.trim();
+      reasonController.dispose();
 
       await ref.read(superAdminRepositoryProvider).rejectUser(
             user.id,

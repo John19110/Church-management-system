@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/routing/app_router.dart';
+import '../../../core/theme/app_dimens.dart';
+import '../../../shared/widgets/app_form_shell.dart';
 import '../utils/registration_navigation.dart';
 import '../widgets/registration_choice_card.dart';
 
@@ -24,12 +26,12 @@ class NewChurchRoleScreen extends StatelessWidget {
           fallbackRoute: AppRoutes.register,
         ),
         body: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+          child: AppFormScrollView(
+            padding: const EdgeInsets.all(AppSpacing.xl),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   l10n.selectRegistrationType,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -37,14 +39,14 @@ class NewChurchRoleScreen extends StatelessWidget {
                       ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: AppSpacing.xxl),
                 RegistrationChoiceCard(
                   icon: Icons.groups_outlined,
                   title: l10n.registerTypeMeetingAdmin,
                   onTap: () =>
                       context.push(AppRoutes.registerNewChurchMeetingAdmin),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.md),
                 RegistrationChoiceCard(
                   icon: Icons.admin_panel_settings_outlined,
                   title: l10n.registerTypeChurchAdmin,

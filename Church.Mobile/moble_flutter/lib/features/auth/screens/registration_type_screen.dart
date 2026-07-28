@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/routing/app_router.dart';
+import '../../../core/theme/app_dimens.dart';
+import '../../../shared/widgets/app_form_shell.dart';
 import '../utils/registration_navigation.dart';
 import '../widgets/registration_choice_card.dart';
 
@@ -23,12 +25,12 @@ class RegistrationTypeScreen extends StatelessWidget {
           fallbackRoute: AppRoutes.login,
         ),
         body: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+          child: AppFormScrollView(
+            padding: const EdgeInsets.all(AppSpacing.xl),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   l10n.churchExistsQuestion,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -36,13 +38,13 @@ class RegistrationTypeScreen extends StatelessWidget {
                       ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: AppSpacing.xxl),
                 RegistrationChoiceCard(
                   icon: Icons.check_circle_outline,
                   title: l10n.churchExistsYes,
                   onTap: () => context.push(AppRoutes.registerExistingChurch),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.md),
                 RegistrationChoiceCard(
                   icon: Icons.add_business_outlined,
                   title: l10n.churchExistsNo,

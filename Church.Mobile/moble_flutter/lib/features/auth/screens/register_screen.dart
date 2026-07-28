@@ -7,11 +7,13 @@ import '../models/auth_models.dart';
 import '../providers/auth_providers.dart';
 import '../utils/auth_role_utils.dart';
 import '../../../shared/widgets/app_form_fields.dart';
+import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/error/app_exception.dart';
 import '../../../core/routing/app_router.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_dimens.dart';
 import '../../../core/l10n/validation_message_localizer.dart';
 import '../utils/registration_navigation.dart';
 import '../utils/phone_number_validator.dart';
@@ -531,16 +533,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       context: context,
       fallbackRoute: _backFallbackRoute,
       child: Scaffold(
+        resizeToAvoidBottomInset: true,
         appBar: registrationAppBar(
           context: context,
           title: l10n.createAccount,
           fallbackRoute: _backFallbackRoute,
         ),
         body: SafeArea(
-        child: SingleChildScrollView(
+        child: AppFormScrollView(
           controller: _scrollController,
-          padding: const EdgeInsets.all(24),
-          child: Form(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: AutofillGroup(
+            child: Form(
             key: _formKey,
             autovalidateMode: _autovalidateMode,
             child: Column(
@@ -554,12 +558,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   textAlign: TextAlign.center,
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.xl),
 
                 // ✅ Image picker FIRST
                 _buildImagePicker(l10n),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.md),
 
                 // Shared fields
                 AppTextField(
@@ -567,6 +571,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   focusNode: _nameFocus,
                   label: l10n.fullName,
                   hint: l10n.enterName,
+                  textInputAction: TextInputAction.next,
+                  autofillHints: const [AutofillHints.name],
+                  textCapitalization: TextCapitalization.words,
                   onChanged: (_) => _clearServerError('name'),
                   validator: _composeValidator(
                     'name',
@@ -575,7 +582,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         : null,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.md),
 
                 AppTextField(
                   controller: _phoneController,
@@ -583,13 +590,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   label: l10n.phoneNumber,
                   hint: l10n.enterPhoneNumber,
                   keyboardType: TextInputType.phone,
+                  textInputAction: TextInputAction.next,
+                  autofillHints: const [AutofillHints.telephoneNumber],
+                  textCapitalization: TextCapitalization.none,
+                  autocorrect: false,
                   onChanged: (_) => _clearServerError('phone'),
                   validator: _composeValidator(
                     'phone',
                     (v) => PhoneNumberValidator.validate(v, l10n: l10n),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.md),
 
                 AppTextField(
                   controller: _passwordController,
@@ -597,6 +608,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   label: l10n.password,
                   hint: l10n.enterPassword,
                   obscureText: _obscurePassword,
+                  textInputAction: TextInputAction.next,
+                  autofillHints: const [AutofillHints.newPassword],
                   onChanged: (_) => _clearServerError('password'),
                   validator: _composeValidator(
                     'password',
@@ -606,14 +619,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ),
                   suffixIcon: IconButton(
                     icon: Icon(_obscurePassword
-                        ? Icons.visibility
-                        : Icons.visibility_off),
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined),
                     onPressed: () =>
                         setState(() => _obscurePassword = !_obscurePassword),
                   ),
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.md),
 
                 AppTextField(
                   controller: _confirmPasswordController,
@@ -621,6 +634,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   label: l10n.confirmPassword,
                   hint: l10n.enterConfirmPassword,
                   obscureText: _obscureConfirm,
+                  textInputAction: TextInputAction.next,
+                  autofillHints: const [AutofillHints.newPassword],
                   onChanged: (_) => _clearServerError('confirmPassword'),
                   validator: _composeValidator(
                     'confirmPassword',
@@ -636,25 +651,25 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ),
                   suffixIcon: IconButton(
                     icon: Icon(_obscureConfirm
-                        ? Icons.visibility
-                        : Icons.visibility_off),
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined),
                     onPressed: () =>
                         setState(() => _obscureConfirm = !_obscureConfirm),
                   ),
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.md),
 
                 AppDateField(
                   controller: _birthController,
                   label: l10n.birthDate,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.md),
                 AppDateField(
                   controller: _joiningController,
                   label: l10n.joiningDate,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.md),
 
                 if (_selectedType == _RegisterType.servant) ...[
                   AppTextField(
@@ -879,16 +894,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ),
                 ],
 
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.xl),
 
                 _loading
                     ? const Center(child: CircularProgressIndicator())
                     : ElevatedButton(
-                  onPressed: _register,
+                  onPressed: () {
+                    FocusManager.instance.primaryFocus?.unfocus();
+                    _register();
+                  },
                   child: Text(l10n.register),
                 ),
               ],
             ),
+          ),
           ),
         ),
       ),

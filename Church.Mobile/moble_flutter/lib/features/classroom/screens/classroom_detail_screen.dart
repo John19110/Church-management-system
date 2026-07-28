@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/routing/app_router.dart';
 import '../../../core/theme/app_dimens.dart';
@@ -297,7 +298,7 @@ class ClassroomDetailScreen extends ConsumerWidget {
       context.pop();
     } catch (e) {
       if (context.mounted) {
-        cw.showErrorSnackbar(context, e.toString());
+        cw.showErrorSnackbar(context, userFriendlyMessage(e, l10n));
       }
     }
   }
@@ -318,20 +319,10 @@ class ClassroomDetailScreen extends ConsumerWidget {
       ],
       error: (e, _) => [
         SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text('${l10n.couldNotLoadMembers} $e'),
-                const SizedBox(height: 16),
-                FilledButton(
-                  onPressed: () =>
-                      ref.invalidate(membersByClassroomProvider(classroomId)),
-                  child: Text(l10n.retry),
-                ),
-              ],
-            ),
+          child: cw.AppErrorWidget(
+            message: userFriendlyMessage(e, l10n),
+            onRetry: () =>
+                ref.invalidate(membersByClassroomProvider(classroomId)),
           ),
         ),
       ],

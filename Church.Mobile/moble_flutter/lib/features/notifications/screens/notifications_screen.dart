@@ -6,6 +6,7 @@ import '../../../core/l10n/app_localizations.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
 import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
+import '../../../shared/widgets/common_widgets.dart';
 
 class NotificationsScreen extends ConsumerWidget {
   const NotificationsScreen({super.key});
@@ -25,10 +26,11 @@ class NotificationsScreen extends ConsumerWidget {
       },
       child: Scaffold(
         appBar: AppBar(title: Text(l10n.notifications)),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(l10n.noNotificationsYet),
+        body: SafeArea(
+          child: EmptyWidget(
+            title: l10n.notifications,
+            message: l10n.noNotificationsYet,
+            icon: Icons.notifications_none_outlined,
           ),
         ),
         bottomNavigationBar: AppSectionBottomNavigationBar(
@@ -39,4 +41,3 @@ class NotificationsScreen extends ConsumerWidget {
     );
   }
 }
-

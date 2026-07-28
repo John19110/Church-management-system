@@ -50,11 +50,11 @@ class _CustomFieldDefinitionsScreenState
     return roleAsync.when(
       loading: () => Scaffold(
         appBar: AppBar(title: Text(l10n.customFields)),
-        body: const LoadingWidget(),
+        body: const LoadingWidget(useSkeleton: true),
       ),
       error: (e, _) => Scaffold(
         appBar: AppBar(title: Text(l10n.customFields)),
-        body: AppErrorWidget(message: e.toString()),
+        body: AppErrorWidget(message: userFriendlyMessage(e, l10n)),
       ),
       data: (role) {
         if (!AuthRoleUtils.canManageCustomFields(role)) {
@@ -87,7 +87,7 @@ class _CustomFieldDefinitionsScreenState
             label: Text(l10n.createField),
           ),
           body: defsAsync.when(
-            loading: () => const LoadingWidget(),
+            loading: () => const LoadingWidget(useSkeleton: true),
             error: (e, _) => AppErrorWidget(
               message: userFriendlyMessage(e, l10n),
               onRetry: () =>

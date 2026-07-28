@@ -28,7 +28,7 @@ class AttendanceHistoryScreen extends ConsumerWidget {
         title: Text(l10n.attendanceHistoryTitle(classroomName)),
       ),
       body: sessionsAsync.when(
-        loading: () => const cw.LoadingWidget(),
+        loading: () => const cw.LoadingWidget(useSkeleton: true),
         error: (e, _) => cw.AppErrorWidget(
           message: userFriendlyMessage(e, l10n),
           onRetry: () => ref.invalidate(

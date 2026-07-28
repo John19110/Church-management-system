@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/theme/app_dimens.dart';
+import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../classroom/providers/classroom_providers.dart';
 import '../../unified_form/widgets/unified_entity_photo_picker.dart';
@@ -91,12 +93,13 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
     final needsClassroomPicker = (widget.classroomId ?? 0) <= 0;
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(title: Text(l10n.addMember)),
       body: SafeArea(
         child: Form(
           key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.all(16),
+          child: AppFormListView(
+            padding: const EdgeInsets.all(AppSpacing.page),
             children: [
               if (needsClassroomPicker)
                 classroomsAsync.when(
@@ -130,18 +133,21 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
                     );
                   },
                 ),
-              if (needsClassroomPicker) const SizedBox(height: 16),
+              if (needsClassroomPicker) const SizedBox(height: AppSpacing.md),
               MemberForm(
                 controller: _memberForm,
                 pickedImage: _image,
                 onPickImage: _pickImage,
                 onChanged: _rebuild,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xl),
               _loading
                   ? const Center(child: CircularProgressIndicator())
                   : FilledButton(
-                      onPressed: _submit,
+                      onPressed: () {
+                        FocusManager.instance.primaryFocus?.unfocus();
+                        _submit();
+                      },
                       child: Text(l10n.add),
                     ),
             ],

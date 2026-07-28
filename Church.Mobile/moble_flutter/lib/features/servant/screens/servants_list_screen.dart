@@ -10,6 +10,7 @@ import '../providers/servants_providers.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
 import '../../../shared/widgets/app_list_row.dart';
+import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../shared/widgets/app_network_avatar.dart';
@@ -91,9 +92,9 @@ class ServantsListScreen extends ConsumerWidget {
           ],
         ),
         body: servantsAsync.when(
-          loading: () => const cw.LoadingWidget(),
+          loading: () => const cw.LoadingWidget(useSkeleton: true),
           error: (e, _) => cw.AppErrorWidget(
-            message: e.toString(),
+            message: userFriendlyMessage(e, l10n),
             onRetry: invalidate,
           ),
           data: (servants) {

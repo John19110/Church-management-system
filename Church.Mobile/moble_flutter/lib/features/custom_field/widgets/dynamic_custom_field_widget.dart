@@ -45,6 +45,8 @@ class DynamicCustomFieldWidget extends StatelessWidget {
           label: label,
           hint: definition.placeholder,
           maxLines: 4,
+          keyboardType: TextInputType.multiline,
+          textInputAction: TextInputAction.newline,
           readOnly: readOnly || definition.isReadOnly,
           validator: validator,
         );
@@ -54,6 +56,9 @@ class DynamicCustomFieldWidget extends StatelessWidget {
           label: label,
           hint: definition.placeholder,
           keyboardType: TextInputType.number,
+          textInputAction: TextInputAction.next,
+          textCapitalization: TextCapitalization.none,
+          autocorrect: false,
           readOnly: readOnly || definition.isReadOnly,
           validator: validator,
         );
@@ -63,6 +68,9 @@ class DynamicCustomFieldWidget extends StatelessWidget {
           label: label,
           hint: definition.placeholder,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          textInputAction: TextInputAction.next,
+          textCapitalization: TextCapitalization.none,
+          autocorrect: false,
           readOnly: readOnly || definition.isReadOnly,
           validator: validator,
         );

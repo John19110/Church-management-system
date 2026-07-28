@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../core/l10n/app_localizations.dart';
 import '../../core/l10n/locale_format.dart';
+import 'app_form_shell.dart';
 
 /// Styled text field for forms.
 class AppTextField extends StatelessWidget {
@@ -12,13 +14,23 @@ class AppTextField extends StatelessWidget {
   final TextInputType keyboardType;
   final String? Function(String?)? validator;
   final int maxLines;
+  final int? minLines;
   final Widget? suffixIcon;
+  final Widget? prefixIcon;
   final bool enabled;
   final bool readOnly;
   final VoidCallback? onTap;
   final FocusNode? focusNode;
   final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onFieldSubmitted;
   final AutovalidateMode? autovalidateMode;
+  final TextInputAction? textInputAction;
+  final Iterable<String>? autofillHints;
+  final TextCapitalization textCapitalization;
+  final bool autocorrect;
+  final bool enableSuggestions;
+  final List<TextInputFormatter>? inputFormatters;
+  final TextAlign? textAlign;
 
   const AppTextField({
     super.key,
@@ -29,17 +41,48 @@ class AppTextField extends StatelessWidget {
     this.keyboardType = TextInputType.text,
     this.validator,
     this.maxLines = 1,
+    this.minLines,
     this.suffixIcon,
+    this.prefixIcon,
     this.enabled = true,
     this.readOnly = false,
     this.onTap,
     this.focusNode,
     this.onChanged,
+    this.onFieldSubmitted,
     this.autovalidateMode,
+    this.textInputAction,
+    this.autofillHints,
+    this.textCapitalization = TextCapitalization.sentences,
+    this.autocorrect = true,
+    this.enableSuggestions = true,
+    this.inputFormatters,
+    this.textAlign,
   });
+
+  TextInputAction get _resolvedAction {
+    if (textInputAction != null) return textInputAction!;
+    if (obscureText) return TextInputAction.done;
+    if (maxLines > 1) return TextInputAction.newline;
+    return TextInputAction.next;
+  }
+
+  TextCapitalization get _resolvedCapitalization {
+    if (obscureText) return TextCapitalization.none;
+    if (keyboardType == TextInputType.emailAddress ||
+        keyboardType == TextInputType.visiblePassword ||
+        keyboardType == TextInputType.phone ||
+        keyboardType == TextInputType.number) {
+      return TextCapitalization.none;
+    }
+    return textCapitalization;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final isPassword = obscureText;
+    final isMultiline = !isPassword && maxLines > 1;
+
     return TextFormField(
       controller: controller,
       focusNode: focusNode,
@@ -47,16 +90,29 @@ class AppTextField extends StatelessWidget {
       keyboardType: keyboardType,
       validator: validator,
       onChanged: onChanged,
+      onFieldSubmitted: onFieldSubmitted,
       autovalidateMode: autovalidateMode,
-      maxLines: obscureText ? 1 : maxLines,
+      maxLines: isPassword ? 1 : maxLines,
+      minLines: isPassword ? null : minLines,
       enabled: enabled,
       readOnly: readOnly,
       onTap: onTap,
+      textInputAction: _resolvedAction,
+      autofillHints: autofillHints,
+      textCapitalization: _resolvedCapitalization,
+      autocorrect: isPassword ? false : autocorrect,
+      enableSuggestions: isPassword ? false : enableSuggestions,
+      inputFormatters: inputFormatters,
+      textAlign: textAlign ?? TextAlign.start,
+      scrollPadding: kAppFieldScrollPadding,
+      style: Theme.of(context).textTheme.bodyLarge,
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
         suffixIcon: suffixIcon,
+        prefixIcon: prefixIcon,
         errorMaxLines: 6,
+        alignLabelWithHint: isMultiline,
       ),
     );
   }
@@ -135,12 +191,14 @@ class _AppDateFieldState extends State<AppDateField> {
       textDirection: LocaleFormat.textDirectionFor(l10n.locale),
       textAlign: LocaleFormat.textAlignFor(l10n.locale),
       validator: (_) => widget.validator?.call(widget.controller.text),
+      scrollPadding: kAppFieldScrollPadding,
       decoration: InputDecoration(
         labelText: widget.label,
-        suffixIcon: const Icon(Icons.calendar_today),
+        suffixIcon: const Icon(Icons.calendar_today_outlined),
         errorMaxLines: 6,
       ),
       onTap: () async {
+        FocusManager.instance.primaryFocus?.unfocus();
         final picked = await showDatePicker(
           context: context,
           initialDate:
@@ -223,6 +281,7 @@ class _AppDateTimeFieldState extends State<AppDateTimeField> {
   }
 
   Future<void> _pickDateTime() async {
+    FocusManager.instance.primaryFocus?.unfocus();
     final c = widget.controller;
     final date = await showDatePicker(
       context: context,
@@ -260,9 +319,10 @@ class _AppDateTimeFieldState extends State<AppDateTimeField> {
       textDirection: LocaleFormat.textDirectionFor(l10n.locale),
       textAlign: LocaleFormat.textAlignFor(l10n.locale),
       validator: (_) => widget.validator?.call(widget.controller.text),
+      scrollPadding: kAppFieldScrollPadding,
       decoration: InputDecoration(
         labelText: widget.label,
-        suffixIcon: const Icon(Icons.calendar_today),
+        suffixIcon: const Icon(Icons.event_outlined),
         errorMaxLines: 6,
       ),
       onTap: _pickDateTime,

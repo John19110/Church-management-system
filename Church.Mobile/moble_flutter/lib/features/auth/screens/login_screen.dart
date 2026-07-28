@@ -6,6 +6,7 @@ import '../providers/auth_providers.dart';
 import '../utils/auth_role_utils.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_form_fields.dart';
+import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/providers/locale_provider.dart';
@@ -40,6 +41,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _login() async {
+    FocusManager.instance.primaryFocus?.unfocus();
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _loading = true);
@@ -96,116 +98,144 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final isArabic = locale.languageCode == 'ar';
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
-        child: Column(
-          children: [
-            // Header bar: language + theme toggles (logic preserved).
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.md,
-                vertical: AppSpacing.xs,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  GestureDetector(
-                    onTap: () => ref.read(localeProvider.notifier).toggle(),
-                    child: CircleAvatar(
-                      radius: 16,
-                      backgroundImage: AssetImage(
-                        isArabic ? 'assets/flags/uk.png' : 'assets/flags/eg.png',
+        child: AppKeyboardDismiss(
+          child: Column(
+            children: [
+              // Header bar: language + theme toggles (logic preserved).
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.xs,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Tooltip(
+                      message: isArabic ? l10n.english : l10n.arabic,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(24),
+                        onTap: () => ref.read(localeProvider.notifier).toggle(),
+                        child: Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: CircleAvatar(
+                            radius: 16,
+                            backgroundImage: AssetImage(
+                              isArabic
+                                  ? 'assets/flags/uk.png'
+                                  : 'assets/flags/eg.png',
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
-                  IconButton(
-                    tooltip: isDark ? l10n.lightMode : l10n.darkMode,
-                    icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
-                    onPressed: () =>
-                        ref.read(themeModeProvider.notifier).toggle(),
-                  ),
-                ],
+                    const SizedBox(width: AppSpacing.xs),
+                    IconButton(
+                      tooltip: isDark ? l10n.lightMode : l10n.darkMode,
+                      icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
+                      onPressed: () =>
+                          ref.read(themeModeProvider.notifier).toggle(),
+                    ),
+                  ],
+                ),
               ),
-            ),
 
-            Expanded(
-              child: Center(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.xl,
-                    AppSpacing.lg,
-                    AppSpacing.xl,
-                    AppSpacing.xl,
-                  ),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 440),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _brandMark(theme),
-                          const SizedBox(height: AppSpacing.lg),
-                          Text(
-                            l10n.churchBrand,
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: theme.colorScheme.primary,
-                            ),
-                          ),
-
-                          const SizedBox(height: AppSpacing.xxl),
-                          AppTextField(
-                            controller: _phoneController,
-                            label: l10n.phoneNumber,
-                            hint: l10n.enterPhoneNumber,
-                            keyboardType: TextInputType.phone,
-                            validator: (v) =>
-                                PhoneNumberValidator.validate(v, l10n: l10n),
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-                          AppTextField(
-                            controller: _passwordController,
-                            label: l10n.password,
-                            hint: l10n.enterPassword,
-                            obscureText: _obscurePassword,
-                            validator: (v) => (v == null || v.isEmpty)
-                                ? l10n.passwordRequired
-                                : null,
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscurePassword
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
-                                color: palette.textSecondary,
+              Expanded(
+                child: Center(
+                  child: AppFormScrollView(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.xl,
+                      AppSpacing.lg,
+                      AppSpacing.xl,
+                      AppSpacing.xl,
+                    ),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 440),
+                      child: AutofillGroup(
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _brandMark(theme),
+                              const SizedBox(height: AppSpacing.lg),
+                              Text(
+                                l10n.churchBrand,
+                                textAlign: TextAlign.center,
+                                style: theme.textTheme.headlineMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: theme.colorScheme.primary,
+                                ),
                               ),
-                              onPressed: () => setState(
-                                () => _obscurePassword = !_obscurePassword,
+                              const SizedBox(height: AppSpacing.xxl),
+                              AppTextField(
+                                controller: _phoneController,
+                                label: l10n.phoneNumber,
+                                hint: l10n.enterPhoneNumber,
+                                keyboardType: TextInputType.phone,
+                                textInputAction: TextInputAction.next,
+                                autofillHints: const [
+                                  AutofillHints.telephoneNumber,
+                                ],
+                                textCapitalization: TextCapitalization.none,
+                                autocorrect: false,
+                                validator: (v) => PhoneNumberValidator.validate(
+                                  v,
+                                  l10n: l10n,
+                                ),
                               ),
-                            ),
+                              const SizedBox(height: AppSpacing.md),
+                              AppTextField(
+                                controller: _passwordController,
+                                label: l10n.password,
+                                hint: l10n.enterPassword,
+                                obscureText: _obscurePassword,
+                                textInputAction: TextInputAction.done,
+                                autofillHints: const [AutofillHints.password],
+                                onFieldSubmitted: (_) => _login(),
+                                validator: (v) => (v == null || v.isEmpty)
+                                    ? l10n.passwordRequired
+                                    : null,
+                                suffixIcon: IconButton(
+                                  tooltip: _obscurePassword
+                                      ? l10n.password
+                                      : l10n.password,
+                                  icon: Icon(
+                                    _obscurePassword
+                                        ? Icons.visibility_outlined
+                                        : Icons.visibility_off_outlined,
+                                    color: palette.textSecondary,
+                                  ),
+                                  onPressed: () => setState(
+                                    () => _obscurePassword = !_obscurePassword,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: AppSpacing.xl),
+                              AppButton(
+                                label: l10n.login,
+                                loading: _loading,
+                                onPressed: _loading ? null : _login,
+                              ),
+                              const SizedBox(height: AppSpacing.md),
+                              TextButton(
+                                onPressed: _loading
+                                    ? null
+                                    : () => context.push(AppRoutes.register),
+                                child: Text(l10n.dontHaveAccount),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: AppSpacing.xl),
-                          AppButton(
-                            label: l10n.login,
-                            loading: _loading,
-                            onPressed: _login,
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-                          TextButton(
-                            onPressed: () =>
-                                context.push(AppRoutes.register),
-                            child: Text(l10n.dontHaveAccount),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
@@ -33,7 +34,7 @@ class ChurchDetailScreen extends ConsumerWidget {
       ),
       error: (e, _) => Scaffold(
         appBar: AppBar(title: Text(l10n.churchName)),
-        body: cw.AppErrorWidget(message: e.toString()),
+        body: cw.AppErrorWidget(message: userFriendlyMessage(e, l10n)),
       ),
       data: (role) {
         final canManage = AuthRoleUtils.canManageCustomFields(role);
@@ -82,7 +83,7 @@ class ChurchDetailScreen extends ConsumerWidget {
           ),
           body: formAsync.when(
             loading: () => const cw.LoadingWidget(),
-            error: (e, _) => cw.AppErrorWidget(message: e.toString()),
+            error: (e, _) => cw.AppErrorWidget(message: userFriendlyMessage(e, l10n)),
             data: (form) => ListView(
               padding: const EdgeInsets.all(16),
               children: [

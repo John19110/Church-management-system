@@ -8,6 +8,9 @@ import '../../../core/routing/app_router.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
 import '../../auth/utils/auth_session.dart';
+import '../../../core/theme/app_dimens.dart';
+import '../../../shared/widgets/app_form_fields.dart';
+import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../custom_field/providers/custom_field_cache_providers.dart';
 import '../../unified_form/models/unified_form_models.dart';
@@ -89,19 +92,24 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen>
           builder: (dialogBuilderContext, setDialogState) {
             final l10n = AppLocalizations.of(dialogBuilderContext);
             return AlertDialog(
+              insetPadding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg,
+                vertical: AppSpacing.xl,
+              ),
               title: Text(l10n.addMeeting),
-              content: SingleChildScrollView(
+              content: AppDialogFormBody(
                 child: Form(
                   key: _meetingFormKey,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      TextFormField(
+                      AppTextField(
                         controller: _nameController,
-                        decoration: InputDecoration(
-                          labelText: l10n.meetingNameLabel,
-                          hintText: l10n.enterMeetingNameHint,
-                        ),
+                        label: l10n.meetingNameLabel,
+                        hint: l10n.enterMeetingNameHint,
+                        textInputAction: TextInputAction.next,
+                        textCapitalization: TextCapitalization.words,
+                        enabled: !isSubmitting,
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return l10n.meetingNameRequiredGeneric;
@@ -109,11 +117,12 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen>
                           return null;
                         },
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.md),
                       DropdownButtonFormField<String>(
                         value: _selectedDay,
                         decoration: InputDecoration(
                           labelText: l10n.meetingDayOfWeek,
+                          errorMaxLines: 3,
                         ),
                         items: [
                           DropdownMenuItem(
@@ -156,14 +165,14 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen>
                             ? l10n.dayOfWeekRequired
                             : null,
                       ),
-                      const SizedBox(height: 12),
-                      TextFormField(
+                      const SizedBox(height: AppSpacing.md),
+                      AppTextField(
                         controller: _timeController,
+                        label: l10n.weeklyAppointmentTime,
+                        hint: l10n.timeFormatHint,
                         readOnly: true,
-                        decoration: InputDecoration(
-                          labelText: l10n.weeklyAppointmentTime,
-                          hintText: l10n.timeFormatHint,
-                        ),
+                        enabled: !isSubmitting,
+                        textInputAction: TextInputAction.done,
                         onTap: isSubmitting
                             ? null
                             : () async {
@@ -195,6 +204,9 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen>
                   child: Text(l10n.cancel),
                 ),
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(88, 48),
+                  ),
                   onPressed: isSubmitting
                       ? null
                       : () async {

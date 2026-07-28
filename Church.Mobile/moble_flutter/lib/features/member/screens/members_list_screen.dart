@@ -10,6 +10,7 @@ import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
 import '../../../shared/widgets/app_list_row.dart';
 import '../../../shared/widgets/app_search_field.dart';
+import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../shared/widgets/app_network_avatar.dart';
@@ -80,11 +81,11 @@ class _MembersListScreenState extends ConsumerState<MembersListScreen> {
       child: roleAsync.when(
         loading: () => Scaffold(
           appBar: AppBar(title: Text(buildTitle())),
-          body: const cw.LoadingWidget(),
+          body: const cw.LoadingWidget(useSkeleton: true),
         ),
         error: (e, _) => Scaffold(
           appBar: AppBar(title: Text(buildTitle())),
-          body: cw.AppErrorWidget(message: e.toString()),
+          body: cw.AppErrorWidget(message: userFriendlyMessage(e, l10n)),
         ),
         data: (role) => Scaffold(
           appBar: AppBar(
@@ -115,9 +116,9 @@ class _MembersListScreenState extends ConsumerState<MembersListScreen> {
             label: Text(l10n.add),
           ),
           body: membersAsync.when(
-            loading: () => const cw.LoadingWidget(),
+            loading: () => const cw.LoadingWidget(useSkeleton: true),
             error: (e, _) => cw.AppErrorWidget(
-              message: e.toString(),
+              message: userFriendlyMessage(e, l10n),
               onRetry: _invalidate,
             ),
             data: (members) {

@@ -176,6 +176,8 @@ class UnifiedFormFieldWidget extends StatelessWidget {
           label: label,
           hint: placeholder,
           maxLines: field.dataType == UnifiedFieldDataType.json ? 5 : 4,
+          keyboardType: TextInputType.multiline,
+          textInputAction: TextInputAction.newline,
           readOnly: effectiveReadOnly,
           validator: validator,
         );
@@ -184,7 +186,11 @@ class UnifiedFormFieldWidget extends StatelessWidget {
         return AppTextField(
           controller: controller.controllerFor(field.fieldKey),
           label: label,
+          hint: placeholder,
           keyboardType: TextInputType.number,
+          textInputAction: TextInputAction.next,
+          textCapitalization: TextCapitalization.none,
+          autocorrect: false,
           readOnly: effectiveReadOnly,
           validator: validator,
         );
@@ -193,7 +199,11 @@ class UnifiedFormFieldWidget extends StatelessWidget {
         return AppTextField(
           controller: controller.controllerFor(field.fieldKey),
           label: label,
+          hint: placeholder,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          textInputAction: TextInputAction.next,
+          textCapitalization: TextCapitalization.none,
+          autocorrect: false,
           readOnly: effectiveReadOnly,
           validator: validator,
         );
@@ -221,10 +231,27 @@ class UnifiedFormFieldWidget extends StatelessWidget {
             subtitle: Text(url, maxLines: 1, overflow: TextOverflow.ellipsis),
           );
         }
+        final isPhone = field.fieldKey.toLowerCase().contains('phone');
+        final isEmail = field.fieldKey.toLowerCase().contains('email');
         return AppTextField(
           controller: controller.controllerFor(field.fieldKey),
           label: label,
           hint: placeholder,
+          keyboardType: isPhone
+              ? TextInputType.phone
+              : isEmail
+                  ? TextInputType.emailAddress
+                  : TextInputType.text,
+          textInputAction: TextInputAction.next,
+          textCapitalization: isPhone || isEmail
+              ? TextCapitalization.none
+              : TextCapitalization.sentences,
+          autocorrect: !(isPhone || isEmail),
+          autofillHints: isPhone
+              ? const [AutofillHints.telephoneNumber]
+              : isEmail
+                  ? const [AutofillHints.email]
+                  : null,
           readOnly: effectiveReadOnly,
           validator: validator,
         );
