@@ -8,7 +8,15 @@ namespace Church.DAL.Repository.Interfaces
     public interface IMeetingRepository
     {
         Task<IQueryable<Meeting>> GetAllAsync();
+        /// <summary>Tenant-scoped lookup. Returns null for meetings outside the caller's church.</summary>
         Task<Meeting?> GetByIdAsync(int id);
+
+        /// <summary>
+        /// Tenant-unscoped lookup for anonymous self-registration only, where the meeting was
+        /// already identified by its public join code and no tenant exists yet.
+        /// </summary>
+        Task<Meeting?> GetByIdUnscopedAsync(int id);
+
         Task<Meeting?> GetByPublicIdAsync(string publicId);
         Task<int?> GetMeetingIdByPublicIdAsync(string publicId);
         Task<bool> ExistsPublicIdAsync(string publicId, int? excludeMeetingId = null);

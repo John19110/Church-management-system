@@ -176,6 +176,13 @@ namespace Church.BLL.Manager.Implementations
             if (id <= 0)
                 return false;
 
+            // The cascade delete below runs unscoped, so ownership must be proven here first.
+            // This tenant-filtered read returns null for a servant in another church or meeting,
+            // which is what stops an admin from deleting across tenants by guessing an id.
+            var servant = await _servantRepository.GetByIdAsync(id);
+            if (servant == null)
+                return false;
+
             var outcome = await _servantRepository.DeleteAsync(id);
             if (!outcome.Deleted)
                 return false;

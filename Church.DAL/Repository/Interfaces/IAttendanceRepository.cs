@@ -11,7 +11,7 @@ namespace Church.DAL.Repository.Interfaces
     {
         Task  Take(AttendanceSession session);
         Task  Edit(AttendanceSession session);
-        Task<AttendanceSession> Get(int SessionId);
+        Task<AttendanceSession?> Get(int sessionId);
         Task<List<AttendanceSession>> GetByClassroom(int classroomId);
 
     }

@@ -111,7 +111,9 @@ public sealed class AccountDeletionServiceTests
             Assert.False(await db.Users.AnyAsync(x => x.Id == userId));
             Assert.False(await db.Servants.IgnoreQueryFilters()
                 .AnyAsync(x => x.ApplicationUserId == userId));
-            Assert.Null((await db.Churches.SingleAsync()).PastorId);
+            // Tenant filters fail closed and this fixture has no resolved tenant, so the
+            // assertion reads unfiltered — same reason as the Servants assertion above.
+            Assert.Null((await db.Churches.IgnoreQueryFilters().SingleAsync()).PastorId);
             Assert.False(File.Exists(imagePath));
         }
         finally

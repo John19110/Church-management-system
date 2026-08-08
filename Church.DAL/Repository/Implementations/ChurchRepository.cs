@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Church.DAL.Models;
 using Church.DAL.Repository.Interfaces;
 using Church.Domain;
@@ -27,6 +27,7 @@ namespace Church.DAL.Repository.Implementations
             await _context.SaveChangesAsync();
         }
 
+        /// <summary>Tenant-scoped: only resolves the caller's own church.</summary>
         public async Task<ChurchModel?> GetByIdAsync(int id)
         {
             return await _context.Churches
@@ -36,6 +37,19 @@ namespace Church.DAL.Repository.Implementations
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
 
+        /// <summary>
+        /// Resolves a church by internal id without tenant scoping. Only for anonymous
+        /// self-registration, where the church is identified by its public join code and no
+        /// tenant exists yet. Never call this from a request that already has a tenant.
+        /// </summary>
+        public async Task<ChurchModel?> GetByIdUnscopedAsync(int id)
+        {
+            return await _context.Churches
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(c => c.Id == id);
+        }
+
+        /// <remarks>The public id is the church join code and is intentionally resolvable anonymously.</remarks>
         public async Task<ChurchModel?> GetByPublicIdAsync(string publicId)
         {
             if (string.IsNullOrWhiteSpace(publicId))
@@ -43,6 +57,7 @@ namespace Church.DAL.Repository.Implementations
 
             return await _context.Churches
                 .AsNoTracking()
+                .IgnoreQueryFilters()
                 .FirstOrDefaultAsync(c => c.PublicId == publicId.Trim()
                     || c.PublicId == publicId.Trim().ToUpperInvariant());
         }
@@ -59,7 +74,9 @@ namespace Church.DAL.Repository.Implementations
                 return false;
 
             var normalized = publicId.Trim().ToUpperInvariant();
+            // Uniqueness of a join code is global, so this must see every church.
             var query = _context.Churches.AsNoTracking()
+                .IgnoreQueryFilters()
                 .Where(c => c.PublicId == normalized || c.PublicId == publicId.Trim());
 
             if (excludeChurchId.HasValue)
@@ -68,19 +85,23 @@ namespace Church.DAL.Repository.Implementations
             return await query.AnyAsync();
         }
 
+        /// <remarks>Startup schema repair; runs with no tenant.</remarks>
         public async Task<List<ChurchModel>> GetChurchesNeedingShortPublicIdAsync()
         {
             return await _context.Churches
+                .IgnoreQueryFilters()
                 .Where(c => c.PublicId == null
                     || c.PublicId == string.Empty
                     || c.PublicId.Length > 10)
                 .ToListAsync();
         }
 
+        /// <remarks>Used by anonymous registration to detect duplicate church names.</remarks>
         public async Task<ChurchModel?> GetByNameAsync(string churchName)
         {
             return await _context.Churches
                 .AsNoTracking()
+                .IgnoreQueryFilters()
                 .FirstOrDefaultAsync(c => c.Name == churchName);
         }
 

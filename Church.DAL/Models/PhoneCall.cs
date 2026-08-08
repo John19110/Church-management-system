@@ -12,7 +12,7 @@ namespace Church.DAL.Models
     {
         public int Id { get; set; }
 
-        public DateOnly? DateOFthecall;
+        public DateOnly? DateOFthecall { get; set; }
         public Servant? Servant { get; set; } 
         public string? Notes { get; set; }
         public int MemberContactId { get; set; }

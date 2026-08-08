@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Church.BLL.DTOS;
 using Church.BLL.Exceptions;
@@ -8,6 +9,7 @@ namespace Church.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Servant,Admin,SuperAdmin")]
     public class AttendanceSessionController : ControllerBase
     {
         private readonly IAttendanceManager _attendanceManager;

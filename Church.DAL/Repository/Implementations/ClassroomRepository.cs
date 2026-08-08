@@ -191,16 +191,23 @@ namespace Church.DAL.Repository.Implementations
                 .ToListAsync();
         }
 
+        /// <remarks>
+        /// Tenant filters are bypassed deliberately: this builds the <c>ClassroomIds</c> claim during
+        /// login, before any tenant exists. Applying the classroom filter here would be circular —
+        /// the filter is derived from this result.
+        /// </remarks>
         public async Task<List<int>> GetAccessibleClassroomIdsForServantAsync(int servantId)
         {
             var fromJunction = await _context.ClassroomServants
                 .AsNoTracking()
+                .IgnoreQueryFilters()
                 .Where(cs => cs.ServantId == servantId)
                 .Select(cs => cs.ClassroomId)
                 .ToListAsync();
 
             var fromLeader = await _context.Classrooms
                 .AsNoTracking()
+                .IgnoreQueryFilters()
                 .Where(c => c.LeaderServantId == servantId)
                 .Select(c => c.Id)
                 .ToListAsync();

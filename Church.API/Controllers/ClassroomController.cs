@@ -22,6 +22,7 @@ namespace Church.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Servant,Admin,SuperAdmin")]
     public class ClassroomController : ControllerBase
     {
         private readonly IClassroomManager _classroomManager;
@@ -46,6 +47,7 @@ namespace Church.API.Controllers
 
 
         [HttpPost]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> Create(ClassroomAddDTO classroom)
         {
             await _classroomManager.AddAsync(classroom);
@@ -53,6 +55,7 @@ namespace Church.API.Controllers
         }
 
         [HttpPut("{id:int}")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> Update(
             int id,
             [FromBody] ClassroomUpdateDTO dto,
@@ -118,6 +121,7 @@ namespace Church.API.Controllers
         }
 
         [HttpPost("create-from-form")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         [Consumes(MediaTypeNames.Application.Json)]
         [Produces(MediaTypeNames.Application.Json)]
         public async Task<ActionResult<object>> CreateFromForm(
@@ -139,6 +143,7 @@ namespace Church.API.Controllers
         }
 
         [HttpPut("{id:int}/form-data")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         [Consumes(MediaTypeNames.Application.Json)]
         public async Task<IActionResult> SaveFormData(int id, [FromBody] SaveEntityFormDto request)
         {

@@ -26,6 +26,7 @@ namespace Church.API.Controllers
         }
 
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<ActionResult> Login([FromBody] LoginDTO loginDto)
         {
             var result = await _accountManager.Login(loginDto);
@@ -33,6 +34,7 @@ namespace Church.API.Controllers
         }
 
         [HttpPost("register-church-superadmin")]
+        [AllowAnonymous]
         public async Task<ActionResult> RegisterChurchSuperAdmin([FromForm] RegisterChurchAdminDTO dto)
         {
             var result = await _accountManager.RegisterChurchSuperAdmin(dto, _env.WebRootPath);
@@ -40,6 +42,7 @@ namespace Church.API.Controllers
         }
 
         [HttpPost("register-meeting-admin-new-church")]
+        [AllowAnonymous]
         public async Task<ActionResult> RegisterMeetingAdminNewChurch([FromForm] RegisterMeetingAdminNewChurchDTO dto)
         {
             var result = await _accountManager.RegisterMeetingAdminNewChurch(dto, _env.WebRootPath);
@@ -47,6 +50,7 @@ namespace Church.API.Controllers
         }
 
         [HttpPost("register-servant")]
+        [AllowAnonymous]
         public async Task<ActionResult> RegisterServant([FromForm] RegisterServantDTO dto)
         {
             var result = await _accountManager.RegisterServant(dto, _env.WebRootPath);

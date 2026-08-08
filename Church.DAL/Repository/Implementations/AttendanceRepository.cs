@@ -46,13 +46,13 @@ namespace Church.DAL.Repository.Implementations
             await _context.AttendanceSessions.AddAsync(session);
             await _context.SaveChangesAsync();
         }
-        public async Task<AttendanceSession> Get(int  SessionId)
+        /// <remarks>Tracked on purpose: callers edit the returned session and its records.</remarks>
+        public async Task<AttendanceSession?> Get(int sessionId)
         {
-             return  _context.AttendanceSessions
-                .Include(c=>c.Records)
+            return await _context.AttendanceSessions
+                .Include(c => c.Records)
                     .ThenInclude(r => r.Member)
-                .FirstOrDefault(c => c.Id == SessionId);
-            
+                .FirstOrDefaultAsync(c => c.Id == sessionId);
         }
 
         public async Task<List<AttendanceSession>> GetByClassroom(int classroomId)

@@ -6,6 +6,7 @@ using Church.BLL.Exceptions;
 using Church.BLL.Manager.Interfaces;
 using Church.BLL.Services;
 using Church.BLL.Services.Auth;
+using Church.DAL.Abstractions;
 using Church.DAL.Models;
 using Church.DAL.Repository.Interfaces;
 using Church.Domain;
@@ -461,14 +462,16 @@ namespace Church.BLL.Manager.Implementations
             var servantPhone = NormalizeRegistrationPhone(registerDto.PhoneNumber);
             await EnsurePhoneNumberAvailableAsync(servantPhone);
 
-            var church = await _churchRepo.GetByIdAsync(churchId);
+            // Self-registration is anonymous: no tenant is resolved yet, so these lookups must be
+            // unscoped. The church/meeting were already resolved from a public join code above.
+            var church = await _churchRepo.GetByIdUnscopedAsync(churchId);
             if (church == null)
                 throw new NotFoundException($"Church with id {churchId} not found.");
 
             // Meeting is optional for pending registrations; assigned on approval.
             if (meetingId.HasValue)
             {
-                var existingMeeting = await _meetingRepo.GetByIdAsync(meetingId.Value);
+                var existingMeeting = await _meetingRepo.GetByIdUnscopedAsync(meetingId.Value);
                 if (existingMeeting == null)
                     throw new NotFoundException("Meeting not found");
 
@@ -725,14 +728,26 @@ namespace Church.BLL.Manager.Implementations
         private async Task<List<TokenClaimDescriptor>> BuildJwtClaims(ApplicationUser user)
         {
             var servantProfile = await _servantRepo.GetProfileByApplicationUserIdAsync(user.Id);
+            var roles = await _userManager.GetRolesAsync(user);
 
             var claims = new List<TokenClaimDescriptor>
             {
                 new() { Type = JwtRegisteredClaimNames.Sub, Value = user.Id },
                 new() { Type = ClaimTypes.Name, Value = servantProfile?.Name ?? string.Empty },
                 new() { Type = ClaimTypes.MobilePhone, Value = user.PhoneNumber ?? string.Empty },
-                new() { Type = "ChurchId", Value = user.ChurchId?.ToString() ?? string.Empty },
             };
+
+            // Emitting an empty ChurchId used to leave the tenant unresolved, which disabled every
+            // tenant query filter. An approved user must always carry a usable church.
+            if (!user.ChurchId.HasValue)
+                throw new AccountNotApprovedException(
+                    "This account is not linked to a church yet. Contact your church administrator.");
+
+            claims.Add(new TokenClaimDescriptor
+            {
+                Type = "ChurchId",
+                Value = user.ChurchId.Value.ToString()
+            });
 
             if (user.MeetingId.HasValue)
                 claims.Add(new TokenClaimDescriptor { Type = "MeetingId", Value = user.MeetingId.Value.ToString() });
@@ -751,11 +766,30 @@ namespace Church.BLL.Manager.Implementations
                 }
             }
 
-            var roles = await _userManager.GetRolesAsync(user);
+            // Scope is derived from the role, never accepted from the client. It drives the
+            // classroom-level tenant filters, which were previously inert because nothing issued it.
+            claims.Add(new TokenClaimDescriptor
+            {
+                Type = "Scope",
+                Value = ResolveScopeFromRoles(roles)
+            });
+
             foreach (var role in roles)
                 claims.Add(new TokenClaimDescriptor { Type = ClaimTypes.Role, Value = role });
 
             return claims;
+        }
+
+        /// <summary>Role precedence: SuperAdmin (whole church) &gt; Admin (one meeting) &gt; Servant (assigned classrooms).</summary>
+        private static string ResolveScopeFromRoles(IList<string> roles)
+        {
+            if (roles.Any(static r => string.Equals(r, "SuperAdmin", StringComparison.OrdinalIgnoreCase)))
+                return TenantScopes.Church;
+
+            if (roles.Any(static r => string.Equals(r, "Admin", StringComparison.OrdinalIgnoreCase)))
+                return TenantScopes.Meeting;
+
+            return TenantScopes.Classroom;
         }
     }
 }

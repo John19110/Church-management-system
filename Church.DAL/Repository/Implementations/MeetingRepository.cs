@@ -40,6 +40,7 @@ namespace Church.DAL.Repository.Implementations
                 .ToListAsync();
         }
 
+        /// <summary>Tenant-scoped: only resolves meetings inside the caller's church.</summary>
         public async Task<Meeting?> GetByIdAsync(int id)
         {
             return await _context.Meetings
@@ -48,6 +49,18 @@ namespace Church.DAL.Repository.Implementations
                 .FirstOrDefaultAsync(m => m.Id == id);
         }
 
+        /// <summary>
+        /// Resolves a meeting by internal id without tenant scoping. Only for anonymous
+        /// self-registration, where the meeting was identified by its public join code.
+        /// </summary>
+        public async Task<Meeting?> GetByIdUnscopedAsync(int id)
+        {
+            return await _context.Meetings
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(m => m.Id == id);
+        }
+
+        /// <remarks>The public id is the meeting join code and is intentionally resolvable anonymously.</remarks>
         public async Task<Meeting?> GetByPublicIdAsync(string publicId)
         {
             if (string.IsNullOrWhiteSpace(publicId))
@@ -56,6 +69,7 @@ namespace Church.DAL.Repository.Implementations
             var normalized = publicId.Trim();
             return await _context.Meetings
                 .AsNoTracking()
+                .IgnoreQueryFilters()
                 .FirstOrDefaultAsync(m => m.PublicId == normalized
                     || m.PublicId == normalized.ToUpperInvariant());
         }
@@ -66,7 +80,9 @@ namespace Church.DAL.Repository.Implementations
                 return false;
 
             var normalized = publicId.Trim().ToUpperInvariant();
+            // Uniqueness of a join code is global, so this must see every meeting.
             var query = _context.Meetings.AsNoTracking()
+                .IgnoreQueryFilters()
                 .Where(m => m.PublicId == normalized || m.PublicId == publicId.Trim());
 
             if (excludeMeetingId.HasValue)
@@ -84,7 +100,9 @@ namespace Church.DAL.Repository.Implementations
                 return false;
 
             var normalized = publicId.Trim().ToUpperInvariant();
+            // Called during anonymous church creation; scoping is explicit via churchId.
             var query = _context.Meetings.AsNoTracking()
+                .IgnoreQueryFilters()
                 .Where(m => m.ChurchId == churchId
                     && (m.PublicId == normalized || m.PublicId == publicId.Trim()));
 
@@ -97,9 +115,11 @@ namespace Church.DAL.Repository.Implementations
         public async Task<List<Meeting>> GetMeetingsWithLegacyPublicIdsAsync() =>
             await GetMeetingsNeedingShortPublicIdAsync();
 
+        /// <remarks>Startup schema repair; runs with no tenant.</remarks>
         public async Task<List<Meeting>> GetMeetingsNeedingShortPublicIdAsync()
         {
             return await _context.Meetings
+                .IgnoreQueryFilters()
                 .Where(m => m.PublicId == null
                     || m.PublicId == string.Empty
                     || m.PublicId.Length > 10)

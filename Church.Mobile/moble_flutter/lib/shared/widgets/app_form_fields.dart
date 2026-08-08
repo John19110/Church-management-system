@@ -67,12 +67,26 @@ class AppTextField extends StatelessWidget {
     return TextInputAction.next;
   }
 
+  /// Flutter requires [TextInputType.multiline] (not [TextInputType.text])
+  /// whenever [TextInputAction.newline] is used on a multi-line field.
+  TextInputType get _resolvedKeyboardType {
+    final effectiveMaxLines = obscureText ? 1 : maxLines;
+    final action = _resolvedAction;
+    if (action == TextInputAction.newline &&
+        effectiveMaxLines != 1 &&
+        identical(keyboardType, TextInputType.text)) {
+      return TextInputType.multiline;
+    }
+    return keyboardType;
+  }
+
   TextCapitalization get _resolvedCapitalization {
     if (obscureText) return TextCapitalization.none;
-    if (keyboardType == TextInputType.emailAddress ||
-        keyboardType == TextInputType.visiblePassword ||
-        keyboardType == TextInputType.phone ||
-        keyboardType == TextInputType.number) {
+    final resolvedKeyboard = _resolvedKeyboardType;
+    if (resolvedKeyboard == TextInputType.emailAddress ||
+        resolvedKeyboard == TextInputType.visiblePassword ||
+        resolvedKeyboard == TextInputType.phone ||
+        resolvedKeyboard == TextInputType.number) {
       return TextCapitalization.none;
     }
     return textCapitalization;
@@ -82,12 +96,14 @@ class AppTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     final isPassword = obscureText;
     final isMultiline = !isPassword && maxLines > 1;
+    final resolvedKeyboardType = _resolvedKeyboardType;
+    final resolvedAction = _resolvedAction;
 
     return TextFormField(
       controller: controller,
       focusNode: focusNode,
       obscureText: obscureText,
-      keyboardType: keyboardType,
+      keyboardType: resolvedKeyboardType,
       validator: validator,
       onChanged: onChanged,
       onFieldSubmitted: onFieldSubmitted,
@@ -97,7 +113,7 @@ class AppTextField extends StatelessWidget {
       enabled: enabled,
       readOnly: readOnly,
       onTap: onTap,
-      textInputAction: _resolvedAction,
+      textInputAction: resolvedAction,
       autofillHints: autofillHints,
       textCapitalization: _resolvedCapitalization,
       autocorrect: isPassword ? false : autocorrect,

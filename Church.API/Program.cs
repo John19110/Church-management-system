@@ -20,6 +20,7 @@ using System.Diagnostics;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Church.API.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Church.API.Json;
 using Church.API.Filters;
 using Church.API.Middlewares;
@@ -167,6 +168,15 @@ builder.Services.AddScoped<IUnifiedEntityFormManager, UnifiedEntityFormManager>(
 builder.Services.AddScoped<IUnitOfWork,UnitOfWork>();
 
 builder.Services.AddCustomFieldAuthorization();
+
+// Deny by default: any endpoint without an explicit [AllowAnonymous] requires authentication.
+// Without this, a controller that simply forgets [Authorize] is silently public.
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+});
 
 
 
@@ -353,14 +363,13 @@ app.MapGet(
     "/account-deletion",
     (IWebHostEnvironment environment) => Results.File(
         Path.Combine(environment.WebRootPath, "account-deletion", "index.html"),
-        "text/html; charset=utf-8"));
+        "text/html; charset=utf-8"))
+    .AllowAnonymous();
 app.MapGet(
     "/privacy-policy",
     (IWebHostEnvironment environment) => Results.File(
         Path.Combine(environment.WebRootPath, "privacy-policy", "index.html"),
-        "text/html; charset=utf-8"));
-//if (app.Environment.IsDevelopment())
-//{
-    app.MapGet("/", () => Results.Redirect("/swagger"));
-//}
+        "text/html; charset=utf-8"))
+    .AllowAnonymous();
+app.MapGet("/", () => Results.Redirect("/swagger")).AllowAnonymous();
 app.Run();

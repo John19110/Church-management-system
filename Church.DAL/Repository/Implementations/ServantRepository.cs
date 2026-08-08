@@ -110,12 +110,18 @@ namespace Church.DAL.Repository.Implementations
         /// No Include graph: loading <c>Servant → ApplicationUser</c> from <c>Users</c> caused EF Core
         /// <c>NavigationBaseIncludeIgnored</c> on the one-to-one inverse. Callers only need the servant entity key and scalars.
         /// </summary>
+        /// <remarks>
+        /// Tenant filters are bypassed deliberately: the caller looks up a servant by ASP.NET
+        /// Identity user id, which is only ever their own id or one already authorized by the
+        /// approval flow. This also runs during login, before a tenant exists.
+        /// </remarks>
         public async Task<Servant?> GetByApplicationUserIdAsync(string applicationUserId)
         {
             if (string.IsNullOrWhiteSpace(applicationUserId))
                 return null;
 
             return await _context.Servants
+                .IgnoreQueryFilters()
                 .FirstOrDefaultAsync(s => s.ApplicationUserId == applicationUserId);
         }
 
@@ -126,8 +132,10 @@ namespace Church.DAL.Repository.Implementations
             if (string.IsNullOrWhiteSpace(applicationUserId))
                 return Task.FromResult<Servant?>(null);
 
+            // Runs during login (no tenant resolved yet) and for the caller's own profile.
             return _context.Servants
                 .AsNoTracking()
+                .IgnoreQueryFilters()
                 .Include(s => s.ApplicationUser)
                 .Include(s => s.Church)
                 .Include(s => s.Meeting)
@@ -143,7 +151,9 @@ namespace Church.DAL.Repository.Implementations
             if (string.IsNullOrWhiteSpace(applicationUserId))
                 return Task.FromResult<Servant?>(null);
 
+            // Approval promotes a pending user whose Servant row has no tenant assigned yet.
             return _context.Servants
+                .IgnoreQueryFilters()
                 .Include(s => s.ApplicationUser)
                 .Include(s => s.ClassroomServants)
                 .FirstOrDefaultAsync(s => s.ApplicationUserId == applicationUserId, cancellationToken);
@@ -229,6 +239,7 @@ namespace Church.DAL.Repository.Implementations
                     .ExecuteUpdateAsync(s => s.SetProperty(x => x.LeaderServantId, (int?)null));
 
                 await _context.Churches
+                    .IgnoreQueryFilters()
                     .Where(ch => ch.PastorId == id)
                     .ExecuteUpdateAsync(s => s.SetProperty(x => x.PastorId, (int?)null));
 

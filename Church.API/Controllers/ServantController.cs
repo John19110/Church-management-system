@@ -20,6 +20,7 @@ namespace Church.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ServantController : ControllerBase
     {
         private readonly IServantManager _servantManager;
@@ -46,6 +47,7 @@ namespace Church.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Create([FromForm(Name = "")] AdminAddServantDTO servant)
         {
@@ -100,6 +102,7 @@ namespace Church.API.Controllers
         }
 
         [HttpPut("{id:int}/form-data")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         [Consumes(MediaTypeNames.Application.Json)]
         public async Task<IActionResult> SaveFormData(int id, [FromBody] SaveEntityFormDto request)
         {
@@ -137,6 +140,7 @@ namespace Church.API.Controllers
         }
 
         [HttpPut("{id:int}")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Update(int id, [FromForm] ServantFormRequest form, CancellationToken ct)
         {
@@ -162,6 +166,7 @@ namespace Church.API.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> DeleteById(int id)
         {
             if (id <= 0)

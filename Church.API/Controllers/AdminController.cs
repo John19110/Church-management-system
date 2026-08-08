@@ -14,6 +14,7 @@ namespace Church.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public class AdminController : ControllerBase
     {
         private readonly IAdminManager _adminManager;

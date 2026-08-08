@@ -65,14 +65,16 @@ namespace Church.DAL.DBcontext
             // Church-level definitions often have null MeetingId; allow those when a meeting scope is set.
             builder.Entity<CustomFieldOption>()
                 .HasQueryFilter(o =>
-                    (!CurrentChurchId.HasValue || o.Definition!.ChurchId == CurrentChurchId) &&
+                    CurrentChurchId.HasValue &&
+                    o.Definition!.ChurchId == CurrentChurchId &&
                     (!CurrentMeetingId.HasValue ||
                      o.Definition!.MeetingId == null ||
                      o.Definition!.MeetingId == CurrentMeetingId));
 
             builder.Entity<CustomFieldValue>()
                 .HasQueryFilter(v =>
-                    (!CurrentChurchId.HasValue || v.Definition!.ChurchId == CurrentChurchId) &&
+                    CurrentChurchId.HasValue &&
+                    v.Definition!.ChurchId == CurrentChurchId &&
                     (!CurrentMeetingId.HasValue ||
                      v.Definition!.MeetingId == null ||
                      v.Definition!.MeetingId == CurrentMeetingId));
@@ -196,42 +198,36 @@ namespace Church.DAL.DBcontext
             // Member is globally filtered (ChurchEntity), so dependents that require Member must be filtered too.
             builder.Entity<MemberContact>()
                 .HasQueryFilter(mc =>
-                    (!CurrentChurchId.HasValue || mc.Member.ChurchId == CurrentChurchId) &&
+                    CurrentChurchId.HasValue &&
+                    mc.Member.ChurchId == CurrentChurchId &&
                     (!CurrentMeetingId.HasValue || mc.Member.MeetingId == CurrentMeetingId) &&
                     (
-                        !string.Equals(CurrentScope, "Classroom", StringComparison.OrdinalIgnoreCase) ||
-                        (
-                            CurrentClassroomIds.Count > 0 &&
-                            CurrentClassroomIds.Contains(EF.Property<int>(mc.Member, "ClassroomId"))
-                        )
+                        !IsClassroomScoped ||
+                        CurrentClassroomIds.Contains(EF.Property<int>(mc.Member, "ClassroomId"))
                     )
                 );
 
             // Classroom is globally filtered (ChurchEntity), so dependents that require Classroom must be filtered too.
             builder.Entity<AttendanceSession>()
                 .HasQueryFilter(s =>
-                    (!CurrentChurchId.HasValue || s.Classroom!.ChurchId == CurrentChurchId) &&
+                    CurrentChurchId.HasValue &&
+                    s.Classroom!.ChurchId == CurrentChurchId &&
                     (!CurrentMeetingId.HasValue || s.Classroom!.MeetingId == CurrentMeetingId) &&
                     (
-                        !string.Equals(CurrentScope, "Classroom", StringComparison.OrdinalIgnoreCase) ||
-                        (
-                            CurrentClassroomIds.Count > 0 &&
-                            CurrentClassroomIds.Contains(s.ClassroomId)
-                        )
+                        !IsClassroomScoped ||
+                        CurrentClassroomIds.Contains(s.ClassroomId)
                     )
                 );
 
             // MemberContact is filtered, so dependents that require MemberContact must be filtered too.
             builder.Entity<PhoneCall>()
                 .HasQueryFilter(pc =>
-                    (!CurrentChurchId.HasValue || pc.MemberContact.Member.ChurchId == CurrentChurchId) &&
+                    CurrentChurchId.HasValue &&
+                    pc.MemberContact.Member.ChurchId == CurrentChurchId &&
                     (!CurrentMeetingId.HasValue || pc.MemberContact.Member.MeetingId == CurrentMeetingId) &&
                     (
-                        !string.Equals(CurrentScope, "Classroom", StringComparison.OrdinalIgnoreCase) ||
-                        (
-                            CurrentClassroomIds.Count > 0 &&
-                            CurrentClassroomIds.Contains(EF.Property<int>(pc.MemberContact.Member, "ClassroomId"))
-                        )
+                        !IsClassroomScoped ||
+                        CurrentClassroomIds.Contains(EF.Property<int>(pc.MemberContact.Member, "ClassroomId"))
                     )
                 );
 
@@ -251,12 +247,35 @@ namespace Church.DAL.DBcontext
             }
 
             // Church-wide custom field definitions (MeetingId null) must remain visible under meeting scope.
+            // Declared after the loop above so it replaces the generic ChurchEntity filter.
             builder.Entity<CustomFieldDefinition>()
                 .HasQueryFilter(d =>
-                    (!CurrentChurchId.HasValue || d.ChurchId == CurrentChurchId) &&
+                    CurrentChurchId.HasValue &&
+                    d.ChurchId == CurrentChurchId &&
                     (!CurrentMeetingId.HasValue ||
                      d.MeetingId == null ||
                      d.MeetingId == CurrentMeetingId));
+
+            // Classroom is tenant-owned but its own key is "Id", not "ClassroomId", so the generic
+            // filter cannot classroom-scope it. Declared after the loop to replace that filter.
+            builder.Entity<Classroom>()
+                .HasQueryFilter(c =>
+                    CurrentChurchId.HasValue &&
+                    c.ChurchId == CurrentChurchId &&
+                    (!CurrentMeetingId.HasValue || c.MeetingId == CurrentMeetingId) &&
+                    (!IsClassroomScoped || CurrentClassroomIds.Contains(c.Id)));
+
+            // Meeting and Church are tenant roots and do NOT derive from ChurchEntity, so the loop
+            // above never covered them. Without these, cross-church meeting/church reads succeed.
+            builder.Entity<Meeting>()
+                .HasQueryFilter(m =>
+                    CurrentChurchId.HasValue &&
+                    m.ChurchId == CurrentChurchId);
+
+            builder.Entity<ChurchModel>()
+                .HasQueryFilter(c =>
+                    CurrentChurchId.HasValue &&
+                    c.Id == CurrentChurchId);
 
             // Index ChurchId
             foreach (var entityType in builder.Model.GetEntityTypes())
@@ -269,7 +288,12 @@ namespace Church.DAL.DBcontext
             }
         }
 
-        // ✅ SAFE GLOBAL FILTER (NO EF.Property CRASH)
+        /// <summary>
+        /// Tenant isolation filter. Fails CLOSED: when no church tenant has been resolved for the
+        /// request, tenant-owned rows are invisible. Flows that legitimately run without a tenant
+        /// (login, self-registration, cascade deletes, startup repair) must opt out locally and
+        /// visibly with <c>IgnoreQueryFilters()</c>.
+        /// </summary>
         private void SetGlobalFilter<TEntity>(ModelBuilder modelBuilder, bool hasClassroomId)
             where TEntity : ChurchEntity
         {
@@ -277,23 +301,21 @@ namespace Church.DAL.DBcontext
             {
                 modelBuilder.Entity<TEntity>()
                     .HasQueryFilter(e =>
-                        (!CurrentChurchId.HasValue || e.ChurchId == CurrentChurchId) &&
+                        CurrentChurchId.HasValue &&
+                        e.ChurchId == CurrentChurchId &&
                         (!CurrentMeetingId.HasValue || e.MeetingId == CurrentMeetingId) &&
                         (
-                            !string.Equals(CurrentScope, "Classroom", StringComparison.OrdinalIgnoreCase) ||
-                            (
-                                CurrentClassroomIds.Count > 0 &&
-                                CurrentClassroomIds.Contains(EF.Property<int>(e, "ClassroomId"))
-                            )
+                            !IsClassroomScoped ||
+                            CurrentClassroomIds.Contains(EF.Property<int>(e, "ClassroomId"))
                         )
                     );
             }
             else
             {
-                // 🔥 IMPORTANT: no Classroom filter here
                 modelBuilder.Entity<TEntity>()
                     .HasQueryFilter(e =>
-                        (!CurrentChurchId.HasValue || e.ChurchId == CurrentChurchId) &&
+                        CurrentChurchId.HasValue &&
+                        e.ChurchId == CurrentChurchId &&
                         (!CurrentMeetingId.HasValue || e.MeetingId == CurrentMeetingId)
                     );
             }
@@ -306,6 +328,14 @@ namespace Church.DAL.DBcontext
         private int? CurrentMeetingId => _tenantContext.MeetingId;
 
         private string? CurrentScope => _tenantContext.Scope;
+
+        /// <summary>
+        /// True when the caller is restricted to an explicit set of classrooms (Servant role).
+        /// A classroom-scoped caller with no assignments sees nothing, which is the intended
+        /// fail-closed outcome rather than "see everything".
+        /// </summary>
+        private bool IsClassroomScoped =>
+            string.Equals(CurrentScope, TenantScopes.Classroom, StringComparison.OrdinalIgnoreCase);
 
         private List<int> CurrentClassroomIds =>
             _tenantContext.ClassroomIds?.ToList() ?? new List<int>();

@@ -18,7 +18,7 @@ namespace Church.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    // [Authorize(Roles = "Servant")]
+    [Authorize(Roles = "Servant,Admin,SuperAdmin")]
     public class MemberController : ControllerBase
     {
         private readonly IMemberManager _memberManager;
@@ -68,7 +68,6 @@ namespace Church.API.Controllers
         }
 
         /// <summary>Literal segment must be registered before <c>{id}</c> so <c>/api/Member/select</c> is not bound as an integer route.</summary>
-        // [Authorize(Roles = "Admin,SuperAdmin")]
         [HttpGet("select")]
         public async Task<IActionResult> GetMembersForSelection()
         {
