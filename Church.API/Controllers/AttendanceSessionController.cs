@@ -76,6 +76,22 @@ namespace Church.API.Controllers
             return Ok(sessions);
         }
 
+        [HttpGet("by-meeting/{meetingId:int}")]
+        public async Task<IActionResult> GetHistoryByMeeting(int meetingId)
+        {
+            if (meetingId <= 0)
+            {
+                var errors = new Dictionary<string, string[]>
+                {
+                    ["meetingId"] = new[] { "MeetingId must be a positive integer." }
+                };
+                throw new ValidationException(errors);
+            }
+
+            var sessions = await _attendanceManager.GetHistoryByMeetingAsync(meetingId);
+            return Ok(sessions);
+        }
+
         [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdateAttendance(int id, [FromBody] AttendanceSessionUpdateDTO attendanceSession)
         {

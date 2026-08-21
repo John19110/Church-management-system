@@ -18,9 +18,12 @@ import '../../features/servant/screens/servant_detail_screen.dart';
 import '../../features/servant/screens/servant_edit_screen.dart';
 import '../../features/servant/screens/profile_screen.dart';
 import '../../features/servant/screens/edit_profile_screen.dart';
+import '../../features/settings/screens/settings_screen.dart';
+import '../../features/settings/screens/custom_fields_hub_screen.dart';
 import '../../features/attendance/screens/attendance_take_screen.dart';
 import '../../features/attendance/screens/attendance_view_screen.dart';
 import '../../features/attendance/screens/attendance_history_screen.dart';
+import '../../features/attendance/screens/attendance_criteria_screen.dart';
 import '../../features/super_admin/screens/super_admin_home_screen.dart';
 import '../../features/super_admin/screens/super_admin_pending_admins_screen.dart';
 import '../../features/super_admin/screens/super_admin_pending_users_screen.dart';
@@ -50,8 +53,7 @@ class AppRoutes {
   static const registerNewChurch = '/register/new-church';
   static const registerNewChurchMeetingAdmin =
       '/register/new-church/meeting-admin';
-  static const registerNewChurchSuperAdmin =
-      '/register/new-church/super-admin';
+  static const registerNewChurchSuperAdmin = '/register/new-church/super-admin';
   static const dashboard = '/dashboard';
   static const superAdminHome = '/super-admin-home';
   static const adminHome = '/admin-home';
@@ -59,6 +61,8 @@ class AppRoutes {
   static const classroomsHome = '/classrooms-home';
   static const profile = '/profile';
   static const profileEdit = '/profile/edit';
+  static const settings = '/settings';
+  static const customFieldsHub = '/settings/custom-fields';
   static const pendingAdmins = '/super-admin/pending-admins';
   static const pendingUsers = '/super-admin/pending-users';
   static const pendingServants = '/admin/pending-servants';
@@ -83,7 +87,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           : await TokenStorage.hasToken();
 
       final loc = state.matchedLocation;
-      final onAuthPage = loc == AppRoutes.login ||
+      final onAuthPage =
+          loc == AppRoutes.login ||
           loc == AppRoutes.register ||
           loc.startsWith(AppRoutes.register);
 
@@ -128,7 +133,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, __) =>
             const RegisterScreen(mode: RegisterFormMode.newChurchSuperAdmin),
       ),
-      GoRoute(path: AppRoutes.dashboard, builder: (_, __) => const DashboardScreen()),
+      GoRoute(
+        path: AppRoutes.dashboard,
+        builder: (_, __) => const DashboardScreen(),
+      ),
 
       GoRoute(
         path: AppRoutes.superAdminHome,
@@ -179,6 +187,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.profileEdit,
         builder: (_, __) => const EditProfileScreen(),
+      ),
+
+      GoRoute(
+        path: AppRoutes.settings,
+        builder: (_, __) => const SettingsScreen(),
+      ),
+
+      GoRoute(
+        path: AppRoutes.customFieldsHub,
+        builder: (_, __) => const CustomFieldsHubScreen(),
       ),
 
       GoRoute(
@@ -239,7 +257,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.churchSettings,
         redirect: (_, __) async {
-          final token = TokenStorage.cachedToken ?? await TokenStorage.getToken();
+          final token =
+              TokenStorage.cachedToken ?? await TokenStorage.getToken();
           if (token == null) return AppRoutes.login;
           final churchId = AuthRoleUtils.extractChurchId(token);
           if (churchId == null || churchId <= 0) return AppRoutes.dashboard;
@@ -320,16 +339,38 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/meetings/:meetingId/members',
         builder: (_, state) {
-          final meetingId =
-              int.tryParse(state.pathParameters['meetingId'] ?? '');
+          final meetingId = int.tryParse(
+            state.pathParameters['meetingId'] ?? '',
+          );
           if (meetingId == null || meetingId <= 0) {
             return _MissingRouteDataScreen(
               titleBuilder: (l10n) => l10n.members,
             );
           }
+          final meetingName = state.extra is String
+              ? state.extra as String
+              : null;
+          return MembersListScreen(
+            meetingId: meetingId,
+            meetingName: meetingName,
+          );
+        },
+      ),
+
+      GoRoute(
+        path: '/meetings/:meetingId/attendance-criteria',
+        builder: (_, state) {
+          final meetingId = int.tryParse(
+            state.pathParameters['meetingId'] ?? '',
+          );
+          if (meetingId == null || meetingId <= 0) {
+            return _MissingRouteDataScreen(
+              titleBuilder: (l10n) => l10n.attendanceCriteria,
+            );
+          }
           final meetingName =
               state.extra is String ? state.extra as String : null;
-          return MembersListScreen(
+          return AttendanceCriteriaScreen(
             meetingId: meetingId,
             meetingName: meetingName,
           );
@@ -345,17 +386,25 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/members/add',
         builder: (_, state) {
-          final classroomId =
-          state.extra is int ? state.extra as int : null;
-          return MemberAddScreen(classroomId: classroomId);
+          // Classroom detail passes classroomId via `extra`.
+          // Meeting-scoped list passes meetingId via `?meetingId=` (same
+          // pattern as `/classrooms/add`).
+          final classroomId = state.extra is int ? state.extra as int : null;
+          final meetingIdRaw = state.uri.queryParameters['meetingId'];
+          final meetingId = meetingIdRaw != null
+              ? int.tryParse(meetingIdRaw)
+              : null;
+          return MemberAddScreen(
+            classroomId: classroomId,
+            meetingId: (meetingId != null && meetingId > 0) ? meetingId : null,
+          );
         },
       ),
 
       GoRoute(
         path: '/member/:id',
-        builder: (_, state) => MemberDetailScreen(
-          id: int.parse(state.pathParameters['id']!),
-        ),
+        builder: (_, state) =>
+            MemberDetailScreen(id: int.parse(state.pathParameters['id']!)),
       ),
 
       GoRoute(
@@ -376,7 +425,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           final existing = state.extra;
           return CustomFieldDefinitionFormScreen(
             entityName: state.pathParameters['entityName']!,
-            existing: existing is CustomFieldDefinitionReadDto ? existing : null,
+            existing: existing is CustomFieldDefinitionReadDto
+                ? existing
+                : null,
           );
         },
       ),
@@ -398,9 +449,8 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       GoRoute(
         path: '/member/:id/edit',
-        builder: (_, state) => MemberEditScreen(
-          id: int.parse(state.pathParameters['id']!),
-        ),
+        builder: (_, state) =>
+            MemberEditScreen(id: int.parse(state.pathParameters['id']!)),
       ),
 
       // Servants (general church list — no meeting context)
@@ -413,15 +463,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/meetings/:meetingId/servants',
         builder: (_, state) {
-          final meetingId =
-              int.tryParse(state.pathParameters['meetingId'] ?? '');
+          final meetingId = int.tryParse(
+            state.pathParameters['meetingId'] ?? '',
+          );
           if (meetingId == null || meetingId <= 0) {
             return _MissingRouteDataScreen(
               titleBuilder: (l10n) => l10n.servants,
             );
           }
-          final meetingName =
-              state.extra is String ? state.extra as String : null;
+          final meetingName = state.extra is String
+              ? state.extra as String
+              : null;
           return ServantsListScreen(
             meetingId: meetingId,
             meetingName: meetingName,
@@ -431,35 +483,61 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       GoRoute(
         path: '/servants/:id',
-        builder: (_, state) => ServantDetailScreen(
-          id: int.parse(state.pathParameters['id']!),
-        ),
+        builder: (_, state) =>
+            ServantDetailScreen(id: int.parse(state.pathParameters['id']!)),
       ),
 
       GoRoute(
         path: '/servants/:id/edit',
-        builder: (_, state) => ServantEditScreen(
-          id: int.parse(state.pathParameters['id']!),
-        ),
+        builder: (_, state) =>
+            ServantEditScreen(id: int.parse(state.pathParameters['id']!)),
       ),
 
       // Attendance
       GoRoute(
         path: AppRoutes.attendanceTake,
         builder: (_, state) {
-          final classroomId =
-          state.uri.queryParameters['classroomId'] != null
+          final classroomId = state.uri.queryParameters['classroomId'] != null
               ? int.tryParse(state.uri.queryParameters['classroomId']!)
               : null;
+          final meetingId = state.uri.queryParameters['meetingId'] != null
+              ? int.tryParse(state.uri.queryParameters['meetingId']!)
+              : null;
 
-          return AttendanceTakeScreen(classroomId: classroomId);
+          return AttendanceTakeScreen(
+            classroomId: classroomId,
+            meetingId: meetingId,
+          );
+        },
+      ),
+
+      GoRoute(
+        path: '${AppRoutes.attendanceHistory}/meeting/:meetingId',
+        builder: (_, state) {
+          final meetingId = int.tryParse(
+            state.pathParameters['meetingId'] ?? '',
+          );
+          if (meetingId == null) {
+            return _MissingRouteDataScreen(
+              titleBuilder: (l10n) => l10n.attendanceHistory,
+            );
+          }
+          final meetingName = state.extra is String
+              ? state.extra as String
+              : state.uri.queryParameters['meetingName'];
+          return AttendanceHistoryScreen(
+            meetingId: meetingId,
+            meetingName: meetingName,
+          );
         },
       ),
 
       GoRoute(
         path: '${AppRoutes.attendanceHistory}/:classroomId',
         builder: (_, state) {
-          final classroomId = int.tryParse(state.pathParameters['classroomId'] ?? '');
+          final classroomId = int.tryParse(
+            state.pathParameters['classroomId'] ?? '',
+          );
           if (classroomId == null) {
             return _MissingRouteDataScreen(
               titleBuilder: (l10n) => l10n.attendanceHistory,
@@ -483,7 +561,9 @@ final routerProvider = Provider<GoRouter>((ref) {
 
     errorBuilder: (context, state) => Scaffold(
       body: Center(
-        child: Text('${AppLocalizations.of(context).pageNotFound} ${state.error}'),
+        child: Text(
+          '${AppLocalizations.of(context).pageNotFound} ${state.error}',
+        ),
       ),
     ),
   );

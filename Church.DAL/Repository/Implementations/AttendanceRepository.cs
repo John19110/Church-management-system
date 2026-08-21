@@ -52,6 +52,9 @@ namespace Church.DAL.Repository.Implementations
             return await _context.AttendanceSessions
                 .Include(c => c.Records)
                     .ThenInclude(r => r.Member)
+                .Include(c => c.Records)
+                    .ThenInclude(r => r.CriterionResults)
+                        .ThenInclude(cr => cr.AttendanceCriterion)
                 .FirstOrDefaultAsync(c => c.Id == sessionId);
         }
 
@@ -60,6 +63,17 @@ namespace Church.DAL.Repository.Implementations
             return await _context.AttendanceSessions
                 .AsNoTracking()
                 .Where(s => s.ClassroomId == classroomId)
+                .Include(s => s.Records)
+                    .ThenInclude(r => r.Member)
+                .OrderByDescending(s => s.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<List<AttendanceSession>> GetByMeeting(int meetingId)
+        {
+            return await _context.AttendanceSessions
+                .AsNoTracking()
+                .Where(s => s.MeetingId == meetingId && s.ClassroomId == null)
                 .Include(s => s.Records)
                     .ThenInclude(r => r.Member)
                 .OrderByDescending(s => s.CreatedAt)

@@ -2,6 +2,8 @@
 
     <!-- ✅ REQUIRED: allow internet access -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Used only when the user taps "Select from Contacts" on Add/Edit Member. -->
+    <uses-permission android:name="android.permission.READ_CONTACTS"/>
 
     <application
         android:label="My Church"

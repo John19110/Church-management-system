@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/routing/app_router.dart';
 
 /// Shown when an entity has no admin-configured custom field definitions yet.
 class EntityFieldsEmptyState extends StatelessWidget {
@@ -48,7 +49,7 @@ class EntityFieldsEmptyState extends StatelessWidget {
             if (canManageDefinitions) ...[
               const SizedBox(height: 16),
               FilledButton.icon(
-                onPressed: () => context.push('/custom-fields/$entityName'),
+                onPressed: () => context.push(AppRoutes.customFieldsHub),
                 icon: const Icon(Icons.settings),
                 label: Text(l10n.manageCustomFields),
               ),

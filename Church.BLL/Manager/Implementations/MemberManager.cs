@@ -22,6 +22,7 @@ namespace Church.BLL.Manager.Implementations
     {
         private readonly IMemberRepository _memberRepository;
         private readonly IClassroomRepository _classroomRepository;
+        private readonly IMeetingRepository _meetingRepository;
         private readonly IServantRepository _servantRepository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IMapper _mapper;
@@ -38,6 +39,7 @@ namespace Church.BLL.Manager.Implementations
             ICurrentUserContext currentUser,
             UserManager<ApplicationUser> userManager,
             IClassroomRepository classroomRepository,
+            IMeetingRepository meetingRepository,
             IServantRepository servantRepository,
             IOptions<ServantProfileOptions> servantProfileOptions,
             ICacheService cache,
@@ -49,12 +51,12 @@ namespace Church.BLL.Manager.Implementations
             _currentUser = currentUser;
             _userManager = userManager;
             _classroomRepository = classroomRepository;
+            _meetingRepository = meetingRepository;
             _servantRepository = servantRepository;
             _servantProfileOptions = servantProfileOptions.Value;
             _cache = cache;
             _cacheKeys = cacheKeys;
             _cacheContext = cacheContext;
-
         }
 
         public async Task<IEnumerable<MemberReadDTO>> GetAllAsync()
@@ -145,7 +147,10 @@ namespace Church.BLL.Manager.Implementations
                 });
         }
 
-        public async Task<int> AddAsync(MemberAddDTO memberDto, int classroomId)
+        public async Task<int> AddAsync(
+            MemberAddDTO memberDto,
+            int? classroomId = null,
+            int? meetingId = null)
         {
             if (!_currentUser.IsAuthenticated || string.IsNullOrEmpty(_currentUser.UserId))
                 throw new UnauthorizedAccessException("User is not authenticated.");
@@ -154,8 +159,113 @@ namespace Church.BLL.Manager.Implementations
             if (appUser == null)
                 throw new NotFoundException("User not found.");
 
-            if (!await _classroomRepository.ExistsAsync(classroomId))
+            if (classroomId is > 0)
+                return await AddToClassroomAsync(memberDto, appUser, classroomId.Value, meetingId);
+
+            if (meetingId is > 0)
+                return await AddToMeetingAsync(memberDto, appUser, meetingId.Value);
+
+            throw new ValidationException(new Dictionary<string, string[]>
+            {
+                ["meetingId"] = new[]
+                {
+                    "Either classroomId or meetingId is required to add a member."
+                }
+            });
+        }
+
+        private async Task<int> AddToMeetingAsync(
+            MemberAddDTO memberDto,
+            ApplicationUser appUser,
+            int meetingId)
+        {
+            var meeting = await _meetingRepository.GetByIdAsync(meetingId);
+            if (meeting == null)
+                throw new NotFoundException($"Meeting with id {meetingId} was not found.");
+
+            if (meeting.ChurchId != appUser.ChurchId)
+                throw new UnauthorizedAccessException("This meeting does not belong to your church.");
+
+            if (meeting.HasClassrooms)
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["ClassroomId"] = new[]
+                    {
+                        "This meeting uses classrooms. Assign the member to a classroom."
+                    }
+                });
+            }
+
+            await EnsureCanAddMemberToMeetingAsync(appUser, meeting);
+
+            var model = await MapNewMemberAsync(memberDto);
+            model.ClassroomId = null;
+            model.MeetingId = meeting.Id;
+            model.ChurchId = meeting.ChurchId;
+
+            await _memberRepository.AddAsync(model);
+            await InvalidateMemberCachesAsync();
+            return model.Id;
+        }
+
+        private async Task<int> AddToClassroomAsync(
+            MemberAddDTO memberDto,
+            ApplicationUser appUser,
+            int classroomId,
+            int? expectedMeetingId)
+        {
+            var classroom = await _classroomRepository.GetByIdAsync(classroomId);
+            if (classroom == null)
                 throw new NotFoundException($"Classroom with id {classroomId} was not found.");
+
+            if (classroom.ChurchId != appUser.ChurchId)
+                throw new UnauthorizedAccessException("This classroom does not belong to your church.");
+
+            if (classroom.MeetingId is null or <= 0)
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["ClassroomId"] = new[] { "This classroom is not assigned to a meeting." }
+                });
+            }
+
+            var meeting = await _meetingRepository.GetByIdAsync(classroom.MeetingId.Value);
+            if (meeting == null)
+                throw new NotFoundException($"Meeting with id {classroom.MeetingId.Value} was not found.");
+
+            if (!meeting.HasClassrooms)
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["ClassroomId"] = new[]
+                    {
+                        "This meeting does not use classrooms. Add the member to the meeting instead."
+                    }
+                });
+            }
+
+            if (expectedMeetingId.HasValue)
+            {
+                if (expectedMeetingId.Value <= 0)
+                {
+                    throw new ValidationException(new Dictionary<string, string[]>
+                    {
+                        ["meetingId"] = new[] { "Meeting id must be a positive integer." }
+                    });
+                }
+
+                if (classroom.MeetingId != expectedMeetingId.Value)
+                {
+                    throw new ValidationException(new Dictionary<string, string[]>
+                    {
+                        ["ClassroomId"] = new[]
+                        {
+                            "The selected classroom does not belong to the specified meeting."
+                        }
+                    });
+                }
+            }
 
             if (_currentUser.IsInRole("Servant"))
             {
@@ -175,11 +285,76 @@ namespace Church.BLL.Manager.Implementations
                 if (!isAssigned)
                     throw new UnauthorizedAccessException("This class is not assigned to you.");
             }
-            else if (!_currentUser.IsInRole("Admin") && !_currentUser.IsInRole("SuperAdmin"))
+            else if (_currentUser.IsInRole("Admin"))
+            {
+                if (appUser.MeetingId == null)
+                {
+                    throw new ValidationException(new Dictionary<string, string[]>
+                    {
+                        ["Meeting"] = new[] { "Admin is not assigned to a meeting." }
+                    });
+                }
+
+                if (classroom.MeetingId != appUser.MeetingId)
+                    throw new UnauthorizedAccessException(
+                        "You can only add members to classrooms in your assigned meeting.");
+            }
+            else if (!_currentUser.IsInRole("SuperAdmin"))
             {
                 throw new UnauthorizedAccessException("User role is not allowed to add members.");
             }
 
+            var model = await MapNewMemberAsync(memberDto);
+            model.ClassroomId = classroomId;
+            model.MeetingId = classroom.MeetingId;
+            model.ChurchId = classroom.ChurchId;
+
+            await _memberRepository.AddAsync(model);
+            await InvalidateMemberCachesAsync();
+            return model.Id;
+        }
+
+        private async Task EnsureCanAddMemberToMeetingAsync(ApplicationUser appUser, Meeting meeting)
+        {
+            if (_currentUser.IsInRole("Servant"))
+            {
+                var servant = await _servantRepository.EnsureServantProfileAsync(
+                    appUser,
+                    _servantProfileOptions.AutoCreateMissingProfile);
+                if (servant == null)
+                {
+                    var detail = _servantProfileOptions.AutoCreateMissingProfile
+                        ? ServantProfileMessages.MissingAfterAutoCreateAttempt()
+                        : ServantProfileMessages.MissingProfileManual();
+                    throw new ServantProfileMissingException(detail);
+                }
+
+                if (servant.MeetingId != meeting.Id)
+                    throw new UnauthorizedAccessException(
+                        "You can only add members to your assigned meeting.");
+            }
+            else if (_currentUser.IsInRole("Admin"))
+            {
+                if (appUser.MeetingId == null)
+                {
+                    throw new ValidationException(new Dictionary<string, string[]>
+                    {
+                        ["Meeting"] = new[] { "Admin is not assigned to a meeting." }
+                    });
+                }
+
+                if (appUser.MeetingId != meeting.Id)
+                    throw new UnauthorizedAccessException(
+                        "You can only add members to your assigned meeting.");
+            }
+            else if (!_currentUser.IsInRole("SuperAdmin"))
+            {
+                throw new UnauthorizedAccessException("User role is not allowed to add members.");
+            }
+        }
+
+        private async Task<Member> MapNewMemberAsync(MemberAddDTO memberDto)
+        {
             string? fileName = null;
 
             if (memberDto.Image != null)
@@ -198,10 +373,11 @@ namespace Church.BLL.Manager.Implementations
             var model = _mapper.Map<Member>(memberDto);
             model.ImageFileName = fileName;
             model.ImageUrl = fileName != null ? $"/images/{fileName}" : null;
-            model.ClassroomId = classroomId;
+            return model;
+        }
 
-            await _memberRepository.AddAsync(model);
-
+        private async Task InvalidateMemberCachesAsync()
+        {
             var ctx = _cacheContext.TryGet();
             if (ctx is not null)
             {
@@ -209,7 +385,6 @@ namespace Church.BLL.Manager.Implementations
                 await _cache.RemoveTenantSegmentAsync("dashboard", ctx);
                 await _cache.RemoveTenantSegmentAsync("statistics", ctx);
             }
-            return model.Id;
         }
         public async Task<List<SelectOptionDTO>> GetMembersForSelection()
         {
@@ -259,7 +434,60 @@ namespace Church.BLL.Manager.Implementations
             if (memberUpdateDto.PhoneNumbers != null)
                 existing.PhoneNumbers = _mapper.Map<List<MemberContact>>(memberUpdateDto.PhoneNumbers);
 
-            if (memberUpdateDto.ClassroomId.HasValue) existing.ClassroomId = memberUpdateDto.ClassroomId;
+            if (memberUpdateDto.ClassroomId.HasValue)
+            {
+                var newClassroomId = memberUpdateDto.ClassroomId.Value;
+                if (newClassroomId <= 0)
+                {
+                    throw new ValidationException(new Dictionary<string, string[]>
+                    {
+                        ["ClassroomId"] = new[] { "Classroom id must be a positive integer." }
+                    });
+                }
+
+                var classroom = await _classroomRepository.GetByIdAsync(newClassroomId);
+                if (classroom == null)
+                    throw new NotFoundException($"Classroom with id {newClassroomId} was not found.");
+
+                if (classroom.ChurchId != existing.ChurchId)
+                    throw new UnauthorizedAccessException(
+                        "The selected classroom does not belong to this member's church.");
+
+                if (classroom.MeetingId is > 0)
+                {
+                    var targetMeeting = await _meetingRepository.GetByIdAsync(classroom.MeetingId.Value);
+                    if (targetMeeting != null && !targetMeeting.HasClassrooms)
+                    {
+                        throw new ValidationException(new Dictionary<string, string[]>
+                        {
+                            ["ClassroomId"] = new[]
+                            {
+                                "This meeting does not use classrooms."
+                            }
+                        });
+                    }
+                }
+
+                if (_currentUser.IsInRole("Admin"))
+                {
+                    var appUser = await _userManager.FindByIdAsync(_currentUser.UserId!);
+                    if (appUser?.MeetingId == null)
+                    {
+                        throw new ValidationException(new Dictionary<string, string[]>
+                        {
+                            ["Meeting"] = new[] { "Admin is not assigned to a meeting." }
+                        });
+                    }
+
+                    if (classroom.MeetingId != appUser.MeetingId)
+                        throw new UnauthorizedAccessException(
+                            "You can only move members to classrooms in your assigned meeting.");
+                }
+
+                existing.ClassroomId = newClassroomId;
+                existing.MeetingId = classroom.MeetingId;
+            }
+
             await _memberRepository.UpdateAsync(existing);
 
             var ctx = _cacheContext.TryGet();

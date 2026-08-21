@@ -19,7 +19,14 @@ namespace Church.BLL.Manager.Interfaces
         Task<MemberReadDTO?> GetByIdAsync(int id);
          Task<List<SelectOptionDTO>> GetMembersForSelection();
 
-        Task<int> AddAsync(MemberAddDTO member, int classroomId);
+        /// <param name="classroomId">
+        /// Required when the meeting uses classrooms. Omit for meeting-level members.
+        /// </param>
+        /// <param name="meetingId">
+        /// Required when classroomId is omitted. Also used as an ownership check when
+        /// classroomId is provided.
+        /// </param>
+        Task<int> AddAsync(MemberAddDTO member, int? classroomId = null, int? meetingId = null);
 
         Task UpdateAsync(MemberUpdateDTO member);
 

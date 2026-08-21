@@ -21,11 +21,13 @@ namespace Church.DAL.Models
         public bool MadeHomeWork { get; set; } = false;
         public bool HasTools { get; set; } = false;
 
-
         public AttendanceStatus Status { get; set; } = AttendanceStatus.Present;
 
         public string? Note { get; set; }
 
         public DateTime UpdatedAt{ get; set; } = DateTime.Now;
+
+        public ICollection<AttendanceCriterionResult> CriterionResults { get; set; } =
+            new List<AttendanceCriterionResult>();
     }
 }

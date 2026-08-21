@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'locale_format.dart';
+import 'weekday_l10n.dart';
 
 class AppLocalizations {
   final Locale locale;
@@ -127,6 +128,14 @@ class AppLocalizations {
   String get haveBrothersQuestion => _t('haveBrothersQuestion');
   String get addPhoneNumber => _t('addPhoneNumber');
   String get removePhoneNumber => _t('removePhoneNumber');
+  String get selectFromContacts => _t('selectFromContacts');
+  String get contactsPermissionDenied => _t('contactsPermissionDenied');
+  String get contactsPermissionPermanentlyDenied =>
+      _t('contactsPermissionPermanentlyDenied');
+  String get openAppSettings => _t('openAppSettings');
+  String get contactHasNoPhone => _t('contactHasNoPhone');
+  String get selectContactPhoneNumber => _t('selectContactPhoneNumber');
+  String get contactsPickerUnavailable => _t('contactsPickerUnavailable');
   String get removeBrother => _t('removeBrother');
   String get removeNote => _t('removeNote');
   String get phoneRelationMember => _t('phoneRelationMember');
@@ -309,6 +318,34 @@ class AppLocalizations {
   String get weeklyAppointmentTime => _t('weeklyAppointmentTime');
   String get weeklyAppointmentTimeRequired =>
       _t('weeklyAppointmentTimeRequired');
+  String get divideMeetingIntoClassroomsQuestion =>
+      _t('divideMeetingIntoClassroomsQuestion');
+  String get divideMeetingIntoClassroomsHint =>
+      _t('divideMeetingIntoClassroomsHint');
+  String get yesDivideIntoClassrooms => _t('yesDivideIntoClassrooms');
+  String get noKeepMeetingWithoutClassrooms =>
+      _t('noKeepMeetingWithoutClassrooms');
+  String get meetingAttendance => _t('meetingAttendance');
+  String get noMembersInMeetingYet => _t('noMembersInMeetingYet');
+  String get meetingHome => _t('meetingHome');
+  String get attendanceCriteria => _t('attendanceCriteria');
+  String get addAttendanceCriterion => _t('addAttendanceCriterion');
+  String get editAttendanceCriterion => _t('editAttendanceCriterion');
+  String get deleteAttendanceCriterion => _t('deleteAttendanceCriterion');
+  String get deleteAttendanceCriterionConfirm =>
+      _t('deleteAttendanceCriterionConfirm');
+  String get criterionDisplayName => _t('criterionDisplayName');
+  String get criterionDisplayNameAr => _t('criterionDisplayNameAr');
+  String get criterionDisplayNameRequired =>
+      _t('criterionDisplayNameRequired');
+  String get criterionAddedSuccessfully => _t('criterionAddedSuccessfully');
+  String get criterionUpdatedSuccessfully =>
+      _t('criterionUpdatedSuccessfully');
+  String get criterionDeletedSuccessfully =>
+      _t('criterionDeletedSuccessfully');
+  String get noAttendanceCriteriaYet => _t('noAttendanceCriteriaYet');
+  String get active => _t('active');
+  String get inactive => _t('inactive');
 
   // ── Servant ───────────────────────────────────────────────────────────────
   String get servant => _t('servant');
@@ -365,6 +402,7 @@ class AppLocalizations {
   String get profileInformation => _t('profileInformation');
   String get servantInformation => _t('servantInformation');
   String get appSettings => _t('appSettings');
+  String get settings => _t('settings');
   String get tapToChangePhoto => _t('tapToChangePhoto');
   String get saveLabel => _t('saveLabel');
   String get done => _t('done');
@@ -378,6 +416,7 @@ class AppLocalizations {
   String get meetingIdLabel => _t('meetingIdLabel');
   String get meetingIdCopied => _t('meetingIdCopied');
   String get meetingMoreActions => _t('meetingMoreActions');
+  String get meetingSettings => _t('meetingSettings');
   String get churchMeetingsIdsTitle => _t('churchMeetingsIdsTitle');
   String get publicMeetingIdLabel => _t('publicMeetingIdLabel');
   String get meetingLabel => _t('meetingLabel');
@@ -535,6 +574,8 @@ class AppLocalizations {
   // ── Auth extras ─────────────────────────────────────────────────────────────
   String get registrationSuccessfulPleaseSignIn =>
       _t('registrationSuccessfulPleaseSignIn');
+  String get registrationPendingApproval =>
+      _t('registrationPendingApproval');
 
   // ── Common booleans / placeholders ────────────────────────────────────────
   String get yes => _t('yes');
@@ -617,6 +658,9 @@ class AppLocalizations {
   /// Locale-aware date-time preview.
   String formatDateTime(String? raw) =>
       LocaleFormat.formatDateTimeString(raw, locale);
+
+  /// Localized weekday label for a stored English/.NET day name (API value).
+  String weekdayLabel(String? raw) => WeekdayL10n.label(this, raw);
 
   String memberNumberLabel(int id) =>
       _t('memberNumber').replaceAll('{id}', formatInteger(id));
@@ -760,6 +804,16 @@ class AppLocalizations {
       'haveBrothersQuestion': 'Does the member have brothers in the program?',
       'addPhoneNumber': 'Add phone number',
       'removePhoneNumber': 'Remove phone number',
+      'selectFromContacts': 'Select from Contacts',
+      'contactsPermissionDenied':
+          'Contacts permission is required to pick a phone number.',
+      'contactsPermissionPermanentlyDenied':
+          'Contacts access is blocked. Open app settings to allow contacts, then try again.',
+      'openAppSettings': 'Open settings',
+      'contactHasNoPhone': 'That contact has no phone number.',
+      'selectContactPhoneNumber': 'Select a phone number',
+      'contactsPickerUnavailable':
+          'Contact picker is not available on this device.',
       'removeBrother': 'Remove brother',
       'removeNote': 'Remove note',
       'phoneRelationMember': 'Member',
@@ -954,6 +1008,30 @@ class AppLocalizations {
       'dayOfWeekRequired': 'Day of week is required',
       'weeklyAppointmentTime': 'Weekly appointment time',
       'weeklyAppointmentTimeRequired': 'Weekly appointment time is required',
+      'divideMeetingIntoClassroomsQuestion':
+          'Would you like to divide this meeting into classrooms?',
+      'divideMeetingIntoClassroomsHint':
+          'If you choose No, members and attendance are managed directly on the meeting.',
+      'yesDivideIntoClassrooms': 'Yes, use classrooms',
+      'noKeepMeetingWithoutClassrooms': 'No, keep without classrooms',
+      'meetingAttendance': 'Meeting attendance',
+      'noMembersInMeetingYet': 'No members in this meeting yet.',
+      'meetingHome': 'Meeting',
+      'attendanceCriteria': 'Attendance criteria',
+      'addAttendanceCriterion': 'Add criterion',
+      'editAttendanceCriterion': 'Edit criterion',
+      'deleteAttendanceCriterion': 'Delete criterion',
+      'deleteAttendanceCriterionConfirm':
+          'Remove this criterion from new attendance? Past records stay unchanged.',
+      'criterionDisplayName': 'Display name',
+      'criterionDisplayNameAr': 'Display name (Arabic)',
+      'criterionDisplayNameRequired': 'Display name is required',
+      'criterionAddedSuccessfully': 'Criterion added.',
+      'criterionUpdatedSuccessfully': 'Criterion updated.',
+      'criterionDeletedSuccessfully': 'Criterion deleted.',
+      'noAttendanceCriteriaYet': 'No attendance criteria yet.',
+      'active': 'Active',
+      'inactive': 'Inactive',
 
       // Servant
       'servant': 'Servant',
@@ -1009,6 +1087,7 @@ class AppLocalizations {
       'profileInformation': 'Profile information',
       'servantInformation': 'Servant information',
       'appSettings': 'App settings',
+      'settings': 'Settings',
       'tapToChangePhoto': 'Tap to change photo',
       'saveLabel': 'Save',
       'done': 'Done',
@@ -1022,6 +1101,7 @@ class AppLocalizations {
       'meetingIdLabel': 'Meeting ID',
       'meetingIdCopied': 'Meeting ID copied to clipboard',
       'meetingMoreActions': 'More actions',
+      'meetingSettings': 'Meeting settings',
       'churchMeetingsIdsTitle': 'Meeting IDs in your church',
       'meetingLabel': 'Meeting',
       'selectMeeting': 'Select meeting',
@@ -1156,6 +1236,8 @@ class AppLocalizations {
       // Auth
       'registrationSuccessfulPleaseSignIn':
           'Registration successful. Please sign in.',
+      'registrationPendingApproval':
+          'Registration submitted. An administrator must approve your account before you can sign in.',
       // Common
       'yes': 'Yes',
       'no': 'No',
@@ -1300,7 +1382,7 @@ class AppLocalizations {
       'noteLine': 'ملاحظة',
       'lastAttendanceDate': 'تاريخ آخر حضور',
       'totalDaysAttended': 'إجمالي أيام الحضور',
-      'discipline': 'علم انضباط',
+      'discipline': 'ملتزم',
       'fatherName': 'اسم الأب',
       'familyName': 'اسم العائلة',
       'memberSectionPersonal': 'المعلومات الشخصية',
@@ -1313,6 +1395,15 @@ class AppLocalizations {
       'haveBrothersQuestion': 'هل لدى المخدوم إخوة في البرنامج؟',
       'addPhoneNumber': 'إضافة رقم هاتف',
       'removePhoneNumber': 'إزالة رقم الهاتف',
+      'selectFromContacts': 'اختيار من جهات الاتصال',
+      'contactsPermissionDenied': 'يلزم إذن جهات الاتصال لاختيار رقم هاتف.',
+      'contactsPermissionPermanentlyDenied':
+          'تم حظر الوصول إلى جهات الاتصال. افتح إعدادات التطبيق للسماح ثم حاول مرة أخرى.',
+      'openAppSettings': 'فتح الإعدادات',
+      'contactHasNoPhone': 'جهة الاتصال هذه لا تحتوي على رقم هاتف.',
+      'selectContactPhoneNumber': 'اختر رقم هاتف',
+      'contactsPickerUnavailable':
+          'منتقي جهات الاتصال غير متاح على هذا الجهاز.',
       'removeBrother': 'إزالة أخ',
       'removeNote': 'إزالة ملاحظة',
       'phoneRelationMember': 'المخدوم',
@@ -1336,7 +1427,7 @@ class AppLocalizations {
       'weekdayThursday': 'الخميس',
       'weekdayFriday': 'الجمعة',
       // Servants
-      'selectClassroom': 'المجموعات',
+      'selectClassroom': 'المجموعه',
 
       'noServants': 'لا يوجد خدام.',
       'addServant': 'إضافة خادم',
@@ -1502,6 +1593,30 @@ class AppLocalizations {
       'dayOfWeekRequired': 'يوم الأسبوع مطلوب',
       'weeklyAppointmentTime': 'وقت الموعد الأسبوعي',
       'weeklyAppointmentTimeRequired': 'وقت الموعد الأسبوعي مطلوب',
+      'divideMeetingIntoClassroomsQuestion':
+          'هل تريد تقسيم هذا الاجتماع إلى فصول؟',
+      'divideMeetingIntoClassroomsHint':
+          'إذا اخترت لا، تتم إدارة الأعضاء والحضور مباشرة على مستوى الاجتماع.',
+      'yesDivideIntoClassrooms': 'نعم، استخدم الفصول',
+      'noKeepMeetingWithoutClassrooms': 'لا، بدون فصول',
+      'meetingAttendance': 'حضور الاجتماع',
+      'noMembersInMeetingYet': 'لا يوجد أعضاء في هذا الاجتماع بعد.',
+      'meetingHome': 'الاجتماع',
+      'attendanceCriteria': 'معايير الحضور',
+      'addAttendanceCriterion': 'إضافة معيار',
+      'editAttendanceCriterion': 'تعديل المعيار',
+      'deleteAttendanceCriterion': 'حذف المعيار',
+      'deleteAttendanceCriterionConfirm':
+          'إزالة هذا المعيار من الحضور الجديد؟ السجلات السابقة تبقى كما هي.',
+      'criterionDisplayName': 'الاسم الظاهر',
+      'criterionDisplayNameAr': 'الاسم الظاهر (عربي)',
+      'criterionDisplayNameRequired': 'الاسم الظاهر مطلوب',
+      'criterionAddedSuccessfully': 'تمت إضافة المعيار.',
+      'criterionUpdatedSuccessfully': 'تم تحديث المعيار.',
+      'criterionDeletedSuccessfully': 'تم حذف المعيار.',
+      'noAttendanceCriteriaYet': 'لا توجد معايير حضور بعد.',
+      'active': 'نشط',
+      'inactive': 'غير نشط',
 
       // Servant
       'servant': 'خادم',
@@ -1557,6 +1672,7 @@ class AppLocalizations {
       'profileInformation': 'معلومات الملف الشخصي',
       'servantInformation': 'معلومات الخادم',
       'appSettings': 'إعدادات التطبيق',
+      'settings': 'الإعدادات',
       'tapToChangePhoto': 'اضغط لتغيير الصورة',
       'saveLabel': 'حفظ',
       'done': 'تم',
@@ -1570,6 +1686,7 @@ class AppLocalizations {
       'meetingIdLabel': 'كود الاجتماع',
       'meetingIdCopied': 'تم نسخ كود الاجتماع',
       'meetingMoreActions': 'المزيد من الإجراءات',
+      'meetingSettings': 'إعدادات الاجتماع',
       'churchMeetingsIdsTitle': 'أكواد الاجتماعات في كنيستك',
       'meetingLabel': 'الاجتماع',
       'selectMeeting': 'اختر الاجتماع',
@@ -1702,6 +1819,8 @@ class AppLocalizations {
       // Auth
       'registrationSuccessfulPleaseSignIn':
           'تم التسجيل بنجاح. يرجى تسجيل الدخول.',
+      'registrationPendingApproval':
+          'تم إرسال طلب التسجيل. يجب أن يوافق المسؤول على حسابك قبل تسجيل الدخول.',
       // Common
       'yes': 'نعم',
       'no': 'لا',

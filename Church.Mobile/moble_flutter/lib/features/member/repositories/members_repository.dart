@@ -56,9 +56,7 @@ class MembersRepository {
       key: key,
       ttl: const Duration(minutes: 5),
       fetch: getAll,
-      toJson: (value) => {
-        'items': value.map((e) => e.toJson()).toList(),
-      },
+      toJson: (value) => {'items': value.map((e) => e.toJson()).toList()},
       fromJson: (json) {
         final items = (json['items'] as List<dynamic>? ?? const [])
             .whereType<Map<String, dynamic>>()
@@ -92,15 +90,16 @@ class MembersRepository {
     required String role,
     required int classroomId,
   }) {
-    final key =
-        _cache.tenantRoleKey(tenantId, role, 'member_list_classroom_$classroomId');
+    final key = _cache.tenantRoleKey(
+      tenantId,
+      role,
+      'member_list_classroom_$classroomId',
+    );
     return _cache.cacheFirstStream<List<MemberReadDto>>(
       key: key,
       ttl: const Duration(minutes: 5),
       fetch: () => getByClassroom(classroomId),
-      toJson: (value) => {
-        'items': value.map((e) => e.toJson()).toList(),
-      },
+      toJson: (value) => {'items': value.map((e) => e.toJson()).toList()},
       fromJson: (json) {
         final items = (json['items'] as List<dynamic>? ?? const [])
             .whereType<Map<String, dynamic>>()
@@ -115,8 +114,9 @@ class MembersRepository {
     _requireMemberId(id);
     return apiCall(() async {
       final response = await _dio.get('${AppConstants.membersEndpoint}/$id');
-      final member =
-          MemberReadDto.fromJson(response.data as Map<String, dynamic>);
+      final member = MemberReadDto.fromJson(
+        response.data as Map<String, dynamic>,
+      );
       member.debugLogImage('api-getById-$id');
       return member;
     });
@@ -138,47 +138,78 @@ class MembersRepository {
 
   /// Create member: POST /api/classrooms/{classroomId}/members (multipart/form-data)
   /// [classroomId] is passed as a URL path parameter.
-  Future<int> create(int classroomId, MemberAddDto dto, {File? image}) async {
+  Future<int> create(
+    int classroomId,
+    MemberAddDto dto, {
+    File? image,
+    int? meetingId,
+  }) async {
     return apiCall(() async {
-      final map = <String, dynamic>{
-        if (dto.name1 != null) 'Name1': dto.name1,
-        if (dto.name2 != null) 'Name2': dto.name2,
-        if (dto.name3 != null) 'Name3': dto.name3,
-        if (dto.gender != null) 'Gender': dto.gender,
-        if (dto.address != null) 'Address': dto.address,
-        if (dto.dateOfBirth != null) 'DateOfBirth': dto.dateOfBirth,
-        if (dto.joiningDate != null) 'JoiningDate': dto.joiningDate,
-        if (dto.spiritualDateOfBirth != null)
-          'SpiritualDateOfBirth': dto.spiritualDateOfBirth,
-        if (dto.haveBrothers != null)
-          'HaveBrothers': dto.haveBrothers.toString(),
-        if (image != null)
-          'Image': await MultipartFile.fromFile(
-            image.path,
-            filename: _fileName(image.path),
-          ),
-      };
-      _appendCollections(map, dto);
+      final map = await _memberAddFormMap(dto, image: image);
       final response = await _dio.post(
         '${AppConstants.classroomMembersBasePath}/$classroomId/members',
+        queryParameters: {
+          if (meetingId != null && meetingId > 0) 'meetingId': meetingId,
+        },
         data: FormData.fromMap(map),
       );
-      final data = response.data;
-      if (data is Map<String, dynamic>) {
-        final id = data['id'] ?? data['Id'];
-        if (id is int) return id;
-        if (id is num) return id.toInt();
-      }
-      throw const FormatException('Create member response did not include id.');
+      return _parseCreatedMemberId(response.data);
     });
   }
 
-  /// Update member: JSON when no new image; multipart form when image is provided.
-  Future<void> updateMember(
-    int id,
-    MemberUpdateDto dto, {
+  /// Create member at meeting level (meetings without classrooms).
+  Future<int> createForMeeting(
+    int meetingId,
+    MemberAddDto dto, {
     File? image,
   }) async {
+    return apiCall(() async {
+      final map = await _memberAddFormMap(dto, image: image);
+      final response = await _dio.post(
+        AppConstants.meetingMembersCreateEndpoint(meetingId),
+        data: FormData.fromMap(map),
+      );
+      return _parseCreatedMemberId(response.data);
+    });
+  }
+
+  Future<Map<String, dynamic>> _memberAddFormMap(
+    MemberAddDto dto, {
+    File? image,
+  }) async {
+    final map = <String, dynamic>{
+      if (dto.name1 != null) 'Name1': dto.name1,
+      if (dto.name2 != null) 'Name2': dto.name2,
+      if (dto.name3 != null) 'Name3': dto.name3,
+      if (dto.gender != null) 'Gender': dto.gender,
+      if (dto.address != null) 'Address': dto.address,
+      if (dto.dateOfBirth != null) 'DateOfBirth': dto.dateOfBirth,
+      if (dto.joiningDate != null) 'JoiningDate': dto.joiningDate,
+      if (dto.spiritualDateOfBirth != null)
+        'SpiritualDateOfBirth': dto.spiritualDateOfBirth,
+      if (dto.haveBrothers != null)
+        'HaveBrothers': dto.haveBrothers.toString(),
+      if (image != null)
+        'Image': await MultipartFile.fromFile(
+          image.path,
+          filename: _fileName(image.path),
+        ),
+    };
+    _appendCollections(map, dto);
+    return map;
+  }
+
+  int _parseCreatedMemberId(dynamic data) {
+    if (data is Map<String, dynamic>) {
+      final id = data['id'] ?? data['Id'];
+      if (id is int) return id;
+      if (id is num) return id.toInt();
+    }
+    throw const FormatException('Create member response did not include id.');
+  }
+
+  /// Update member: JSON when no new image; multipart form when image is provided.
+  Future<void> updateMember(int id, MemberUpdateDto dto, {File? image}) async {
     _requireMemberId(id);
     if (image != null) {
       return _updateViaForm(id, dto, image: image);
@@ -193,8 +224,7 @@ class MembersRepository {
     int id,
     MemberUpdateDto dto, {
     required File image,
-  }) =>
-      updateMember(id, dto, image: image);
+  }) => updateMember(id, dto, image: image);
 
   Future<void> _updateViaForm(
     int id,
@@ -228,8 +258,7 @@ class MembersRepository {
         'SpiritualDateOfBirth': dto.spiritualDateOfBirth,
       if (dto.lastAttendanceDate != null)
         'LastAttendanceDate': dto.lastAttendanceDate,
-      if (dto.isDiscipline != null)
-        'IsDiscipline': dto.isDiscipline.toString(),
+      if (dto.isDiscipline != null) 'IsDiscipline': dto.isDiscipline.toString(),
       if (dto.classroomId != null) 'ClassroomId': dto.classroomId.toString(),
       if (dto.haveBrothers != null) 'HaveBrothers': dto.haveBrothers.toString(),
     };
@@ -250,8 +279,7 @@ class MembersRepository {
     }
     if (dto.phoneNumbers != null) {
       for (var i = 0; i < dto.phoneNumbers!.length; i++) {
-        map['PhoneNumbers[$i].Relation'] =
-            dto.phoneNumbers![i].relation ?? '';
+        map['PhoneNumbers[$i].Relation'] = dto.phoneNumbers![i].relation ?? '';
         map['PhoneNumbers[$i].PhoneNumber'] =
             dto.phoneNumbers![i].phoneNumber ?? '';
       }
@@ -268,8 +296,9 @@ class MembersRepository {
   /// GET /api/Meeting/{meetingId}/members — members belonging to a specific meeting.
   Future<List<MemberReadDto>> getByMeeting(int meetingId) async {
     return apiCall(() async {
-      final response =
-          await _dio.get(AppConstants.meetingMembersEndpoint(meetingId));
+      final response = await _dio.get(
+        AppConstants.meetingMembersEndpoint(meetingId),
+      );
       final list = response.data as List<dynamic>;
       return list
           .map((e) => MemberReadDto.fromJson(e as Map<String, dynamic>))
@@ -282,15 +311,16 @@ class MembersRepository {
     required String role,
     required int meetingId,
   }) {
-    final key =
-        _cache.tenantRoleKey(tenantId, role, 'member_list_meeting_$meetingId');
+    final key = _cache.tenantRoleKey(
+      tenantId,
+      role,
+      'member_list_meeting_$meetingId',
+    );
     return _cache.cacheFirstStream<List<MemberReadDto>>(
       key: key,
       ttl: const Duration(minutes: 5),
       fetch: () => getByMeeting(meetingId),
-      toJson: (value) => {
-        'items': value.map((e) => e.toJson()).toList(),
-      },
+      toJson: (value) => {'items': value.map((e) => e.toJson()).toList()},
       fromJson: (json) {
         final items = (json['items'] as List<dynamic>? ?? const [])
             .whereType<Map<String, dynamic>>()

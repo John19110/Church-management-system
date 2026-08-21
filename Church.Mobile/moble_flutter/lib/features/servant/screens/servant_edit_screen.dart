@@ -12,7 +12,6 @@ import '../../../core/theme/app_dimens.dart';
 import '../../unified_form/widgets/unified_entity_photo_picker.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
-import '../../custom_field/providers/custom_field_cache_providers.dart';
 import '../../unified_form/models/unified_form_models.dart';
 import '../../unified_form/providers/unified_form_providers.dart';
 import '../../unified_form/utils/unified_form_controller.dart';
@@ -88,17 +87,6 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen>
     }
   }
 
-  Future<void> _openFieldSettings() async {
-    await context.push('/custom-fields/Servant');
-    if (mounted) {
-      refreshEntityFormsAfterDefinitionChange(ref, UnifiedEntityNames.servant);
-      ref.invalidate(
-        entityFormDataProvider((entity: UnifiedEntityNames.servant, id: widget.id)),
-      );
-      resetFormSignature();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -123,14 +111,6 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen>
           resizeToAvoidBottomInset: true,
           appBar: AppBar(
             title: Text(l10n.editServant),
-            actions: [
-              if (canManage)
-                IconButton(
-                  icon: const Icon(Icons.tune),
-                  tooltip: l10n.manageCustomFields,
-                  onPressed: _openFieldSettings,
-                ),
-            ],
           ),
           body: formAsync.when(
             loading: () => const LoadingWidget(useSkeleton: true),

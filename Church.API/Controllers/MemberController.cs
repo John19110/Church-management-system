@@ -41,7 +41,10 @@ namespace Church.API.Controllers
 
         [HttpPost("/api/classrooms/{classroomId}/members")]
         [Consumes("multipart/form-data")]
-        public async Task<IActionResult> Create(int classroomId, [FromForm] MemberAddDTO memberDto)
+        public async Task<IActionResult> Create(
+            int classroomId,
+            [FromForm] MemberAddDTO memberDto,
+            [FromQuery] int? meetingId = null)
         {
             if (memberDto == null)
             {
@@ -52,7 +55,39 @@ namespace Church.API.Controllers
                 throw new ValidationException(errors);
             }
 
-            var id = await _memberManager.AddAsync(memberDto, classroomId);
+            var id = await _memberManager.AddAsync(memberDto, classroomId, meetingId);
+            return StatusCode(201, new MemberCreatedResponseDto
+            {
+                Id = id,
+                Message = "Created successfully."
+            });
+        }
+
+        [HttpPost("/api/meetings/{meetingId}/members")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> CreateForMeeting(
+            int meetingId,
+            [FromForm] MemberAddDTO memberDto)
+        {
+            if (memberDto == null)
+            {
+                var errors = new Dictionary<string, string[]>
+                {
+                    ["memberDto"] = new[] { "The request body cannot be empty." }
+                };
+                throw new ValidationException(errors);
+            }
+
+            if (meetingId <= 0)
+            {
+                var errors = new Dictionary<string, string[]>
+                {
+                    ["meetingId"] = new[] { "Meeting id must be a positive integer." }
+                };
+                throw new ValidationException(errors);
+            }
+
+            var id = await _memberManager.AddAsync(memberDto, classroomId: null, meetingId: meetingId);
             return StatusCode(201, new MemberCreatedResponseDto
             {
                 Id = id,

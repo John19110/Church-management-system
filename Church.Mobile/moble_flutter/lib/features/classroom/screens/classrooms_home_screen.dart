@@ -10,8 +10,6 @@ import '../../auth/utils/auth_role_utils.dart';
 import '../../auth/utils/auth_session.dart';
 import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
-import '../../custom_field/providers/custom_field_cache_providers.dart';
-import '../../unified_form/models/unified_form_models.dart';
 import '../models/classroom_models.dart';
 import '../providers/classroom_providers.dart';
 import '../../meeting/utils/meeting_delete_actions.dart';
@@ -100,20 +98,6 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen>
                       onPressed: () => context.push(
                         '/meetings/${widget.meetingId}/edit',
                       ),
-                    ),
-                  if (role == 'admin' || role == 'superadmin')
-                    IconButton(
-                      icon: const Icon(Icons.tune),
-                      tooltip: l10n.manageCustomFields,
-                      onPressed: () async {
-                        await context.push('/custom-fields/Classroom');
-                        if (context.mounted) {
-                          refreshEntityFormsAfterDefinitionChange(
-                            ref,
-                            UnifiedEntityNames.classroom,
-                          );
-                        }
-                      },
                     ),
                   IconButton(
                     icon: const Icon(Icons.logout),

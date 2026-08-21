@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/l10n/weekday_l10n.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/endpoint_select_fields.dart';
 import '../models/unified_form_models.dart';
@@ -41,6 +42,24 @@ class UnifiedFormFieldWidget extends StatelessWidget {
           l10n: l10n,
           entityName: entityName,
         );
+
+    if (field.fieldKey == 'dayOfWeek') {
+      final current = controller.controllerFor(field.fieldKey).text.trim();
+      return DropdownButtonFormField<String>(
+        value: current.isEmpty ? null : current,
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: placeholder,
+        ),
+        items: WeekdayL10n.dropdownItems(l10n),
+        onChanged: effectiveReadOnly
+            ? null
+            : (v) {
+                controller.controllerFor(field.fieldKey).text = v ?? '';
+              },
+        validator: (_) => validator(null),
+      );
+    }
 
     switch (field.dataType) {
       case UnifiedFieldDataType.boolean:

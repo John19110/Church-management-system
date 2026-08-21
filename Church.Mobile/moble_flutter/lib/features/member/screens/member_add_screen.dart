@@ -10,6 +10,7 @@ import '../../../core/theme/app_dimens.dart';
 import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../classroom/providers/classroom_providers.dart';
+import '../../meeting/providers/meeting_providers.dart';
 import '../../unified_form/widgets/unified_entity_photo_picker.dart';
 import '../providers/members_providers.dart';
 import '../utils/member_form_controller.dart';
@@ -19,7 +20,11 @@ import '../widgets/member_form.dart';
 class MemberAddScreen extends ConsumerStatefulWidget {
   final int? classroomId;
 
-  const MemberAddScreen({super.key, this.classroomId});
+  /// When opening Add Member from a meeting-scoped list, only classrooms
+  /// belonging to this meeting are shown (when the meeting uses classrooms).
+  final int? meetingId;
+
+  const MemberAddScreen({super.key, this.classroomId, this.meetingId});
 
   @override
   ConsumerState<MemberAddScreen> createState() => _MemberAddScreenState();
@@ -53,11 +58,51 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
 
   void _rebuild() => setState(() {});
 
-  Future<void> _submit() async {
+  bool _meetingUsesClassrooms(WidgetRef ref) {
+    final meetingId = widget.meetingId;
+    if (meetingId == null || meetingId <= 0) return true;
+    final meetings = ref.watch(visibleMeetingsProvider).valueOrNull;
+    if (meetings == null) return true;
+    for (final m in meetings) {
+      if (m.id == meetingId) return m.hasClassrooms;
+    }
+    return true;
+  }
+
+  Future<void> _submit({required bool usesClassrooms}) async {
     if (!_formKey.currentState!.validate()) return;
 
-    final classroomId = _resolvedClassroomId ?? 0;
     final l10n = AppLocalizations.of(context);
+    final meetingId = widget.meetingId;
+
+    if (!usesClassrooms) {
+      if (meetingId == null || meetingId <= 0) {
+        showErrorSnackbar(context, l10n.missingRequiredData);
+        return;
+      }
+      setState(() => _loading = true);
+      try {
+        final dto = MemberNativeFormMapper.toAddDto(_memberForm);
+        final memberId = await ref
+            .read(membersRepositoryProvider)
+            .createForMeeting(meetingId, dto, image: _image);
+
+        ref.invalidate(membersListProvider);
+        ref.invalidate(membersByMeetingProvider(meetingId));
+
+        if (mounted) {
+          showSuccessSnackbar(context, l10n.memberAddedSuccessfully);
+          context.pop(memberId);
+        }
+      } catch (e) {
+        if (mounted) showErrorSnackbar(context, userFriendlyMessage(e, l10n));
+      } finally {
+        if (mounted) setState(() => _loading = false);
+      }
+      return;
+    }
+
+    final classroomId = _resolvedClassroomId ?? 0;
     if (classroomId <= 0) {
       showErrorSnackbar(context, l10n.pleaseSelectClassroom);
       return;
@@ -66,14 +111,15 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
     setState(() => _loading = true);
     try {
       final dto = MemberNativeFormMapper.toAddDto(_memberForm);
-      final memberId = await ref.read(membersRepositoryProvider).create(
-            classroomId,
-            dto,
-            image: _image,
-          );
+      final memberId = await ref
+          .read(membersRepositoryProvider)
+          .create(classroomId, dto, image: _image, meetingId: meetingId);
 
       ref.invalidate(membersListProvider);
       ref.invalidate(membersByClassroomProvider(classroomId));
+      if (meetingId != null && meetingId > 0) {
+        ref.invalidate(membersByMeetingProvider(meetingId));
+      }
 
       if (mounted) {
         showSuccessSnackbar(context, l10n.memberAddedSuccessfully);
@@ -89,8 +135,13 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final classroomsAsync = ref.watch(visibleClassroomsProvider);
-    final needsClassroomPicker = (widget.classroomId ?? 0) <= 0;
+    final meetingId = widget.meetingId;
+    final usesClassrooms = _meetingUsesClassrooms(ref);
+    final classroomsAsync = (meetingId != null && meetingId > 0)
+        ? ref.watch(visibleClassroomsByMeetingProvider(meetingId))
+        : ref.watch(visibleClassroomsProvider);
+    final needsClassroomPicker =
+        usesClassrooms && (widget.classroomId ?? 0) <= 0;
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
@@ -106,13 +157,18 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
                   loading: () => const LinearProgressIndicator(),
                   error: (e, _) => Text(userFriendlyMessage(e, l10n)),
                   data: (classrooms) {
-                    if (classrooms.isEmpty) {
+                    final scoped = (meetingId != null && meetingId > 0)
+                        ? classrooms
+                              .where((c) => c.meetingId == meetingId)
+                              .toList()
+                        : classrooms;
+                    if (scoped.isEmpty) {
                       return Text(l10n.noVisibleClassroomsFound);
                     }
-                    final options =
-                        classrooms.where((c) => c.id != null).toList();
+                    final options = scoped.where((c) => c.id != null).toList();
                     final selectedId = _selectedClassroomId;
-                    final validSelection = selectedId != null &&
+                    final validSelection =
+                        selectedId != null &&
                         options.any((c) => c.id == selectedId);
                     return DropdownButtonFormField<int>(
                       value: validSelection ? selectedId : null,
@@ -127,7 +183,8 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
                             ),
                           )
                           .toList(),
-                      onChanged: (v) => setState(() => _selectedClassroomId = v),
+                      onChanged: (v) =>
+                          setState(() => _selectedClassroomId = v),
                       validator: (v) =>
                           v == null ? l10n.pleaseSelectClassroom : null,
                     );
@@ -146,7 +203,7 @@ class _MemberAddScreenState extends ConsumerState<MemberAddScreen> {
                   : FilledButton(
                       onPressed: () {
                         FocusManager.instance.primaryFocus?.unfocus();
-                        _submit();
+                        _submit(usesClassrooms: usesClassrooms);
                       },
                       child: Text(l10n.add),
                     ),

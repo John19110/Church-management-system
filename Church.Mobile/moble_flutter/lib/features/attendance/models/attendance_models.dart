@@ -1,3 +1,5 @@
+import 'attendance_criterion_models.dart';
+
 enum AttendanceStatus {
   present(1),
   absent(2),
@@ -7,9 +9,51 @@ enum AttendanceStatus {
   final int value;
   const AttendanceStatus(this.value);
 
+  /// PascalCase name matching ASP.NET `JsonStringEnumConverter` output
+  /// (e.g. `"Present"`).
+  String get apiName {
+    switch (this) {
+      case AttendanceStatus.present:
+        return 'Present';
+      case AttendanceStatus.absent:
+        return 'Absent';
+      case AttendanceStatus.late:
+        return 'Late';
+      case AttendanceStatus.excused:
+        return 'Excused';
+    }
+  }
+
   static AttendanceStatus fromValue(int value) =>
       AttendanceStatus.values.firstWhere((e) => e.value == value,
           orElse: () => AttendanceStatus.absent);
+
+  /// Parses API `status`: string enum names (`"Present"`) or ints (`1`).
+  /// Backend uses `JsonStringEnumConverter` with `allowIntegerValues: true`.
+  static AttendanceStatus fromJson(dynamic raw) {
+    if (raw == null) return AttendanceStatus.absent;
+    if (raw is int) return fromValue(raw);
+    if (raw is num) return fromValue(raw.toInt());
+    if (raw is String) {
+      final trimmed = raw.trim();
+      if (trimmed.isEmpty) return AttendanceStatus.absent;
+      final asInt = int.tryParse(trimmed);
+      if (asInt != null) return fromValue(asInt);
+      switch (trimmed.toLowerCase()) {
+        case 'present':
+          return AttendanceStatus.present;
+        case 'absent':
+          return AttendanceStatus.absent;
+        case 'late':
+          return AttendanceStatus.late;
+        case 'excused':
+          return AttendanceStatus.excused;
+        default:
+          return AttendanceStatus.absent;
+      }
+    }
+    return AttendanceStatus.absent;
+  }
 
   String get label {
     switch (this) {
@@ -37,6 +81,7 @@ class AttendanceRecordDto {
   final bool hasTools;
   final int status;
   final String? note;
+  final List<AttendanceCriterionResultDto> criterionResults;
 
   const AttendanceRecordDto({
     this.id,
@@ -46,6 +91,7 @@ class AttendanceRecordDto {
     required this.hasTools,
     required this.status,
     this.note,
+    this.criterionResults = const [],
   });
 
   factory AttendanceRecordDto.fromJson(Map<String, dynamic> json) =>
@@ -56,8 +102,14 @@ class AttendanceRecordDto {
         memberName: (json['memberName'] ?? json['MemberName']) as String?,
         madeHomeWork: json['madeHomeWork'] as bool? ?? false,
         hasTools: json['hasTools'] as bool? ?? false,
-        status: json['status'] as int? ?? 2,
+        status: AttendanceStatus.fromJson(json['status']).value,
         note: json['note'] as String?,
+        criterionResults: (json['criterionResults'] as List<dynamic>?)
+                ?.map((e) => AttendanceCriterionResultDto.fromJson(
+                      e as Map<String, dynamic>,
+                    ))
+                .toList() ??
+            const [],
       );
 
   /// JSON for creating a new attendance record (AttendanceRecordAddDTO).
@@ -65,8 +117,10 @@ class AttendanceRecordDto {
         'memberId': memberId,
         'madeHomeWork': madeHomeWork,
         'hasTools': hasTools,
-        'status': status,
+        'status': AttendanceStatus.fromValue(status).apiName,
         if (note != null) 'note': note,
+        'criterionResults':
+            criterionResults.map((r) => r.toAddJson()).toList(),
       };
 
   /// JSON for updating an existing attendance record (AttendanceRecordUpdateDTO).
@@ -75,26 +129,31 @@ class AttendanceRecordDto {
         'memberId': memberId,
         'madeHomeWork': madeHomeWork,
         'hasTools': hasTools,
-        'status': status,
+        'status': AttendanceStatus.fromValue(status).apiName,
         if (note != null) 'note': note,
+        'criterionResults':
+            criterionResults.map((r) => r.toAddJson()).toList(),
       };
 }
 
 class AttendanceSessionAddDto {
-  final int classroomId;
+  final int? classroomId;
+  final int? meetingId;
   final int? takenByServantId;
   final String? notes;
   final List<AttendanceRecordDto> records;
 
   const AttendanceSessionAddDto({
-    required this.classroomId,
+    this.classroomId,
+    this.meetingId,
     this.takenByServantId,
     this.notes,
     required this.records,
   });
 
   Map<String, dynamic> toJson() => {
-        'classroomId': classroomId,
+        if (classroomId != null) 'classroomId': classroomId,
+        if (meetingId != null) 'meetingId': meetingId,
         if (takenByServantId != null) 'takenByServantId': takenByServantId,
         if (notes != null) 'notes': notes,
         'records': records.map((r) => r.toAddJson()).toList(),
@@ -103,7 +162,8 @@ class AttendanceSessionAddDto {
 
 class AttendanceSessionUpdateDto {
   final int id;
-  final int classroomId;
+  final int? classroomId;
+  final int? meetingId;
   final int? takenByServantId;
   final String? notes;
   final String? createdAt;
@@ -111,7 +171,8 @@ class AttendanceSessionUpdateDto {
 
   const AttendanceSessionUpdateDto({
     required this.id,
-    required this.classroomId,
+    this.classroomId,
+    this.meetingId,
     this.takenByServantId,
     this.notes,
     this.createdAt,
@@ -120,7 +181,8 @@ class AttendanceSessionUpdateDto {
 
   Map<String, dynamic> toJson() => {
         'id': id,
-        'classroomId': classroomId,
+        if (classroomId != null) 'classroomId': classroomId,
+        if (meetingId != null) 'meetingId': meetingId,
         if (takenByServantId != null) 'takenByServantId': takenByServantId,
         if (notes != null) 'notes': notes,
         if (createdAt != null) 'createdAt': createdAt,

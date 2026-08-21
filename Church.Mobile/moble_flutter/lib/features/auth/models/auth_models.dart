@@ -96,6 +96,7 @@ class RegisterMeetingAdminDto {
   final String meetingName;
   final TimeOfDay weeklyAppointment;
   final String dayOfWeek;
+  final bool hasClassrooms;
   final File? image;
   final String? birthDate;
   final String? joiningDate;
@@ -109,6 +110,7 @@ class RegisterMeetingAdminDto {
     required this.meetingName,
     required this.weeklyAppointment,
     required this.dayOfWeek,
+    this.hasClassrooms = true,
     this.image,
     this.birthDate,
     this.joiningDate,

@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
-import '../../custom_field/providers/custom_field_cache_providers.dart';
 import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_dimens.dart';
@@ -70,17 +69,6 @@ class _ClassroomAddScreenState extends ConsumerState<ClassroomAddScreen>
     }
   }
 
-  Future<void> _openFieldSettings() async {
-    await context.push('/custom-fields/Classroom');
-    if (mounted) {
-      refreshEntityFormsAfterDefinitionChange(ref, UnifiedEntityNames.classroom);
-      ref.invalidate(
-        entityFormSchemaProvider((entity: UnifiedEntityNames.classroom, mode: 'Create')),
-      );
-      resetFormSignature();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -105,14 +93,6 @@ class _ClassroomAddScreenState extends ConsumerState<ClassroomAddScreen>
           resizeToAvoidBottomInset: true,
           appBar: AppBar(
             title: Text(l10n.addClassroom),
-            actions: [
-              if (canManage)
-                IconButton(
-                  icon: const Icon(Icons.tune),
-                  tooltip: l10n.manageCustomFields,
-                  onPressed: _openFieldSettings,
-                ),
-            ],
           ),
           body: schemaAsync.when(
             loading: () => const LoadingWidget(useSkeleton: true),

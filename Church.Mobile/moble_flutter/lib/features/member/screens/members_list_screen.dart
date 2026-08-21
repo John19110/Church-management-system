@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
-import '../../custom_field/providers/custom_field_cache_providers.dart';
-import '../../unified_form/models/unified_form_models.dart';
 import '../providers/members_providers.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
@@ -58,10 +56,10 @@ class _MembersListScreenState extends ConsumerState<MembersListScreen> {
 
     // When in meeting context: always allow natural pop (back to meeting detail).
     // When navigated to as a root tab: replicate the original canPop logic.
-    final currentLocation =
-        _isMeetingScoped ? null : GoRouterState.of(context).matchedLocation;
-    final canPop =
-        _isMeetingScoped ? true : (currentLocation == homeRoute);
+    final currentLocation = _isMeetingScoped
+        ? null
+        : GoRouterState.of(context).matchedLocation;
+    final canPop = _isMeetingScoped ? true : (currentLocation == homeRoute);
 
     String buildTitle() {
       final base = l10n.members;
@@ -90,26 +88,16 @@ class _MembersListScreenState extends ConsumerState<MembersListScreen> {
         data: (role) => Scaffold(
           appBar: AppBar(
             title: Text(buildTitle()),
-            actions: [
-              if (!_isMeetingScoped && AuthRoleUtils.canManageCustomFields(role))
-                IconButton(
-                  icon: const Icon(Icons.tune),
-                  tooltip: l10n.manageCustomFields,
-                  onPressed: () async {
-                    await context.push('/custom-fields/Member');
-                    if (context.mounted) {
-                      refreshEntityFormsAfterDefinitionChange(
-                        ref,
-                        UnifiedEntityNames.member,
-                      );
-                    }
-                  },
-                ),
-            ],
           ),
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () async {
-              await context.push('/members/add');
+              if (_isMeetingScoped) {
+                await context.push(
+                  '/members/add?meetingId=${widget.meetingId}',
+                );
+              } else {
+                await context.push('/members/add');
+              }
               _invalidate();
             },
             icon: const Icon(Icons.add),
@@ -133,9 +121,11 @@ class _MembersListScreenState extends ConsumerState<MembersListScreen> {
               final filtered = query.isEmpty
                   ? members
                   : members
-                      .where((m) =>
-                          (m.fullName ?? '').toLowerCase().contains(query))
-                      .toList();
+                        .where(
+                          (m) =>
+                              (m.fullName ?? '').toLowerCase().contains(query),
+                        )
+                        .toList();
 
               return RefreshIndicator(
                 onRefresh: () async => _invalidate(),
@@ -177,15 +167,16 @@ class _MembersListScreenState extends ConsumerState<MembersListScreen> {
                                     member.fullName ?? l10n.unknownName;
                                 final initial =
                                     (member.fullName?.isNotEmpty == true)
-                                        ? member.fullName![0].toUpperCase()
-                                        : '?';
+                                    ? member.fullName![0].toUpperCase()
+                                    : '?';
                                 return AppListRow(
                                   leading: AppNetworkAvatar(
                                     imageUrl: member.displayImageUrl,
                                     debugTag: 'members-list-${member.id}',
                                     radius: 24,
-                                    backgroundColor:
-                                        Theme.of(context).colorScheme.primary,
+                                    backgroundColor: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
                                     placeholder: Text(
                                       initial,
                                       style: const TextStyle(

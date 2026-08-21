@@ -1,6 +1,7 @@
 using AutoMapper;
 using Church.BLL.DTOS;
 using Church.BLL.DTOS.AccountDtos;
+using Church.BLL.DTOS.AttendanceCriteria;
 using Church.BLL.DTOS.ClsssroomDtos;
 using Church.BLL.DTOS.Meeting;
 using Church.BLL.DTOS.CustomFields;
@@ -63,7 +64,24 @@ namespace Church.BLL.AutoMapper
             // =========================
             CreateMap<AttendanceRecord, AttendanceRecordReadDTO>()
                 .ForMember(d => d.ChildId, o => o.MapFrom(s => s.MemberId))
-                .ForMember(d => d.MemberName, o => o.MapFrom(s => s.Member != null ? s.Member.FullName : null));
+                .ForMember(d => d.MemberName, o => o.MapFrom(s => s.Member != null ? s.Member.FullName : null))
+                .ForMember(d => d.CriterionResults, o => o.MapFrom(s => s.CriterionResults));
+
+            CreateMap<AttendanceCriterionResult, AttendanceCriterionResultReadDTO>()
+                .ForMember(d => d.CriterionId, o => o.MapFrom(s => s.AttendanceCriterionId))
+                .ForMember(d => d.Name, o => o.MapFrom(s =>
+                    s.AttendanceCriterion != null ? s.AttendanceCriterion.Name : string.Empty))
+                .ForMember(d => d.DisplayName, o => o.MapFrom(s =>
+                    !string.IsNullOrWhiteSpace(s.DisplayNameSnapshot)
+                        ? s.DisplayNameSnapshot
+                        : (s.AttendanceCriterion != null ? s.AttendanceCriterion.DisplayName : string.Empty)))
+                .ForMember(d => d.DisplayNameAr, o => o.MapFrom(s =>
+                    s.DisplayNameArSnapshot
+                    ?? (s.AttendanceCriterion != null
+                        ? s.AttendanceCriterion.DisplayNameAr
+                        : null)))
+                .ForMember(d => d.Value, o => o.MapFrom(s => s.BoolValue));
+
 
             CreateMap<MeetingAddDTO, Meeting>()
                 .ForMember(d => d.Weekly_appointment, o => o.MapFrom(s => s.WeeklyAppointment));
@@ -72,6 +90,7 @@ namespace Church.BLL.AutoMapper
                 .ForMember(d => d.AttendanceSessionId, o => o.Ignore())
                 .ForMember(d => d.AttendanceSession, o => o.Ignore())
                 .ForMember(d => d.Member, o => o.Ignore())
+                .ForMember(d => d.CriterionResults, o => o.Ignore())
                 .ForMember(d => d.UpdatedAt,
                            o => o.MapFrom(_ => DateTime.Now));
 
@@ -81,6 +100,7 @@ namespace Church.BLL.AutoMapper
                 .ForMember(d => d.AttendanceSessionId, o => o.Ignore())
                 .ForMember(d => d.AttendanceSession, o => o.Ignore())
                 .ForMember(d => d.Member, o => o.Ignore())
+                .ForMember(d => d.CriterionResults, o => o.Ignore())
                 .ForMember(d => d.UpdatedAt,
                            o => o.MapFrom(_ => DateTime.Now));
 
@@ -96,12 +116,14 @@ namespace Church.BLL.AutoMapper
             CreateMap<AttendanceSessionAddDTO, AttendanceSession>()
                 .ForMember(d => d.Id, o => o.Ignore())
                 .ForMember(d => d.Classroom, o => o.Ignore())
+                .ForMember(d => d.Meeting, o => o.Ignore())
                 .ForMember(d => d.TakenByServant, o => o.Ignore())
                 .ForMember(d => d.CreatedAt, o => o.MapFrom(_ => DateOnly.FromDateTime(DateTime.UtcNow)))
                 .ForMember(d => d.Records, o => o.MapFrom(s => s.Records));
 
             CreateMap<AttendanceSessionUpdateDTO, AttendanceSession>()
                 .ForMember(d => d.Classroom, o => o.Ignore())
+                .ForMember(d => d.Meeting, o => o.Ignore())
                 .ForMember(d => d.TakenByServant, o => o.Ignore())
                 .ForMember(d => d.CreatedAt, o => o.Ignore())
                 .ForMember(d => d.Records, o => o.MapFrom(s => s.Records));

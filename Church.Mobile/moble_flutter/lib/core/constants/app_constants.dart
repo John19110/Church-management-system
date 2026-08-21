@@ -42,6 +42,15 @@ class AppConstants {
   static const String attendanceEndpoint = '/api/AttendanceSession';
   static const String attendanceByClassroomEndpoint =
       '/api/AttendanceSession/by-classroom';
+  static const String attendanceByMeetingEndpoint =
+      '/api/AttendanceSession/by-meeting';
+
+  static String meetingAttendanceCriteriaEndpoint(int meetingId) =>
+      '/api/Meeting/$meetingId/attendance-criteria';
+  static String attendanceCriterionEndpoint(int id) =>
+      '/api/attendance-criteria/$id';
+  static String meetingAttendanceCriteriaReorderEndpoint(int meetingId) =>
+      '/api/Meeting/$meetingId/attendance-criteria/reorder';
 
   // Select endpoints (all return: {id, name})
   static const String classroomsSelectEndpoint = '/api/Classroom/select';
@@ -54,6 +63,8 @@ class AppConstants {
   // Meeting-scoped endpoints
   static String meetingMembersEndpoint(int meetingId) =>
       '/api/Meeting/$meetingId/members';
+  static String meetingMembersCreateEndpoint(int meetingId) =>
+      '/api/meetings/$meetingId/members';
   static String meetingServantsEndpoint(int meetingId) =>
       '/api/Meeting/$meetingId/servants';
 }

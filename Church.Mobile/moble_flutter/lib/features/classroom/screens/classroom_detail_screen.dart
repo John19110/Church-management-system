@@ -16,7 +16,6 @@ import '../providers/classroom_providers.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
 import '../../unified_form/models/unified_form_models.dart';
-import '../../custom_field/providers/custom_field_cache_providers.dart';
 import '../../unified_form/providers/unified_form_providers.dart';
 import '../../unified_form/utils/unified_form_field_utils.dart';
 import '../../unified_form/widgets/entity_fields_empty_state.dart';
@@ -92,21 +91,6 @@ class ClassroomDetailScreen extends ConsumerWidget {
               }
             },
           ),
-          if (AuthRoleUtils.canManageCustomFields(role))
-            IconButton(
-              icon: const Icon(Icons.tune),
-              tooltip: l10n.manageCustomFields,
-              onPressed: () async {
-                await context.push('/custom-fields/Classroom');
-                if (context.mounted) {
-                  refreshEntityFormsAfterDefinitionChange(
-                    ref,
-                    UnifiedEntityNames.classroom,
-                  );
-                  ref.invalidate(entityFormDataProvider(formQuery));
-                }
-              },
-            ),
           if (AuthRoleUtils.canDeleteClassroom(role))
             IconButton(
               icon: Icon(Icons.delete_outline,

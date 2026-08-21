@@ -32,7 +32,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _loading = false;
   bool _obscurePassword = true;
 
-
   @override
   void dispose() {
     _phoneController.dispose();
@@ -47,14 +46,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _loading = true);
 
     try {
-      final phone = PhoneNumberValidator.normalize(_phoneController.text) ??
+      final phone =
+          PhoneNumberValidator.normalize(_phoneController.text) ??
           _phoneController.text.trim();
-      final result = await ref.read(authRepositoryProvider).login(
-        LoginDto(
-          phoneNumber: phone,
-          password: _passwordController.text,
-        ),
-      );
+      final result = await ref
+          .read(authRepositoryProvider)
+          .login(
+            LoginDto(phoneNumber: phone, password: _passwordController.text),
+          );
 
       final token = result.token;
       if (token == null || token.isEmpty) {
@@ -142,92 +141,88 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
 
               Expanded(
-                child: Center(
-                  child: AppFormScrollView(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.xl,
-                      AppSpacing.lg,
-                      AppSpacing.xl,
-                      AppSpacing.xl,
-                    ),
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 440),
-                      child: AutofillGroup(
-                        child: Form(
-                          key: _formKey,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              _brandMark(theme),
-                              const SizedBox(height: AppSpacing.lg),
-                              Text(
-                                l10n.churchBrand,
-                                textAlign: TextAlign.center,
-                                style: theme.textTheme.headlineMedium?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: theme.colorScheme.primary,
+                child: AppFormScrollView(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.xl,
+                    AppSpacing.lg,
+                    AppSpacing.xl,
+                    AppSpacing.xl,
+                  ),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 440),
+                    child: AutofillGroup(
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _brandMark(theme),
+                            const SizedBox(height: AppSpacing.lg),
+                            Text(
+                              l10n.churchBrand,
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: theme.colorScheme.primary,
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.xxl),
+                            AppTextField(
+                              controller: _phoneController,
+                              label: l10n.phoneNumber,
+                              hint: l10n.enterPhoneNumber,
+                              keyboardType: TextInputType.phone,
+                              textInputAction: TextInputAction.next,
+                              autofillHints: const [
+                                AutofillHints.telephoneNumber,
+                              ],
+                              textCapitalization: TextCapitalization.none,
+                              autocorrect: false,
+                              validator: (v) =>
+                                  PhoneNumberValidator.validate(v, l10n: l10n),
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            AppTextField(
+                              controller: _passwordController,
+                              label: l10n.password,
+                              hint: l10n.enterPassword,
+                              obscureText: _obscurePassword,
+                              textInputAction: TextInputAction.done,
+                              autofillHints: const [AutofillHints.password],
+                              onFieldSubmitted: (_) => _login(),
+                              validator: (v) => (v == null || v.isEmpty)
+                                  ? l10n.passwordRequired
+                                  : null,
+                              suffixIcon: IconButton(
+                                tooltip: _obscurePassword
+                                    ? l10n.password
+                                    : l10n.password,
+                                icon: Icon(
+                                  _obscurePassword
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
+                                  color: palette.textSecondary,
+                                ),
+                                onPressed: () => setState(
+                                  () => _obscurePassword = !_obscurePassword,
                                 ),
                               ),
-                              const SizedBox(height: AppSpacing.xxl),
-                              AppTextField(
-                                controller: _phoneController,
-                                label: l10n.phoneNumber,
-                                hint: l10n.enterPhoneNumber,
-                                keyboardType: TextInputType.phone,
-                                textInputAction: TextInputAction.next,
-                                autofillHints: const [
-                                  AutofillHints.telephoneNumber,
-                                ],
-                                textCapitalization: TextCapitalization.none,
-                                autocorrect: false,
-                                validator: (v) => PhoneNumberValidator.validate(
-                                  v,
-                                  l10n: l10n,
-                                ),
-                              ),
-                              const SizedBox(height: AppSpacing.md),
-                              AppTextField(
-                                controller: _passwordController,
-                                label: l10n.password,
-                                hint: l10n.enterPassword,
-                                obscureText: _obscurePassword,
-                                textInputAction: TextInputAction.done,
-                                autofillHints: const [AutofillHints.password],
-                                onFieldSubmitted: (_) => _login(),
-                                validator: (v) => (v == null || v.isEmpty)
-                                    ? l10n.passwordRequired
-                                    : null,
-                                suffixIcon: IconButton(
-                                  tooltip: _obscurePassword
-                                      ? l10n.password
-                                      : l10n.password,
-                                  icon: Icon(
-                                    _obscurePassword
-                                        ? Icons.visibility_outlined
-                                        : Icons.visibility_off_outlined,
-                                    color: palette.textSecondary,
-                                  ),
-                                  onPressed: () => setState(
-                                    () => _obscurePassword = !_obscurePassword,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: AppSpacing.xl),
-                              AppButton(
-                                label: l10n.login,
-                                loading: _loading,
-                                onPressed: _loading ? null : _login,
-                              ),
-                              const SizedBox(height: AppSpacing.md),
-                              TextButton(
-                                onPressed: _loading
-                                    ? null
-                                    : () => context.push(AppRoutes.register),
-                                child: Text(l10n.dontHaveAccount),
-                              ),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(height: AppSpacing.xl),
+                            AppButton(
+                              label: l10n.login,
+                              loading: _loading,
+                              onPressed: _loading ? null : _login,
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            TextButton(
+                              onPressed: _loading
+                                  ? null
+                                  : () => context.push(AppRoutes.register),
+                              child: Text(l10n.dontHaveAccount),
+                            ),
+                          ],
                         ),
                       ),
                     ),

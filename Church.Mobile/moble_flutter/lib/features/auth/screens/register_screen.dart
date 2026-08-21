@@ -15,6 +15,7 @@ import '../../../core/routing/app_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../core/l10n/validation_message_localizer.dart';
+import '../../../core/l10n/weekday_l10n.dart';
 import '../utils/registration_navigation.dart';
 import '../utils/phone_number_validator.dart';
 
@@ -75,6 +76,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _weeklyAppointmentController = TextEditingController();
   String _selectedMeetingDay = 'Saturday';
   TimeOfDay? _selectedWeeklyTime;
+  bool _hasClassrooms = true;
 
   // Optional controllers
   final _birthController = TextEditingController();
@@ -390,6 +392,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               meetingName: _meetingNameController.text.trim(),
               weeklyAppointment: _selectedWeeklyTime!,
               dayOfWeek: _selectedMeetingDay,
+              hasClassrooms: _hasClassrooms,
               birthDate: _birthController.text.trim().nullIfEmpty,
               joiningDate: _joiningController.text.trim().nullIfEmpty,
               image: _image,
@@ -400,16 +403,21 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
       if (!result.hasToken) {
         if (mounted) {
-          // Never surface phone-verification copy from any API payload.
+          // Pending join requests intentionally have no JWT until approval.
+          final pendingJoin =
+              widget.mode == RegisterFormMode.existingChurchMember;
           showSuccessSnackbar(
             context,
-            l10n.registrationSuccessfulPleaseSignIn,
+            pendingJoin
+                ? l10n.registrationPendingApproval
+                : l10n.registrationSuccessfulPleaseSignIn,
           );
           context.go(AppRoutes.login);
         }
         return;
       }
 
+      // Token already persisted by AuthRepository before this returns.
       final token = result.token!;
       final role = AuthRoleUtils.extractPrimaryRole(token);
 
@@ -825,36 +833,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       labelText: l10n.meetingDayOfWeek,
                       errorMaxLines: 6,
                     ),
-                    items: [
-                      DropdownMenuItem(
-                        value: 'Saturday',
-                        child: Text(l10n.weekdaySaturday),
-                      ),
-                      DropdownMenuItem(
-                        value: 'Sunday',
-                        child: Text(l10n.weekdaySunday),
-                      ),
-                      DropdownMenuItem(
-                        value: 'Monday',
-                        child: Text(l10n.weekdayMonday),
-                      ),
-                      DropdownMenuItem(
-                        value: 'Tuesday',
-                        child: Text(l10n.weekdayTuesday),
-                      ),
-                      DropdownMenuItem(
-                        value: 'Wednesday',
-                        child: Text(l10n.weekdayWednesday),
-                      ),
-                      DropdownMenuItem(
-                        value: 'Thursday',
-                        child: Text(l10n.weekdayThursday),
-                      ),
-                      DropdownMenuItem(
-                        value: 'Friday',
-                        child: Text(l10n.weekdayFriday),
-                      ),
-                    ],
+                    items: WeekdayL10n.dropdownItems(l10n),
                     onChanged: (v) => setState(() => _selectedMeetingDay = v!),
                     validator: (v) => (v == null || v.trim().isEmpty)
                         ? l10n.required
@@ -891,6 +870,29 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           ? l10n.weeklyAppointmentRequired
                           : null,
                     ),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Text(
+                      l10n.divideMeetingIntoClassroomsQuestion,
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    l10n.divideMeetingIntoClassroomsHint,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      _hasClassrooms
+                          ? l10n.yesDivideIntoClassrooms
+                          : l10n.noKeepMeetingWithoutClassrooms,
+                    ),
+                    value: _hasClassrooms,
+                    onChanged: (v) => setState(() => _hasClassrooms = v),
                   ),
                 ],
 

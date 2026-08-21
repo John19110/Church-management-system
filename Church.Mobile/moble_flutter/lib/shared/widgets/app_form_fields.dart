@@ -120,7 +120,7 @@ class AppTextField extends StatelessWidget {
       enableSuggestions: isPassword ? false : enableSuggestions,
       inputFormatters: inputFormatters,
       textAlign: textAlign ?? TextAlign.start,
-      scrollPadding: kAppFieldScrollPadding,
+      scrollPadding: appFieldScrollPadding(context),
       style: Theme.of(context).textTheme.bodyLarge,
       decoration: InputDecoration(
         labelText: label,
@@ -207,7 +207,7 @@ class _AppDateFieldState extends State<AppDateField> {
       textDirection: LocaleFormat.textDirectionFor(l10n.locale),
       textAlign: LocaleFormat.textAlignFor(l10n.locale),
       validator: (_) => widget.validator?.call(widget.controller.text),
-      scrollPadding: kAppFieldScrollPadding,
+      scrollPadding: appFieldScrollPadding(context),
       decoration: InputDecoration(
         labelText: widget.label,
         suffixIcon: const Icon(Icons.calendar_today_outlined),
@@ -217,6 +217,7 @@ class _AppDateFieldState extends State<AppDateField> {
         FocusManager.instance.primaryFocus?.unfocus();
         final picked = await showDatePicker(
           context: context,
+          locale: Localizations.localeOf(context),
           initialDate:
               DateTime.tryParse(widget.controller.text) ?? DateTime.now(),
           firstDate: DateTime(1900),
@@ -301,6 +302,7 @@ class _AppDateTimeFieldState extends State<AppDateTimeField> {
     final c = widget.controller;
     final date = await showDatePicker(
       context: context,
+      locale: Localizations.localeOf(context),
       initialDate: DateTime.tryParse(c.text) ?? DateTime.now(),
       firstDate: DateTime(1900),
       lastDate: DateTime(2100),
@@ -335,7 +337,7 @@ class _AppDateTimeFieldState extends State<AppDateTimeField> {
       textDirection: LocaleFormat.textDirectionFor(l10n.locale),
       textAlign: LocaleFormat.textAlignFor(l10n.locale),
       validator: (_) => widget.validator?.call(widget.controller.text),
-      scrollPadding: kAppFieldScrollPadding,
+      scrollPadding: appFieldScrollPadding(context),
       decoration: InputDecoration(
         labelText: widget.label,
         suffixIcon: const Icon(Icons.event_outlined),

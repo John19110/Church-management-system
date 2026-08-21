@@ -35,6 +35,7 @@ namespace Church.BLL.Manager.Implementations
         private readonly IMapper _mapper;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IMeetingRepository _meetingRepository;
+        private readonly IAttendanceCriterionRepository _attendanceCriterionRepository;
         private readonly ServantProfileOptions _servantProfileOptions;
         private readonly IMeetingPublicIdService _meetingPublicIdService;
         private readonly ICacheService _cache;
@@ -47,6 +48,7 @@ namespace Church.BLL.Manager.Implementations
                 IClassroomRepository classroomRepository, IMapper mapper,
                 UserManager<ApplicationUser> userManager, IMemberRepository memberRepository
                 , IServantRepository servantRepository, IMeetingRepository meetingRepository,
+                IAttendanceCriterionRepository attendanceCriterionRepository,
                 IOptions<ServantProfileOptions> servantProfileOptions,
                 IMeetingPublicIdService meetingPublicIdService,
                 ICacheService cache,
@@ -61,6 +63,7 @@ namespace Church.BLL.Manager.Implementations
             _servantRepo = servantRepository;
             _memberRepo = memberRepository;
             _meetingRepository = meetingRepository;
+            _attendanceCriterionRepository = attendanceCriterionRepository;
             _servantProfileOptions = servantProfileOptions.Value;
             _meetingPublicIdService = meetingPublicIdService;
             _cache = cache;
@@ -226,7 +229,9 @@ namespace Church.BLL.Manager.Implementations
 
             model.ChurchId = churchId;
             model.PublicId = await _meetingPublicIdService.GenerateUniqueAsync(churchId);
+            model.HasClassrooms = meeting.HasClassrooms;
             await  _meetingRepository.AddAsync(model);
+            await _attendanceCriterionRepository.EnsureDefaultsForMeetingAsync(model.Id, churchId);
 
             var ctx = _cacheContext.TryGet();
             if (ctx is not null)

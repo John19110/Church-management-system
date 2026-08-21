@@ -120,6 +120,7 @@ class AuthRepository {
         'Weekly_appointment': _formatTimeOfDay(dto.weeklyAppointment),
         'DayOfWeek': dto.dayOfWeek,
         'dayOfWeek': dto.dayOfWeek,
+        'HasClassrooms': dto.hasClassrooms.toString(),
         if (dto.birthDate != null) 'BirthDate': dto.birthDate,
         if (dto.joiningDate != null) 'JoiningDate': dto.joiningDate,
         if (dto.image != null)

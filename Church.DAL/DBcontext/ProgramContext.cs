@@ -28,6 +28,8 @@ namespace Church.DAL.DBcontext
         public DbSet<ClassroomServant> ClassroomServants { get; set; }
         public DbSet<AttendanceSession> AttendanceSessions { get; set; }
         public DbSet<AttendanceRecord> AttendanceRecords { get; set; }
+        public DbSet<AttendanceCriterion> AttendanceCriteria { get; set; }
+        public DbSet<AttendanceCriterionResult> AttendanceCriterionResults { get; set; }
         public DbSet<Exam> Exams { get; set; }
         public DbSet<ExamResult> ExamResults { get; set; }
         public DbSet<SpiritualCurriculum> SpiritualCurriculums { get; set; }
@@ -86,12 +88,20 @@ namespace Church.DAL.DBcontext
                 .HasForeignKey(pc => pc.MemberContactId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // AttendanceSession ↔ Classroom (required)
+            // AttendanceSession ↔ Meeting (required)
+            builder.Entity<AttendanceSession>()
+                .HasOne(s => s.Meeting)
+                .WithMany(m => m.AttendanceSessions)
+                .HasForeignKey(s => s.MeetingId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // AttendanceSession ↔ Classroom (optional — null for meeting-level attendance)
             builder.Entity<AttendanceSession>()
                 .HasOne(s => s.Classroom)
                 .WithMany(c => c.AttendanceHistory)
                 .HasForeignKey(s => s.ClassroomId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
 
             // Many-to-Many ClassroomServant
             builder.Entity<ClassroomServant>()
@@ -111,6 +121,45 @@ namespace Church.DAL.DBcontext
             builder.Entity<AttendanceRecord>()
                 .HasIndex(x => new { x.AttendanceSessionId, x.MemberId })
                 .IsUnique();
+
+            // Meeting-scoped attendance criteria
+            builder.Entity<AttendanceCriterion>()
+                .HasOne(c => c.Meeting)
+                .WithMany(m => m.AttendanceCriteria)
+                .HasForeignKey(c => c.MeetingId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
+
+            builder.Entity<AttendanceCriterion>()
+                .HasIndex(c => new { c.MeetingId, c.Name })
+                .IsUnique()
+                .HasFilter("[IsDeleted] = 0");
+
+            builder.Entity<AttendanceCriterionResult>()
+                .HasOne(r => r.AttendanceRecord)
+                .WithMany(ar => ar.CriterionResults)
+                .HasForeignKey(r => r.AttendanceRecordId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired();
+
+            builder.Entity<AttendanceCriterionResult>()
+                .HasOne(r => r.AttendanceCriterion)
+                .WithMany(c => c.Results)
+                .HasForeignKey(r => r.AttendanceCriterionId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
+
+            builder.Entity<AttendanceCriterionResult>()
+                .HasIndex(r => new { r.AttendanceRecordId, r.AttendanceCriterionId })
+                .IsUnique();
+
+            // AttendanceCriterion is globally filtered (ChurchEntity), so dependents that require
+            // AttendanceCriterion must be filtered too (EF10622).
+            builder.Entity<AttendanceCriterionResult>()
+                .HasQueryFilter(r =>
+                    CurrentChurchId.HasValue &&
+                    r.AttendanceCriterion.ChurchId == CurrentChurchId &&
+                    (!CurrentMeetingId.HasValue || r.AttendanceCriterion.MeetingId == CurrentMeetingId));
 
             builder.Entity<Member>()
                 .HasIndex(c => c.ClassroomId);
@@ -208,14 +257,24 @@ namespace Church.DAL.DBcontext
                 );
 
             // Classroom is globally filtered (ChurchEntity), so dependents that require Classroom must be filtered too.
+            // Meeting-level sessions (ClassroomId null) are scoped via Meeting instead.
             builder.Entity<AttendanceSession>()
                 .HasQueryFilter(s =>
                     CurrentChurchId.HasValue &&
-                    s.Classroom!.ChurchId == CurrentChurchId &&
-                    (!CurrentMeetingId.HasValue || s.Classroom!.MeetingId == CurrentMeetingId) &&
                     (
-                        !IsClassroomScoped ||
-                        CurrentClassroomIds.Contains(s.ClassroomId)
+                        (s.ClassroomId != null &&
+                         s.Classroom!.ChurchId == CurrentChurchId &&
+                         (!CurrentMeetingId.HasValue || s.Classroom!.MeetingId == CurrentMeetingId) &&
+                         (
+                             !IsClassroomScoped ||
+                             (s.ClassroomId.HasValue && CurrentClassroomIds.Contains(s.ClassroomId.Value))
+                         ))
+                        ||
+                        (s.ClassroomId == null &&
+                         s.Meeting != null &&
+                         s.Meeting.ChurchId == CurrentChurchId &&
+                         (!CurrentMeetingId.HasValue || s.MeetingId == CurrentMeetingId) &&
+                         !IsClassroomScoped)
                     )
                 );
 

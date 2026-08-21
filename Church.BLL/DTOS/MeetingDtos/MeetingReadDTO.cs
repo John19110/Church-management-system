@@ -15,6 +15,7 @@ namespace Church.BLL.DTOS.MeetingDtos
             public string? Name { get; set; }
             public TimeOnly WeeklyAppointment { get; set; }
             public string DayOfWeek { get; set; } = string.Empty;
+            public bool HasClassrooms { get; set; } = true;
             public ICollection<Servant>? Servants { get; set; }
             public ICollection<Member>? Members { get; set; }
         public int? LeaderServantId { get; set; }  // Nullable if a meeting may not have a leader yet

@@ -1,7 +1,8 @@
 namespace Church.BLL.DTOS.AccountDtos
 {
     /// <summary>
-    /// Login/register outcome — JWT on successful login, or registration-complete without token.
+    /// Login/register outcome. Approved login or approved new-church registration
+    /// returns a JWT; pending join registration returns no token.
     /// </summary>
     public class AuthFlowResultDto
     {
@@ -13,6 +14,7 @@ namespace Church.BLL.DTOS.AccountDtos
             Token = token
         };
 
+        /// <summary>Registration completed without issuing a session (e.g. pending approval).</summary>
         public static AuthFlowResultDto Registered() => new();
     }
 }

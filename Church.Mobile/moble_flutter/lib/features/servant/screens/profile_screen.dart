@@ -5,12 +5,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
-import '../../../core/providers/locale_provider.dart';
-import '../../../core/providers/theme_provider.dart';
 import '../../../core/routing/app_router.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
-import '../../auth/widgets/delete_account_section.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
 import '../../unified_form/models/unified_form_models.dart';
@@ -32,10 +29,6 @@ class ProfileScreen extends ConsumerWidget {
     final profileAsync = ref.watch(servantProfileProvider);
     final role = ref.watch(currentUserRoleProvider).resolvedRoleOrNull;
     final homeRoute = AuthRoleUtils.routeForRole(role);
-    final themeMode = ref.watch(themeModeProvider);
-    final locale = ref.watch(localeProvider);
-    final isDark = themeMode == ThemeMode.dark;
-    final isArabic = locale.languageCode == 'ar';
 
     return Scaffold(
       appBar: showAppBar ? AppBar(title: Text(l10n.profile)) : null,
@@ -134,41 +127,12 @@ class ProfileScreen extends ConsumerWidget {
                 const SizedBox(height: 16),
                 _RoleContextCard(profile: profile, role: role),
                 const SizedBox(height: 16),
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: Text(
-                    l10n.appSettings,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
                 Card(
-                  child: Column(
-                    children: [
-                      SwitchListTile(
-                        secondary: Icon(
-                          isDark ? Icons.dark_mode : Icons.light_mode,
-                        ),
-                        title: Text(isDark ? l10n.darkMode : l10n.lightMode),
-                        value: isDark,
-                        onChanged: (_) =>
-                            ref.read(themeModeProvider.notifier).toggle(),
-                      ),
-                      const Divider(height: 0),
-                      ListTile(
-                        leading: const Icon(Icons.language),
-                        title: Text(l10n.language),
-                        subtitle: Text(isArabic ? l10n.arabic : l10n.english),
-                        trailing: TextButton(
-                          onPressed: () =>
-                              ref.read(localeProvider.notifier).toggle(),
-                          child: Text(isArabic ? l10n.english : l10n.arabic),
-                        ),
-                        onTap: () => ref.read(localeProvider.notifier).toggle(),
-                      ),
-                    ],
+                  child: ListTile(
+                    leading: const Icon(Icons.settings_outlined),
+                    title: Text(l10n.settings),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => context.push(AppRoutes.settings),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -187,8 +151,6 @@ class ProfileScreen extends ConsumerWidget {
                   icon: const Icon(Icons.edit),
                   label: Text(l10n.editProfile),
                 ),
-                const SizedBox(height: 20),
-                const DeleteAccountSection(),
                 const SizedBox(height: 24),
               ],
             ),

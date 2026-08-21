@@ -6,7 +6,9 @@ import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/app_network_avatar.dart';
+import '../../../shared/widgets/common_widgets.dart';
 import '../../../shared/widgets/locale_date_text.dart';
+import '../utils/contact_phone_picker.dart';
 import '../utils/member_form_controller.dart';
 import '../utils/member_form_validator.dart';
 import '../utils/member_phone_relations.dart';
@@ -89,28 +91,19 @@ class MemberForm extends StatelessWidget {
           title: l10n.phoneNumbers,
           showOptionalBadge: true,
           initiallyExpanded: false,
-          child: _PhonesSection(
-            controller: controller,
-            onChanged: onChanged,
-          ),
+          child: _PhonesSection(controller: controller, onChanged: onChanged),
         ),
         MemberFormSectionCard(
           title: l10n.brothersNamesSection,
           showOptionalBadge: true,
           initiallyExpanded: false,
-          child: _BrothersSection(
-            controller: controller,
-            onChanged: onChanged,
-          ),
+          child: _BrothersSection(controller: controller, onChanged: onChanged),
         ),
         MemberFormSectionCard(
           title: l10n.memberNotesSection,
           showOptionalBadge: true,
           initiallyExpanded: false,
-          child: _NotesSection(
-            controller: controller,
-            onChanged: onChanged,
-          ),
+          child: _NotesSection(controller: controller, onChanged: onChanged),
         ),
       ],
     );
@@ -317,10 +310,7 @@ class _OptionalDateTile extends StatelessWidget {
       title: Text(label),
       subtitle: value == null
           ? Text(l10n.notAvailable)
-          : LocaleDateText(
-              dateTime: value,
-              locale: l10n.locale,
-            ),
+          : LocaleDateText(dateTime: value, locale: l10n.locale),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -336,6 +326,7 @@ class _OptionalDateTile extends StatelessWidget {
       onTap: () async {
         final picked = await showDatePicker(
           context: context,
+          locale: Localizations.localeOf(context),
           initialDate: value ?? DateTime.now(),
           firstDate: firstDate,
           lastDate: lastDate,
@@ -350,10 +341,7 @@ class _PhonesSection extends StatelessWidget {
   final MemberFormController controller;
   final VoidCallback onChanged;
 
-  const _PhonesSection({
-    required this.controller,
-    required this.onChanged,
-  });
+  const _PhonesSection({required this.controller, required this.onChanged});
 
   String _relationLabel(AppLocalizations l10n, String value) {
     switch (value) {
@@ -399,7 +387,7 @@ class _PhonesSection extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            '${l10n.phone} ${index + 1}',
+                            '${l10n.phone} ${l10n.formatInteger(index + 1)}',
                             style: Theme.of(context).textTheme.titleSmall,
                           ),
                         ),
@@ -447,6 +435,39 @@ class _PhonesSection extends StatelessWidget {
                           MemberFormValidator.validatePhone(v, l10n),
                       onChanged: (_) => onChanged(),
                     ),
+                    Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: TextButton.icon(
+                        onPressed: () async {
+                          try {
+                            final phone =
+                                await ContactPhonePicker.pickPhoneNumber(
+                                  context,
+                                );
+                            if (phone == null || !context.mounted) return;
+                            entry.phoneController.text = phone;
+                            onChanged();
+                          } catch (e, st) {
+                            debugPrint('Select from contacts failed: $e\n$st');
+                            if (!context.mounted) return;
+                            showErrorSnackbar(
+                              context,
+                              AppLocalizations.of(
+                                context,
+                              ).contactsPickerUnavailable,
+                            );
+                          }
+                        },
+                        icon: const Icon(Icons.contacts_outlined, size: 18),
+                        label: Text(l10n.selectFromContacts),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.xs,
+                          ),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -470,10 +491,7 @@ class _BrothersSection extends StatelessWidget {
   final MemberFormController controller;
   final VoidCallback onChanged;
 
-  const _BrothersSection({
-    required this.controller,
-    required this.onChanged,
-  });
+  const _BrothersSection({required this.controller, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -482,7 +500,10 @@ class _BrothersSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(l10n.haveBrothersQuestion, style: Theme.of(context).textTheme.bodyMedium),
+        Text(
+          l10n.haveBrothersQuestion,
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
         const SizedBox(height: 8),
         SegmentedButton<bool>(
           segments: [
@@ -549,10 +570,7 @@ class _NotesSection extends StatelessWidget {
   final MemberFormController controller;
   final VoidCallback onChanged;
 
-  const _NotesSection({
-    required this.controller,
-    required this.onChanged,
-  });
+  const _NotesSection({required this.controller, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -571,7 +589,7 @@ class _NotesSection extends StatelessWidget {
                 Expanded(
                   child: AppTextField(
                     controller: field,
-                    label: '${l10n.noteLine} ${index + 1}',
+                    label: '${l10n.noteLine} ${l10n.formatInteger(index + 1)}',
                     maxLines: 3,
                     textInputAction: TextInputAction.newline,
                     textCapitalization: TextCapitalization.sentences,

@@ -9,7 +9,6 @@ import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
-import '../../custom_field/providers/custom_field_cache_providers.dart';
 import '../models/unified_form_models.dart';
 import '../providers/unified_form_providers.dart';
 import '../utils/unified_form_controller.dart';
@@ -80,17 +79,6 @@ class _UnifiedEntityEditScreenState extends ConsumerState<UnifiedEntityEditScree
     }
   }
 
-  Future<void> _openFieldSettings() async {
-    await context.push('/custom-fields/${widget.entityName}');
-    if (mounted) {
-      refreshEntityFormsAfterDefinitionChange(ref, widget.entityName);
-      ref.invalidate(
-        entityFormDataProvider((entity: widget.entityName, id: widget.entityId)),
-      );
-      resetFormSignature();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -126,14 +114,6 @@ class _UnifiedEntityEditScreenState extends ConsumerState<UnifiedEntityEditScree
               widget.title ??
                   l10n.customFieldsForEntity(widget.entityName),
             ),
-            actions: [
-              if (canManage)
-                IconButton(
-                  icon: const Icon(Icons.tune),
-                  tooltip: l10n.manageCustomFields,
-                  onPressed: _openFieldSettings,
-                ),
-            ],
           ),
           body: formAsync.when(
             loading: () => const LoadingWidget(useSkeleton: true),

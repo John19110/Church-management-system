@@ -1,15 +1,11 @@
 using Church.DAL.Models;
-using System;
+using Church.BLL.DTOS.AttendanceCriteria;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Church.BLL.DTOS
 {
     public class AttendanceRecordUpdateDTO
     {
-
         public int Id { get; set; }
         public int MemberId { get; set; }
 
@@ -18,5 +14,7 @@ namespace Church.BLL.DTOS
 
         public AttendanceStatus Status { get; set; } = AttendanceStatus.Present;
         public string? Note { get; set; }
+
+        public List<AttendanceCriterionResultAddDTO> CriterionResults { get; set; } = new();
     }
 }

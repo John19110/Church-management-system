@@ -8,32 +8,48 @@ import '../providers/attendance_providers.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
 
 class AttendanceHistoryScreen extends ConsumerWidget {
-  final int classroomId;
+  final int? classroomId;
   final String? classroomName;
+  final int? meetingId;
+  final String? meetingName;
 
   const AttendanceHistoryScreen({
     super.key,
-    required this.classroomId,
+    this.classroomId,
     this.classroomName,
+    this.meetingId,
+    this.meetingName,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final sessionsAsync =
-        ref.watch(attendanceHistoryByClassroomProvider(classroomId));
+    final isMeetingScoped = meetingId != null && meetingId! > 0;
+    final sessionsAsync = isMeetingScoped
+        ? ref.watch(attendanceHistoryByMeetingProvider(meetingId!))
+        : ref.watch(attendanceHistoryByClassroomProvider(classroomId!));
+
+    final title = isMeetingScoped
+        ? l10n.attendanceHistoryTitle(meetingName)
+        : l10n.attendanceHistoryTitle(classroomName);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.attendanceHistoryTitle(classroomName)),
+        title: Text(title),
       ),
       body: sessionsAsync.when(
         loading: () => const cw.LoadingWidget(useSkeleton: true),
         error: (e, _) => cw.AppErrorWidget(
           message: userFriendlyMessage(e, l10n),
-          onRetry: () => ref.invalidate(
-            attendanceHistoryByClassroomProvider(classroomId),
-          ),
+          onRetry: () {
+            if (isMeetingScoped) {
+              ref.invalidate(attendanceHistoryByMeetingProvider(meetingId!));
+            } else {
+              ref.invalidate(
+                attendanceHistoryByClassroomProvider(classroomId!),
+              );
+            }
+          },
         ),
         data: (sessions) {
           if (sessions.isEmpty) {
@@ -43,9 +59,15 @@ class AttendanceHistoryScreen extends ConsumerWidget {
             );
           }
           return RefreshIndicator(
-            onRefresh: () async => ref.invalidate(
-              attendanceHistoryByClassroomProvider(classroomId),
-            ),
+            onRefresh: () async {
+              if (isMeetingScoped) {
+                ref.invalidate(attendanceHistoryByMeetingProvider(meetingId!));
+              } else {
+                ref.invalidate(
+                  attendanceHistoryByClassroomProvider(classroomId!),
+                );
+              }
+            },
             child: ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: sessions.length,

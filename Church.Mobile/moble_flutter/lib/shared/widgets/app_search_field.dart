@@ -36,14 +36,16 @@ class AppSearchField extends StatelessWidget {
         textCapitalization: TextCapitalization.none,
         autocorrect: false,
         enableSuggestions: false,
-        scrollPadding: kAppFieldScrollPadding,
+        scrollPadding: appFieldScrollPadding(context),
         onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
         decoration: InputDecoration(
           hintText: hint,
           prefixIcon: Icon(Icons.search, color: palette.textTertiary),
           suffixIcon: hasText
               ? IconButton(
-                  tooltip: MaterialLocalizations.of(context).deleteButtonTooltip,
+                  tooltip: MaterialLocalizations.of(
+                    context,
+                  ).deleteButtonTooltip,
                   icon: Icon(Icons.close, color: palette.textTertiary),
                   onPressed: () {
                     controller?.clear();
@@ -123,10 +125,9 @@ class AppFilterChips extends StatelessWidget {
                 child: Text(
                   options[index],
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color:
-                            selected ? scheme.onPrimary : palette.textSecondary,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    color: selected ? scheme.onPrimary : palette.textSecondary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),

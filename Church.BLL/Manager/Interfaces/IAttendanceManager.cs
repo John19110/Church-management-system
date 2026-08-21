@@ -17,5 +17,7 @@ namespace Church.BLL.Manager.Interfaces
         Task<AttendanceSessionReadDTO?> GetAttendanceAsync(int sessionId);
 
         Task<List<AttendanceSessionSummaryDTO>> GetHistoryByClassroomAsync(int classroomId);
+
+        Task<List<AttendanceSessionSummaryDTO>> GetHistoryByMeetingAsync(int meetingId);
     }
 }

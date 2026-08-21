@@ -28,6 +28,7 @@ namespace Church.BLL.Manager.Implementations
         private readonly IAdminRepository _adminRepo;
         private readonly IMeetingRepository _meetingRepo;
         private readonly IClassroomRepository _classroomRepository;
+        private readonly IAttendanceCriterionRepository _attendanceCriterionRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IFileManager _fileManager;
         private readonly IPublicIdResolver _publicIdResolver;
@@ -37,7 +38,9 @@ namespace Church.BLL.Manager.Implementations
 
         public AccountManager(UserManager<ApplicationUser>usermagaer, ITokenService tokenService,
             IServantRepository servantRepo, IChurchRepository churchRepo, IAdminRepository adminRepo,
-            IMeetingRepository meetingRepo, IClassroomRepository classroomRepository, IUnitOfWork unitOfWork,IFileManager fileManager,
+            IMeetingRepository meetingRepo, IClassroomRepository classroomRepository,
+            IAttendanceCriterionRepository attendanceCriterionRepository,
+            IUnitOfWork unitOfWork,IFileManager fileManager,
             IPublicIdResolver publicIdResolver,
             IChurchPublicIdService churchPublicIdService,
             IMeetingPublicIdService meetingPublicIdService)
@@ -50,6 +53,7 @@ namespace Church.BLL.Manager.Implementations
             _adminRepo = adminRepo;
             _meetingRepo = meetingRepo;
             _classroomRepository = classroomRepository;
+            _attendanceCriterionRepository = attendanceCriterionRepository;
             _unitOfWork = unitOfWork;
             _fileManager = fileManager;
             _publicIdResolver = publicIdResolver;
@@ -206,7 +210,7 @@ namespace Church.BLL.Manager.Implementations
                 await _unitOfWork.SaveChangesAsync();
             });
 
-            return AuthFlowResultDto.Registered();
+            return await IssueAccessTokenForPhoneAsync(phoneNumber);
         }
         public async Task<AuthFlowResultDto> RegisterMeetingAdminNewChurch(RegisterMeetingAdminNewChurchDTO registerMeetingAdminDTO,string webRootPath)
         {
@@ -262,10 +266,12 @@ namespace Church.BLL.Manager.Implementations
                     PublicId = await _meetingPublicIdService.GenerateUniqueAsync(church.Id),
                     ChurchId = church.Id,
                     Weekly_appointment = TimeOnly.FromDateTime(registerMeetingAdminDTO.Weekly_appointment),
-                    DayOfWeek = registerMeetingAdminDTO.Weekly_appointment.DayOfWeek.ToString()
+                    DayOfWeek = registerMeetingAdminDTO.Weekly_appointment.DayOfWeek.ToString(),
+                    HasClassrooms = registerMeetingAdminDTO.HasClassrooms
                 };
                 await _meetingRepo.AddAsync(meeting);
                 await _unitOfWork.SaveChangesAsync();
+                await _attendanceCriterionRepository.EnsureDefaultsForMeetingAsync(meeting.Id, church.Id);
 
                 var user = new ApplicationUser
                 {
@@ -310,7 +316,7 @@ namespace Church.BLL.Manager.Implementations
                 await _servantRepo.AddAsync(servant);
                 await _unitOfWork.SaveChangesAsync();
             });
-            return AuthFlowResultDto.Registered();
+            return await IssueAccessTokenForPhoneAsync(meetingPhone);
         }
     
         public async Task<AuthFlowResultDto> RegisterServant(RegisterServantDTO registerDto, string webRootPath)
@@ -723,6 +729,19 @@ namespace Church.BLL.Manager.Implementations
                     .ToDictionary(
                         g => g.Key,
                         g => g.Select(e => e.Description).ToArray()));
+        }
+
+        private async Task<AuthFlowResultDto> IssueAccessTokenForPhoneAsync(string phoneNumber)
+        {
+            var user = await _userManager.Users
+                .FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber)
+                ?? throw new NotFoundException("Registered user was not found.");
+
+            if (user.RegistrationStatus == RegistrationStatus.Pending || !user.IsApproved)
+                return AuthFlowResultDto.Registered();
+
+            var claims = await BuildJwtClaims(user);
+            return AuthFlowResultDto.Success(_tokenService.CreateAccessToken(claims));
         }
 
         private async Task<List<TokenClaimDescriptor>> BuildJwtClaims(ApplicationUser user)

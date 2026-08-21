@@ -37,10 +37,12 @@ class AttendanceViewScreen extends ConsumerWidget {
                         style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 8),
                     if (session.createdAt != null)
-                      Text('${l10n.date}: ${session.createdAt}'),
+                      Text(
+                        '${l10n.date}: ${l10n.formatDateTime(session.createdAt)}',
+                      ),
                     if (session.notes != null && session.notes!.isNotEmpty)
                       Text('${l10n.notes}: ${session.notes}'),
-                    Text('${l10n.records}: ${session.records.length}'),
+                    Text(l10n.recordsCountLabel(session.records.length)),
                   ],
                 ),
               ),
@@ -84,16 +86,25 @@ class AttendanceViewScreen extends ConsumerWidget {
                         spacing: 8,
                         runSpacing: 8,
                         children: [
-                          _InfoChip(
-                            icon: Icons.book_outlined,
-                            label:
-                                '${l10n.homework}: ${record.madeHomeWork ? l10n.yes : l10n.no}',
-                          ),
-                          _InfoChip(
-                            icon: Icons.build_outlined,
-                            label:
-                                '${l10n.tools}: ${record.hasTools ? l10n.yes : l10n.no}',
-                          ),
+                          if (record.criterionResults.isNotEmpty)
+                            for (final result in record.criterionResults)
+                              _InfoChip(
+                                icon: Icons.check_box_outlined,
+                                label:
+                                    '${result.labelForLocale(Localizations.localeOf(context))}: ${(result.value ?? false) ? l10n.yes : l10n.no}',
+                              )
+                          else ...[
+                            _InfoChip(
+                              icon: Icons.book_outlined,
+                              label:
+                                  '${l10n.homework}: ${record.madeHomeWork ? l10n.yes : l10n.no}',
+                            ),
+                            _InfoChip(
+                              icon: Icons.build_outlined,
+                              label:
+                                  '${l10n.tools}: ${record.hasTools ? l10n.yes : l10n.no}',
+                            ),
+                          ],
                         ],
                       ),
                       if (note != null && note.isNotEmpty) ...[

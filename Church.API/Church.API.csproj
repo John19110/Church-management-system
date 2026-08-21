@@ -8,6 +8,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
+    <!-- Direct use in DatabaseBootstrap / GlobalExceptionMiddleware; also ensures runtime assets copy to output -->
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.5" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
     <!-- EF tooling runs against the startup (composition root) project -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0">

@@ -130,6 +130,8 @@ builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 
 builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
 builder.Services.AddScoped<IAttendanceManager, AttendanceManager>();
+builder.Services.AddScoped<IAttendanceCriterionRepository, AttendanceCriterionRepository>();
+builder.Services.AddScoped<IAttendanceCriterionManager, AttendanceCriterionManager>();
 
 builder.Services.AddScoped<IAccountManager, AccountManager>();
 builder.Services.AddScoped<IAccountDeletionService, AccountDeletionService>();

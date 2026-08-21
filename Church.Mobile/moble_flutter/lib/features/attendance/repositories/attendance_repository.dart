@@ -43,4 +43,18 @@ class AttendanceRepository {
           .toList();
     });
   }
+
+  Future<List<AttendanceSessionSummaryDto>> getHistoryByMeeting(
+      int meetingId) async {
+    return apiCall(() async {
+      final response = await _dio.get(
+        '${AppConstants.attendanceByMeetingEndpoint}/$meetingId',
+      );
+      final list = response.data as List<dynamic>;
+      return list
+          .map((e) =>
+              AttendanceSessionSummaryDto.fromJson(e as Map<String, dynamic>))
+          .toList();
+    });
+  }
 }

@@ -11,9 +11,10 @@ namespace Church.BLL.DTOS
     {
         public int Id { get; set; }
 
-        public int ClassroomId { get; set; }
+        public int? MeetingId { get; set; }
 
-        // The day the weekly meeting happened
+        public int? ClassroomId { get; set; }
+
         // Who took attendance
         public int? TakenByServantId { get; set; }
 

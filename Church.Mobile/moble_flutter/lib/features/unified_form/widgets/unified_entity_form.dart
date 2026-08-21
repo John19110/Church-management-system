@@ -257,6 +257,9 @@ class UnifiedEntityDetailFields extends StatelessWidget {
     if (f.value == null || f.value!.trim().isEmpty) {
       return l10n.notAvailable;
     }
+    if (f.fieldKey == 'dayOfWeek') {
+      return l10n.weekdayLabel(f.value);
+    }
     if (f.dataType == UnifiedFieldDataType.boolean) {
       return f.value!.toLowerCase() == 'true' ? l10n.yes : l10n.no;
     }
@@ -301,6 +304,13 @@ class UnifiedEntityDetailFields extends StatelessWidget {
     if (f.dataType == UnifiedFieldDataType.number ||
         f.dataType == UnifiedFieldDataType.decimal) {
       return LocaleFormat.formatNumericString(f.value!, l10n.locale);
+    }
+    // Keep copyable IDs / phones in Western digits for readability and paste safety.
+    final key = f.fieldKey.toLowerCase();
+    if (key.contains('publicid') ||
+        key.contains('phone') ||
+        key == 'id') {
+      return f.value!;
     }
     return l10n.formatDigitsIn(f.value!);
   }

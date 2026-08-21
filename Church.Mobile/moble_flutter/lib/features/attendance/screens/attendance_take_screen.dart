@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../models/attendance_models.dart';
+import '../models/attendance_criterion_models.dart';
 import '../providers/attendance_providers.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
+import '../../classroom/providers/classroom_providers.dart';
 import '../../member/providers/members_providers.dart';
 import '../../member/models/member_models.dart';
 import '../../../core/theme/app_dimens.dart';
@@ -20,22 +22,25 @@ import '../../../core/l10n/app_localizations.dart';
 class _RecordState {
   final MemberReadDto member;
   AttendanceStatus status;
-  bool madeHomework;
-  bool hasTools;
+  final Map<int, bool> criterionValues;
   String? note;
 
   _RecordState({
     required this.member,
     this.status = AttendanceStatus.present,
-    this.madeHomework = false,
-    this.hasTools = false,
+    Map<int, bool>? criterionValues,
     this.note,
-  });
+  }) : criterionValues = criterionValues ?? {};
 }
 
 class AttendanceTakeScreen extends ConsumerStatefulWidget {
   final int? classroomId;
-  const AttendanceTakeScreen({super.key, this.classroomId});
+  final int? meetingId;
+  const AttendanceTakeScreen({
+    super.key,
+    this.classroomId,
+    this.meetingId,
+  });
 
   @override
   ConsumerState<AttendanceTakeScreen> createState() =>
@@ -44,16 +49,26 @@ class AttendanceTakeScreen extends ConsumerStatefulWidget {
 
 class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
   int? _selectedClassroomId;
+  int? _meetingId;
   final _notesController = TextEditingController();
   List<_RecordState>? _records;
+  List<AttendanceCriterionDto> _criteria = const [];
   bool _loading = false;
   bool _submitting = false;
+
+  bool get _isMeetingScoped =>
+      _meetingId != null && _meetingId! > 0 && widget.classroomId == null;
 
   @override
   void initState() {
     super.initState();
+    _meetingId = widget.meetingId;
     if (widget.classroomId != null) {
       _selectedClassroomId = widget.classroomId;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _loadMembers();
+      });
+    } else if (_isMeetingScoped) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _loadMembers();
       });
@@ -66,20 +81,61 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
     super.dispose();
   }
 
+  Future<int?> _resolveMeetingIdForCriteria() async {
+    if (_meetingId != null && _meetingId! > 0) return _meetingId;
+    final classroomId = _selectedClassroomId;
+    if (classroomId == null) return null;
+    try {
+      final classrooms = await ref.read(visibleClassroomsProvider.future);
+      for (final c in classrooms) {
+        if (c.id == classroomId && c.meetingId != null && c.meetingId! > 0) {
+          return c.meetingId;
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
   Future<void> _loadMembers() async {
     setState(() => _loading = true);
     try {
       final classroomId = _selectedClassroomId;
+      var meetingId = _meetingId;
+      meetingId ??= await _resolveMeetingIdForCriteria();
+      if (meetingId != null) _meetingId = meetingId;
+
       List<MemberReadDto> members;
       if (classroomId != null) {
         members = await ref
             .read(membersRepositoryProvider)
             .getByClassroom(classroomId);
+      } else if (meetingId != null && meetingId > 0) {
+        members = await ref
+            .read(membersRepositoryProvider)
+            .getByMeeting(meetingId);
       } else {
         members = await ref.read(membersRepositoryProvider).getAll();
       }
+
+      List<AttendanceCriterionDto> criteria = const [];
+      if (meetingId != null && meetingId > 0) {
+        criteria = await ref
+            .read(attendanceCriterionRepositoryProvider)
+            .getByMeeting(meetingId);
+      }
+
       setState(() {
-        _records = members.map((m) => _RecordState(member: m)).toList();
+        _criteria = criteria;
+        _records = members
+            .map(
+              (m) => _RecordState(
+                member: m,
+                criterionValues: {
+                  for (final c in criteria) c.id: false,
+                },
+              ),
+            )
+            .toList();
       });
     } catch (e) {
       if (mounted) {
@@ -100,7 +156,8 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
       return;
     }
     final classroomId = _selectedClassroomId;
-    if (classroomId == null) {
+    final meetingId = _meetingId;
+    if (classroomId == null && (meetingId == null || meetingId <= 0)) {
       showErrorSnackbarFixed(context, l10n.enterClassroomId);
       return;
     }
@@ -109,16 +166,41 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
     try {
       final dto = AttendanceSessionAddDto(
         classroomId: classroomId,
+        meetingId: classroomId == null ? meetingId : null,
         notes: _notesController.text.trim().nullIfEmpty,
-        records: _records!
-            .map((r) => AttendanceRecordDto(
-                  memberId: r.member.id,
-                  madeHomeWork: r.madeHomework,
-                  hasTools: r.hasTools,
-                  status: r.status.value,
-                  note: r.note,
-                ))
-            .toList(),
+        records: _records!.map((r) {
+          final results = _criteria
+              .map(
+                (c) => AttendanceCriterionResultDto(
+                  criterionId: c.id,
+                  displayName: c.displayName,
+                  displayNameAr: c.displayNameAr,
+                  name: c.name,
+                  value: r.criterionValues[c.id] ?? false,
+                ),
+              )
+              .toList();
+          final hasTools = results
+              .where((x) => x.name == 'has_tools')
+              .map((x) => x.value ?? false)
+              .cast<bool>()
+              .followedBy(const [false])
+              .first;
+          final homework = results
+              .where((x) => x.name == 'did_homework')
+              .map((x) => x.value ?? false)
+              .cast<bool>()
+              .followedBy(const [false])
+              .first;
+          return AttendanceRecordDto(
+            memberId: r.member.id,
+            madeHomeWork: homework,
+            hasTools: hasTools,
+            status: r.status.value,
+            note: r.note,
+            criterionResults: results,
+          );
+        }).toList(),
       );
       await ref.read(attendanceRepositoryProvider).create(dto);
       if (mounted) {
@@ -167,30 +249,40 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
               padding: const EdgeInsets.all(AppSpacing.page),
               child: Row(
                 children: [
-                  Expanded(
-                    child: EndpointSelectDropdown(
-                      endpoint: SelectionEndpoints.classrooms,
-                      label: l10n.classroomId,
-                      hintText: l10n.classroomId,
-                      value: _selectedClassroomId,
-                      onChanged: (v) =>
-                          setState(() => _selectedClassroomId = v),
+                  if (!_isMeetingScoped)
+                    Expanded(
+                      child: EndpointSelectDropdown(
+                        endpoint: SelectionEndpoints.classrooms,
+                        label: l10n.classroomId,
+                        hintText: l10n.classroomId,
+                        value: _selectedClassroomId,
+                        onChanged: (v) =>
+                            setState(() => _selectedClassroomId = v),
+                      ),
+                    )
+                  else
+                    Expanded(
+                      child: Text(
+                        l10n.meetingAttendance,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(88, 48),
+                  if (!_isMeetingScoped) ...[
+                    const SizedBox(width: AppSpacing.sm),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(88, 48),
+                      ),
+                      onPressed: _loading ? null : _loadMembers,
+                      child: _loading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Text(l10n.load),
                     ),
-                    onPressed: _loading ? null : _loadMembers,
-                    child: _loading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(l10n.load),
-                  ),
+                  ],
                 ],
               ),
             ),
@@ -210,14 +302,18 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
             else if (_records == null)
               Expanded(
                 child: EmptyWidget(
-                  message: l10n.enterClassroomAndLoad,
+                  message: _isMeetingScoped
+                      ? l10n.noMembersInMeetingYet
+                      : l10n.enterClassroomAndLoad,
                   icon: Icons.search,
                 ),
               )
             else if (_records!.isEmpty)
               Expanded(
                 child: EmptyWidget(
-                  message: l10n.noMembersInClassroomYet,
+                  message: _isMeetingScoped
+                      ? l10n.noMembersInMeetingYet
+                      : l10n.noMembersInClassroomYet,
                   icon: Icons.people_outline,
                 ),
               )
@@ -231,11 +327,11 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
                   children: [
                     Flexible(
                       child: Text(
-                        '${_records!.length} ${l10n.members.toLowerCase()}',
+                        '${l10n.formatInteger(_records!.length)} ${l10n.members.toLowerCase()}',
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ),
-                    TextButton(
+                      TextButton(
                       onPressed: () => setState(() {
                         for (final r in _records!) {
                           r.status = AttendanceStatus.present;
@@ -299,30 +395,26 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
                               spacing: AppSpacing.md,
                               crossAxisAlignment: WrapCrossAlignment.center,
                               children: [
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Checkbox(
-                                      value: record.madeHomework,
-                                      onChanged: (v) => setState(
-                                        () => record.madeHomework = v!,
+                                for (final c in _criteria)
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Checkbox(
+                                        value:
+                                            record.criterionValues[c.id] ??
+                                            false,
+                                        onChanged: (v) => setState(
+                                          () => record.criterionValues[c.id] =
+                                              v ?? false,
+                                        ),
                                       ),
-                                    ),
-                                    Text(l10n.homework),
-                                  ],
-                                ),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Checkbox(
-                                      value: record.hasTools,
-                                      onChanged: (v) => setState(
-                                        () => record.hasTools = v!,
+                                      Text(
+                                        c.labelForLocale(
+                                          Localizations.localeOf(context),
+                                        ),
                                       ),
-                                    ),
-                                    Text(l10n.tools),
-                                  ],
-                                ),
+                                    ],
+                                  ),
                               ],
                             ),
                           ],

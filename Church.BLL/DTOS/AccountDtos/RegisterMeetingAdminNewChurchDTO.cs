@@ -32,5 +32,11 @@ namespace Church.BLL.DTOS.AccountDtos
 
         public DateOnly? BirthDate { get; set; }
         public DateOnly? JoiningDate { get; set; }
+
+        /// <summary>
+        /// Whether the new meeting should be divided into classrooms.
+        /// Defaults to true when omitted.
+        /// </summary>
+        public bool HasClassrooms { get; set; } = true;
     }
 }

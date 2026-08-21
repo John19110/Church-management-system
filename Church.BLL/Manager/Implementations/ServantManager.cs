@@ -1,6 +1,7 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Church.BLL.Abstractions;
 using Church.BLL.Abstractions.Caching;
 using Church.BLL.DTOS;
 using Church.BLL.DTOS.AccountDtos;
@@ -16,6 +17,7 @@ namespace Church.BLL.Manager.Implementations
     {
         private readonly IServantRepository _servantRepository;
         private readonly ITenantContext _tenantContext;
+        private readonly ICurrentUserContext _currentUser;
         private readonly IAccountManager _accountManager;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IMapper _mapper;
@@ -26,6 +28,7 @@ namespace Church.BLL.Manager.Implementations
         public ServantManager(
             IServantRepository servantRepository,
             ITenantContext tenantContext,
+            ICurrentUserContext currentUser,
             IMapper mapper,
             IAccountManager accountManager,
             UserManager<ApplicationUser> usermanager,
@@ -35,6 +38,7 @@ namespace Church.BLL.Manager.Implementations
         {
             _servantRepository = servantRepository;
             _tenantContext = tenantContext;
+            _currentUser = currentUser;
             _mapper = mapper;
             _accountManager = accountManager;
             _userManager = usermanager;
@@ -72,44 +76,73 @@ namespace Church.BLL.Manager.Implementations
 
         public async Task<IEnumerable<ServantReadDTO>> GetAllAsync()
         {
+            IEnumerable<ServantReadDTO> servants;
             var ctx = _cacheContext.TryGet();
             if (ctx is null || string.IsNullOrWhiteSpace(ctx.Role))
             {
                 var raw = await _servantRepository.GetAllAsync();
-                return _mapper.Map<IEnumerable<ServantReadDTO>>(raw);
+                servants = _mapper.Map<IEnumerable<ServantReadDTO>>(raw);
+            }
+            else
+            {
+                var key = _cacheKeys.TenantRole(ctx.Role!, "ministries", ("resource", "servants"));
+                servants = await _cache.GetOrCreateAsync(
+                    key,
+                    new CacheEntryOptions(CacheTtls.Ministries),
+                    ctx,
+                    async _ =>
+                    {
+                        var raw = await _servantRepository.GetAllAsync();
+                        return _mapper.Map<List<ServantReadDTO>>(raw);
+                    });
             }
 
-            var key = _cacheKeys.TenantRole(ctx.Role!, "ministries", ("resource", "servants"));
-            return await _cache.GetOrCreateAsync(
-                key,
-                new CacheEntryOptions(CacheTtls.Ministries),
-                ctx,
-                async _ =>
-                {
-                    var raw = await _servantRepository.GetAllAsync();
-                    return _mapper.Map<List<ServantReadDTO>>(raw);
-                });
+            // After shared tenant/role cache — never bake per-user exclusion into the cache entry.
+            return await ExcludeCurrentUserAsync(servants);
         }
 
         public async Task<IEnumerable<ServantReadDTO>> GetByMeetingIdAsync(int meetingId)
         {
+            IEnumerable<ServantReadDTO> servants;
             var ctx = _cacheContext.TryGet();
             if (ctx is null || string.IsNullOrWhiteSpace(ctx.Role))
             {
                 var raw = await _servantRepository.GetByMeetingIdAsync(meetingId);
-                return _mapper.Map<IEnumerable<ServantReadDTO>>(raw);
+                servants = _mapper.Map<IEnumerable<ServantReadDTO>>(raw);
+            }
+            else
+            {
+                var key = _cacheKeys.TenantRole(ctx.Role!, "ministries", ("meetingId", meetingId));
+                servants = await _cache.GetOrCreateAsync(
+                    key,
+                    new CacheEntryOptions(CacheTtls.Ministries),
+                    ctx,
+                    async _ =>
+                    {
+                        var raw = await _servantRepository.GetByMeetingIdAsync(meetingId);
+                        return _mapper.Map<List<ServantReadDTO>>(raw);
+                    });
             }
 
-            var key = _cacheKeys.TenantRole(ctx.Role!, "ministries", ("meetingId", meetingId));
-            return await _cache.GetOrCreateAsync(
-                key,
-                new CacheEntryOptions(CacheTtls.Ministries),
-                ctx,
-                async _ =>
-                {
-                    var raw = await _servantRepository.GetByMeetingIdAsync(meetingId);
-                    return _mapper.Map<List<ServantReadDTO>>(raw);
-                });
+            return await ExcludeCurrentUserAsync(servants);
+        }
+
+        /// <summary>
+        /// Hides the authenticated user's own servant row from list endpoints.
+        /// Identity comes from JWT via <see cref="ICurrentUserContext"/>; no-op if no linked servant.
+        /// </summary>
+        private async Task<IEnumerable<ServantReadDTO>> ExcludeCurrentUserAsync(
+            IEnumerable<ServantReadDTO> servants)
+        {
+            if (!_currentUser.IsAuthenticated || string.IsNullOrWhiteSpace(_currentUser.UserId))
+                return servants;
+
+            var me = await _servantRepository.GetByApplicationUserIdAsync(_currentUser.UserId);
+            if (me is null)
+                return servants;
+
+            var myServantId = me.Id;
+            return servants.Where(s => s.Id != myServantId).ToList();
         }
 
         public async Task<List<SelectOptionDTO>> GetServantsForSelection()

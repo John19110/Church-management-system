@@ -78,11 +78,46 @@ namespace Church.BLL.Manager.Implementations
         {
             var appUser = await RequireCurrentUserAsync();
 
+            // When a meeting filter is requested, validate ownership before loading.
+            if (meetingId.HasValue)
+            {
+                if (meetingId.Value <= 0)
+                {
+                    throw new ValidationException(new Dictionary<string, string[]>
+                    {
+                        ["meetingId"] = new[] { "Meeting id must be a positive integer." }
+                    });
+                }
+
+                var meeting = await _meetingRepository.GetByIdAsync(meetingId.Value);
+                if (meeting == null)
+                    throw new NotFoundException($"Meeting with id {meetingId.Value} was not found.");
+
+                if (meeting.ChurchId != appUser.ChurchId)
+                    throw new UnauthorizedAccessException("This meeting does not belong to your church.");
+
+                if (_currentUser.IsInRole("Admin"))
+                {
+                    if (appUser.MeetingId == null)
+                        throw new ValidationException(new Dictionary<string, string[]>
+                        {
+                            ["Meeting"] = new[] { "Admin is not assigned to a meeting." }
+                        });
+
+                    if (meetingId.Value != appUser.MeetingId.Value)
+                        throw new UnauthorizedAccessException(
+                            "You can only view classrooms in your assigned meeting.");
+                }
+            }
+
             List<Classroom> classrooms;
 
             if (_currentUser.IsInRole("SuperAdmin"))
             {
-                classrooms = await _classroomRepository.GetByChurchIdAsync(appUser.ChurchId);
+                // Prefer meeting-scoped load when requested; otherwise all church classrooms.
+                classrooms = meetingId.HasValue
+                    ? await _classroomRepository.GetByMeetingIdAsync(meetingId.Value)
+                    : await _classroomRepository.GetByChurchIdAsync(appUser.ChurchId);
             }
             else if (_currentUser.IsInRole("Admin"))
             {
@@ -119,6 +154,15 @@ namespace Church.BLL.Manager.Implementations
                 classrooms = MergeDistinctClassrooms(classrooms, assigned);
             }
 
+            // Enforce meeting filter after role-based merge so assigned classrooms
+            // from other meetings cannot leak into a meeting-scoped list.
+            if (meetingId.HasValue)
+            {
+                classrooms = classrooms
+                    .Where(c => c.MeetingId == meetingId.Value)
+                    .ToList();
+            }
+
             return _mapper.Map<List<ClassroomReadDTO>>(classrooms);
         }
 
@@ -149,6 +193,20 @@ namespace Church.BLL.Manager.Implementations
                 var meetingId = _tenantContext.MeetingId
                     ?? throw new UnauthorizedAccessException("MeetingId claim is missing.");
 
+                var adminMeeting = await _meetingRepository.GetByIdAsync(meetingId);
+                if (adminMeeting == null)
+                    throw new NotFoundException($"Meeting with id {meetingId} not found.");
+                if (!adminMeeting.HasClassrooms)
+                {
+                    throw new ValidationException(new Dictionary<string, string[]>
+                    {
+                        ["MeetingId"] = new[]
+                        {
+                            "This meeting does not use classrooms."
+                        }
+                    });
+                }
+
                 model.MeetingId = meetingId;
             }
             else if (_currentUser.IsInRole("SuperAdmin"))
@@ -162,6 +220,17 @@ namespace Church.BLL.Manager.Implementations
 
                     if (meeting.ChurchId != churchId)
                         throw new UnauthorizedAccessException("This meeting does not belong to your church.");
+
+                    if (!meeting.HasClassrooms)
+                    {
+                        throw new ValidationException(new Dictionary<string, string[]>
+                        {
+                            ["MeetingId"] = new[]
+                            {
+                                "This meeting does not use classrooms."
+                            }
+                        });
+                    }
 
                     model.MeetingId = dto.MeetingId.Value;
                 }

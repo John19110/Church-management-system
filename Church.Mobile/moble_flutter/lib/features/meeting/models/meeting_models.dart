@@ -4,17 +4,20 @@ class MeetingAddDto {
   final String? name;
   final TimeOfDay weeklyAppointment;
   final String dayOfWeek;
+  final bool hasClassrooms;
 
   const MeetingAddDto({
     this.name,
     required this.weeklyAppointment,
     required this.dayOfWeek,
+    this.hasClassrooms = true,
   });
 
   Map<String, dynamic> toJson() => {
         if (name != null) 'name': name,
         'weeklyAppointment': _formatTime(weeklyAppointment),
         'dayOfWeek': dayOfWeek,
+        'hasClassrooms': hasClassrooms,
       };
 
   static String _formatTime(TimeOfDay time) {
@@ -30,6 +33,7 @@ class MeetingReadDto {
   final String? name;
   final String? weeklyAppointment;
   final String? dayOfWeek;
+  final bool hasClassrooms;
   final int membersCount;
   final int servantsCount;
   final List<String> memberNames;
@@ -42,6 +46,7 @@ class MeetingReadDto {
     this.name,
     this.weeklyAppointment,
     this.dayOfWeek,
+    this.hasClassrooms = true,
     required this.membersCount,
     required this.servantsCount,
     this.memberNames = const [],
@@ -66,6 +71,9 @@ class MeetingReadDto {
                     json['Weekly_appointment'])
                 .toString(),
         dayOfWeek: (json['dayOfWeek'] ?? json['DayOfWeek'])?.toString(),
+        hasClassrooms: json['hasClassrooms'] as bool? ??
+            json['HasClassrooms'] as bool? ??
+            true,
         membersCount: _asList(json['members']).length,
         servantsCount: _asList(json['servants']).length,
         memberNames: _extractDisplayNames(_asList(json['members'])),
@@ -79,6 +87,7 @@ class MeetingReadDto {
         'name': name,
         'weeklyAppointment': weeklyAppointment,
         'dayOfWeek': dayOfWeek,
+        'hasClassrooms': hasClassrooms,
         'leaderServantId': leaderServantId,
         'membersCount': membersCount,
         'servantsCount': servantsCount,

@@ -10,15 +10,20 @@ namespace Church.BLL.DTOS
 {
     public class AttendanceSessionAddDTO
     {
-        public int ClassroomId { get; set; }
+        /// <summary>
+        /// Required for meeting-level attendance (HasClassrooms=false).
+        /// Optional when ClassroomId is provided (derived from the classroom).
+        /// </summary>
+        public int? MeetingId { get; set; }
 
-        // The day the weekly meeting happened
-        // Who took attendance
+        /// <summary>
+        /// Required when the meeting uses classrooms; omit/null for meeting-level attendance.
+        /// </summary>
+        public int? ClassroomId { get; set; }
+
         public int? TakenByServantId { get; set; }
         public string? Notes { get; set; }
 
-        // All child records for this session
         public List<AttendanceRecordAddDTO> Records { get; set; } = new();
-
     }
 }

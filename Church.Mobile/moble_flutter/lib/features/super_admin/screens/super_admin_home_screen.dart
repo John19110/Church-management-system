@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/l10n/weekday_l10n.dart';
 import '../../../core/startup/deferred_startup_mixin.dart';
 import '../../../core/routing/app_router.dart';
 import '../../auth/providers/auth_providers.dart';
@@ -12,8 +13,6 @@ import '../../../core/theme/app_dimens.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/common_widgets.dart';
-import '../../custom_field/providers/custom_field_cache_providers.dart';
-import '../../unified_form/models/unified_form_models.dart';
 import '../../meeting/models/meeting_models.dart';
 import '../../meeting/providers/meeting_providers.dart';
 import '../../meeting/utils/meeting_delete_actions.dart';
@@ -37,6 +36,7 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen>
 
   TimeOfDay? _selectedTime;
   String _selectedDay = 'Saturday';
+  bool _hasClassrooms = true;
 
   @override
   void dispose() {
@@ -50,6 +50,7 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen>
     _timeController.clear();
     _selectedTime = null;
     _selectedDay = 'Saturday';
+    _hasClassrooms = true;
   }
 
   Future<void> _refresh() async {
@@ -74,6 +75,7 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen>
             name: _nameController.text.trim(),
             weeklyAppointment: weekly,
             dayOfWeek: _selectedDay,
+            hasClassrooms: _hasClassrooms,
           ),
         );
 
@@ -124,36 +126,7 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen>
                           labelText: l10n.meetingDayOfWeek,
                           errorMaxLines: 3,
                         ),
-                        items: [
-                          DropdownMenuItem(
-                            value: 'Saturday',
-                            child: Text(l10n.weekdaySaturday),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Sunday',
-                            child: Text(l10n.weekdaySunday),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Monday',
-                            child: Text(l10n.weekdayMonday),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Tuesday',
-                            child: Text(l10n.weekdayTuesday),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Wednesday',
-                            child: Text(l10n.weekdayWednesday),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Thursday',
-                            child: Text(l10n.weekdayThursday),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Friday',
-                            child: Text(l10n.weekdayFriday),
-                          ),
-                        ],
+                        items: WeekdayL10n.dropdownItems(l10n),
                         onChanged: isSubmitting
                             ? null
                             : (v) {
@@ -191,6 +164,35 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen>
                         validator: (_) => _selectedTime == null
                             ? l10n.weeklyAppointmentTimeRequired
                             : null,
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: Text(
+                          l10n.divideMeetingIntoClassroomsQuestion,
+                          style: Theme.of(dialogBuilderContext)
+                              .textTheme
+                              .titleSmall,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        l10n.divideMeetingIntoClassroomsHint,
+                        style:
+                            Theme.of(dialogBuilderContext).textTheme.bodySmall,
+                      ),
+                      SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          _hasClassrooms
+                              ? l10n.yesDivideIntoClassrooms
+                              : l10n.noKeepMeetingWithoutClassrooms,
+                        ),
+                        value: _hasClassrooms,
+                        onChanged: isSubmitting
+                            ? null
+                            : (v) =>
+                                setDialogState(() => _hasClassrooms = v),
                       ),
                     ],
                   ),
@@ -329,20 +331,6 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen>
       appBar: AppBar(
         title: Text(l10n.superAdminHome),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.tune),
-            tooltip: l10n.manageCustomFields,
-            onPressed: () async {
-              await context.push('/custom-fields/${UnifiedEntityNames.meeting}');
-              if (context.mounted) {
-                refreshEntityFormsAfterDefinitionChange(
-                  ref,
-                  UnifiedEntityNames.meeting,
-                );
-                ref.invalidate(visibleMeetingsProvider);
-              }
-            },
-          ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () => logoutSession(ref, context),
