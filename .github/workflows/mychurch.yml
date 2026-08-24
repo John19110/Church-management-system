@@ -1,82 +1,160 @@
-name: Build and deploy .NET Core application to Web App mychurch with API Management Service ChurchAPIapi-ChurchAPI
+# Canonical deployment for Church.API → Azure App Service "mychurch"
+# (+ optional Azure API Management import after a healthy deploy).
+#
+# Only this workflow should deploy production. Do not add another push-to-main
+# deploy workflow for the same App Service.
+
+name: Deploy Church.API to Azure Web App mychurch
+
 on:
   push:
     branches:
-    - main
+      - main
+  workflow_dispatch:
+
 permissions:
   id-token: write
   contents: read
+
 env:
   AZURE_WEBAPP_NAME: mychurch
-  AZURE_WEBAPP_PACKAGE_PATH: Church.API/publish
+  DOTNET_VERSION: "10.x"
+  CONFIGURATION: Release
+  API_PROJECT: Church.API/Church.API.csproj
+  TEST_PROJECT: Church.Tests/Church.Tests.csproj
+  PUBLISH_DIR: ./publish
   AZURE_APIM_RESOURCE_PATH: /
   AZURE_APIM_RESOURCEGROUP: MyChurch
   AZURE_APIM_SERVICENAME: ChurchAPIapi
   AZURE_APIM_API_ID: ChurchAPI
   AZURE_APIM_APPSERVICEURL: https://mychurch-czdwf2enfdfrhchd.uaenorth-01.azurewebsites.net
-  SWASHBUCLE_ASPNET_CORE_CLI_PACKAGE_VERSION: 8.1.1
-  SWASHBUCKLE_DOTNET_CORE_VERSION: 8.x
-  API_IMPORT_SPECIFICATION_PATH: Church.API/publish/swagger.json
-  API_IMPORT_DLL: Church.API\bin\Release\net10.0\Church.API.dll
-  API_IMPORT_VERSION: v1
-  CONFIGURATION: Release
-  DOTNET_CORE_VERSION: 10.0.x
-  WORKING_DIRECTORY: Church.API
+
 jobs:
   build:
-    environment: ChurchAPIapi_Env
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v4
-    - name: Setup .NET SDK
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
-    - name: Setup SwashBuckle .NET Core
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.SWASHBUCKLE_DOTNET_CORE_VERSION }}
-    - name: Restore
-      run: dotnet restore "${{ env.WORKING_DIRECTORY }}"
-    - name: Build
-      run: dotnet build "${{ env.WORKING_DIRECTORY }}" --configuration ${{ env.CONFIGURATION }} --no-restore
-    - name: Test
-      run: dotnet test "${{ env.WORKING_DIRECTORY }}" --no-build
-    - name: Publish
-      run: dotnet publish "${{ env.WORKING_DIRECTORY }}" --configuration ${{ env.CONFIGURATION }} --no-build --output "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
-    - name: Install Swashbuckle CLI .NET Global Tool
-      run: dotnet tool install --global Swashbuckle.AspNetCore.Cli --version ${{ env.SWASHBUCLE_ASPNET_CORE_CLI_PACKAGE_VERSION }}
-      working-directory: ${{ env.WORKING_DIRECTORY }}
-    - name: Generate Open API Specification Document
-      run: swagger tofile --serializeasv2 --output "${{ env.API_IMPORT_SPECIFICATION_PATH }}" "${{ env.API_IMPORT_DLL }}" "${{ env.API_IMPORT_VERSION }}"
-    - name: Publish Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: webapp
-        path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: |
+          dotnet restore "${{ env.API_PROJECT }}"
+          dotnet restore "${{ env.TEST_PROJECT }}"
+
+      - name: Build
+        run: |
+          dotnet build "${{ env.API_PROJECT }}" \
+            --configuration ${{ env.CONFIGURATION }} \
+            --no-restore
+          dotnet build "${{ env.TEST_PROJECT }}" \
+            --configuration ${{ env.CONFIGURATION }} \
+            --no-restore
+
+      - name: Test
+        run: |
+          dotnet test "${{ env.TEST_PROJECT }}" \
+            --configuration ${{ env.CONFIGURATION }} \
+            --no-build \
+            --verbosity normal
+
+      - name: Publish Church.API
+        run: |
+          dotnet publish "${{ env.API_PROJECT }}" \
+            --configuration ${{ env.CONFIGURATION }} \
+            --no-build \
+            --output "${{ env.PUBLISH_DIR }}"
+
+      - name: Verify publish output
+        run: |
+          set -euo pipefail
+          echo "Publish directory contents:"
+          ls -la "${{ env.PUBLISH_DIR }}"
+          test -f "${{ env.PUBLISH_DIR }}/Church.API.dll"
+          test -f "${{ env.PUBLISH_DIR }}/web.config" || test -f "${{ env.PUBLISH_DIR }}/Church.API.runtimeconfig.json"
+          echo "Publish verification succeeded."
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: church-api
+          path: ${{ env.PUBLISH_DIR }}
+          if-no-files-found: error
+
   deploy:
-    environment: ChurchAPIapi_Env
     runs-on: ubuntu-latest
     needs: build
+    # Keep this environment if your Azure federated credential subject is
+    # repo:<org>/<repo>:environment:ChurchAPIapi_Env
+    environment: ChurchAPIapi_Env
+
     steps:
-    - name: Download artifact from build job
-      uses: actions/download-artifact@v4
-      with:
-        name: webapp
-        path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
-    - name: Azure Login
-      uses: azure/login@v2
-      with:
-        client-id: ${{ vars.ChurchAPIapi_CLIENT_ID_CD32 }}
-        tenant-id: ${{ vars.ChurchAPIapi_TENANT_ID_CD32 }}
-        subscription-id: ${{ vars.ChurchAPIapi_SUBSCRIPTION_ID_CD32 }}
-    - name: Deploy to Azure WebApp
-      uses: azure/webapps-deploy@v2
-      with:
-        app-name: ${{ env.AZURE_WEBAPP_NAME }}
-        package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
-    - name: Import API into Azure API Management
-      run: az apim api import --path "${{ env.AZURE_APIM_RESOURCE_PATH }}" --resource-group "${{ env.AZURE_APIM_RESOURCEGROUP }}" --service-name "${{ env.AZURE_APIM_SERVICENAME }}" --api-id "${{ env.AZURE_APIM_API_ID }}" --service-url "${{ env.AZURE_APIM_APPSERVICEURL }}" --specification-path "${{ env.API_IMPORT_SPECIFICATION_PATH }}" --specification-format OpenApi --subscription-required false
-    - name: logout
-      run: >
-        az logout
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: church-api
+          path: ${{ env.PUBLISH_DIR }}
+
+      - name: Verify downloaded package
+        run: |
+          set -euo pipefail
+          ls -la "${{ env.PUBLISH_DIR }}"
+          test -f "${{ env.PUBLISH_DIR }}/Church.API.dll"
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          # Prefer Environment variables (existing APIM-oriented setup).
+          # Fallback to Azure Portal–generated App Service secrets if vars are empty.
+          client-id: ${{ vars.ChurchAPIapi_CLIENT_ID_CD32 || secrets.AZUREAPPSERVICE_CLIENTID_CF03DC62A51A40DA900042651E7E2577 }}
+          tenant-id: ${{ vars.ChurchAPIapi_TENANT_ID_CD32 || secrets.AZUREAPPSERVICE_TENANTID_F6F0D3BDF5604B7D8A08F66CB5A91DC0 }}
+          subscription-id: ${{ vars.ChurchAPIapi_SUBSCRIPTION_ID_CD32 || secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_ABC8CF383D3C4FDFAB0A9B1F4A539513 }}
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          package: ${{ env.PUBLISH_DIR }}
+
+      - name: Wait for app / Swagger document
+        id: swagger
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          URL="${{ env.AZURE_APIM_APPSERVICEURL }}/swagger/v1/swagger.json"
+          echo "Polling $URL"
+          for i in $(seq 1 30); do
+            if curl -fsSL "$URL" -o ./swagger.json; then
+              echo "Downloaded OpenAPI document ($(wc -c < ./swagger.json) bytes)."
+              head -c 200 ./swagger.json || true
+              echo
+              exit 0
+            fi
+            echo "Attempt $i failed; waiting 10s..."
+            sleep 10
+          done
+          echo "Swagger document was not available after deploy. APIM import will be skipped."
+          exit 1
+
+      - name: Import API into Azure API Management
+        if: steps.swagger.outcome == 'success'
+        run: |
+          set -euo pipefail
+          az apim api import \
+            --path "${{ env.AZURE_APIM_RESOURCE_PATH }}" \
+            --resource-group "${{ env.AZURE_APIM_RESOURCEGROUP }}" \
+            --service-name "${{ env.AZURE_APIM_SERVICENAME }}" \
+            --api-id "${{ env.AZURE_APIM_API_ID }}" \
+            --service-url "${{ env.AZURE_APIM_APPSERVICEURL }}" \
+            --specification-path ./swagger.json \
+            --specification-format OpenApi \
+            --subscription-required false
+
+      - name: Azure logout
+        if: always()
+        run: az logout || true
