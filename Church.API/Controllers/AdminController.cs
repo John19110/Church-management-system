@@ -32,25 +32,7 @@ namespace Church.API.Controllers
             _servantManager = servantManager;
         }
 
-        //// Add servant (admin flow)
-        //[HttpPost("add-servant")]
-        //[Consumes("multipart/form-data")]
-        //public async Task<IActionResult> AddServant([FromForm(Name = "")] AdminAddServantDTO servant)
-        //{
-        //    if (servant == null)
-        //    {
-        //        var errors = new Dictionary<string, string[]>
-        //        {
-        //            ["servant"] = new[] { "The request body cannot be empty." }
-        //        };
-        //        throw new ValidationException(errors);
-        //    }
-
-        //    await _servantManager.AddAsync(servant, _env.WebRootPath);
-
-        //    return StatusCode(201, new { message = "Created Successfully" });
-        //}
-
+        
 
         // Get pending servants
         [HttpGet("pending-servants")]
