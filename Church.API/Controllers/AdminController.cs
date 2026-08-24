@@ -32,7 +32,7 @@ namespace Church.API.Controllers
             _servantManager = servantManager;
         }
 
-        
+        //test 
 
         // Get pending servants
         [HttpGet("pending-servants")]
