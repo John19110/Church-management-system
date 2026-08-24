@@ -40,7 +40,14 @@ namespace Church.DAL.DBcontext
             var optionsBuilder = new DbContextOptionsBuilder<ProgramContext>();
             optionsBuilder.UseSqlServer(
                 connectionString,
-                sql => sql.MigrationsAssembly(typeof(ProgramContext).Assembly.GetName().Name));
+                sql =>
+                {
+                    sql.MigrationsAssembly(typeof(ProgramContext).Assembly.GetName().Name);
+                    sql.EnableRetryOnFailure(
+                        maxRetryCount: 5,
+                        maxRetryDelay: TimeSpan.FromSeconds(10),
+                        errorNumbersToAdd: null);
+                });
 
             // No HTTP pipeline at design time; accessor is only used for global query filters.
             return new ProgramContext(optionsBuilder.Options, new TenantContextState());

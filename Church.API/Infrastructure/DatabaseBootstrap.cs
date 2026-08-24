@@ -17,26 +17,8 @@ namespace Church.API.Infrastructure
             using var scope = services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ProgramContext>();
 
-            try
-            {
-                var applied = db.Database.GetAppliedMigrations().ToList();
-                var pending = db.Database.GetPendingMigrations().ToList();
-
-                logger.LogInformation(
-                    "Database migrations — applied: [{Applied}], pending: [{Pending}]",
-                    string.Join(", ", applied),
-                    string.Join(", ", pending));
-
-                if (pending.Count > 0)
-                {
-                    db.Database.Migrate();
-                    logger.LogInformation("Applied {Count} pending EF migration(s).", pending.Count);
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "EF Database.Migrate() failed; running idempotent PublicId schema repair.");
-            }
+            LogConnectionTarget(db, logger);
+            ApplyPendingMigrationsOrThrow(db, logger);
 
             try
             {
@@ -46,7 +28,10 @@ namespace Church.API.Infrastructure
             }
             catch (Exception ex)
             {
-                logger.LogCritical(ex, "PublicId schema repair failed. API will not work until columns exist.");
+                logger.LogCritical(
+                    ex,
+                    "PublicId schema repair failed ({FailureCategory}). API will not work until columns exist.",
+                    DescribeDatabaseFailure(ex));
                 throw;
             }
 
@@ -57,7 +42,10 @@ namespace Church.API.Infrastructure
             }
             catch (Exception ex)
             {
-                logger.LogCritical(ex, "Registration approval schema repair failed. API will not work until columns exist.");
+                logger.LogCritical(
+                    ex,
+                    "Registration approval schema repair failed ({FailureCategory}). API will not work until columns exist.",
+                    DescribeDatabaseFailure(ex));
                 throw;
             }
 
@@ -68,7 +56,10 @@ namespace Church.API.Infrastructure
             }
             catch (Exception ex)
             {
-                logger.LogCritical(ex, "Custom field definition schema repair failed. API will not work until columns exist.");
+                logger.LogCritical(
+                    ex,
+                    "Custom field definition schema repair failed ({FailureCategory}). API will not work until columns exist.",
+                    DescribeDatabaseFailure(ex));
                 throw;
             }
 
@@ -79,7 +70,10 @@ namespace Church.API.Infrastructure
             }
             catch (Exception ex)
             {
-                logger.LogCritical(ex, "User identity index schema repair failed.");
+                logger.LogCritical(
+                    ex,
+                    "User identity index schema repair failed ({FailureCategory}).",
+                    DescribeDatabaseFailure(ex));
                 throw;
             }
 
@@ -90,10 +84,105 @@ namespace Church.API.Infrastructure
             }
             catch (Exception ex)
             {
-                logger.LogCritical(ex, "Church/Meeting name uniqueness repair failed.");
+                logger.LogCritical(
+                    ex,
+                    "Church/Meeting name uniqueness repair failed ({FailureCategory}).",
+                    DescribeDatabaseFailure(ex));
                 throw;
             }
         }
+
+        /// <summary>
+        /// Required EF migrations must succeed. Idempotent schema repair below cannot
+        /// substitute for a pending migration that failed to apply.
+        /// </summary>
+        private static void ApplyPendingMigrationsOrThrow(ProgramContext db, ILogger logger)
+        {
+            var applied = db.Database.GetAppliedMigrations().ToList();
+            var pending = db.Database.GetPendingMigrations().ToList();
+
+            logger.LogInformation(
+                "Database migrations — applied: [{Applied}], pending: [{Pending}]",
+                string.Join(", ", applied),
+                string.Join(", ", pending));
+
+            if (pending.Count == 0)
+                return;
+
+            try
+            {
+                db.Database.Migrate();
+            }
+            catch (Exception ex)
+            {
+                var stillPending = db.Database.GetPendingMigrations().ToList();
+                logger.LogCritical(
+                    ex,
+                    "EF Database.Migrate() failed ({FailureCategory}). Required migration(s) still pending: [{Pending}]. Startup aborted.",
+                    DescribeDatabaseFailure(ex),
+                    string.Join(", ", stillPending));
+                throw;
+            }
+
+            pending = db.Database.GetPendingMigrations().ToList();
+            if (pending.Count > 0)
+            {
+                throw new InvalidOperationException(
+                    "EF Database.Migrate() returned without applying required migration(s): "
+                    + string.Join(", ", pending));
+            }
+
+            logger.LogInformation("All pending EF migrations were applied.");
+        }
+
+        private static void LogConnectionTarget(ProgramContext db, ILogger logger)
+        {
+            try
+            {
+                var builder = new SqlConnectionStringBuilder(db.Database.GetConnectionString());
+                logger.LogInformation(
+                    "Database bootstrap target — server: {Server}, database: {Database}",
+                    builder.DataSource,
+                    builder.InitialCatalog);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Could not read database connection target for diagnostics.");
+            }
+        }
+
+        private static string DescribeDatabaseFailure(Exception ex)
+        {
+            var sql = FindSqlException(ex);
+            if (sql is not null)
+                return DescribeSqlException(sql);
+
+            if (ex is InvalidOperationException && ex.Message.Contains("transient failure", StringComparison.OrdinalIgnoreCase))
+                return "Transient SQL connection failure (see inner exception)";
+
+            return "Unexpected database error";
+        }
+
+        private static SqlException? FindSqlException(Exception ex)
+        {
+            for (Exception? current = ex; current is not null; current = current.InnerException)
+            {
+                if (current is SqlException sql)
+                    return sql;
+            }
+
+            return null;
+        }
+
+        private static string DescribeSqlException(SqlException ex) => ex.Number switch
+        {
+            53 or 11001 => "DNS/server resolution failure",
+            10060 or 10061 or -2 or 258 => "TCP connection timeout — server unreachable or port 1433 blocked",
+            18456 => "Authentication failure — login rejected",
+            4060 => "Database not found on server",
+            40615 => "Server unreachable — firewall or network path blocked",
+            _ => $"SQL Server error {ex.Number}"
+        };
 
         /// <summary>
         /// Drops leftover unique indexes/constraints on Churches.Name / Meetings.Name

@@ -8,8 +8,12 @@ using Church.DAL.DBcontext;
 namespace Church.DAL.Migrations
 {
     /// <summary>
-    /// Adds meeting-scoped attendance criteria and per-record results.
-    /// Seeds has_tools / did_homework from existing HasTools / MadeHomeWork columns.
+    /// Adds meeting-scoped attendance criteria and per-record results, then seeds
+    /// has_tools / did_homework from existing HasTools / MadeHomeWork columns.
+    ///
+    /// Idempotent: <c>20260810124432_custom-attendance</c> already created both
+    /// tables on databases that applied it. This migration must still run so EF
+    /// records it as applied, without CREATE TABLE (error 2714) or duplicate seed rows.
     /// </summary>
     [DbContext(typeof(ProgramContext))]
     [Migration("20260810160000_AttendanceCriteria")]
@@ -17,93 +21,71 @@ namespace Church.DAL.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
-                name: "AttendanceCriteria",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    DisplayName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    DisplayNameAr = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
-                    DataType = table.Column<int>(type: "int", nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
-                    SortOrder = table.Column<int>(type: "int", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    ChurchId = table.Column<int>(type: "int", nullable: true),
-                    MeetingId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AttendanceCriteria", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_AttendanceCriteria_Churches_ChurchId",
-                        column: x => x.ChurchId,
-                        principalTable: "Churches",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_AttendanceCriteria_Meetings_MeetingId",
-                        column: x => x.MeetingId,
-                        principalTable: "Meetings",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
+            // Match the current EF model / custom-attendance schema (nvarchar(450)/max),
+            // not a narrower shape, so a DB that skipped custom-attendance still matches
+            // ProgramContextModelSnapshot.
+            migrationBuilder.Sql(
+                """
+                IF OBJECT_ID(N'[AttendanceCriteria]', N'U') IS NULL
+                BEGIN
+                    CREATE TABLE [AttendanceCriteria] (
+                        [Id] int NOT NULL IDENTITY,
+                        [Name] nvarchar(450) NOT NULL,
+                        [DisplayName] nvarchar(max) NOT NULL,
+                        [DisplayNameAr] nvarchar(max) NULL,
+                        [DataType] int NOT NULL,
+                        [IsActive] bit NOT NULL,
+                        [IsDeleted] bit NOT NULL,
+                        [SortOrder] int NOT NULL,
+                        [CreatedAt] datetime2 NOT NULL,
+                        [UpdatedAt] datetime2 NULL,
+                        [ChurchId] int NULL,
+                        [MeetingId] int NOT NULL,
+                        CONSTRAINT [PK_AttendanceCriteria] PRIMARY KEY ([Id]),
+                        CONSTRAINT [FK_AttendanceCriteria_Churches_ChurchId]
+                            FOREIGN KEY ([ChurchId]) REFERENCES [Churches] ([Id]),
+                        CONSTRAINT [FK_AttendanceCriteria_Meetings_MeetingId]
+                            FOREIGN KEY ([MeetingId]) REFERENCES [Meetings] ([Id]) ON DELETE NO ACTION
+                    );
 
-            migrationBuilder.CreateTable(
-                name: "AttendanceCriterionResults",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    AttendanceRecordId = table.Column<int>(type: "int", nullable: false),
-                    AttendanceCriterionId = table.Column<int>(type: "int", nullable: false),
-                    BoolValue = table.Column<bool>(type: "bit", nullable: true),
-                    DisplayNameSnapshot = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    DisplayNameArSnapshot = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AttendanceCriterionResults", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_AttendanceCriterionResults_AttendanceCriteria_AttendanceCriterionId",
-                        column: x => x.AttendanceCriterionId,
-                        principalTable: "AttendanceCriteria",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_AttendanceCriterionResults_AttendanceRecords_AttendanceRecordId",
-                        column: x => x.AttendanceRecordId,
-                        principalTable: "AttendanceRecords",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
+                    CREATE INDEX [IX_AttendanceCriteria_ChurchId]
+                        ON [AttendanceCriteria]([ChurchId]);
 
-            migrationBuilder.CreateIndex(
-                name: "IX_AttendanceCriteria_ChurchId",
-                table: "AttendanceCriteria",
-                column: "ChurchId");
+                    CREATE UNIQUE INDEX [IX_AttendanceCriteria_MeetingId_Name]
+                        ON [AttendanceCriteria]([MeetingId], [Name])
+                        WHERE [IsDeleted] = 0;
+                END
+                """);
 
-            migrationBuilder.CreateIndex(
-                name: "IX_AttendanceCriteria_MeetingId_Name",
-                table: "AttendanceCriteria",
-                columns: new[] { "MeetingId", "Name" },
-                unique: true,
-                filter: "[IsDeleted] = 0");
+            migrationBuilder.Sql(
+                """
+                IF OBJECT_ID(N'[AttendanceCriterionResults]', N'U') IS NULL
+                BEGIN
+                    CREATE TABLE [AttendanceCriterionResults] (
+                        [Id] int NOT NULL IDENTITY,
+                        [AttendanceRecordId] int NOT NULL,
+                        [AttendanceCriterionId] int NOT NULL,
+                        [BoolValue] bit NULL,
+                        [DisplayNameSnapshot] nvarchar(max) NOT NULL,
+                        [DisplayNameArSnapshot] nvarchar(max) NULL,
+                        CONSTRAINT [PK_AttendanceCriterionResults] PRIMARY KEY ([Id]),
+                        CONSTRAINT [FK_AttendanceCriterionResults_AttendanceCriteria_AttendanceCriterionId]
+                            FOREIGN KEY ([AttendanceCriterionId]) REFERENCES [AttendanceCriteria] ([Id]) ON DELETE NO ACTION,
+                        CONSTRAINT [FK_AttendanceCriterionResults_AttendanceRecords_AttendanceRecordId]
+                            FOREIGN KEY ([AttendanceRecordId]) REFERENCES [AttendanceRecords] ([Id]) ON DELETE CASCADE
+                    );
 
-            migrationBuilder.CreateIndex(
-                name: "IX_AttendanceCriterionResults_AttendanceCriterionId",
-                table: "AttendanceCriterionResults",
-                column: "AttendanceCriterionId");
+                    CREATE INDEX [IX_AttendanceCriterionResults_AttendanceCriterionId]
+                        ON [AttendanceCriterionResults]([AttendanceCriterionId]);
 
-            migrationBuilder.CreateIndex(
-                name: "IX_AttendanceCriterionResults_AttendanceRecordId_AttendanceCriterionId",
-                table: "AttendanceCriterionResults",
-                columns: new[] { "AttendanceRecordId", "AttendanceCriterionId" },
-                unique: true);
+                    CREATE UNIQUE INDEX [IX_AttendanceCriterionResults_AttendanceRecordId_AttendanceCriterionId]
+                        ON [AttendanceCriterionResults]([AttendanceRecordId], [AttendanceCriterionId]);
+                END
+                """);
 
-            // Seed default criteria per meeting from legacy columns.
+            // Seed default criteria per meeting from legacy columns. Skip meetings
+            // that already have those names (runtime EnsureDefaultsForMeetingAsync
+            // or a previous partial run).
             migrationBuilder.Sql(
                 """
                 INSERT INTO AttendanceCriteria
@@ -114,7 +96,12 @@ namespace Church.DAL.Migrations
                     N'يملك الأدوات',
                     1, 1, 0, 0, SYSUTCDATETIME(),
                     m.ChurchId, m.Id
-                FROM Meetings m;
+                FROM Meetings m
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM AttendanceCriteria c
+                    WHERE c.MeetingId = m.Id AND c.Name = N'has_tools'
+                );
 
                 INSERT INTO AttendanceCriteria
                     (Name, DisplayName, DisplayNameAr, DataType, IsActive, IsDeleted, SortOrder, CreatedAt, ChurchId, MeetingId)
@@ -124,10 +111,14 @@ namespace Church.DAL.Migrations
                     N'أدى الواجب',
                     1, 1, 0, 1, SYSUTCDATETIME(),
                     m.ChurchId, m.Id
-                FROM Meetings m;
+                FROM Meetings m
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM AttendanceCriteria c
+                    WHERE c.MeetingId = m.Id AND c.Name = N'did_homework'
+                );
                 """);
 
-            // Migrate existing boolean values into criterion results with snapshots.
             migrationBuilder.Sql(
                 """
                 INSERT INTO AttendanceCriterionResults
@@ -141,7 +132,12 @@ namespace Church.DAL.Migrations
                 FROM AttendanceRecords r
                 INNER JOIN AttendanceSessions s ON s.Id = r.AttendanceSessionId
                 INNER JOIN AttendanceCriteria c
-                    ON c.MeetingId = s.MeetingId AND c.Name = N'has_tools' AND c.IsDeleted = 0;
+                    ON c.MeetingId = s.MeetingId AND c.Name = N'has_tools' AND c.IsDeleted = 0
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM AttendanceCriterionResults x
+                    WHERE x.AttendanceRecordId = r.Id AND x.AttendanceCriterionId = c.Id
+                );
 
                 INSERT INTO AttendanceCriterionResults
                     (AttendanceRecordId, AttendanceCriterionId, BoolValue, DisplayNameSnapshot, DisplayNameArSnapshot)
@@ -154,7 +150,12 @@ namespace Church.DAL.Migrations
                 FROM AttendanceRecords r
                 INNER JOIN AttendanceSessions s ON s.Id = r.AttendanceSessionId
                 INNER JOIN AttendanceCriteria c
-                    ON c.MeetingId = s.MeetingId AND c.Name = N'did_homework' AND c.IsDeleted = 0;
+                    ON c.MeetingId = s.MeetingId AND c.Name = N'did_homework' AND c.IsDeleted = 0
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM AttendanceCriterionResults x
+                    WHERE x.AttendanceRecordId = r.Id AND x.AttendanceCriterionId = c.Id
+                );
                 """);
         }
 

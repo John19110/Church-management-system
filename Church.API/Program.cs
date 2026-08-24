@@ -257,8 +257,16 @@ builder.Services.AddDbContext<ProgramContext>(options =>
     }
 
     // Migrations live in the DAL project (Church.DAL), not in the API host.
-    options.UseSqlServer(cs, sql =>
-        sql.MigrationsAssembly(typeof(ProgramContext).Assembly.GetName().Name));
+    options.UseSqlServer(
+        cs,
+        sql =>
+        {
+            sql.MigrationsAssembly(typeof(ProgramContext).Assembly.GetName().Name);
+            sql.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(10),
+                errorNumbersToAdd: null);
+        });
 });
 
 

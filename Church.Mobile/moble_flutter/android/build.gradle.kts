@@ -1,4 +1,4 @@
-allprojects {
+﻿allprojects {
     repositories {
         google()
         mavenCentral()
@@ -21,4 +21,19 @@ subprojects {
 
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
+}
+
+// Restrict native ABIs: NDK 28 fails linking armeabi-v7a at API 21 (pthread_atfork).
+// App abiFilters do not propagate to plugin modules like :jni.
+subprojects {
+    pluginManager.withPlugin("com.android.library") {
+        extensions.configure<com.android.build.gradle.LibraryExtension>("android") {
+            defaultConfig {
+                ndk {
+                    abiFilters.clear()
+                    abiFilters.addAll(listOf("arm64-v8a", "x86_64"))
+                }
+            }
+        }
+    }
 }
