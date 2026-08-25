@@ -605,20 +605,8 @@ namespace Church.BLL.Manager.Implementations
         //    return "Church";
         //}
 
-        private async Task RunInTransactionAsync(Func<Task> work)
-        {
-            await _unitOfWork.BeginTransactionAsync();
-            try
-            {
-                await work();
-                await _unitOfWork.CommitAsync();
-            }
-            catch
-            {
-                await _unitOfWork.RollbackAsync();
-                throw;
-            }
-        }
+        private Task RunInTransactionAsync(Func<Task> work) =>
+            _unitOfWork.ExecuteInTransactionAsync(work);
 
         /// <summary>Canonical requested-role values stored on the user and exchanged with the client.</summary>
         public static class RequestedRoles

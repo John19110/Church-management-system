@@ -166,86 +166,90 @@ namespace Church.DAL.Repository.Implementations
 
         public async Task DeleteWithDependenciesAsync(int id)
         {
-            await using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            var strategy = _context.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
             {
-                var classroomIds = await _context.Classrooms
-                    .IgnoreQueryFilters()
-                    .Where(c => c.MeetingId == id)
-                    .Select(c => c.Id)
-                    .ToListAsync();
-
-                foreach (var classroomId in classroomIds)
-                    await _classroomRepository.DeleteWithDependenciesCoreAsync(classroomId);
-
-                await _memberRepository.DeleteByMeetingIdAsync(id);
-
-                await _context.ExamResults
-                    .IgnoreQueryFilters()
-                    .Where(er => er.MeetingId == id)
-                    .ExecuteDeleteAsync();
-
-                await _context.Exams
-                    .IgnoreQueryFilters()
-                    .Where(e => e.MeetingId == id)
-                    .ExecuteDeleteAsync();
-
-                await _context.Tools
-                    .IgnoreQueryFilters()
-                    .Where(t => t.MeetingId == id)
-                    .ExecuteDeleteAsync();
-
-                await _context.SpiritualCurriculums
-                    .IgnoreQueryFilters()
-                    .Where(s => s.MeetingId == id)
-                    .ExecuteDeleteAsync();
-
-                await _context.ClassroomServants
-                    .IgnoreQueryFilters()
-                    .Where(cs => cs.MeetingId == id)
-                    .ExecuteDeleteAsync();
-
-                await _context.Servants
-                    .IgnoreQueryFilters()
-                    .Where(s => s.MeetingId == id)
-                    .ExecuteUpdateAsync(s => s.SetProperty(x => x.MeetingId, (int?)null));
-
-                await _context.Users
-                    .IgnoreQueryFilters()
-                    .Where(u => u.MeetingId == id)
-                    .ExecuteUpdateAsync(s => s.SetProperty(u => u.MeetingId, (int?)null));
-
-                await _context.CustomFieldValues
-                    .IgnoreQueryFilters()
-                    .Where(v =>
-                        v.EntityName == CustomFieldEntityNames.Meeting &&
-                        v.EntityId == id)
-                    .ExecuteDeleteAsync();
-
-                await _context.Meetings
-                    .IgnoreQueryFilters()
-                    .Where(m => m.Id == id)
-                    .ExecuteUpdateAsync(s => s.SetProperty(m => m.LeaderServantId, (int?)null));
-
-                var meeting = await _context.Meetings
-                    .IgnoreQueryFilters()
-                    .FirstOrDefaultAsync(m => m.Id == id);
-
-                if (meeting == null)
+                await using var transaction = await _context.Database.BeginTransactionAsync();
+                try
                 {
-                    await transaction.CommitAsync();
-                    return;
-                }
+                    var classroomIds = await _context.Classrooms
+                        .IgnoreQueryFilters()
+                        .Where(c => c.MeetingId == id)
+                        .Select(c => c.Id)
+                        .ToListAsync();
 
-                _context.Meetings.Remove(meeting);
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-            }
-            catch
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
+                    foreach (var classroomId in classroomIds)
+                        await _classroomRepository.DeleteWithDependenciesCoreAsync(classroomId);
+
+                    await _memberRepository.DeleteByMeetingIdAsync(id);
+
+                    await _context.ExamResults
+                        .IgnoreQueryFilters()
+                        .Where(er => er.MeetingId == id)
+                        .ExecuteDeleteAsync();
+
+                    await _context.Exams
+                        .IgnoreQueryFilters()
+                        .Where(e => e.MeetingId == id)
+                        .ExecuteDeleteAsync();
+
+                    await _context.Tools
+                        .IgnoreQueryFilters()
+                        .Where(t => t.MeetingId == id)
+                        .ExecuteDeleteAsync();
+
+                    await _context.SpiritualCurriculums
+                        .IgnoreQueryFilters()
+                        .Where(s => s.MeetingId == id)
+                        .ExecuteDeleteAsync();
+
+                    await _context.ClassroomServants
+                        .IgnoreQueryFilters()
+                        .Where(cs => cs.MeetingId == id)
+                        .ExecuteDeleteAsync();
+
+                    await _context.Servants
+                        .IgnoreQueryFilters()
+                        .Where(s => s.MeetingId == id)
+                        .ExecuteUpdateAsync(s => s.SetProperty(x => x.MeetingId, (int?)null));
+
+                    await _context.Users
+                        .IgnoreQueryFilters()
+                        .Where(u => u.MeetingId == id)
+                        .ExecuteUpdateAsync(s => s.SetProperty(u => u.MeetingId, (int?)null));
+
+                    await _context.CustomFieldValues
+                        .IgnoreQueryFilters()
+                        .Where(v =>
+                            v.EntityName == CustomFieldEntityNames.Meeting &&
+                            v.EntityId == id)
+                        .ExecuteDeleteAsync();
+
+                    await _context.Meetings
+                        .IgnoreQueryFilters()
+                        .Where(m => m.Id == id)
+                        .ExecuteUpdateAsync(s => s.SetProperty(m => m.LeaderServantId, (int?)null));
+
+                    var meeting = await _context.Meetings
+                        .IgnoreQueryFilters()
+                        .FirstOrDefaultAsync(m => m.Id == id);
+
+                    if (meeting == null)
+                    {
+                        await transaction.CommitAsync();
+                        return;
+                    }
+
+                    _context.Meetings.Remove(meeting);
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            });
         }
     }
 }

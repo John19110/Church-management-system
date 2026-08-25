@@ -1,4 +1,5 @@
 using System.Data.Common;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
@@ -15,6 +16,32 @@ public class UnitOfWork : IUnitOfWork
     {
         _context = context;
         _logger = logger;
+    }
+
+    /// <inheritdoc />
+    public Task ExecuteInTransactionAsync(Func<Task> operation)
+    {
+        ArgumentNullException.ThrowIfNull(operation);
+
+        var strategy = _context.Database.CreateExecutionStrategy();
+        return strategy.ExecuteAsync(async () =>
+        {
+            await ClearTransactionAsync();
+
+            _transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                await operation();
+
+                if (_transaction != null)
+                    await CommitAsync();
+            }
+            catch
+            {
+                await RollbackAsync();
+                throw;
+            }
+        });
     }
 
     public async Task BeginTransactionAsync()

@@ -56,62 +56,63 @@ namespace Church.BLL.Services.AccountDeletion
             var imageFileNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             AddSafeFileName(imageFileNames, user.ImageFileName);
 
-            await _unitOfWork.BeginTransactionAsync();
             try
             {
-                var servant = await _db.Servants
-                    .IgnoreQueryFilters()
-                    .SingleOrDefaultAsync(
-                        s => s.ApplicationUserId == userId,
-                        cancellationToken);
-
-                if (servant != null)
+                await _unitOfWork.ExecuteInTransactionAsync(async () =>
                 {
-                    AddSafeFileName(imageFileNames, servant.ImageFileName);
-                    await RemoveServantLinksAndPersonalDataAsync(
-                        servant.Id,
-                        cancellationToken);
-                    _db.Servants.Remove(servant);
-                }
+                    var servant = await _db.Servants
+                        .IgnoreQueryFilters()
+                        .SingleOrDefaultAsync(
+                            s => s.ApplicationUserId == userId,
+                            cancellationToken);
 
-                // Preserve workflow history without retaining a deleted account identifier.
-                var approvals = await _db.Users
-                    .IgnoreQueryFilters()
-                    .Where(u => u.ApprovedByUserId == userId)
-                    .ToListAsync(cancellationToken);
-                foreach (var approval in approvals)
-                    approval.ApprovedByUserId = null;
+                    if (servant != null)
+                    {
+                        AddSafeFileName(imageFileNames, servant.ImageFileName);
+                        await RemoveServantLinksAndPersonalDataAsync(
+                            servant.Id,
+                            cancellationToken);
+                        _db.Servants.Remove(servant);
+                    }
 
-                // Preserve shared definitions/values while anonymizing creator metadata.
-                var definitions = await _db.CustomFieldDefinitions
-                    .IgnoreQueryFilters()
-                    .Where(d => d.CreatedBy == userId)
-                    .ToListAsync(cancellationToken);
-                foreach (var definition in definitions)
-                    definition.CreatedBy = null;
+                    // Preserve workflow history without retaining a deleted account identifier.
+                    var approvals = await _db.Users
+                        .IgnoreQueryFilters()
+                        .Where(u => u.ApprovedByUserId == userId)
+                        .ToListAsync(cancellationToken);
+                    foreach (var approval in approvals)
+                        approval.ApprovedByUserId = null;
 
-                var values = await _db.CustomFieldValues
-                    .IgnoreQueryFilters()
-                    .Where(v => v.CreatedBy == userId)
-                    .ToListAsync(cancellationToken);
-                foreach (var value in values)
-                    value.CreatedBy = null;
+                    // Preserve shared definitions/values while anonymizing creator metadata.
+                    var definitions = await _db.CustomFieldDefinitions
+                        .IgnoreQueryFilters()
+                        .Where(d => d.CreatedBy == userId)
+                        .ToListAsync(cancellationToken);
+                    foreach (var definition in definitions)
+                        definition.CreatedBy = null;
 
-                await _unitOfWork.SaveChangesAsync();
+                    var values = await _db.CustomFieldValues
+                        .IgnoreQueryFilters()
+                        .Where(v => v.CreatedBy == userId)
+                        .ToListAsync(cancellationToken);
+                    foreach (var value in values)
+                        value.CreatedBy = null;
 
-                // UserManager removes Identity roles, claims, logins, tokens, and the user.
-                var identityResult = await _userManager.DeleteAsync(user);
-                if (!identityResult.Succeeded)
-                {
-                    var errors = string.Join(
-                        "; ",
-                        identityResult.Errors.Select(e => e.Description));
-                    throw new InvalidOperationException(
-                        $"The account could not be deleted: {errors}");
-                }
+                    await _unitOfWork.SaveChangesAsync();
 
-                DeleteProfileImages(webRootPath, imageFileNames);
-                await _unitOfWork.CommitAsync();
+                    // UserManager removes Identity roles, claims, logins, tokens, and the user.
+                    var identityResult = await _userManager.DeleteAsync(user);
+                    if (!identityResult.Succeeded)
+                    {
+                        var errors = string.Join(
+                            "; ",
+                            identityResult.Errors.Select(e => e.Description));
+                        throw new InvalidOperationException(
+                            $"The account could not be deleted: {errors}");
+                    }
+
+                    DeleteProfileImages(webRootPath, imageFileNames);
+                });
 
                 _logger.LogInformation(
                     "Account deletion completed. UserId={UserId}, DeletedAtUtc={DeletedAtUtc}",
@@ -120,7 +121,6 @@ namespace Church.BLL.Services.AccountDeletion
             }
             catch (Exception exception)
             {
-                await _unitOfWork.RollbackAsync();
                 _logger.LogError(
                     exception,
                     "Account deletion failed and was rolled back. UserId={UserId}",
