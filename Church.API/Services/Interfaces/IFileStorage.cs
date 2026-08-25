@@ -1,0 +1,17 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Church.API.Services.Interfaces
+{
+    public interface IFileStorage
+    {
+        Task<string> SaveImageAsync(IFormFile file, CancellationToken ct = default, string foldername = default);
+
+        string GetPublicUrl(string key);
+
+        Task DeleteAsync(string key, CancellationToken ct = default);
+    }
+}

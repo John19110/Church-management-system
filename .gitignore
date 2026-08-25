@@ -9,7 +9,6 @@ artifacts/
 *.suo
 
 # Secrets
-Services/
 appsettings.Development.json
 appsettings.Production.json
 secrets.json
