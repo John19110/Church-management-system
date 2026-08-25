@@ -1,8 +1,10 @@
 # Canonical deployment for Church.API → Azure App Service "mychurch"
 # (+ optional Azure API Management import after a healthy deploy).
 #
-# Only this workflow should deploy production. Do not add another push-to-main
-# deploy workflow for the same App Service.
+# ONLY this workflow must deploy production. Do not re-add an Azure Portal
+# "Build and deploy ASP.Net Core app to Azure Web App - mychurch" workflow
+# that runs `dotnet publish` without Church.API.csproj — that publishes
+# Church.Tests/Church.DAL runtimeconfig files and Azure starts hostingstart.dll.
 
 name: Deploy Church.API to Azure Web App mychurch
 
@@ -18,6 +20,7 @@ permissions:
 
 env:
   AZURE_WEBAPP_NAME: mychurch
+  AZURE_RESOURCE_GROUP: MyChurch
   DOTNET_VERSION: "10.x"
   CONFIGURATION: Release
   API_PROJECT: Church.API/Church.API.csproj
@@ -63,21 +66,68 @@ jobs:
             --no-build \
             --verbosity normal
 
-      - name: Publish Church.API
-        run: |
-          dotnet publish "${{ env.API_PROJECT }}" \
-            --configuration ${{ env.CONFIGURATION }} \
-            --no-build \
-            --output "${{ env.PUBLISH_DIR }}"
-
-      - name: Verify publish output
+      - name: Publish Church.API only
         run: |
           set -euo pipefail
+          rm -rf "${{ env.PUBLISH_DIR }}"
+          # Publish the API project only — never Church.sln / Church.Tests.
+          # Omit --no-build so publish uses a project-scoped output graph.
+          dotnet publish "${{ env.API_PROJECT }}" \
+            --configuration ${{ env.CONFIGURATION }} \
+            --no-restore \
+            --output "${{ env.PUBLISH_DIR }}"
+
+      - name: Verify publish output is Church.API only
+        run: |
+          set -euo pipefail
+          PUBLISH="${{ env.PUBLISH_DIR }}"
           echo "Publish directory contents:"
-          ls -la "${{ env.PUBLISH_DIR }}"
-          test -f "${{ env.PUBLISH_DIR }}/Church.API.dll"
-          test -f "${{ env.PUBLISH_DIR }}/web.config" || test -f "${{ env.PUBLISH_DIR }}/Church.API.runtimeconfig.json"
-          echo "Publish verification succeeded."
+          ls -la "$PUBLISH"
+
+          if [ ! -f "$PUBLISH/Church.API.dll" ]; then
+            echo "::error::Missing Church.API.dll in publish output"
+            exit 1
+          fi
+          if [ ! -f "$PUBLISH/Church.API.runtimeconfig.json" ]; then
+            echo "::error::Missing Church.API.runtimeconfig.json in publish output"
+            exit 1
+          fi
+          if [ ! -f "$PUBLISH/Church.API.deps.json" ]; then
+            echo "::error::Missing Church.API.deps.json in publish output"
+            exit 1
+          fi
+          if [ ! -f "$PUBLISH/Church.BLL.dll" ]; then
+            echo "::error::Missing Church.BLL.dll (API dependency) in publish output"
+            exit 1
+          fi
+          if [ ! -f "$PUBLISH/Church.DAL.dll" ]; then
+            echo "::error::Missing Church.DAL.dll (API dependency) in publish output"
+            exit 1
+          fi
+
+          # Azure Linux Oryx fails when multiple *.runtimeconfig.json files exist.
+          if [ -f "$PUBLISH/Church.DAL.runtimeconfig.json" ]; then
+            echo "::error::Church.DAL.runtimeconfig.json must not be in publish output (library, not startup app)"
+            exit 1
+          fi
+          if [ -f "$PUBLISH/Church.Tests.runtimeconfig.json" ]; then
+            echo "::error::Church.Tests.runtimeconfig.json must not be in publish output"
+            exit 1
+          fi
+          if [ -f "$PUBLISH/Church.BLL.runtimeconfig.json" ]; then
+            echo "::error::Church.BLL.runtimeconfig.json must not be in publish output"
+            exit 1
+          fi
+
+          RUNTIMECONFIG_COUNT=$(find "$PUBLISH" -maxdepth 1 -name '*.runtimeconfig.json' | wc -l)
+          echo "runtimeconfig.json count: $RUNTIMECONFIG_COUNT"
+          if [ "$RUNTIMECONFIG_COUNT" -ne 1 ]; then
+            echo "::error::Expected exactly 1 *.runtimeconfig.json (Church.API), found $RUNTIMECONFIG_COUNT:"
+            find "$PUBLISH" -maxdepth 1 -name '*.runtimeconfig.json' -print
+            exit 1
+          fi
+
+          echo "Publish verification succeeded (Church.API only)."
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -89,8 +139,8 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    # Keep this environment if your Azure federated credential subject is
-    # repo:<org>/<repo>:environment:ChurchAPIapi_Env
+    # Keep this environment — Azure federated credential subject is
+    # repo:John19110/Church-management-system:environment:ChurchAPIapi_Env
     environment: ChurchAPIapi_Env
 
     steps:
@@ -103,17 +153,30 @@ jobs:
       - name: Verify downloaded package
         run: |
           set -euo pipefail
-          ls -la "${{ env.PUBLISH_DIR }}"
-          test -f "${{ env.PUBLISH_DIR }}/Church.API.dll"
+          PUBLISH="${{ env.PUBLISH_DIR }}"
+          ls -la "$PUBLISH"
+          test -f "$PUBLISH/Church.API.dll"
+          test -f "$PUBLISH/Church.API.runtimeconfig.json"
+          test ! -f "$PUBLISH/Church.DAL.runtimeconfig.json"
+          test ! -f "$PUBLISH/Church.Tests.runtimeconfig.json"
+          RUNTIMECONFIG_COUNT=$(find "$PUBLISH" -maxdepth 1 -name '*.runtimeconfig.json' | wc -l)
+          test "$RUNTIMECONFIG_COUNT" -eq 1
 
       - name: Azure Login (OIDC)
         uses: azure/login@v2
         with:
-          # Prefer Environment variables (existing APIM-oriented setup).
-          # Fallback to Azure Portal–generated App Service secrets if vars are empty.
           client-id: ${{ vars.ChurchAPIapi_CLIENT_ID_CD32 || secrets.AZUREAPPSERVICE_CLIENTID_CF03DC62A51A40DA900042651E7E2577 }}
           tenant-id: ${{ vars.ChurchAPIapi_TENANT_ID_CD32 || secrets.AZUREAPPSERVICE_TENANTID_F6F0D3BDF5604B7D8A08F66CB5A91DC0 }}
           subscription-id: ${{ vars.ChurchAPIapi_SUBSCRIPTION_ID_CD32 || secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_ABC8CF383D3C4FDFAB0A9B1F4A539513 }}
+
+      - name: Set Azure App Service startup command
+        run: |
+          set -euo pipefail
+          az webapp config set \
+            --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
+            --name "${{ env.AZURE_WEBAPP_NAME }}" \
+            --startup-file "dotnet Church.API.dll"
+          echo "Startup command set to: dotnet Church.API.dll"
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
