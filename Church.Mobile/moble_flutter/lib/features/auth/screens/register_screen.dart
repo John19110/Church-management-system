@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,6 +12,7 @@ import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/error/app_exception.dart';
+import '../../../core/notifications/notification_service.dart';
 import '../../../core/routing/app_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimens.dart';
@@ -423,6 +425,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
       ref.read(authSessionEpochProvider.notifier).state++;
       ref.read(authStateProvider.notifier).state = true;
+      unawaited(NotificationService.instance.onUserAuthenticated());
 
       if (mounted) {
         context.go(AuthRoleUtils.routeForRole(role));

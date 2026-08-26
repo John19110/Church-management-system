@@ -4,6 +4,8 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <!-- Used only when the user taps "Select from Contacts" on Add/Edit Member. -->
     <uses-permission android:name="android.permission.READ_CONTACTS"/>
+    <!-- Android 13+ runtime permission for posting notifications (FCM). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <application
         android:label="My Church"
@@ -38,6 +40,14 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- FCM: default channel + white silhouette icon for system tray. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="my_church_default" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:value="@drawable/ic_notification" />
 
     </application>
 

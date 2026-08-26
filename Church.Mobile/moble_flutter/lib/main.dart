@@ -12,6 +12,7 @@ import 'core/l10n/app_localizations.dart';
 import 'core/storage/token_storage.dart';
 import 'core/cache/local_cache_service.dart';
 import 'core/cache/tenant_cache_sync.dart';
+import 'core/notifications/notification_service.dart';
 import 'core/startup/app_launch_splash.dart';
 import 'core/startup/splash_theme_sync.dart';
 import 'features/auth/providers/auth_providers.dart';
@@ -26,6 +27,9 @@ Future<void> main() async {
   // Keep native splash in sync for this process + next cold start.
   unawaited(SplashThemeSync.sync(themeMode));
   unawaited(TokenStorage.warmCache());
+
+  // Firebase + FCM must initialize before runApp (background handler registration).
+  await NotificationService.bootstrap();
 
   runApp(
     ProviderScope(
@@ -65,6 +69,8 @@ class _ChurchAppState extends ConsumerState<ChurchApp>
 
       if (TokenStorage.cachedToken?.isNotEmpty == true) {
         ref.read(authStateProvider.notifier).state = true;
+        // Permission + FCM token after session restore (does not block splash).
+        unawaited(NotificationService.instance.onUserAuthenticated());
       }
 
       unawaited(_finishLaunchSplash());

@@ -29,20 +29,34 @@ flutter run
 
 ## How to Configure the API Base URL
 
-Open `lib/core/constants/app_constants.dart` and change the `baseUrl` constant:
+Default (production) is the Azure App Service host, configured in
+`lib/core/constants/app_constants.dart` via `AppConstants.baseUrl`
+(`String.fromEnvironment('API_BASE_URL', defaultValue: productionBaseUrl)`).
 
-```dart
-static const String baseUrl = 'http://10.0.2.2:5000';
+```bash
+# Production (default — Azure)
+flutter run
+
+# Local Android emulator
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:5000
+
+# Local iOS simulator
+flutter run --dart-define=API_BASE_URL=http://127.0.0.1:5000
+
+# Physical device on the same LAN
+flutter run --dart-define=API_BASE_URL=http://<your-machine-ip>:5000
 ```
 
 | Target             | Example URL                  |
 |--------------------|------------------------------|
+| Production (Azure) | `https://mychurch-czdwf2enfdfrhchd.uaenorth-01.azurewebsites.net` |
 | Android emulator   | `http://10.0.2.2:<port>`     |
-| iOS simulator      | `http://localhost:<port>`    |
+| iOS simulator      | `http://127.0.0.1:<port>`    |
 | Physical device    | `http://<your-machine-ip>:<port>` |
 
 > **Note**: `10.0.2.2` is the loopback address for the host machine when using
 > the Android emulator. Replace `5000` with the actual port your backend listens on.
+> Do not append `/api` or `/swagger` to the base URL; endpoint paths already include `/api/...`.
 
 ---
 

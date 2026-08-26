@@ -1,6 +1,23 @@
 class AppConstants {
-  /// Base URL for the deployed ASP.NET API (HTTPS FIXED)
-  static const String baseUrl = 'https://mychurch.runasp.net';
+  /// Production ASP.NET Core API on Azure App Service (HTTPS).
+  static const String productionBaseUrl =
+      'https://mychurch-czdwf2enfdfrhchd.uaenorth-01.azurewebsites.net';
+
+  /// Optional local backends (pass via --dart-define=API_BASE_URL=...).
+  /// Android emulator: http://10.0.2.2:5000
+  /// iOS simulator:    http://127.0.0.1:5000
+  /// Physical device:  http://<lan-ip>:5000
+  static const String androidEmulatorBaseUrl = 'http://10.0.2.2:5000';
+  static const String iosSimulatorBaseUrl = 'http://127.0.0.1:5000';
+
+  /// Active API host. Defaults to [productionBaseUrl].
+  ///
+  /// Override without editing source, e.g.:
+  /// `flutter run --dart-define=API_BASE_URL=http://10.0.2.2:5000`
+  static const String baseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: productionBaseUrl,
+  );
 
   // Auth endpoints
   static const String loginEndpoint = '/api/Account/login';
@@ -11,6 +28,11 @@ class AppConstants {
       '/api/Account/register-church-superadmin';
   static const String registerMeetingAdminEndpoint =
       '/api/Account/register-meeting-admin-new-church';
+
+  /// FCM device-token registration with the ASP.NET API.
+  /// Empty until the backend ships the endpoint — see [FcmTokenRegistrar].
+  /// Planned: `PUT /api/DeviceToken` (authenticated).
+  static const String deviceTokenEndpoint = '';
 
   // Members (children) endpoints
   static const String membersEndpoint = '/api/Member';
@@ -54,8 +76,8 @@ class AppConstants {
 
   // Select endpoints (all return: {id, name})
   static const String classroomsSelectEndpoint = '/api/Classroom/select';
-  static const String membersSelectEndpoint = '/api/Member/select';
   static const String meetingsSelectEndpoint = '/api/Meeting/select';
+  static const String membersSelectEndpoint = '/api/Member/select';
   static const String servantsSelectEndpoint = '/api/Servant/select';
 
   static const String tokenKey = 'jwt_token';

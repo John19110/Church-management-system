@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -14,6 +16,7 @@ import '../../../core/providers/theme_provider.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../core/theme/app_palette.dart';
 import '../../../core/error/app_exception.dart';
+import '../../../core/notifications/notification_service.dart';
 import '../../../core/routing/app_router.dart';
 import '../utils/phone_number_validator.dart';
 
@@ -64,6 +67,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       ref.read(authSessionEpochProvider.notifier).state++;
       ref.read(authStateProvider.notifier).state = true;
+      // Request notification permission (once) and obtain FCM token for this user.
+      unawaited(NotificationService.instance.onUserAuthenticated());
 
       if (mounted) context.go(AuthRoleUtils.routeForRole(role));
     } catch (e) {
