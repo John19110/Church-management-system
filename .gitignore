@@ -9,11 +9,15 @@ artifacts/
 *.suo
 *.hprof
 
+
 # Secrets
 appsettings.Development.json
 appsettings.Production.json
 secrets.json
 .env
+firebase_options.dart
+
+
 
 # Keys
 *.pfx
