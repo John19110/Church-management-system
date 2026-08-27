@@ -41,7 +41,10 @@ class NotificationService {
 
   static final NotificationService instance = NotificationService._();
 
-  final FirebaseMessaging _messaging = FirebaseMessaging.instance;
+  /// Must not be read until [bootstrap] / [_bootstrap] has finished
+  /// [Firebase.initializeApp]. Never initialize in the constructor — that runs
+  /// when the singleton is first touched, before Firebase exists.
+  FirebaseMessaging? _messagingField;
   final FlutterLocalNotificationsPlugin _local =
       FlutterLocalNotificationsPlugin();
 
@@ -49,6 +52,17 @@ class NotificationService {
   String? _currentToken;
   bool _bootstrapped = false;
   bool _handlersAttached = false;
+  Future<void>? _bootstrapInFlight;
+
+  FirebaseMessaging get _messaging {
+    final messaging = _messagingField;
+    if (messaging == null) {
+      throw StateError(
+        'NotificationService used before Firebase bootstrap completed.',
+      );
+    }
+    return messaging;
+  }
 
   /// Latest notification opened by the user (FCM or local). Ready for future
   /// deep-link routing without changing navigation today.
@@ -64,17 +78,37 @@ class NotificationService {
   String? get currentToken => _currentToken;
 
   /// Initialize Firebase, local notifications, and FCM listeners.
-  /// Safe to call once; subsequent calls are no-ops.
+  /// Safe to call more than once; concurrent callers share one in-flight init.
   static Future<void> bootstrap() async {
     await instance._bootstrap();
   }
 
   Future<void> _bootstrap() async {
     if (_bootstrapped) return;
+    if (_bootstrapInFlight != null) return _bootstrapInFlight!;
 
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
+    final inFlight = _doBootstrap();
+    _bootstrapInFlight = inFlight;
+    try {
+      await inFlight;
+    } finally {
+      if (identical(_bootstrapInFlight, inFlight)) {
+        _bootstrapInFlight = null;
+      }
+    }
+  }
+
+  Future<void> _doBootstrap() async {
+    if (_bootstrapped) return;
+
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    }
+    // Only after DEFAULT app exists — never in the field initializer.
+    _messagingField ??= FirebaseMessaging.instance;
+
     if (kDebugMode) {
       debugPrint('[FCM] Firebase initialized (project=my-church-e838a)');
     }
@@ -123,7 +157,7 @@ class NotificationService {
     _messaging.onTokenRefresh.listen((token) async {
       _currentToken = token;
       if (kDebugMode) {
-        debugPrint('[FCM] Token refreshed: ${_preview(token)}');
+        debugPrint('FCM TOKEN: $token');
       }
       await _registrar?.syncToken(token);
     });
@@ -208,7 +242,7 @@ class NotificationService {
         return;
       }
       if (kDebugMode) {
-        debugPrint('[FCM] Registration token: $token');
+        debugPrint('FCM TOKEN: $token');
       }
       await _registrar?.syncToken(token);
     } catch (e) {
@@ -283,11 +317,6 @@ class NotificationService {
         'data=${payload.data}',
       );
     }
-  }
-
-  static String _preview(String token) {
-    if (token.length <= 12) return '***';
-    return '${token.substring(0, 8)}…${token.substring(token.length - 4)}';
   }
 }
 
