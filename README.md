@@ -329,7 +329,7 @@ The Flutter app supports **English** and **Arabic** via `AppLocalizations` (`lib
 
 ## License
 
-This project is provided for portfolio and educational use. Add your chosen license file (`LICENSE`) before public distribution if you intend to open-source it formally.
+This project is provided for portfolio and educational use.
 
 ---
 
