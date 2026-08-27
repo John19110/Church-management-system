@@ -165,9 +165,19 @@ class NotificationService {
 
   /// Request permission (once per install preference), fetch token, sync API.
   Future<void> onUserAuthenticated() async {
+    if (kDebugMode) {
+      debugPrint('[FCM] onUserAuthenticated() entered '
+          '(bootstrapped=$_bootstrapped)');
+    }
     if (!_bootstrapped) await _bootstrap();
 
+    if (kDebugMode) {
+      debugPrint('[FCM] requesting notification permission if needed…');
+    }
     await _requestPermissionIfNeeded();
+    if (kDebugMode) {
+      debugPrint('[FCM] permission step finished → refreshing FCM token…');
+    }
     await _refreshAndSyncToken();
 
     // Cold start: app opened from a terminated-state notification.
@@ -204,7 +214,15 @@ class NotificationService {
         AndroidFlutterLocalNotificationsPlugin>();
 
     final enabled = await androidPlugin?.areNotificationsEnabled();
+    if (kDebugMode) {
+      debugPrint(
+        '[FCM] permission: enabled=$enabled alreadyPrompted=$alreadyPrompted',
+      );
+    }
     if (enabled == true) {
+      if (kDebugMode) {
+        debugPrint('[FCM] permission already granted');
+      }
       return;
     }
 
@@ -216,6 +234,9 @@ class NotificationService {
       return;
     }
 
+    if (kDebugMode) {
+      debugPrint('[FCM] showing POST_NOTIFICATIONS prompt…');
+    }
     final granted = await androidPlugin?.requestNotificationsPermission();
     await prefs.setBool(_prefsPermissionPromptedKey, true);
 
@@ -232,6 +253,9 @@ class NotificationService {
   }
 
   Future<void> _refreshAndSyncToken() async {
+    if (kDebugMode) {
+      debugPrint('[FCM] getToken() starting…');
+    }
     try {
       final token = await _messaging.getToken();
       _currentToken = token;

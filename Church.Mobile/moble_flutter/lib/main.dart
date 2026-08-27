@@ -26,7 +26,9 @@ Future<void> main() async {
   final themeMode = ThemeController.loadInitial(prefs);
   // Keep native splash in sync for this process + next cold start.
   unawaited(SplashThemeSync.sync(themeMode));
-  unawaited(TokenStorage.warmCache());
+  // Must await: post-frame session restore reads TokenStorage.cachedToken.
+  // If warmCache is still in flight, cachedToken is null and FCM setup is skipped.
+  await TokenStorage.warmCache();
 
   // Firebase + FCM must initialize before runApp (background handler registration).
   await NotificationService.bootstrap();
@@ -67,14 +69,25 @@ class _ChurchAppState extends ConsumerState<ChurchApp>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
 
-      if (TokenStorage.cachedToken?.isNotEmpty == true) {
-        ref.read(authStateProvider.notifier).state = true;
-        // Permission + FCM token after session restore (does not block splash).
-        unawaited(NotificationService.instance.onUserAuthenticated());
-      }
-
+      // warmCache is awaited in main; still fall back to async read if needed.
+      unawaited(_restoreSessionAndNotifications());
       unawaited(_finishLaunchSplash());
     });
+  }
+
+  Future<void> _restoreSessionAndNotifications() async {
+    final token = TokenStorage.cachedToken ?? await TokenStorage.getToken();
+    final hasSession = token != null && token.isNotEmpty;
+    if (kDebugMode) {
+      debugPrint(
+        '[FCM] session restore check: cacheWarm=${TokenStorage.isCacheWarm} '
+        'hasSession=$hasSession',
+      );
+    }
+    if (!hasSession) return;
+    if (!mounted) return;
+    ref.read(authStateProvider.notifier).state = true;
+    await NotificationService.instance.onUserAuthenticated();
   }
 
   Future<void> _finishLaunchSplash() async {
