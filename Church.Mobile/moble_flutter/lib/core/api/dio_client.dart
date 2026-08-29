@@ -10,8 +10,10 @@ Dio createDio() {
   final dio = Dio(
     BaseOptions(
       baseUrl: AppConstants.baseUrl,
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 12),
+      // Azure SQL Serverless can take 30–60s to resume after auto-pause.
+      connectTimeout: const Duration(seconds: 30),
+      sendTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 90),
       headers: const {},
     ),
   );
