@@ -8,8 +8,10 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../firebase_options.dart';
+import '../../features/notifications/models/app_notification.dart';
 import '../api/dio_client.dart';
 import 'fcm_token_registrar.dart';
+import 'notification_inbox_store.dart';
 import 'notification_payload.dart';
 
 const String _prefsPermissionPromptedKey = 'fcm_notification_permission_prompted';
@@ -21,29 +23,21 @@ const String _androidChannelDescription =
 /// Top-level background isolate handler (required by firebase_messaging).
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // Ensure Firebase is available in the background isolate.
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   if (kDebugMode) {
-    debugPrint(
-      '[FCM] Background message id=${message.messageId} '
-      'type=${message.data['type']}',
-    );
+    debugPrint('[FCM] Background message received');
+    debugPrint('[FCM] Message ID: ${message.messageId}');
+    debugPrint('[FCM] Data: ${message.data}');
   }
+  await NotificationInboxStore.instance.saveFromRemoteMessage(message);
 }
 
 /// Firebase Cloud Messaging + local notification presentation for Android.
-///
-/// Call [NotificationService.bootstrap] once from `main` before `runApp`.
-/// Call [NotificationService.instance.onUserAuthenticated] after login (or
-/// when a stored JWT is restored) so the FCM token can sync to the API later.
 class NotificationService {
   NotificationService._();
 
   static final NotificationService instance = NotificationService._();
 
-  /// Must not be read until [bootstrap] / [_bootstrap] has finished
-  /// [Firebase.initializeApp]. Never initialize in the constructor — that runs
-  /// when the singleton is first touched, before Firebase exists.
   FirebaseMessaging? _messagingField;
   final FlutterLocalNotificationsPlugin _local =
       FlutterLocalNotificationsPlugin();
@@ -53,6 +47,25 @@ class NotificationService {
   bool _bootstrapped = false;
   bool _handlersAttached = false;
   Future<void>? _bootstrapInFlight;
+  bool _coldStartNotificationChecked = false;
+
+  /// Id of the last opened notification processed this session (dedup taps).
+  String? _lastOpenedNotificationId;
+
+  /// Latest opened notification for navigation after auth/router is ready.
+  AppNotification? pendingOpenedNotification;
+
+  final StreamController<AppNotification> _openedController =
+      StreamController<AppNotification>.broadcast();
+
+  Stream<AppNotification> get onNotificationOpened => _openedController.stream;
+
+  /// @deprecated Use [pendingOpenedNotification] — kept for compatibility.
+  NotificationPayload? get pendingNavigationPayload {
+    final n = pendingOpenedNotification;
+    if (n == null) return null;
+    return NotificationPayload(type: n.type, data: n.data);
+  }
 
   FirebaseMessaging get _messaging {
     final messaging = _messagingField;
@@ -64,21 +77,8 @@ class NotificationService {
     return messaging;
   }
 
-  /// Latest notification opened by the user (FCM or local). Ready for future
-  /// deep-link routing without changing navigation today.
-  NotificationPayload? pendingNavigationPayload;
-
-  /// Fires when the user taps a notification (foreground local or FCM open).
-  final StreamController<NotificationPayload> _openedController =
-      StreamController<NotificationPayload>.broadcast();
-
-  Stream<NotificationPayload> get onNotificationOpened =>
-      _openedController.stream;
-
   String? get currentToken => _currentToken;
 
-  /// Initialize Firebase, local notifications, and FCM listeners.
-  /// Safe to call more than once; concurrent callers share one in-flight init.
   static Future<void> bootstrap() async {
     await instance._bootstrap();
   }
@@ -106,12 +106,13 @@ class NotificationService {
         options: DefaultFirebaseOptions.currentPlatform,
       );
     }
-    // Only after DEFAULT app exists — never in the field initializer.
     _messagingField ??= FirebaseMessaging.instance;
 
     if (kDebugMode) {
       debugPrint('[FCM] Firebase initialized (project=my-church-e838a)');
     }
+
+    await NotificationInboxStore.instance.ensureInitialized();
 
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
@@ -120,11 +121,39 @@ class NotificationService {
     _attachMessageHandlers();
 
     _registrar = FcmTokenRegistrar(createDio());
+    await _processColdStartNotificationIfNeeded();
     _bootstrapped = true;
   }
 
+  /// Handles notification that launched the app from terminated state (no auth required).
+  Future<void> _processColdStartNotificationIfNeeded() async {
+    if (_coldStartNotificationChecked) return;
+    _coldStartNotificationChecked = true;
+
+    if (kDebugMode) {
+      debugPrint('[FCM] Checking initial message');
+    }
+    final initial = await _messaging.getInitialMessage();
+    if (initial != null) {
+      if (kDebugMode) {
+        debugPrint('[FCM] Initial notification found');
+      }
+      await _handleOpenedMessage(initial, source: 'terminated');
+      return;
+    }
+
+    final launch = await _local.getNotificationAppLaunchDetails();
+    if (launch?.didNotificationLaunchApp == true) {
+      final payload = _decodeTapPayload(launch!.notificationResponse?.payload);
+      if (payload != null) {
+        await _handleOpenedFromPayload(payload, source: 'local_cold_start');
+      }
+    }
+  }
+
   Future<void> _initLocalNotifications() async {
-    const androidInit = AndroidInitializationSettings('@drawable/ic_notification');
+    const androidInit =
+        AndroidInitializationSettings('@drawable/ic_notification');
     const initSettings = InitializationSettings(android: androidInit);
 
     await _local.initialize(
@@ -163,7 +192,6 @@ class NotificationService {
     });
   }
 
-  /// Request permission (once per install preference), fetch token, sync API.
   Future<void> onUserAuthenticated() async {
     if (kDebugMode) {
       debugPrint('[FCM] onUserAuthenticated() entered '
@@ -171,39 +199,13 @@ class NotificationService {
     }
     if (!_bootstrapped) await _bootstrap();
 
-    if (kDebugMode) {
-      debugPrint('[FCM] requesting notification permission if needed…');
-    }
     await _requestPermissionIfNeeded();
-    if (kDebugMode) {
-      debugPrint('[FCM] permission step finished → refreshing FCM token…');
-    }
     await _refreshAndSyncToken();
-
-    // Cold start: app opened from a terminated-state notification.
-    final initial = await _messaging.getInitialMessage();
-    if (initial != null) {
-      _handleOpenedMessage(initial);
-    }
-
-    final launch = await _local.getNotificationAppLaunchDetails();
-    if (launch?.didNotificationLaunchApp == true) {
-      final response = launch!.notificationResponse;
-      if (response?.payload != null) {
-        final payload =
-            NotificationPayload.tryParsePayloadString(response!.payload);
-        if (payload != null) {
-          pendingNavigationPayload = payload;
-          _openedController.add(payload);
-        }
-      }
-    }
   }
 
   Future<void> onUserLoggedOut() async {
     final token = _currentToken;
     await _registrar?.clearToken(token);
-    // Keep local FCM registration; token may be reused after next login.
   }
 
   Future<void> _requestPermissionIfNeeded() async {
@@ -214,19 +216,7 @@ class NotificationService {
         AndroidFlutterLocalNotificationsPlugin>();
 
     final enabled = await androidPlugin?.areNotificationsEnabled();
-    if (kDebugMode) {
-      debugPrint(
-        '[FCM] permission: enabled=$enabled alreadyPrompted=$alreadyPrompted',
-      );
-    }
-    if (enabled == true) {
-      if (kDebugMode) {
-        debugPrint('[FCM] permission already granted');
-      }
-      return;
-    }
-
-    // Avoid re-prompting every launch after the user already answered.
+    if (enabled == true) return;
     if (alreadyPrompted) {
       if (kDebugMode) {
         debugPrint('[FCM] Notifications disabled; not re-prompting');
@@ -234,37 +224,16 @@ class NotificationService {
       return;
     }
 
-    if (kDebugMode) {
-      debugPrint('[FCM] showing POST_NOTIFICATIONS prompt…');
-    }
-    final granted = await androidPlugin?.requestNotificationsPermission();
+    await androidPlugin?.requestNotificationsPermission();
     await prefs.setBool(_prefsPermissionPromptedKey, true);
-
-    // Also align with Firebase messaging permission API (no-op on older Android).
-    await _messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
-
-    if (kDebugMode) {
-      debugPrint('[FCM] POST_NOTIFICATIONS granted=$granted');
-    }
+    await _messaging.requestPermission(alert: true, badge: true, sound: true);
   }
 
   Future<void> _refreshAndSyncToken() async {
-    if (kDebugMode) {
-      debugPrint('[FCM] getToken() starting…');
-    }
     try {
       final token = await _messaging.getToken();
       _currentToken = token;
-      if (token == null || token.isEmpty) {
-        if (kDebugMode) {
-          debugPrint('[FCM] getToken() returned null');
-        }
-        return;
-      }
+      if (token == null || token.isEmpty) return;
       if (kDebugMode) {
         debugPrint('FCM TOKEN: $token');
       }
@@ -278,25 +247,25 @@ class NotificationService {
 
   Future<void> _onForegroundMessage(RemoteMessage message) async {
     if (kDebugMode) {
-      debugPrint(
-        '[FCM] Foreground message id=${message.messageId} '
-        'title=${message.notification?.title} data=${message.data}',
-      );
+      debugPrint('[FCM] Message received');
+      debugPrint('[FCM] Message ID: ${message.messageId}');
+      debugPrint('[FCM] Title: ${message.notification?.title}');
+      debugPrint('[FCM] Body: ${message.notification?.body}');
+      debugPrint('[FCM] Data: ${message.data}');
     }
 
-    final notification = message.notification;
-    final title = notification?.title ?? message.data['title'];
-    final body = notification?.body ?? message.data['body'];
-    if (title == null && body == null) {
-      // Data-only: no UI chrome; still available via listeners later.
-      return;
-    }
+    final saved = await NotificationInboxStore.instance.saveFromRemoteMessage(
+      message,
+    );
 
-    final payload = NotificationPayload.fromData(message.data);
+    final title = saved.title;
+    final body = saved.body;
+    if (title == null && body == null) return;
+
     await _local.show(
-      id: message.hashCode,
-      title: title?.toString(),
-      body: body?.toString(),
+      id: saved.id.hashCode,
+      title: title,
+      body: body,
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           _androidChannelId,
@@ -307,42 +276,83 @@ class NotificationService {
           icon: '@drawable/ic_notification',
         ),
       ),
-      payload: payload.toPayloadString(),
+      payload: jsonEncode(saved.toTapPayload()),
     );
   }
 
-  void _onMessageOpenedApp(RemoteMessage message) {
-    _handleOpenedMessage(message);
-  }
-
-  void _handleOpenedMessage(RemoteMessage message) {
+  Future<void> _onMessageOpenedApp(RemoteMessage message) async {
     if (kDebugMode) {
-      debugPrint(
-        '[FCM] Opened from notification type=${message.data['type']} '
-        'data=${message.data}',
-      );
+      debugPrint('[FCM] Notification opened from background');
     }
-    final payload = NotificationPayload.fromData(message.data);
-    pendingNavigationPayload = payload;
-    _openedController.add(payload);
-    // Deep-link navigation will consume [pendingNavigationPayload] / stream
-    // once routes for meeting/announcement are wired.
+    await _handleOpenedMessage(message, source: 'background');
   }
 
-  void _onLocalNotificationTap(NotificationResponse response) {
-    final payload =
-        NotificationPayload.tryParsePayloadString(response.payload);
+  Future<void> _handleOpenedMessage(
+    RemoteMessage message, {
+    required String source,
+  }) async {
+    if (kDebugMode) {
+      debugPrint('[FCM] Processing opened notification ($source)');
+      debugPrint('[FCM] Data: ${message.data}');
+    }
+    final saved = await NotificationInboxStore.instance.saveFromRemoteMessage(
+      message,
+      markRead: true,
+    );
+    _emitOpened(saved);
+  }
+
+  Future<void> _handleOpenedFromPayload(
+    Map<String, dynamic> payload, {
+    required String source,
+  }) async {
+    if (kDebugMode) {
+      debugPrint('[FCM] Processing opened notification ($source)');
+    }
+    final saved = await NotificationInboxStore.instance.saveFromTapPayload(
+      payload,
+      markRead: true,
+    );
+    _emitOpened(saved);
+  }
+
+  void _emitOpened(AppNotification notification) {
+    if (_lastOpenedNotificationId == notification.id) {
+      if (kDebugMode) {
+        debugPrint('[FCM] Skipping duplicate open id=${notification.id}');
+      }
+      return;
+    }
+    _lastOpenedNotificationId = notification.id;
+    pendingOpenedNotification = notification;
+    _openedController.add(notification);
+    if (kDebugMode) {
+      debugPrint('[FCM] Navigating to notification id=${notification.id}');
+    }
+  }
+
+  Future<void> _onLocalNotificationTap(NotificationResponse response) async {
+    final payload = _decodeTapPayload(response.payload);
     if (payload == null) return;
-    pendingNavigationPayload = payload;
-    _openedController.add(payload);
     if (kDebugMode) {
-      debugPrint(
-        '[FCM] Local notification tap type=${payload.type} '
-        'data=${payload.data}',
-      );
+      debugPrint('[FCM] Local notification tap');
     }
+    await _handleOpenedFromPayload(payload, source: 'foreground_local');
+  }
+
+  Map<String, dynamic>? _decodeTapPayload(String? payload) {
+    if (payload == null || payload.isEmpty) return null;
+    try {
+      final decoded = jsonDecode(payload);
+      if (decoded is Map<String, dynamic>) return decoded;
+      if (decoded is Map) {
+        return decoded.map((k, v) => MapEntry(k.toString(), v));
+      }
+    } catch (_) {
+      return null;
+    }
+    return null;
   }
 }
 
-/// Optional helper for encoding arbitrary maps when constructing test payloads.
 String encodeNotificationData(Map<String, String> data) => jsonEncode(data);

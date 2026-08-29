@@ -13,6 +13,7 @@ import 'core/l10n/app_localizations.dart';
 import 'core/storage/token_storage.dart';
 import 'core/cache/local_cache_service.dart';
 import 'core/cache/tenant_cache_sync.dart';
+import 'core/notifications/notification_navigation_listener.dart';
 import 'core/notifications/notification_service.dart';
 import 'core/startup/app_launch_splash.dart';
 import 'core/startup/splash_theme_sync.dart';
@@ -146,8 +147,10 @@ class _ChurchAppState extends ConsumerState<ChurchApp>
                 final bg = Theme.of(context).scaffoldBackgroundColor;
                 return ColoredBox(
                   color: bg,
-                  child: AppKeyboardDismiss(
-                    child: child ?? const SizedBox.shrink(),
+                  child: NotificationNavigationListener(
+                    child: AppKeyboardDismiss(
+                      child: child ?? const SizedBox.shrink(),
+                    ),
                   ),
                 );
               },
