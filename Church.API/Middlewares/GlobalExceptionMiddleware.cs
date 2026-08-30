@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Church.DAL.Infrastructure;
 using Church.API.Json;
 using Church.BLL.Exceptions;
 using System;
@@ -316,6 +317,15 @@ namespace Church.API.Middlewares
 
 
 
+                _ when IsTransientDatabaseException(exception) =>
+                (
+                    (int)HttpStatusCode.ServiceUnavailable,
+                    "DATABASE_UNAVAILABLE",
+                    FriendlyDatabaseMessage
+                ),
+
+
+
                 DbUpdateException =>
                 (
                     (int)HttpStatusCode.InternalServerError,
@@ -353,6 +363,26 @@ namespace Church.API.Middlewares
             "An unexpected error occurred. Please try again later.";
 
 
+
+        private static bool IsTransientDatabaseException(Exception exception)
+        {
+            for (var ex = exception; ex != null; ex = ex.InnerException)
+            {
+                if (ex is SqlException sql &&
+                    sql.Errors.Cast<SqlError>().Any(e => SqlServerResilience.IsTransientSqlError(e.Number)))
+                {
+                    return true;
+                }
+
+                if (ex is InvalidOperationException invalidOp &&
+                    invalidOp.Message.Contains("transient failure", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         private static bool IsDatabaseException(Exception exception)
         {

@@ -140,7 +140,7 @@ namespace Church.API.Controllers
 
         /// <summary>Returns only the servants assigned to a specific meeting.</summary>
         [HttpGet("{meetingId:int}/servants")]
-        [Authorize(Roles = "Admin,SuperAdmin")]
+        [Authorize(Roles = "Admin,SuperAdmin,Servant")]
         [Produces(MediaTypeNames.Application.Json)]
         public async Task<ActionResult<IEnumerable<ServantReadDTO>>> GetServantsByMeeting(int meetingId)
         {

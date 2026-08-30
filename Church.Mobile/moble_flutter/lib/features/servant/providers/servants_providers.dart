@@ -12,7 +12,12 @@ final servantsRepositoryProvider = Provider((ref) {
 });
 
 final servantsListProvider = FutureProvider<List<ServantReadDto>>((ref) async {
-  return ref.watch(servantsRepositoryProvider).getAll();
+  ref.watch(authSessionEpochProvider);
+  ref.watch(authStateProvider);
+  return whenAuthenticated(
+    () => ref.watch(servantsRepositoryProvider).getAll(),
+    ifLoggedOut: const [],
+  );
 });
 
 final servantDetailProvider =

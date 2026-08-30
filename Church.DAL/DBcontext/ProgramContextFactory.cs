@@ -1,3 +1,4 @@
+using Church.DAL.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Church.DAL.Abstractions;
 using Microsoft.EntityFrameworkCore.Design;
@@ -37,17 +38,14 @@ namespace Church.DAL.DBcontext
                     "(or User Secrets) before running update-database.");
             }
 
+            connectionString = SqlServerResilience.PrepareConnectionString(connectionString);
+
             var optionsBuilder = new DbContextOptionsBuilder<ProgramContext>();
             optionsBuilder.UseSqlServer(
                 connectionString,
-                sql =>
-                {
-                    sql.MigrationsAssembly(typeof(ProgramContext).Assembly.GetName().Name);
-                    sql.EnableRetryOnFailure(
-                        maxRetryCount: 5,
-                        maxRetryDelay: TimeSpan.FromSeconds(10),
-                        errorNumbersToAdd: null);
-                });
+                sql => SqlServerResilience.ConfigureEfSqlOptions(
+                    sql,
+                    typeof(ProgramContext).Assembly.GetName().Name!));
 
             // No HTTP pipeline at design time; accessor is only used for global query filters.
             return new ProgramContext(optionsBuilder.Options, new TenantContextState());

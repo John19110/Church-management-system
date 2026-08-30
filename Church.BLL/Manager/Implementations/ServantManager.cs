@@ -76,6 +76,13 @@ namespace Church.BLL.Manager.Implementations
 
         public async Task<IEnumerable<ServantReadDTO>> GetAllAsync()
         {
+            // Servants may only list peers in their own meeting; enforce explicitly (not only via EF filters).
+            if (_currentUser.IsInRole("Servant"))
+            {
+                var meetingId = await GetCallerMeetingIdOrThrowAsync();
+                return await LoadByMeetingIdCachedAsync(meetingId);
+            }
+
             IEnumerable<ServantReadDTO> servants;
             var ctx = _cacheContext.TryGet();
             if (ctx is null || string.IsNullOrWhiteSpace(ctx.Role))
@@ -103,6 +110,19 @@ namespace Church.BLL.Manager.Implementations
 
         public async Task<IEnumerable<ServantReadDTO>> GetByMeetingIdAsync(int meetingId)
         {
+            await EnsureServantCanAccessMeetingAsync(meetingId);
+
+            var servants = await LoadByMeetingIdCachedAsync(meetingId);
+
+            // Peer list for servants includes the caller; admins still hide their own row when linked.
+            if (_currentUser.IsInRole("Servant"))
+                return servants;
+
+            return await ExcludeCurrentUserAsync(servants);
+        }
+
+        private async Task<IEnumerable<ServantReadDTO>> LoadByMeetingIdCachedAsync(int meetingId)
+        {
             IEnumerable<ServantReadDTO> servants;
             var ctx = _cacheContext.TryGet();
             if (ctx is null || string.IsNullOrWhiteSpace(ctx.Role))
@@ -124,7 +144,35 @@ namespace Church.BLL.Manager.Implementations
                     });
             }
 
-            return await ExcludeCurrentUserAsync(servants);
+            return servants;
+        }
+
+        private async Task<int> GetCallerMeetingIdOrThrowAsync()
+        {
+            if (_tenantContext.MeetingId is int meetingId && meetingId > 0)
+                return meetingId;
+
+            if (string.IsNullOrWhiteSpace(_currentUser.UserId))
+                throw new UnauthorizedAccessException("Meeting context is missing.");
+
+            var me = await _servantRepository.GetByApplicationUserIdAsync(_currentUser.UserId);
+            if (me?.MeetingId is int servantMeetingId && servantMeetingId > 0)
+                return servantMeetingId;
+
+            throw new UnauthorizedAccessException("Meeting context is missing.");
+        }
+
+        private async Task EnsureServantCanAccessMeetingAsync(int meetingId)
+        {
+            if (!_currentUser.IsInRole("Servant"))
+                return;
+
+            var callerMeetingId = await GetCallerMeetingIdOrThrowAsync();
+            if (callerMeetingId != meetingId)
+            {
+                throw new UnauthorizedAccessException(
+                    "You can only view servants assigned to your meeting.");
+            }
         }
 
         /// <summary>

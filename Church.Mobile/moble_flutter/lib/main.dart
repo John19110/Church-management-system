@@ -71,6 +71,8 @@ class _ChurchAppState extends ConsumerState<ChurchApp>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
 
+      // First launch: prompt once after Firebase bootstrap when the UI is ready.
+      unawaited(NotificationService.requestLaunchNotificationPermission());
       // warmCache is awaited in main; still fall back to async read if needed.
       unawaited(_restoreSessionAndNotifications());
       unawaited(_finishLaunchSplash());

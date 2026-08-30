@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Church.DAL.Infrastructure;
 using Church.DAL.DBcontext;
 using Church.API.Services.Implementations;
 using Church.API.Services.Interfaces;
@@ -248,25 +249,18 @@ builder.Services.AddAuthentication(option =>
 // DbContext
 builder.Services.AddDbContext<ProgramContext>(options =>
 {
-    var cs = builder.Configuration.GetConnectionString("cs");
-    if (string.IsNullOrWhiteSpace(cs))
-    {
-        throw new InvalidOperationException(
-            "Missing required connection string 'ConnectionStrings:cs'. " +
-            "Set it in appsettings.Production.json or as an environment variable in the hosting environment.");
-    }
+    var cs = SqlServerResilience.PrepareConnectionString(
+        builder.Configuration.GetConnectionString("cs")
+            ?? throw new InvalidOperationException(
+                "Missing required connection string 'ConnectionStrings:cs'. " +
+                "Set it in appsettings.Production.json or as an environment variable in the hosting environment."));
 
     // Migrations live in the DAL project (Church.DAL), not in the API host.
     options.UseSqlServer(
         cs,
-        sql =>
-        {
-            sql.MigrationsAssembly(typeof(ProgramContext).Assembly.GetName().Name);
-            sql.EnableRetryOnFailure(
-                maxRetryCount: 5,
-                maxRetryDelay: TimeSpan.FromSeconds(10),
-                errorNumbersToAdd: null);
-        });
+        sql => SqlServerResilience.ConfigureEfSqlOptions(
+            sql,
+            typeof(ProgramContext).Assembly.GetName().Name!));
 });
 
 

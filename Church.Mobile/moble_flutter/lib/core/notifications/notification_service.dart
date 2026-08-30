@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io' show Platform;
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -83,6 +84,11 @@ class NotificationService {
     await instance._bootstrap();
   }
 
+  /// Requests OS notification permission once on first launch (after [bootstrap]).
+  static Future<void> requestLaunchNotificationPermission() async {
+    await instance._requestPermissionIfNeeded();
+  }
+
   Future<void> _bootstrap() async {
     if (_bootstrapped) return;
     if (_bootstrapInFlight != null) return _bootstrapInFlight!;
@@ -118,6 +124,7 @@ class NotificationService {
 
     await _initLocalNotifications();
     await _createAndroidChannel();
+    await _configureForegroundPresentation();
     _attachMessageHandlers();
 
     _registrar = FcmTokenRegistrar(createDio());
@@ -154,12 +161,31 @@ class NotificationService {
   Future<void> _initLocalNotifications() async {
     const androidInit =
         AndroidInitializationSettings('@drawable/ic_notification');
-    const initSettings = InitializationSettings(android: androidInit);
+    const darwinInit = DarwinInitializationSettings(
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
+    );
+    const initSettings = InitializationSettings(
+      android: androidInit,
+      iOS: darwinInit,
+      macOS: darwinInit,
+    );
 
     await _local.initialize(
       settings: initSettings,
       onDidReceiveNotificationResponse: _onLocalNotificationTap,
     );
+  }
+
+  Future<void> _configureForegroundPresentation() async {
+    if (!kIsWeb && Platform.isIOS) {
+      await _messaging.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+    }
   }
 
   Future<void> _createAndroidChannel() async {
@@ -199,7 +225,6 @@ class NotificationService {
     }
     if (!_bootstrapped) await _bootstrap();
 
-    await _requestPermissionIfNeeded();
     await _refreshAndSyncToken();
   }
 
@@ -212,11 +237,13 @@ class NotificationService {
     final prefs = await SharedPreferences.getInstance();
     final alreadyPrompted = prefs.getBool(_prefsPermissionPromptedKey) ?? false;
 
-    final androidPlugin = _local.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    if (await _notificationsAlreadyEnabled()) {
+      if (kDebugMode) {
+        debugPrint('[FCM] Notification permission already granted');
+      }
+      return;
+    }
 
-    final enabled = await androidPlugin?.areNotificationsEnabled();
-    if (enabled == true) return;
     if (alreadyPrompted) {
       if (kDebugMode) {
         debugPrint('[FCM] Notifications disabled; not re-prompting');
@@ -224,9 +251,40 @@ class NotificationService {
       return;
     }
 
-    await androidPlugin?.requestNotificationsPermission();
+    if (!kIsWeb && Platform.isAndroid) {
+      final androidPlugin = _local.resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
+      await androidPlugin?.requestNotificationsPermission();
+    } else if (!kIsWeb && Platform.isIOS) {
+      await _messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+    }
+
     await prefs.setBool(_prefsPermissionPromptedKey, true);
-    await _messaging.requestPermission(alert: true, badge: true, sound: true);
+
+    if (kDebugMode) {
+      debugPrint('[FCM] Notification permission prompt completed');
+    }
+  }
+
+  Future<bool> _notificationsAlreadyEnabled() async {
+    if (!kIsWeb && Platform.isAndroid) {
+      final androidPlugin = _local.resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
+      final enabled = await androidPlugin?.areNotificationsEnabled();
+      return enabled == true;
+    }
+
+    if (!kIsWeb && Platform.isIOS) {
+      final settings = await _messaging.getNotificationSettings();
+      return settings.authorizationStatus == AuthorizationStatus.authorized ||
+          settings.authorizationStatus == AuthorizationStatus.provisional;
+    }
+
+    return false;
   }
 
   Future<void> _refreshAndSyncToken() async {
@@ -274,6 +332,11 @@ class NotificationService {
           importance: Importance.high,
           priority: Priority.high,
           icon: '@drawable/ic_notification',
+        ),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
         ),
       ),
       payload: jsonEncode(saved.toTapPayload()),
