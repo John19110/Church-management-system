@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/routing/app_router.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
@@ -13,6 +14,7 @@ import '../../unified_form/widgets/unified_entity_detail_header.dart';
 import '../../unified_form/widgets/unified_entity_form.dart';
 import '../../../shared/widgets/section_header.dart';
 import '../../../core/theme/app_dimens.dart';
+import '../providers/servants_providers.dart';
 
 class ServantDetailScreen extends ConsumerWidget {
   final int id;
@@ -25,6 +27,8 @@ class ServantDetailScreen extends ConsumerWidget {
       entityFormDataProvider((entity: UnifiedEntityNames.servant, id: id)),
     );
     final roleAsync = ref.watch(currentUserRoleProvider);
+    final profileAsync = ref.watch(servantProfileProvider);
+    final servantAsync = ref.watch(servantDetailProvider(id));
 
     return roleAsync.when(
       loading: () => Scaffold(
@@ -37,26 +41,51 @@ class ServantDetailScreen extends ConsumerWidget {
       ),
       data: (role) {
         final canManage = AuthRoleUtils.canManageCustomFields(role);
+        final currentServantId = profileAsync.valueOrNull?.id;
+        final targetRoles = servantAsync.valueOrNull?.roles;
+        final rolesResolved =
+            role != 'admin' || !servantAsync.isLoading;
+        final canEdit = rolesResolved &&
+            AuthRoleUtils.canEditServant(
+              role: role,
+              servantId: id,
+              currentServantId: currentServantId,
+              targetRoles: targetRoles,
+            );
 
         return Scaffold(
           appBar: AppBar(
             title: Text(l10n.servantDetails),
             actions: [
-              IconButton(
-                icon: const Icon(Icons.edit),
-                tooltip: l10n.editServant,
-                onPressed: () async {
-                  final saved = await context.push<bool>('/servants/$id/edit');
-                  if (saved == true) {
+              if (canEdit)
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  tooltip: l10n.editServant,
+                  onPressed: () async {
+                    if (role == 'servant') {
+                      await context.push(AppRoutes.profileEdit);
+                      ref.invalidate(servantProfileProvider);
+                      ref.invalidate(servantProfileFormDataProvider);
+                    } else {
+                      final saved =
+                          await context.push<bool>('/servants/$id/edit');
+                      if (saved == true) {
+                        ref.invalidate(
+                          entityFormDataProvider((
+                            entity: UnifiedEntityNames.servant,
+                            id: id,
+                          )),
+                        );
+                      }
+                    }
                     ref.invalidate(
                       entityFormDataProvider((
                         entity: UnifiedEntityNames.servant,
                         id: id,
                       )),
                     );
-                  }
-                },
-              ),
+                  },
+                ),
             ],
           ),
           body: formAsync.when(

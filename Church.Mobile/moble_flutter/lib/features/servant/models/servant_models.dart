@@ -33,6 +33,7 @@ class ServantReadDto {
   final String? joiningDate;
   final String? phoneNumber;
   final List<ClassroomSummaryDto> classrooms;
+  final List<String> roles;
 
   const ServantReadDto({
     required this.id,
@@ -43,6 +44,7 @@ class ServantReadDto {
     this.joiningDate,
     this.phoneNumber,
     this.classrooms = const [],
+    this.roles = const [],
   });
 
   String? get displayImageUrl =>
@@ -61,6 +63,10 @@ class ServantReadDto {
                     ClassroomSummaryDto.fromJson(e as Map<String, dynamic>))
                 .toList() ??
             [],
+        roles: (json['roles'] as List<dynamic>?)
+                ?.map((e) => e.toString())
+                .toList() ??
+            const [],
       );
 
   Map<String, dynamic> toJson() => {
@@ -72,6 +78,7 @@ class ServantReadDto {
         'joiningDate': joiningDate,
         'phoneNumber': phoneNumber,
         'classrooms': classrooms.map((c) => c.toJson()).toList(),
+        'roles': roles,
       };
 }
 

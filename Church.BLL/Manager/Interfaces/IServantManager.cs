@@ -18,6 +18,16 @@ namespace Church.BLL.Manager.Interfaces
         Task AddAsync(AdminAddServantDTO servantDto, string webRootPath);
         Task<ServantReadDTO?> GetByIdAsync(int id);
 
+        /// <summary>
+        /// Ensures the caller may read the servant (meeting isolation for Servant role).
+        /// </summary>
+        Task EnsureCanViewServantAsync(int servantId);
+
+        /// <summary>
+        /// Ensures the caller may modify the servant (Servant role: own profile only).
+        /// </summary>
+        Task EnsureCanModifyServantAsync(int servantId);
+
         Task<List<SelectOptionDTO>> GetServantsForSelection();
 
         Task UpdateAsync(ServantUpdateDTO servant);

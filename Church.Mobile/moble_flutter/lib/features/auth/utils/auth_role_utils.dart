@@ -82,4 +82,38 @@ class AuthRoleUtils {
 
   static bool canDeleteClassroom(String? role) =>
       role == 'admin' || role == 'superadmin';
+
+  /// Servants may edit only their own profile. Meeting admins cannot edit
+  /// admin/super-admin accounts (except their own linked profile).
+  static bool canEditServant({
+    required String? role,
+    required int servantId,
+    required int? currentServantId,
+    List<String>? targetRoles,
+  }) {
+    if (role == 'superadmin') return true;
+
+    if (role == 'servant') {
+      return currentServantId != null &&
+          currentServantId > 0 &&
+          currentServantId == servantId;
+    }
+
+    if (role == 'admin') {
+      if (currentServantId != null &&
+          currentServantId > 0 &&
+          currentServantId == servantId) {
+        return true;
+      }
+
+      final normalized =
+          targetRoles?.map((r) => r.trim().toLowerCase()).toList() ?? const [];
+      if (normalized.contains('admin') || normalized.contains('superadmin')) {
+        return false;
+      }
+      return true;
+    }
+
+    return false;
+  }
 }

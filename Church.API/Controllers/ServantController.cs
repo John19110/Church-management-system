@@ -98,6 +98,7 @@ namespace Church.API.Controllers
         public async Task<ActionResult<EntityFormDataDto>> GetFormData(int id)
         {
             if (id <= 0) return BadRequest("Servant id must be a positive integer.");
+            await _servantManager.EnsureCanViewServantAsync(id);
             return Ok(await _unifiedFormManager.GetFormDataAsync(CustomFieldEntityNames.Servant, id));
         }
 
@@ -114,6 +115,7 @@ namespace Church.API.Controllers
                 {
                     [""] = new[] { "Request body is required." }
                 });
+            await _servantManager.EnsureCanModifyServantAsync(id);
             await _unifiedFormManager.SaveFormDataAsync(CustomFieldEntityNames.Servant, id, request);
             return Ok(new { message = "Form saved." });
         }
@@ -149,6 +151,8 @@ namespace Church.API.Controllers
 
             if (!ModelState.IsValid)
                 return ValidationProblem(ModelState);
+
+            await _servantManager.EnsureCanModifyServantAsync(id);
 
             var updateDto = form.ToUpdateDto();
             updateDto.Id = id;

@@ -10,6 +10,7 @@ using Church.BLL.Manager.Interfaces;
 using Church.DAL.Abstractions;
 using Church.DAL.Repository.Interfaces;
 using Church.DAL.Models;
+using Church.Domain;
 
 namespace Church.BLL.Manager.Implementations
 {
@@ -223,11 +224,125 @@ namespace Church.BLL.Manager.Implementations
             if (servant == null)
                 return null;
 
-            return _mapper.Map<ServantReadDTO>(servant);
+            if (_currentUser.IsInRole("Servant"))
+            {
+                if (servant.MeetingId is not int meetingId || meetingId <= 0)
+                    return null;
+
+                await EnsureServantCanAccessMeetingAsync(meetingId);
+            }
+
+            return await MapToReadDtoAsync(servant);
+        }
+
+        public async Task EnsureCanViewServantAsync(int servantId)
+        {
+            if (servantId <= 0)
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["id"] = new[] { "Servant id must be a positive integer." }
+                });
+            }
+
+            if (!_currentUser.IsInRole("Servant"))
+                return;
+
+            var servant = await _servantRepository.GetByIdAsync(servantId);
+            if (servant == null)
+                throw new NotFoundException($"Servant with id {servantId} not found.");
+
+            if (servant.MeetingId is not int meetingId || meetingId <= 0)
+            {
+                throw new UnauthorizedAccessException(
+                    "You can only view servants assigned to your meeting.");
+            }
+
+            await EnsureServantCanAccessMeetingAsync(meetingId);
+        }
+
+        public async Task EnsureCanModifyServantAsync(int servantId)
+        {
+            if (servantId <= 0)
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["id"] = new[] { "Servant id must be a positive integer." }
+                });
+            }
+
+            if (_currentUser.IsInRole("Servant"))
+            {
+                var callerServantId = await GetCallerServantIdAsync();
+                if (!callerServantId.HasValue || callerServantId.Value != servantId)
+                {
+                    throw new UnauthorizedAccessException(
+                        "You can only edit your own servant profile.");
+                }
+
+                return;
+            }
+
+            if (_currentUser.IsInRole("Admin") && !_currentUser.IsInRole("SuperAdmin"))
+            {
+                var callerServantId = await GetCallerServantIdAsync();
+                if (callerServantId.HasValue && callerServantId.Value == servantId)
+                    return;
+
+                await EnsureTargetIsNotAdminOrSuperAdminAsync(servantId);
+            }
+        }
+
+        private async Task EnsureTargetIsNotAdminOrSuperAdminAsync(int servantId)
+        {
+            var servant = await _servantRepository.GetByIdAsync(servantId);
+            if (servant == null)
+                throw new NotFoundException($"Servant with id {servantId} not found.");
+
+            if (string.IsNullOrWhiteSpace(servant.ApplicationUserId))
+                return;
+
+            var user = await _userManager.FindByIdAsync(servant.ApplicationUserId);
+            if (user == null)
+                return;
+
+            var roles = await _userManager.GetRolesAsync(user);
+            if (roles.Any(static r =>
+                    string.Equals(r, "Admin", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(r, "SuperAdmin", StringComparison.OrdinalIgnoreCase)))
+            {
+                throw new UnauthorizedAccessException(
+                    "Meeting admins cannot edit admin or super admin accounts.");
+            }
+        }
+
+        private async Task<ServantReadDTO> MapToReadDtoAsync(Servant servant)
+        {
+            var dto = _mapper.Map<ServantReadDTO>(servant);
+
+            if (!string.IsNullOrWhiteSpace(servant.ApplicationUserId))
+            {
+                var user = await _userManager.FindByIdAsync(servant.ApplicationUserId);
+                if (user != null)
+                    dto.Roles = (await _userManager.GetRolesAsync(user)).ToList();
+            }
+
+            return dto;
+        }
+
+        private async Task<int?> GetCallerServantIdAsync()
+        {
+            if (string.IsNullOrWhiteSpace(_currentUser.UserId))
+                return null;
+
+            var me = await _servantRepository.GetByApplicationUserIdAsync(_currentUser.UserId);
+            return me?.Id;
         }
 
         public async Task UpdateAsync(ServantUpdateDTO servantUpdateDTO)
         {
+            await EnsureCanModifyServantAsync(servantUpdateDTO.Id);
+
             var existing = await _servantRepository.GetByIdAsync(servantUpdateDTO.Id);
 
             if (existing == null)
@@ -256,6 +371,8 @@ namespace Church.BLL.Manager.Implementations
         {
             if (id <= 0)
                 return false;
+
+            await EnsureCanModifyServantAsync(id);
 
             // The cascade delete below runs unscoped, so ownership must be proven here first.
             // This tenant-filtered read returns null for a servant in another church or meeting,

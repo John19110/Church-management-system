@@ -94,6 +94,8 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen>
     final formAsync = ref.watch(
       entityFormDataProvider((entity: UnifiedEntityNames.servant, id: widget.id)),
     );
+    final profileAsync = ref.watch(servantProfileProvider);
+    final servantAsync = ref.watch(servantDetailProvider(widget.id));
 
     return roleAsync.when(
       loading: () => Scaffold(
@@ -106,6 +108,27 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen>
       ),
       data: (role) {
         final canManage = AuthRoleUtils.canManageCustomFields(role);
+        final currentServantId = profileAsync.valueOrNull?.id;
+        final targetRoles = servantAsync.valueOrNull?.roles;
+        final rolesResolved =
+            role != 'admin' || !servantAsync.isLoading;
+        final canEdit = rolesResolved &&
+            AuthRoleUtils.canEditServant(
+              role: role,
+              servantId: widget.id,
+              currentServantId: currentServantId,
+              targetRoles: targetRoles,
+            );
+
+        if (!canEdit) {
+          return Scaffold(
+            appBar: AppBar(title: Text(l10n.editServant)),
+            body: AppErrorWidget(
+              message: l10n.notAuthorized,
+              onRetry: () => context.pop(),
+            ),
+          );
+        }
 
         return Scaffold(
           resizeToAvoidBottomInset: true,

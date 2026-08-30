@@ -19,5 +19,6 @@ namespace Church.BLL.DTOS
         public DateOnly? JoiningDate { get; set; }
         public string? PhoneNumber { get; set; }
         public List<ClassroomReadDTO>? Classrooms { get; set; } = new();
+        public List<string> Roles { get; set; } = new();
     }
 }
