@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Delete Your Account | My Church</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f6fa;
+      --surface: #ffffff;
+      --text: #161c27;
+      --muted: #6b7280;
+      --primary: #2563eb;
+      --danger: #d92d20;
+      --border: #e4e8f0;
+      --shadow: 0 16px 40px rgba(22, 28, 39, .08);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        color-scheme: dark;
+        --bg: #0e1622;
+        --surface: #18212f;
+        --text: #e7ecf3;
+        --muted: #9ba6b6;
+        --primary: #60a5fa;
+        --danger: #ff7b72;
+        --border: #2a3546;
+        --shadow: none;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.65;
+    }
+    main { width: min(760px, calc(100% - 32px)); margin: 40px auto; }
+    .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; font-weight: 800; }
+    .mark {
+      display: grid; place-items: center; width: 42px; height: 42px;
+      color: white; background: var(--primary); border-radius: 13px; font-size: 25px;
+    }
+    article {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 20px; padding: clamp(24px, 5vw, 48px); box-shadow: var(--shadow);
+    }
+    h1 { margin: 0 0 12px; font-size: clamp(2rem, 6vw, 3rem); line-height: 1.15; }
+    h2 { margin-top: 34px; font-size: 1.25rem; }
+    p, li { color: var(--muted); }
+    .warning {
+      padding: 16px 18px; border-left: 4px solid var(--danger);
+      border-radius: 8px; background: color-mix(in srgb, var(--danger) 9%, transparent);
+      color: var(--text);
+    }
+    ol, ul { padding-left: 24px; }
+    a { color: var(--primary); font-weight: 650; }
+    footer { margin-top: 24px; text-align: center; color: var(--muted); font-size: .9rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="brand"><span class="mark" aria-hidden="true">✝</span> My Church</div>
+    <article>
+      <h1>Delete your account</h1>
+      <p class="warning"><strong>Account deletion is permanent and cannot be undone.</strong></p>
+
+      <h2>Delete from the app</h2>
+      <ol>
+        <li>Sign in to My Church.</li>
+        <li>Open <strong>Profile</strong> and scroll to the bottom.</li>
+        <li>Select <strong>Delete Account</strong>.</li>
+        <li>Review the warning and confirm <strong>Delete Account</strong> again.</li>
+      </ol>
+      <p>Your request is normally completed immediately. In unusual cases involving backups,
+        full removal may take up to <strong>30 days</strong>.</p>
+
+      <h2>If you cannot access the app</h2>
+      <p>Email <a href="mailto:johnpolis122@gmail.com">johnpolis122@gmail.com</a> from the
+        phone number or email associated with your account. We may ask you to verify ownership
+        before processing the request.</p>
+
+      <h2>Data permanently deleted</h2>
+      <ul>
+        <li>Your login account, credentials, roles, claims, tokens, and authentication records.</li>
+        <li>Your name, phone number, profile photo, birth/joining dates, and pending-registration data.</li>
+        <li>Your servant profile, classroom assignments, and personal custom-field values.</li>
+        <li>Locally stored authentication tokens, preferences, and cached user data on the device used to delete the account.</li>
+      </ul>
+
+      <h2>Data that may be retained</h2>
+      <p>Shared church operational records may remain where deleting them would affect other
+        users—for example attendance events or shared field definitions—but they are detached
+        from and no longer identify your deleted account. Minimal records may be retained when
+        required for legal compliance, security, fraud prevention, dispute resolution, or
+        enforcement of agreements.</p>
+      <p>Encrypted disaster-recovery backups may retain deleted data for up to
+        <strong>30 days</strong>. Backup copies are isolated from normal application use and
+        are removed through the regular backup rotation.</p>
+
+      <h2>More information</h2>
+      <p>Read our <a href="/privacy-policy">Privacy Policy</a>.</p>
+    </article>
+    <footer>© 2026 My Church. All rights reserved.</footer>
+  </main>
+</body>
+</html>

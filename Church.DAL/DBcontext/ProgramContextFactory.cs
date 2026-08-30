@@ -45,7 +45,7 @@ namespace Church.DAL.DBcontext
                 connectionString,
                 sql => SqlServerResilience.ConfigureEfSqlOptions(
                     sql,
-                    typeof(ProgramContext).Assembly.GetName().Name!));
+                    "Church.DAL"));
 
             // No HTTP pipeline at design time; accessor is only used for global query filters.
             return new ProgramContext(optionsBuilder.Options, new TenantContextState());

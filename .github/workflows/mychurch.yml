@@ -48,6 +48,11 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
+      - name: Clean
+        run: |
+          dotnet clean "${{ env.API_PROJECT }}" --configuration ${{ env.CONFIGURATION }}
+          dotnet clean "${{ env.TEST_PROJECT }}" --configuration ${{ env.CONFIGURATION }}
+
       - name: Restore
         run: |
           dotnet restore "${{ env.API_PROJECT }}"
@@ -76,8 +81,15 @@ jobs:
           # Publish ONLY Church.API — never Church.sln / Church.Tests.
           dotnet publish "${{ env.API_PROJECT }}" \
             --configuration ${{ env.CONFIGURATION }} \
-            --no-restore \
             --output "${{ env.PUBLISH_DIR }}"
+
+      - name: Create deployment zip
+        run: |
+          set -euo pipefail
+          cd "${{ env.PUBLISH_DIR }}"
+          zip -r ../church-api.zip .
+          cd ..
+          ls -la church-api.zip
 
       - name: Verify publish output is Church.API only
         run: |
@@ -112,7 +124,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: church-api
-          path: ${{ env.PUBLISH_DIR }}
+          path: church-api.zip
           if-no-files-found: error
 
   deploy:
@@ -129,18 +141,18 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: church-api
-          path: ${{ env.PUBLISH_DIR }}
+          path: .
 
       - name: Verify downloaded package
         run: |
           set -euo pipefail
-          PUBLISH="${{ env.PUBLISH_DIR }}"
-          find "$PUBLISH" -maxdepth 1 -type f -print | sort
-          test -f "$PUBLISH/Church.API.dll"
-          test -f "$PUBLISH/Church.API.runtimeconfig.json"
-          test ! -f "$PUBLISH/Church.DAL.runtimeconfig.json"
-          test ! -f "$PUBLISH/Church.Tests.runtimeconfig.json"
-          RUNTIMECONFIG_COUNT=$(find "$PUBLISH" -maxdepth 1 -name '*.runtimeconfig.json' | wc -l)
+          unzip -l church-api.zip | head -n 40
+          test -f church-api.zip
+          unzip -p church-api.zip Church.API.dll > /dev/null
+          unzip -p church-api.zip Church.BLL.dll > /dev/null
+          unzip -p church-api.zip Church.DAL.dll > /dev/null
+          RUNTIMECONFIG_COUNT=$(unzip -l church-api.zip | awk '/runtimeconfig.json$/ {count++} END {print count+0}')
+          echo "runtimeconfig.json count: $RUNTIMECONFIG_COUNT"
           test "$RUNTIMECONFIG_COUNT" -eq 1
 
       - name: Azure Login (OIDC)
@@ -163,10 +175,16 @@ jobs:
           echo "Startup command set to: dotnet Church.API.dll"
 
       - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          package: ${{ env.PUBLISH_DIR }}
+        run: |
+          set -euo pipefail
+          az webapp deploy \
+            --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
+            --name "${{ env.AZURE_WEBAPP_NAME }}" \
+            --src-path church-api.zip \
+            --type zip \
+            --clean true \
+            --restart true \
+            --timeout 600000
 
       - name: Wait for app / Swagger document
         id: swagger

@@ -260,7 +260,7 @@ builder.Services.AddDbContext<ProgramContext>(options =>
         cs,
         sql => SqlServerResilience.ConfigureEfSqlOptions(
             sql,
-            typeof(ProgramContext).Assembly.GetName().Name!));
+            "Church.DAL"));
 });
 
 

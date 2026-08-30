@@ -190,20 +190,20 @@ namespace Church.API.Middlewares
 
 
                 _logger.LogError(
-                    ex,
                     "Unhandled exception depth={Depth}. " +
                     "Type={ExceptionType}. " +
                     "Message={Message}. " +
                     "Method={Method}. " +
                     "Path={Path}. " +
-                    "TraceId={TraceId}",
+                    "TraceId={TraceId}. " +
+                    "StackTrace={StackTrace}",
                     depth,
-                    ex.GetType().FullName,
+                    ex.GetType().FullName ?? ex.GetType().Name,
                     message,
                     context.Request.Method,
                     context.Request.Path,
-                    context.TraceIdentifier
-                );
+                    context.TraceIdentifier,
+                    ex.StackTrace);
             }
         }
 
