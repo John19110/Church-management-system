@@ -120,10 +120,13 @@ class NotificationService {
 
     await NotificationInboxStore.instance.ensureInitialized();
 
-    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    // Background isolate handler and local notifications are mobile-only.
+    if (!kIsWeb) {
+      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+      await _initLocalNotifications();
+      await _createAndroidChannel();
+    }
 
-    await _initLocalNotifications();
-    await _createAndroidChannel();
     await _configureForegroundPresentation();
     _attachMessageHandlers();
 
@@ -149,11 +152,13 @@ class NotificationService {
       return;
     }
 
-    final launch = await _local.getNotificationAppLaunchDetails();
-    if (launch?.didNotificationLaunchApp == true) {
-      final payload = _decodeTapPayload(launch!.notificationResponse?.payload);
-      if (payload != null) {
-        await _handleOpenedFromPayload(payload, source: 'local_cold_start');
+    if (!kIsWeb) {
+      final launch = await _local.getNotificationAppLaunchDetails();
+      if (launch?.didNotificationLaunchApp == true) {
+        final payload = _decodeTapPayload(launch!.notificationResponse?.payload);
+        if (payload != null) {
+          await _handleOpenedFromPayload(payload, source: 'local_cold_start');
+        }
       }
     }
   }
@@ -319,6 +324,8 @@ class NotificationService {
     final title = saved.title;
     final body = saved.body;
     if (title == null && body == null) return;
+
+    if (kIsWeb) return;
 
     await _local.show(
       id: saved.id.hashCode,

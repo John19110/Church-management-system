@@ -23,26 +23,32 @@ import 'shared/widgets/app_form_shell.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Need prefs before first splash paint so light/dark matches app ThemeMode.
-  final prefs = await SharedPreferences.getInstance();
-  final themeMode = ThemeController.loadInitial(prefs);
-  // Keep native splash in sync for this process + next cold start.
-  unawaited(SplashThemeSync.sync(themeMode));
-  // Must await: post-frame session restore reads TokenStorage.cachedToken.
-  // If warmCache is still in flight, cachedToken is null and FCM setup is skipped.
-  await TokenStorage.warmCache();
+  try {
+    // Need prefs before first splash paint so light/dark matches app ThemeMode.
+    final prefs = await SharedPreferences.getInstance();
+    final themeMode = ThemeController.loadInitial(prefs);
+    // Keep native splash in sync for this process + next cold start.
+    unawaited(SplashThemeSync.sync(themeMode));
+    // Must await: post-frame session restore reads TokenStorage.cachedToken.
+    // If warmCache is still in flight, cachedToken is null and FCM setup is skipped.
+    await TokenStorage.warmCache();
 
-  // Firebase + FCM must initialize before runApp (background handler registration).
-  await NotificationService.bootstrap();
+    // Firebase + FCM must initialize before runApp (background handler registration).
+    await NotificationService.bootstrap();
 
-  runApp(
-    ProviderScope(
-      overrides: [
-        sharedPreferencesProvider.overrideWithValue(prefs),
-      ],
-      child: const ChurchApp(),
-    ),
-  );
+    runApp(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+        ],
+        child: const ChurchApp(),
+      ),
+    );
+  } catch (e, stackTrace) {
+    debugPrint('STARTUP ERROR: $e');
+    debugPrintStack(stackTrace: stackTrace);
+    runApp(_StartupErrorApp(error: e));
+  }
 }
 
 class ChurchApp extends ConsumerStatefulWidget {
@@ -95,11 +101,18 @@ class _ChurchAppState extends ConsumerState<ChurchApp>
   }
 
   Future<void> _finishLaunchSplash() async {
-    final context = this.context;
-    await Future.wait<void>([
-      LocalCacheService.ensureInitialized(),
-      precacheImage(const AssetImage(AppLaunchSplash.logoAsset), context),
-    ]);
+    try {
+      final context = this.context;
+      await Future.wait<void>([
+        LocalCacheService.ensureInitialized(),
+        precacheImage(const AssetImage(AppLaunchSplash.logoAsset), context),
+      ]);
+    } catch (e, stackTrace) {
+      if (kDebugMode) {
+        debugPrint('[Splash] Launch prep failed: $e');
+        debugPrintStack(stackTrace: stackTrace);
+      }
+    }
 
     if (!mounted) return;
     await _fadeController.forward();
@@ -135,7 +148,8 @@ class _ChurchAppState extends ConsumerState<ChurchApp>
           fit: StackFit.expand,
           alignment: Alignment.center,
           children: [
-            MaterialApp.router(
+            Positioned.fill(
+              child: MaterialApp.router(
               title: AppLocalizations(locale).sundaySchool,
               theme: AppTheme.lightTheme,
               darkTheme: AppTheme.darkTheme,
@@ -157,6 +171,7 @@ class _ChurchAppState extends ConsumerState<ChurchApp>
                 );
               },
             ),
+            ),
             if (_showSplashOverlay)
               Positioned.fill(
                 child: IgnorePointer(
@@ -167,6 +182,32 @@ class _ChurchAppState extends ConsumerState<ChurchApp>
                 ),
               ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Shown when [main] fails before the real app can mount (avoids a blank page).
+class _StartupErrorApp extends StatelessWidget {
+  const _StartupErrorApp({required this.error});
+
+  final Object error;
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Center(
+              child: SelectableText(
+                'Startup error:\n$error',
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
         ),
       ),
     );

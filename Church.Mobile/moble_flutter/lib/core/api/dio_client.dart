@@ -20,6 +20,7 @@ Dio createDio() {
 
   dio.interceptors.add(_AuthInterceptor());
   dio.interceptors.add(DioRetryInterceptor(dio, maxRetries: 2));
+  dio.interceptors.add(_ApiErrorLogger());
   dio.interceptors.add(_FullUrlLogger());
 
   if (kDebugMode) {
@@ -31,6 +32,25 @@ Dio createDio() {
   }
 
   return dio;
+}
+
+/// Logs request URL and full Dio error details in debug builds.
+class _ApiErrorLogger extends Interceptor {
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    if (kDebugMode) {
+      debugPrint('API URL: ${err.requestOptions.uri}');
+      debugPrint(
+        'API ERROR: type=${err.type} message=${err.message} '
+        'status=${err.response?.statusCode}',
+      );
+      final data = err.response?.data;
+      if (data != null) {
+        debugPrint('API ERROR response: $data');
+      }
+    }
+    handler.next(err);
+  }
 }
 
 /// Logs the full resolved request URL (method + uri) before sending.

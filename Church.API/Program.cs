@@ -285,6 +285,17 @@ builder.Services.AddScoped<IUserValidator<ApplicationUser>, Church.BLL.Identity.
 // AutoMapper
 builder.Services.AddAutoMapper(m => m.AddProfile(new MappingProfile()));
 
+// Flutter Web (and other browser clients) call this API cross-origin; without CORS
+// the browser blocks requests after an OPTIONS preflight gets 401 from JWT auth.
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FlutterWeb", policy =>
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+});
+
 
 
 var app = builder.Build();
@@ -355,6 +366,8 @@ app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 
+// Must run before authentication so OPTIONS preflight succeeds without a JWT.
+app.UseCors("FlutterWeb");
 
 //// If you use [Authorize] anywhere, you should enable authentication:
 app.UseAuthentication();

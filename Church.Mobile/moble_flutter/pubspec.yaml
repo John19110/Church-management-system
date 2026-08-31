@@ -48,6 +48,11 @@ dependencies:
   firebase_messaging: ^16.6.0
   flutter_local_notifications: ^22.3.0
 
+# firebase_core_web 3.11.0 uses Object.isA<JSObject>() which requires Dart 3.12+.
+# This project uses Dart 3.11.x (Flutter 3.41.x); pin the last compatible web impl.
+dependency_overrides:
+  firebase_core_web: 3.10.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

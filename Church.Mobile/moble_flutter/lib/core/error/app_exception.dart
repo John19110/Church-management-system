@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
@@ -37,8 +38,24 @@ class UnauthorizedException extends AppException {
 }
 
 class NetworkException extends AppException {
-  const NetworkException()
-      : super('Network error. Please check your connection and try again.');
+  const NetworkException([String? detail])
+      : super(
+          detail ??
+              'Network error. Please check your connection and try again.',
+        );
+}
+
+class ForbiddenException extends AppException {
+  const ForbiddenException()
+      : super(
+          "You don't have permission to perform this action.",
+          statusCode: 403,
+        );
+}
+
+class ApiTimeoutException extends AppException {
+  const ApiTimeoutException()
+      : super('The server took too long to respond. Please try again.');
 }
 
 /// Normalized API error parsed from legacy or RFC 7807 ProblemDetails bodies.
@@ -105,6 +122,10 @@ String userFriendlyMessage(Object error, [AppLocalizations? l10n]) {
     return ValidationMessageLocalizer.localize(loc, error.message);
   }
   if (error is UnauthorizedException) return loc.sessionExpiredPleaseSignIn;
+  if (error is ForbiddenException) {
+    return error.message;
+  }
+  if (error is ApiTimeoutException) return error.message;
   if (error is NetworkException) return loc.networkErrorTryAgain;
   if (error is AppException && error.message.isNotEmpty) return error.message;
   if (error is DioException) {
@@ -240,10 +261,32 @@ ApiException _apiExceptionFromParsed(ParsedApiError parsed) {
 
 /// Maps a [DioException] to a user-friendly [AppException].
 AppException mapDioException(DioException e) {
-  if (e.type == DioExceptionType.connectionError ||
-      e.type == DioExceptionType.connectionTimeout ||
+  if (kDebugMode) {
+    debugPrint(
+      'API ERROR type=${e.type} message=${e.message} '
+      'url=${e.requestOptions.uri}',
+    );
+    debugPrint(
+      'API ERROR status=${e.response?.statusCode} data=${e.response?.data}',
+    );
+    if (kIsWeb &&
+        (e.type == DioExceptionType.connectionError ||
+            e.type == DioExceptionType.unknown)) {
+      debugPrint(
+        'API ERROR hint: browser may have blocked this cross-origin request '
+        '(check CORS / OPTIONS preflight in DevTools Network tab).',
+      );
+    }
+  }
+
+  if (e.type == DioExceptionType.connectionTimeout ||
       e.type == DioExceptionType.sendTimeout ||
       e.type == DioExceptionType.receiveTimeout) {
+    return const ApiTimeoutException();
+  }
+
+  if (e.type == DioExceptionType.connectionError ||
+      (e.type == DioExceptionType.unknown && e.response == null)) {
     return const NetworkException();
   }
 
@@ -252,6 +295,10 @@ AppException mapDioException(DioException e) {
     e.response?.data,
     httpStatusCode: statusCode,
   );
+
+  if (statusCode == 403) {
+    return ForbiddenException();
+  }
 
   // Login invalid credentials: 401 + AUTH_FAILED (not an expired session).
   if (statusCode == 401) {
