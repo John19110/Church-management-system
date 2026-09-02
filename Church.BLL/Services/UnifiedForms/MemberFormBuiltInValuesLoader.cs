@@ -37,13 +37,9 @@ namespace Church.BLL.Services.UnifiedForms
 
         private static string? ResolveImageUrl(Member member)
         {
-            if (!string.IsNullOrWhiteSpace(member.ImageUrl))
-                return member.ImageUrl.Trim();
-
-            if (!string.IsNullOrWhiteSpace(member.ImageFileName))
-                return $"/images/{member.ImageFileName.Trim()}";
-
-            return null;
+            return Utilities.ImageUrlNormalizer.ToPublicRelativePath(
+                member.ImageUrl,
+                member.ImageFileName);
         }
 
         private static string? FormatDate(DateOnly date)

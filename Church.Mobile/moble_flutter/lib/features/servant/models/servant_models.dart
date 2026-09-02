@@ -99,10 +99,12 @@ String? servantDisplayImageUrl({
   if (fileName.contains('://')) {
     return fileName;
   }
-  if (fileName.startsWith('/')) {
-    return fileName;
+  if (fileName.startsWith('members/') || fileName.startsWith('servants/')) {
+    return '/uploads/$fileName';
   }
-  return '/uploads/$fileName';
+
+  // Registration photos are stored under wwwroot/images via FileManager.
+  return '/images/$fileName';
 }
 
 class NamedEntityDto {

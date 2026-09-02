@@ -364,7 +364,22 @@ app.UseMiddleware<GlobalExceptionMiddleware>();
 // You can comment it out if needed.
 app.UseHttpsRedirection();
 
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        // UseStaticFiles short-circuits before UseCors; Flutter Web may fetch
+        // images cross-origin (especially when custom headers are involved).
+        var path = ctx.Context.Request.Path.Value ?? string.Empty;
+        if (path.StartsWith("/uploads", StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWith("/images", StringComparison.OrdinalIgnoreCase))
+        {
+            ctx.Context.Response.Headers["Access-Control-Allow-Origin"] = "*";
+            ctx.Context.Response.Headers["Access-Control-Allow-Headers"] = "*";
+            ctx.Context.Response.Headers["Access-Control-Allow-Methods"] = "GET, HEAD, OPTIONS";
+        }
+    }
+});
 
 // Must run before authentication so OPTIONS preflight succeeds without a JWT.
 app.UseCors("FlutterWeb");

@@ -510,21 +510,16 @@ namespace Church.BLL.Manager.Implementations
 
         private static string? ResolveMemberImageUrl(string? imageUrl, string? imageFileName)
         {
-            if (!string.IsNullOrWhiteSpace(imageUrl))
-                return imageUrl.Trim();
+            return Church.BLL.Utilities.ImageUrlNormalizer.ToPublicRelativePath(
+                imageUrl,
+                imageFileName);
+        }
 
-            if (string.IsNullOrWhiteSpace(imageFileName))
-                return null;
-
-            var file = imageFileName.Trim();
-            if (file.Contains("://", StringComparison.Ordinal))
-                return file;
-            if (file.StartsWith('/'))
-                return file;
-            if (file.StartsWith("members/", StringComparison.OrdinalIgnoreCase))
-                return $"/{file}";
-
-            return $"/images/{file}";
+        private static string? ResolveServantImageUrl(string? imageUrl, string? imageFileName)
+        {
+            return Church.BLL.Utilities.ImageUrlNormalizer.ToPublicRelativePath(
+                imageUrl,
+                imageFileName);
         }
 
         private async Task<IReadOnlyDictionary<string, string?>> LoadClassroomValuesAsync(int id)
@@ -565,24 +560,6 @@ namespace Church.BLL.Manager.Implementations
                     : null,
                 ["imageUrl"] = ResolveServantImageUrl(s.ImageUrl, s.ImageFileName)
             };
-        }
-
-        private static string? ResolveServantImageUrl(string? imageUrl, string? imageFileName)
-        {
-            if (!string.IsNullOrWhiteSpace(imageUrl))
-                return imageUrl.Trim();
-
-            var fileName = imageFileName?.Trim();
-            if (string.IsNullOrEmpty(fileName))
-                return null;
-
-            if (fileName.Contains("://", StringComparison.Ordinal))
-                return fileName;
-
-            if (fileName.StartsWith('/'))
-                return fileName;
-
-            return $"/uploads/{fileName}";
         }
 
         private static bool ShouldIncludeInFormData(UnifiedFieldDefinitionDto def)

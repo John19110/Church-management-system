@@ -17,6 +17,12 @@ import 'notification_payload.dart';
 
 const String _prefsPermissionPromptedKey = 'fcm_notification_permission_prompted';
 const String _androidChannelId = 'my_church_default';
+
+/// [firebase_messaging] supports Android, iOS, macOS, and Web — not Windows/Linux.
+bool _isFcmSupported() {
+  if (kIsWeb) return true;
+  return Platform.isAndroid || Platform.isIOS || Platform.isMacOS;
+}
 const String _androidChannelName = 'My Church';
 const String _androidChannelDescription =
     'Church announcements, meetings, and updates';
@@ -106,6 +112,18 @@ class NotificationService {
 
   Future<void> _doBootstrap() async {
     if (_bootstrapped) return;
+
+    if (!_isFcmSupported()) {
+      if (kDebugMode) {
+        debugPrint(
+          '[FCM] Push notifications are not supported on this platform; '
+          'skipping Firebase/FCM bootstrap',
+        );
+      }
+      await NotificationInboxStore.instance.ensureInitialized();
+      _bootstrapped = true;
+      return;
+    }
 
     if (Firebase.apps.isEmpty) {
       await Firebase.initializeApp(
@@ -224,6 +242,8 @@ class NotificationService {
   }
 
   Future<void> onUserAuthenticated() async {
+    if (!_isFcmSupported()) return;
+
     if (kDebugMode) {
       debugPrint('[FCM] onUserAuthenticated() entered '
           '(bootstrapped=$_bootstrapped)');
@@ -234,11 +254,15 @@ class NotificationService {
   }
 
   Future<void> onUserLoggedOut() async {
+    if (!_isFcmSupported()) return;
+
     final token = _currentToken;
     await _registrar?.clearToken(token);
   }
 
   Future<void> _requestPermissionIfNeeded() async {
+    if (!_isFcmSupported()) return;
+
     final prefs = await SharedPreferences.getInstance();
     final alreadyPrompted = prefs.getBool(_prefsPermissionPromptedKey) ?? false;
 

@@ -21,12 +21,13 @@ String? memberDisplayImageUrl({
   if (fileName.startsWith('/')) {
     return fileName;
   }
-  // Edit path stores under wwwroot/members via IFileStorage.
   if (fileName.startsWith('members/')) {
-    return '/$fileName';
+    return '/uploads/$fileName';
+  }
+  if (fileName.startsWith('servants/')) {
+    return '/uploads/$fileName';
   }
 
-  // Legacy create path stores files under wwwroot/images.
   return '/images/$fileName';
 }
 

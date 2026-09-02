@@ -8,6 +8,7 @@ using Church.BLL.Manager.Interfaces;
 using Church.DAL.Models.CustomFields;
 using Church.DAL.Repository.Interfaces;
 using Church.Domain;
+using Church.BLL.Utilities;
 using Church.DAL.Models;
 
 namespace Church.BLL.Application.Servants
@@ -275,20 +276,7 @@ namespace Church.BLL.Application.Servants
 
         private static string? ResolveServantImageUrl(string? imageUrl, string? imageFileName)
         {
-            if (!string.IsNullOrWhiteSpace(imageUrl))
-                return imageUrl.Trim();
-
-            var fileName = imageFileName?.Trim();
-            if (string.IsNullOrEmpty(fileName))
-                return null;
-
-            if (fileName.Contains("://", StringComparison.Ordinal))
-                return fileName;
-
-            if (fileName.StartsWith('/'))
-                return fileName;
-
-            return $"/uploads/{fileName}";
+            return ImageUrlNormalizer.ToPublicRelativePath(imageUrl, imageFileName);
         }
     }
 }

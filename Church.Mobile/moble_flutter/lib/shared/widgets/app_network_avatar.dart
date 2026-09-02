@@ -1,35 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../../core/constants/app_constants.dart';
-import '../../core/storage/token_storage.dart';
-
-String? resolveApiImageUrl(String? raw) {
-  final url = raw?.trim();
-  if (url == null || url.isEmpty) return null;
-
-  final lower = url.toLowerCase();
-  if (lower.startsWith('http://') || lower.startsWith('https://')) {
-    final uri = Uri.tryParse(url);
-    if (uri != null && uri.hasScheme && uri.path.isNotEmpty) {
-      final path = uri.path;
-      // Rebase stored absolute URLs onto the configured API host (emulators/dev).
-      if (path.startsWith('/uploads/') || path.startsWith('/images/')) {
-        return '${AppConstants.baseUrl}$path';
-      }
-    }
-    return url;
-  }
-
-  if (url.startsWith('/')) return '${AppConstants.baseUrl}$url';
-  return '${AppConstants.baseUrl}/$url';
-}
-
-Map<String, String>? authImageHeaders() {
-  final token = TokenStorage.cachedToken;
-  if (token == null || token.isEmpty) return null;
-  return {'Authorization': 'Bearer $token'};
-}
+import '../../core/utils/api_image_url.dart';
 
 class AppNetworkAvatar extends StatefulWidget {
   final String? imageUrl;
@@ -65,36 +37,76 @@ class _AppNetworkAvatarState extends State<AppNetworkAvatar> {
 
   @override
   Widget build(BuildContext context) {
-    final resolved = _loadFailed ? null : resolveApiImageUrl(widget.imageUrl);
+    final resolved =
+        _loadFailed ? null : resolveApiImageUrl(widget.imageUrl);
 
-    if (kDebugMode && widget.debugTag != null) {
-      debugPrint(
-        '[AppNetworkAvatar:${widget.debugTag}] raw=${widget.imageUrl ?? 'null'} '
-        'resolved=${resolved ?? 'null'} failed=$_loadFailed',
+    debugLogApiImage(
+      context: widget.debugTag ?? 'avatar',
+      raw: widget.imageUrl,
+      resolved: resolved,
+      error: _loadFailed ? 'load_failed' : null,
+    );
+
+    if (resolved == null) {
+      return CircleAvatar(
+        radius: widget.radius,
+        backgroundColor: widget.backgroundColor,
+        child: widget.placeholder,
       );
     }
 
-    // Do not pass [placeholder] as [CircleAvatar.child] when an image is set —
-    // the child paints on top of [backgroundImage] and hides the photo.
-    return ExcludeSemantics(
-      child: CircleAvatar(
-        radius: widget.radius,
-        backgroundColor: widget.backgroundColor,
-        backgroundImage: resolved != null
-            ? NetworkImage(resolved, headers: authImageHeaders())
-            : null,
-        onBackgroundImageError: resolved == null
-            ? null
-            : (_, error) {
-                if (kDebugMode && widget.debugTag != null) {
-                  debugPrint(
-                    '[AppNetworkAvatar:${widget.debugTag}] load failed '
-                    'url=$resolved error=$error',
-                  );
-                }
+    final headers = authImageHeadersForUrl(resolved);
+
+    // Image.network + errorBuilder is reliable on Web; NetworkImage + headers
+    // triggers credentialed CORS fetches that fail for public /uploads assets.
+    return CircleAvatar(
+      radius: widget.radius,
+      backgroundColor: widget.backgroundColor,
+      child: ClipOval(
+        child: Image.network(
+          resolved,
+          width: widget.radius * 2,
+          height: widget.radius * 2,
+          fit: BoxFit.cover,
+          headers: headers,
+          errorBuilder: (context, error, stackTrace) {
+            if (kDebugMode) {
+              debugLogApiImage(
+                context: widget.debugTag ?? 'avatar',
+                raw: widget.imageUrl,
+                resolved: resolved,
+                error: error,
+              );
+            }
+            if (!_loadFailed && mounted) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (mounted) setState(() => _loadFailed = true);
-              },
-        child: resolved == null ? widget.placeholder : null,
+              });
+            }
+            return SizedBox(
+              width: widget.radius * 2,
+              height: widget.radius * 2,
+              child: Center(child: widget.placeholder),
+            );
+          },
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return SizedBox(
+              width: widget.radius * 2,
+              height: widget.radius * 2,
+              child: Center(
+                child: SizedBox(
+                  width: widget.radius * 0.6,
+                  height: widget.radius * 0.6,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
