@@ -12,6 +12,7 @@ import '../../firebase_options.dart';
 import '../../features/notifications/models/app_notification.dart';
 import '../api/dio_client.dart';
 import 'fcm_token_registrar.dart';
+import 'notification_image_helper.dart';
 import 'notification_inbox_store.dart';
 import 'notification_payload.dart';
 
@@ -334,11 +335,14 @@ class NotificationService {
 
   Future<void> _onForegroundMessage(RemoteMessage message) async {
     if (kDebugMode) {
-      debugPrint('[FCM] Message received');
+      debugPrint('[FCM] Notification received');
       debugPrint('[FCM] Message ID: ${message.messageId}');
       debugPrint('[FCM] Title: ${message.notification?.title}');
       debugPrint('[FCM] Body: ${message.notification?.body}');
       debugPrint('[FCM] Data: ${message.data}');
+      debugPrint(
+        '[FCM] Android imageUrl: ${message.notification?.android?.imageUrl}',
+      );
     }
 
     final saved = await NotificationInboxStore.instance.saveFromRemoteMessage(
@@ -351,11 +355,58 @@ class NotificationService {
 
     if (kIsWeb) return;
 
-    await _local.show(
+    // Foreground Android: FCM does not auto-render Console images — we must
+    // download and attach BigPictureStyleInformation on the local notification.
+    // Background/terminated: Android system tray shows the FCM notification
+    // (including image); this handler must not also call show() there.
+    await _showLocalNotification(
       id: saved.id.hashCode,
       title: title,
       body: body,
-      notificationDetails: const NotificationDetails(
+      imageUrl: extractNotificationImageUrl(message),
+      payload: jsonEncode(saved.toTapPayload()),
+    );
+  }
+
+  Future<void> _showLocalNotification({
+    required int id,
+    required String? title,
+    required String? body,
+    required String payload,
+    String? imageUrl,
+  }) async {
+    StyleInformation? styleInformation;
+    AndroidBitmap<Object>? largeIcon;
+
+    if (!kIsWeb && Platform.isAndroid && imageUrl != null) {
+      final imagePath = await downloadNotificationImage(imageUrl);
+      if (imagePath != null) {
+        final bitmap = FilePathAndroidBitmap(imagePath);
+        largeIcon = bitmap;
+        styleInformation = BigPictureStyleInformation(
+          bitmap,
+          largeIcon: bitmap,
+          contentTitle: title,
+          summaryText: body,
+          hideExpandedLargeIcon: true,
+        );
+        if (kDebugMode) {
+          debugPrint('[FCM] Displaying BigPicture notification');
+        }
+      } else if (kDebugMode) {
+        debugPrint(
+          '[FCM] Falling back to plain notification (image unavailable)',
+        );
+      }
+    } else if (kDebugMode && imageUrl == null) {
+      debugPrint('[FCM] No notification image URL on message');
+    }
+
+    await _local.show(
+      id: id,
+      title: title,
+      body: body,
+      notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           _androidChannelId,
           _androidChannelName,
@@ -363,14 +414,16 @@ class NotificationService {
           importance: Importance.high,
           priority: Priority.high,
           icon: '@drawable/ic_notification',
+          largeIcon: largeIcon,
+          styleInformation: styleInformation,
         ),
-        iOS: DarwinNotificationDetails(
+        iOS: const DarwinNotificationDetails(
           presentAlert: true,
           presentBadge: true,
           presentSound: true,
         ),
       ),
-      payload: jsonEncode(saved.toTapPayload()),
+      payload: payload,
     );
   }
 
