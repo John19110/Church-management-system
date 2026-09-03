@@ -39,6 +39,10 @@ using Church.BLL.Services.AccountDeletion;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -82,6 +86,21 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 });
 
 builder.Services.AddHttpContextAccessor();
+
+// The anonymous registration endpoints accept multipart uploads. The framework default allows a
+// ~128 MB body, which lets an unauthenticated caller exhaust disk and bandwidth; profile photos
+// never need more than a few megabytes.
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 8 * 1024 * 1024;
+    options.ValueLengthLimit = 1024 * 1024;
+    options.MultipartHeadersLengthLimit = 32 * 1024;
+});
+
+builder.Services.Configure<KestrelServerOptions>(options =>
+{
+    options.Limits.MaxRequestBodySize = 8 * 1024 * 1024;
+});
 
 // Layered architecture: tenant + user context (API adapters → BLL/DAL abstractions)
 builder.Services.AddScoped<TenantContextState>();
@@ -204,11 +223,25 @@ builder.Services.AddAuthentication(option =>
                 "Set it in appsettings.Production.json or as an environment variable in the hosting environment.");
         }
 
-        var SecretKeybyte = Encoding.UTF8.GetBytes(secretKey);
-        SecurityKey securityKey = new SymmetricSecurityKey(SecretKeybyte);
+        // A short HMAC key makes offline brute-force of the signing secret feasible, which would
+        // let an attacker mint tokens for any user, church and role.
+        var secretKeyBytes = Encoding.UTF8.GetBytes(secretKey);
+        if (secretKeyBytes.Length < 32)
+        {
+            throw new InvalidOperationException(
+                "Configuration value 'SecretKey' must be at least 32 bytes (256 bits) to safely sign HS256 tokens.");
+        }
+
+        SecurityKey securityKey = new SymmetricSecurityKey(secretKeyBytes);
         options.TokenValidationParameters = new TokenValidationParameters()
         {
             IssuerSigningKey = securityKey,
+            ValidateIssuerSigningKey = true,
+            // Pin the algorithm so a token cannot be presented under a weaker/unexpected alg.
+            ValidAlgorithms = new[] { SecurityAlgorithms.HmacSha256 },
+            ValidateLifetime = true,
+            // Default 5-minute skew keeps revoked/expired tokens usable for too long.
+            ClockSkew = TimeSpan.FromSeconds(30),
             // we use them if we have another independent server for validation
             ValidateIssuer = false,
             ValidateAudience = false
@@ -230,13 +263,33 @@ builder.Services.AddAuthentication(option =>
 
                 await using var scope = context.HttpContext.RequestServices.CreateAsyncScope();
                 var db = scope.ServiceProvider.GetRequiredService<ProgramContext>();
-                var userStillExists = await db.Users
+                var account = await db.Users
                     .AsNoTracking()
                     .IgnoreQueryFilters()
-                    .AnyAsync(u => u.Id == userId, context.HttpContext.RequestAborted);
+                    .Where(u => u.Id == userId)
+                    .Select(u => new { u.IsApproved, u.RegistrationStatus, u.ChurchId })
+                    .FirstOrDefaultAsync(context.HttpContext.RequestAborted);
 
-                if (!userStillExists)
+                if (account is null)
+                {
                     context.Fail("Account no longer exists.");
+                    return;
+                }
+
+                // Tokens live for days and carry ChurchId/Role, so revocation and tenant moves
+                // would otherwise not take effect until the token expired.
+                if (!account.IsApproved || account.RegistrationStatus != RegistrationStatus.Approved)
+                {
+                    context.Fail("Account is no longer approved.");
+                    return;
+                }
+
+                var tokenChurchId = context.Principal?.FindFirstValue("ChurchId");
+                if (!int.TryParse(tokenChurchId, out var claimChurchId)
+                    || account.ChurchId != claimChurchId)
+                {
+                    context.Fail("Church assignment has changed; sign in again.");
+                }
             }
         };
     }
@@ -269,6 +322,19 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.User.AllowedUserNameCharacters =
         "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+ " +
         "ءآأؤإئابةتثجحخدذرزسشصضطظعغفقكلمنهوىي";
+
+    // Identity's default minimum is 6 characters; church accounts are phone-number based and
+    // therefore easy to target, so require a longer passphrase.
+    options.Password.RequiredLength = 8;
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireUppercase = false;
+    options.Password.RequireNonAlphanumeric = false;
+
+    // Lockout is only effective because the login path below records failures explicitly.
+    options.Lockout.AllowedForNewUsers = true;
+    options.Lockout.MaxFailedAccessAttempts = 8;
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
 });
 
 
@@ -287,13 +353,63 @@ builder.Services.AddAutoMapper(m => m.AddProfile(new MappingProfile()));
 
 // Flutter Web (and other browser clients) call this API cross-origin; without CORS
 // the browser blocks requests after an OPTIONS preflight gets 401 from JWT auth.
+// Origins come from configuration ("Cors:AllowedOrigins") so production can be locked to the
+// real Flutter Web domain without a rebuild. A wildcard origin is only acceptable in Development.
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>() ?? Array.Empty<string>();
+
+if (!builder.Environment.IsDevelopment() && allowedOrigins.Length == 0)
+{
+    throw new InvalidOperationException(
+        "Missing required configuration 'Cors:AllowedOrigins'. Outside Development the API must " +
+        "list the exact Flutter Web origins (e.g. https://app.mychurch.example) instead of allowing any origin.");
+}
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("FlutterWeb", policy =>
+    {
+        if (allowedOrigins.Length == 0)
+        {
+            // Development only: local Flutter Web serves from a random localhost port each run.
+            policy.SetIsOriginAllowed(_ => true);
+        }
+        else
+        {
+            policy.WithOrigins(allowedOrigins);
+        }
+
         policy
-            .AllowAnyOrigin()
             .AllowAnyHeader()
-            .AllowAnyMethod());
+            .AllowAnyMethod();
+    });
+});
+
+// Abuse protection for credential and account-creation endpoints. Without this, the login
+// endpoint is an unmetered password-guessing oracle reachable from any origin.
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.AddPolicy("auth", context => RateLimitPartition.GetFixedWindowLimiter(
+        partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        factory: _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 10,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0
+        }));
+
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 300,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
 });
 
 
@@ -323,9 +439,31 @@ catch (Exception ex)
 // Must be first so it catches exceptions from all middleware/controllers.
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
-// Configure the HTTP request pipeline.
-//if (app.Environment.IsDevelopment())
-//{
+// Baseline response hardening. Kept minimal deliberately: a Content-Security-Policy is NOT set
+// here because the API also serves the static account-deletion/privacy pages and a wrong policy
+// would break them; CSP belongs on the Flutter Web host.
+app.Use(async (context, next) =>
+{
+    var headers = context.Response.Headers;
+    headers["X-Content-Type-Options"] = "nosniff";
+    headers["X-Frame-Options"] = "DENY";
+    headers["Referrer-Policy"] = "no-referrer";
+    headers["Cross-Origin-Resource-Policy"] = "cross-origin";
+    await next();
+});
+
+if (!app.Environment.IsProduction())
+{
+    app.UseHsts();
+}
+
+// Swagger documents every route, parameter and schema in the system. Publishing it alongside a
+// public deployment hands an attacker a complete API map, so it is limited to non-production.
+var swaggerEnabled = !app.Environment.IsProduction()
+    || app.Configuration.GetValue<bool>("Swagger:EnableInProduction");
+
+if (swaggerEnabled)
+{
     app.UseSwagger();
     app.UseSwaggerUI();
 
@@ -357,7 +495,7 @@ app.UseMiddleware<GlobalExceptionMiddleware>();
             // If something blocks browser launching, ignore to avoid crashing the app.
         }
     });
-//}
+}
 
 // If you are NOT running HTTPS (and you see it only listens on http),
 // this redirection can prevent reaching Swagger unless HTTPS is configured.
@@ -384,6 +522,8 @@ app.UseStaticFiles(new StaticFileOptions
 // Must run before authentication so OPTIONS preflight succeeds without a JWT.
 app.UseCors("FlutterWeb");
 
+app.UseRateLimiter();
+
 //// If you use [Authorize] anywhere, you should enable authentication:
 app.UseAuthentication();
 app.UseAuthorization();
@@ -403,5 +543,8 @@ app.MapGet(
         Path.Combine(environment.WebRootPath, "privacy-policy", "index.html"),
         "text/html; charset=utf-8"))
     .AllowAnonymous();
-app.MapGet("/", () => Results.Redirect("/swagger")).AllowAnonymous();
+app.MapGet(
+    "/",
+    () => swaggerEnabled ? Results.Redirect("/swagger") : Results.NoContent())
+    .AllowAnonymous();
 app.Run();

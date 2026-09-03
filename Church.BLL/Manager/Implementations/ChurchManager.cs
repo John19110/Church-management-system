@@ -1,7 +1,9 @@
 using Church.BLL.DTOS.ChurchDtos;
+using Church.BLL.Abstractions;
 using Church.BLL.Abstractions.Caching;
 using Church.BLL.Exceptions;
 using Church.BLL.Manager.Interfaces;
+using Church.DAL.Abstractions;
 using Church.DAL.Repository.Interfaces;
 
 namespace Church.BLL.Manager.Implementations
@@ -13,19 +15,44 @@ namespace Church.BLL.Manager.Implementations
         private readonly ICacheService _cache;
         private readonly ICacheKeyBuilder _cacheKeys;
         private readonly ICacheContextAccessor _cacheContext;
+        private readonly ITenantContext _tenantContext;
+        private readonly ICurrentUserContext _currentUser;
 
         public ChurchManager(
             IChurchRepository churchRepository,
             IServantRepository servantRepository,
             ICacheService cache,
             ICacheKeyBuilder cacheKeys,
-            ICacheContextAccessor cacheContext)
+            ICacheContextAccessor cacheContext,
+            ITenantContext tenantContext,
+            ICurrentUserContext currentUser)
         {
             _churchRepository = churchRepository;
             _servantRepository = servantRepository;
             _cache = cache;
             _cacheKeys = cacheKeys;
             _cacheContext = cacheContext;
+            _tenantContext = tenantContext;
+            _currentUser = currentUser;
+        }
+
+        /// <summary>
+        /// The church repository intentionally bypasses global query filters (join-by-code and
+        /// login run without a tenant), so every church read/write reached from an API route must
+        /// re-assert the tenant boundary here. Without this a caller from church A can read or
+        /// rename church B just by changing the route id.
+        /// </summary>
+        private void EnsureCallerOwnsChurch(int churchId)
+        {
+            if (!_currentUser.IsAuthenticated)
+                throw new UnauthorizedAccessException("User is not authenticated.");
+
+            var callerChurchId = _tenantContext.ChurchId;
+            if (callerChurchId is null or <= 0)
+                throw new UnauthorizedAccessException("ChurchId claim is missing.");
+
+            if (callerChurchId.Value != churchId)
+                throw new UnauthorizedAccessException("This church does not belong to your tenant.");
         }
 
         public async Task<ChurchReadDTO> GetByIdAsync(int id)
@@ -35,6 +62,8 @@ namespace Church.BLL.Manager.Implementations
                 {
                     ["ChurchId"] = new[] { "Church id must be a positive integer." }
                 });
+
+            EnsureCallerOwnsChurch(id);
 
             var ctx = _cacheContext.TryGet();
             if (ctx is null)
@@ -93,6 +122,8 @@ namespace Church.BLL.Manager.Implementations
                 {
                     ["Id"] = new[] { "The ID in the URL does not match the ID in the request body." }
                 });
+
+            EnsureCallerOwnsChurch(id);
 
             var church = await _churchRepository.GetByIdAsync(id);
             if (church == null)

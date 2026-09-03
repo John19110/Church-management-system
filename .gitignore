@@ -2,6 +2,8 @@
 bin/
 obj/
 artifacts/
+publish/
+publish-cors-test/
 
 # Visual Studio
 .vs/

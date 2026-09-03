@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Church.BLL.Services;
 
 public class FileManager : IFileManager
 {
@@ -10,7 +11,10 @@ public class FileManager : IFileManager
         if (file == null)
             return (null, null);
 
-        var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+        var extension = await ImageUploadValidator.ValidateAndGetExtensionAsync(file);
+
+        // Never reuse the client filename: a generated name removes traversal and overwrite risk.
+        var fileName = Guid.NewGuid().ToString() + extension;
 
         var folderPath = Path.Combine(webRootPath, folderName);
 

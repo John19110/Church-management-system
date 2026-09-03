@@ -57,12 +57,29 @@ namespace Church.BLL.Manager.Implementations
             return result;
         }
 
-        public async Task RejectAdmin(string userId)
+        /// <summary>
+        /// ApplicationUser has no global tenant query filter, so <see cref="UserManager{T}.FindByIdAsync"/>
+        /// resolves accounts in every church. Approval and rejection must therefore scope the lookup
+        /// to the caller's church explicitly, or a Super Admin can approve or delete accounts in
+        /// another tenant just by supplying that user's id.
+        /// </summary>
+        private async Task<ApplicationUser> FindUserInCallerChurchAsync(string userId)
         {
+            var churchId = _tenantContext.ChurchId
+                ?? throw new UnauthorizedAccessException("ChurchId claim is missing");
+
             var user = await _userManager.FindByIdAsync(userId);
 
-            if (user == null)
+            // Pending self-registrations carry RequestedChurchId until approval assigns ChurchId.
+            if (user == null || (user.ChurchId != churchId && user.RequestedChurchId != churchId))
                 throw new NotFoundException($"User with id {userId} not found.");
+
+            return user;
+        }
+
+        public async Task RejectAdmin(string userId)
+        {
+            var user = await FindUserInCallerChurchAsync(userId);
 
             if (user.IsApproved)
                 throw new ValidationException(new Dictionary<string, string[]>
@@ -86,10 +103,7 @@ namespace Church.BLL.Manager.Implementations
 
         public async Task ApproveAdmin(string userId)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-
-            if (user == null)
-                throw new NotFoundException($"User with id {userId} not found.");
+            var user = await FindUserInCallerChurchAsync(userId);
 
             if (user.IsApproved)
                 throw new ValidationException(new Dictionary<string, string[]>

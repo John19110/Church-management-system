@@ -7,6 +7,7 @@ using Church.BLL.Configuration;
 using Church.BLL.DTOS;
 using Church.BLL.Exceptions;
 using Church.BLL.Manager.Interfaces;
+using Church.BLL.Services;
 using Church.DAL.Repository.Interfaces;
 using Church.DAL.Models;
 using Church.Domain;
@@ -359,7 +360,10 @@ namespace Church.BLL.Manager.Implementations
 
             if (memberDto.Image != null)
             {
-                fileName = Guid.NewGuid().ToString() + Path.GetExtension(memberDto.Image.FileName);
+                var extension = await ImageUploadValidator
+                    .ValidateAndGetExtensionAsync(memberDto.Image);
+
+                fileName = Guid.NewGuid().ToString() + extension;
 
                 var folderPath = Path.Combine("wwwroot", "images");
                 Directory.CreateDirectory(folderPath);

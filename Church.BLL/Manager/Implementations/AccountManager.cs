@@ -96,6 +96,23 @@ namespace Church.BLL.Manager.Implementations
             if (existingUser == null)
                 throw new InvalidCredentialsException();
 
+            // Without recording failures the login endpoint is an unlimited password oracle:
+            // CheckPasswordAsync on its own never touches AccessFailedCount.
+            if (await _userManager.IsLockedOutAsync(existingUser))
+                throw new InvalidCredentialsException();
+
+            // The password is verified BEFORE the approval gate on purpose. Reporting
+            // pending/rejected state to an unauthenticated caller would confirm which phone
+            // numbers are registered and what state they are in, without knowing the password.
+            var check = await _userManager.CheckPasswordAsync(existingUser, loginDto.Password);
+            if (!check)
+            {
+                await _userManager.AccessFailedAsync(existingUser);
+                throw new InvalidCredentialsException();
+            }
+
+            await _userManager.ResetAccessFailedCountAsync(existingUser);
+
             // Approval gate: rejected users are blocked permanently, pending users
             // must wait for the church Super Admin. Approved users continue.
             if (existingUser.RegistrationStatus == RegistrationStatus.Rejected)
@@ -103,10 +120,6 @@ namespace Church.BLL.Manager.Implementations
 
             if (existingUser.RegistrationStatus == RegistrationStatus.Pending || !existingUser.IsApproved)
                 throw new AccountNotApprovedException();
-
-            var check = await _userManager.CheckPasswordAsync(existingUser, loginDto.Password);
-            if (!check)
-                throw new InvalidCredentialsException();
 
             var claims = await BuildJwtClaims(existingUser);
             return AuthFlowResultDto.Success(_tokenService.CreateAccessToken(claims));

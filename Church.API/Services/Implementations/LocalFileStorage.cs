@@ -1,4 +1,5 @@
 using Church.API.Services.Interfaces;
+using Church.BLL.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,9 +21,7 @@ namespace Church.API.Services.Implementations
 
         public async Task<string> SaveImageAsync(IFormFile file, CancellationToken ct = default,string foldername=default)
         {
-            var allowed = new[] { ".jpg", ".jpeg", ".png", ".webp" };
-            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-            if (!allowed.Contains(ext)) throw new InvalidOperationException("Invalid image type.");
+            var ext = await ImageUploadValidator.ValidateAndGetExtensionAsync(file);
 
             var webRoot = _env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot");
             var uploads = Path.Combine(webRoot, "uploads", foldername);
@@ -47,7 +46,14 @@ namespace Church.API.Services.Implementations
         public Task DeleteAsync(string key, CancellationToken ct = default)
         {
             var webRoot = _env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot");
-            var fullPath = Path.Combine(webRoot, "uploads", key.Replace("/", Path.DirectorySeparatorChar.ToString()));
+            var uploadsRoot = Path.GetFullPath(Path.Combine(webRoot, "uploads"));
+            var fullPath = Path.GetFullPath(
+                Path.Combine(uploadsRoot, key.Replace("/", Path.DirectorySeparatorChar.ToString())));
+
+            // Containment check: a key holding "../" segments would otherwise delete arbitrary
+            // files outside the uploads directory.
+            if (!fullPath.StartsWith(uploadsRoot + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+                return Task.CompletedTask;
 
             if (File.Exists(fullPath)) File.Delete(fullPath);
             return Task.CompletedTask;

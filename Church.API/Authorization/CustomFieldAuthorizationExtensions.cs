@@ -14,8 +14,10 @@ namespace Church.API.Authorization
                 options.AddPolicy(CustomFieldPolicies.ReadDefinitions, policy =>
                     policy.RequireAuthenticatedUser());
 
+                // Previously any authenticated principal could write custom field values for any
+                // in-scope entity id, which bypassed the role gates on the entity's own endpoints.
                 options.AddPolicy(CustomFieldPolicies.WriteValues, policy =>
-                    policy.RequireAuthenticatedUser());
+                    policy.RequireRole(CustomFieldRoles.ValueWriters));
             });
 
             return services;

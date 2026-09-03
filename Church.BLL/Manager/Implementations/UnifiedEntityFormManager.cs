@@ -570,10 +570,26 @@ namespace Church.BLL.Manager.Implementations
             return def.FieldKey.Equals("imageUrl", StringComparison.OrdinalIgnoreCase);
         }
 
+        /// <summary>
+        /// Meeting and church repository reads deliberately bypass the global tenant query filter,
+        /// so form-data routes must re-assert the boundary or the route id becomes a cross-tenant read.
+        /// </summary>
+        private void EnsureCallerOwnsChurch(int? entityChurchId)
+        {
+            var callerChurchId = _tenantContext.ChurchId;
+            if (callerChurchId is null or <= 0)
+                throw new UnauthorizedAccessException("ChurchId claim is missing.");
+
+            if (entityChurchId != callerChurchId.Value)
+                throw new UnauthorizedAccessException("This record does not belong to your church.");
+        }
+
         private async Task<IReadOnlyDictionary<string, string?>> LoadMeetingValuesAsync(int id)
         {
             var m = await _meetingRepository.GetByIdAsync(id)
                 ?? throw new NotFoundException($"Meeting with id {id} not found.");
+
+            EnsureCallerOwnsChurch(m.ChurchId);
 
             return new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
             {
@@ -613,6 +629,8 @@ namespace Church.BLL.Manager.Implementations
         {
             var church = await _churchRepository.GetByIdAsync(id)
                 ?? throw new NotFoundException($"Church with id {id} not found.");
+
+            EnsureCallerOwnsChurch(church.Id);
 
             return new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
             {

@@ -14,5 +14,11 @@ namespace Church.BLL.Authorization
         public const string Servant = "Servant";
 
         public static readonly string[] DefinitionManagers = { SuperAdmin, Admin };
+
+        /// <summary>
+        /// Roles allowed to write custom field values. Servants are included because they edit
+        /// member records; the point is to exclude accounts that hold no operational role at all.
+        /// </summary>
+        public static readonly string[] ValueWriters = { SuperAdmin, Admin, Servant };
     }
 }

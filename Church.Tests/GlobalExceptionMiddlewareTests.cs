@@ -28,6 +28,8 @@ public sealed class GlobalExceptionMiddlewareTests
         var body = await reader.ReadToEndAsync();
 
         Assert.Contains("INVALID_OPERATION", body);
-        Assert.Contains("boom", body);
+        // InvalidOperationException is also raised inside EF Core/Identity, where the message
+        // describes internal state. The client gets a generic detail; the real message is logged.
+        Assert.DoesNotContain("boom", body);
     }
 }

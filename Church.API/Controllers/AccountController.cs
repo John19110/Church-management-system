@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Church.BLL.DTOS.AccountDtos;
 using Church.BLL.Manager.Interfaces;
 using Church.BLL.Services.AccountDeletion;
@@ -9,6 +10,9 @@ namespace Church.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    // Anonymous credential and account-creation endpoints are the cheapest targets for
+    // password guessing and mass account creation, so they get a tighter per-IP budget.
+    [EnableRateLimiting("auth")]
     public class AccountController : ControllerBase
     {
         private readonly IAccountManager _accountManager;

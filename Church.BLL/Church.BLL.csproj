@@ -8,7 +8,9 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.11" />
-    <PackageReference Include="AutoMapper" Version="15.0.1" />
+    <!-- 15.1.1+ fixes GHSA-rvv3-g6hj-g44x (CVE-2026-32933): uncontrolled recursion on
+         self-referential graphs causes an uncatchable StackOverflowException. -->
+    <PackageReference Include="AutoMapper" Version="15.1.3" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.14.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
     <ProjectReference Include="..\Church.DAL\Church.DAL.csproj" />

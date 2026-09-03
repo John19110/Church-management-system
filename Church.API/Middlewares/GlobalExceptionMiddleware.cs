@@ -242,19 +242,23 @@ namespace Church.API.Middlewares
                 ),
 
 
-                ArgumentException argEx =>
+                // ArgumentException and InvalidOperationException are also thrown deep inside EF Core,
+                // Identity and the BCL, where their messages describe entity types, column names and
+                // internal state. Returning a generic message keeps that off the wire; the full
+                // message and stack are still written to the server log above.
+                ArgumentException =>
                 (
                     (int)HttpStatusCode.BadRequest,
                     "BAD_REQUEST",
-                    argEx.Message
+                    FriendlyBadRequestMessage
                 ),
 
 
-                InvalidOperationException opEx =>
+                InvalidOperationException =>
                 (
                     (int)HttpStatusCode.BadRequest,
                     "INVALID_OPERATION",
-                    opEx.Message
+                    FriendlyBadRequestMessage
                 ),
 
 
@@ -361,6 +365,10 @@ namespace Church.API.Middlewares
 
         private const string FriendlyServerMessage =
             "An unexpected error occurred. Please try again later.";
+
+
+        private const string FriendlyBadRequestMessage =
+            "The request could not be processed. Please check the submitted values and try again.";
 
 
 

@@ -45,6 +45,7 @@ namespace Church.API.Controllers
 
         [HttpPut("{id:int}/form-data")]
         [Consumes(MediaTypeNames.Application.Json)]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> SaveFormData(int id, [FromBody] SaveEntityFormDto request)
         {
             if (id <= 0) return BadRequest("Church id must be a positive integer.");
@@ -67,6 +68,7 @@ namespace Church.API.Controllers
         }
 
         [HttpPut("{id:int}")]
+        [Authorize(Roles = "SuperAdmin")]
         public async Task<IActionResult> Update(
             int id,
             [FromBody] ChurchUpdateDTO dto,

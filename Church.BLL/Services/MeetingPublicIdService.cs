@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Church.DAL.Repository.Interfaces;
 
 namespace Church.BLL.Services
@@ -38,13 +39,18 @@ namespace Church.BLL.Services
             throw new InvalidOperationException("Could not generate a unique meeting public id.");
         }
 
+        /// <summary>
+        /// This code is the anonymous join credential for a meeting, so it must not be predictable.
+        /// <c>Random.Shared</c> is seeded pseudo-randomness and its output can be reconstructed from
+        /// observed values; use the cryptographic generator instead.
+        /// </summary>
         private static string GenerateSuffix()
         {
             Span<char> chars = stackalloc char[MeetingPublicIdPatterns.SuffixLength];
             for (var i = 0; i < MeetingPublicIdPatterns.SuffixLength; i++)
             {
                 chars[i] = MeetingPublicIdPatterns.Alphabet[
-                    Random.Shared.Next(MeetingPublicIdPatterns.Alphabet.Length)];
+                    RandomNumberGenerator.GetInt32(MeetingPublicIdPatterns.Alphabet.Length)];
             }
 
             return new string(chars);
