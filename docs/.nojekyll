@@ -1,0 +1,2 @@
+# GitHub Pages serves this folder (Settings → Pages → Deploy from branch → /docs).
+# Prevents Jekyll from ignoring paths that start with underscores if added later.

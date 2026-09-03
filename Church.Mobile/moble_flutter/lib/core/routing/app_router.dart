@@ -45,6 +45,7 @@ import '../../features/unified_form/screens/unified_entity_edit_screen.dart';
 import '../../features/unified_form/models/unified_form_models.dart';
 import '../../features/custom_field/models/custom_field_models.dart';
 import '../../core/storage/token_storage.dart';
+import '../../core/notifications/notification_service.dart';
 
 class AppRoutes {
   static const login = '/login';
@@ -96,13 +97,24 @@ final routerProvider = Provider<GoRouter>((ref) {
         return AppRoutes.login;
       }
 
-      if (hasToken && onAuthPage) {
-        final token = TokenStorage.cachedToken ?? await TokenStorage.getToken();
-        final role = token != null
-            ? AuthRoleUtils.extractPrimaryRole(token)
-            : null;
+      if (hasToken) {
+        // One-shot: notification tap (incl. cold start) opens Notifications
+        // before the usual role-home redirect from an auth page.
+        if (NotificationService.instance.takeNotificationsNavigationRequest()) {
+          if (loc != AppRoutes.notifications) {
+            return AppRoutes.notifications;
+          }
+        }
 
-        return AuthRoleUtils.routeForRole(role);
+        if (onAuthPage) {
+          final token =
+              TokenStorage.cachedToken ?? await TokenStorage.getToken();
+          final role = token != null
+              ? AuthRoleUtils.extractPrimaryRole(token)
+              : null;
+
+          return AuthRoleUtils.routeForRole(role);
+        }
       }
 
       return null;

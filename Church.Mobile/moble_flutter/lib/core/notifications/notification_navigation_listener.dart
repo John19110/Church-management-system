@@ -3,15 +3,18 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../core/notifications/notification_service.dart';
 import '../../core/routing/app_router.dart';
+import '../../core/storage/token_storage.dart';
 import '../../features/auth/providers/auth_providers.dart';
 import '../../features/notifications/models/app_notification.dart';
 import '../../features/notifications/providers/notifications_providers.dart';
 
-/// Listens for FCM notification taps and navigates once auth + router are ready.
+/// Listens for FCM / local notification taps and opens the Notifications screen.
+///
+/// Covers foreground local taps, background [onMessageOpenedApp], and terminated
+/// [getInitialMessage] / local launch details (via pending state + GoRouter redirect).
 class NotificationNavigationListener extends ConsumerStatefulWidget {
   const NotificationNavigationListener({super.key, required this.child});
 
@@ -25,21 +28,18 @@ class NotificationNavigationListener extends ConsumerStatefulWidget {
 class _NotificationNavigationListenerState
     extends ConsumerState<NotificationNavigationListener> {
   StreamSubscription<AppNotification>? _subscription;
+  bool _navigating = false;
 
   @override
   void initState() {
     super.initState();
     _subscription =
         NotificationService.instance.onNotificationOpened.listen((notification) {
-      _handleOpen(notification);
+      _openNotificationsScreen(notification);
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      if (!ref.read(authStateProvider)) return;
-      final pending = NotificationService.instance.pendingOpenedNotification;
-      if (pending != null) {
-        _handleOpen(pending);
-      }
+      _flushPendingIfReady();
     });
   }
 
@@ -49,30 +49,70 @@ class _NotificationNavigationListenerState
     super.dispose();
   }
 
-  void _handleOpen(AppNotification notification) {
-    if (!ref.read(authStateProvider)) return;
-    if (!mounted) return;
+  bool get _canNavigate {
+    if (ref.read(authStateProvider)) return true;
+    return TokenStorage.cachedToken?.isNotEmpty == true;
+  }
 
-    ref.read(notificationInboxProvider.notifier).markAsRead(notification.id);
+  void _flushPendingIfReady() {
+    if (!_canNavigate) return;
+    final pending = NotificationService.instance.pendingOpenedNotification;
+    final wantsNav = NotificationService.instance.wantsNotificationsScreen;
+    if (pending == null && !wantsNav) return;
+    _openNotificationsScreen(pending);
+  }
 
-    if (kDebugMode) {
-      debugPrint('[FCM] Navigating to Notifications screen');
+  void _openNotificationsScreen(AppNotification? notification) {
+    if (!mounted || _navigating) return;
+    if (!_canNavigate) {
+      // Keep pending; retry after login / session restore.
+      if (notification != null) {
+        NotificationService.instance.pendingOpenedNotification = notification;
+        NotificationService.instance.requestNotificationsNavigation();
+      }
+      if (kDebugMode) {
+        debugPrint(
+          '[FCM] Deferring Notifications navigation until authenticated',
+        );
+      }
+      return;
     }
-    context.go(AppRoutes.notifications);
-    NotificationService.instance.pendingOpenedNotification = null;
+
+    _navigating = true;
+    try {
+      NotificationService.instance.takeNotificationsNavigationRequest();
+
+      if (notification != null) {
+        ref
+            .read(notificationInboxProvider.notifier)
+            .markAsRead(notification.id);
+      }
+      NotificationService.instance.pendingOpenedNotification = null;
+
+      if (kDebugMode) {
+        debugPrint('[FCM] Navigating to Notifications screen');
+      }
+      // Use GoRouter directly — MaterialApp.builder context is unreliable for go().
+      final router = ref.read(routerProvider);
+      final alreadyThere =
+          router.routerDelegate.currentConfiguration.uri.path ==
+              AppRoutes.notifications;
+      if (!alreadyThere) {
+        router.go(AppRoutes.notifications);
+      }
+    } finally {
+      _navigating = false;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     ref.listen<bool>(authStateProvider, (previous, next) {
       if (next && previous != true) {
-        final pending = NotificationService.instance.pendingOpenedNotification;
-        if (pending != null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted) return;
-            _handleOpen(pending);
-          });
-        }
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          _flushPendingIfReady();
+        });
       }
     });
 

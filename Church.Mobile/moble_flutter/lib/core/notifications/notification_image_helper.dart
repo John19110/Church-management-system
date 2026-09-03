@@ -55,6 +55,7 @@ Future<String?> downloadNotificationImage(String imageUrl) async {
     debugPrint('[FCM] Downloading notification image...');
   }
 
+  File? file;
   try {
     final uri = Uri.parse(imageUrl);
     // Standalone Dio (no API baseUrl / auth) — image hosts are absolute URLs.
@@ -78,14 +79,6 @@ Future<String?> downloadNotificationImage(String imageUrl) async {
       return null;
     }
 
-    final decoded = img.decodeImage(bytes);
-    if (decoded == null) {
-      if (kDebugMode) {
-        debugPrint('[FCM] Notification image could not be decoded');
-      }
-      return null;
-    }
-
     final cacheDir = await getTemporaryDirectory();
     final notifDir = Directory('${cacheDir.path}/fcm_notification_images');
     if (!await notifDir.exists()) {
@@ -95,8 +88,18 @@ Future<String?> downloadNotificationImage(String imageUrl) async {
     final ext = _extensionForBytes(uri, bytes);
     final fileName =
         'fcm_${DateTime.now().millisecondsSinceEpoch}_${bytes.length.hashCode}$ext';
-    final file = File('${notifDir.path}/$fileName');
+    file = File('${notifDir.path}/$fileName');
     await file.writeAsBytes(bytes, flush: true);
+
+    // Validate via file API to avoid List<int>/Uint8List mismatch with image 4.9.x.
+    final decoded = await img.decodeImageFile(file.path);
+    if (decoded == null) {
+      if (kDebugMode) {
+        debugPrint('[FCM] Notification image could not be decoded');
+      }
+      await _tryDelete(file);
+      return null;
+    }
 
     if (kDebugMode) {
       debugPrint('[FCM] Image downloaded successfully');
@@ -107,7 +110,19 @@ Future<String?> downloadNotificationImage(String imageUrl) async {
     if (kDebugMode) {
       debugPrint('[FCM] Failed to download notification image: $e');
     }
+    await _tryDelete(file);
     return null;
+  }
+}
+
+Future<void> _tryDelete(File? file) async {
+  if (file == null) return;
+  try {
+    if (await file.exists()) {
+      await file.delete();
+    }
+  } catch (_) {
+    // Best-effort cleanup only.
   }
 }
 

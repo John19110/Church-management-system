@@ -70,7 +70,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       // Request notification permission (once) and obtain FCM token for this user.
       unawaited(NotificationService.instance.onUserAuthenticated());
 
-      if (mounted) context.go(AuthRoleUtils.routeForRole(role));
+      if (!mounted) return;
+      // Prefer Notifications screen when the user opened the app from a tap.
+      final openNotifications =
+          NotificationService.instance.wantsNotificationsScreen ||
+              NotificationService.instance.pendingOpenedNotification != null;
+      if (openNotifications) {
+        context.go(AppRoutes.notifications);
+      } else {
+        context.go(AuthRoleUtils.routeForRole(role));
+      }
     } catch (e) {
       if (mounted) {
         final l10n = AppLocalizations.of(context);

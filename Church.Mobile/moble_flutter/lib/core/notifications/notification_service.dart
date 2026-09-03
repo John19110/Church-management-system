@@ -63,10 +63,29 @@ class NotificationService {
   /// Latest opened notification for navigation after auth/router is ready.
   AppNotification? pendingOpenedNotification;
 
+  /// Set when any notification tap should open the in-app Notifications screen.
+  /// Consumed by GoRouter redirect and [NotificationNavigationListener].
+  bool _pendingNavigateToNotifications = false;
+
   final StreamController<AppNotification> _openedController =
       StreamController<AppNotification>.broadcast();
 
   Stream<AppNotification> get onNotificationOpened => _openedController.stream;
+
+  /// Whether a notification tap is waiting to open the Notifications screen.
+  bool get wantsNotificationsScreen => _pendingNavigateToNotifications;
+
+  /// Returns `true` once per tap-request so redirect/listeners can navigate.
+  bool takeNotificationsNavigationRequest() {
+    if (!_pendingNavigateToNotifications) return false;
+    _pendingNavigateToNotifications = false;
+    return true;
+  }
+
+  /// Re-arm navigation to Notifications (e.g. after login if consume raced).
+  void requestNotificationsNavigation() {
+    _pendingNavigateToNotifications = true;
+  }
 
   /// @deprecated Use [pendingOpenedNotification] — kept for compatibility.
   NotificationPayload? get pendingNavigationPayload {
@@ -464,27 +483,45 @@ class NotificationService {
   }
 
   void _emitOpened(AppNotification notification) {
+    pendingOpenedNotification = notification;
+    _pendingNavigateToNotifications = true;
     if (_lastOpenedNotificationId == notification.id) {
       if (kDebugMode) {
-        debugPrint('[FCM] Skipping duplicate open id=${notification.id}');
+        debugPrint(
+          '[FCM] Re-open notification id=${notification.id} '
+          '(still requesting Notifications screen)',
+        );
       }
-      return;
+    } else {
+      _lastOpenedNotificationId = notification.id;
     }
-    _lastOpenedNotificationId = notification.id;
-    pendingOpenedNotification = notification;
-    _openedController.add(notification);
+    if (!_openedController.isClosed) {
+      _openedController.add(notification);
+    }
     if (kDebugMode) {
-      debugPrint('[FCM] Navigating to notification id=${notification.id}');
+      debugPrint(
+        '[FCM] Notification tap → open Notifications screen '
+        '(id=${notification.id})',
+      );
     }
   }
 
   Future<void> _onLocalNotificationTap(NotificationResponse response) async {
-    final payload = _decodeTapPayload(response.payload);
-    if (payload == null) return;
     if (kDebugMode) {
       debugPrint('[FCM] Local notification tap');
     }
-    await _handleOpenedFromPayload(payload, source: 'foreground_local');
+    final payload = _decodeTapPayload(response.payload);
+    if (payload != null) {
+      await _handleOpenedFromPayload(payload, source: 'foreground_local');
+      return;
+    }
+    // Payload missing/unreadable — still open the Notifications screen.
+    _emitOpened(
+      AppNotification(
+        id: 'local_tap_${DateTime.now().millisecondsSinceEpoch}',
+        receivedAt: DateTime.now().toUtc(),
+      ),
+    );
   }
 
   Map<String, dynamic>? _decodeTapPayload(String? payload) {
