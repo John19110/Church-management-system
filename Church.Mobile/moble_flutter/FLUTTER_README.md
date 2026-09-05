@@ -49,7 +49,7 @@ flutter run --dart-define=API_BASE_URL=http://<your-machine-ip>:5000
 
 | Target             | Example URL                  |
 |--------------------|------------------------------|
-| Production (Azure) | `https://mychurch-czdwf2enfdfrhchd.uaenorth-01.azurewebsites.net` |
+| Production (Azure) | `https://mychurchwebapp-cdfpdedgfdd7cqhb.germanywestcentral-01.azurewebsites.net` |
 | Android emulator   | `http://10.0.2.2:<port>`     |
 | iOS simulator      | `http://127.0.0.1:<port>`    |
 | Physical device    | `http://<your-machine-ip>:<port>` |

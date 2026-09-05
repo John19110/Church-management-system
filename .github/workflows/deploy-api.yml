@@ -1,15 +1,26 @@
-# Single production deploy: Church.API → Azure App Service "mychurch"
+# Single authoritative production deploy: Church.API -> Azure App Service "mychurchwebapp".
 #
-# Do NOT re-add the Azure Portal workflow that runs
-#   dotnet publish -c Release
-# without Church.API.csproj — that packs multiple *.runtimeconfig.json files
-# and Azure starts hostingstart.dll instead of Church.API.dll.
+# Replaces the previous workflow that deployed to the old App Service "mychurch"
+# (UAE North). The old service is intentionally left running as a fallback but no
+# longer receives deployments.
 #
-# OIDC: Azure Portal federated credentials for this App Service are typically
-# issued for branch subjects (ref:refs/heads/main), NOT GitHub Environments.
-# Therefore this workflow must NOT set `environment: ChurchAPIapi_Env`.
+# Do NOT change the publish step to a bare `dotnet publish -c Release` from the repo
+# root. That packs several *.runtimeconfig.json files and Azure then starts
+# hostingstart.dll instead of Church.API.dll. The publish verification step below
+# exists to catch exactly that regression.
+#
+# OIDC: deployment uses the dedicated user-assigned managed identity
+# "mychurchwebapp-deploy" (resource group mychurchwebapp_group), which holds
+# "Website Contributor" scoped to this App Service only. Its federated credential is
+# issued for the branch subject (repo:<owner>/<repo>:ref:refs/heads/main), NOT for a
+# GitHub Environment, so this workflow must not set `environment:` — doing so
+# previously caused AADSTS700213.
+#
+# The legacy oidc-msi-* identities created by the old app's Deployment Center are
+# deliberately NOT used here; they were shared across deployments and could not be
+# told apart from one another.
 
-name: Deploy Church.API to Azure Web App mychurch
+name: Deploy MyChurch API to Azure
 
 on:
   push:
@@ -22,18 +33,14 @@ permissions:
   contents: read
 
 env:
-  AZURE_WEBAPP_NAME: mychurch
-  AZURE_RESOURCE_GROUP: MyChurch
+  AZURE_WEBAPP_NAME: mychurchwebapp
+  AZURE_RESOURCE_GROUP: mychurchwebapp_group
+  AZURE_WEBAPP_HOSTNAME: mychurchwebapp-cdfpdedgfdd7cqhb.germanywestcentral-01.azurewebsites.net
   DOTNET_VERSION: "10.x"
   CONFIGURATION: Release
   API_PROJECT: Church.API/Church.API.csproj
   TEST_PROJECT: Church.Tests/Church.Tests.csproj
   PUBLISH_DIR: ./publish
-  AZURE_APIM_RESOURCE_PATH: /
-  AZURE_APIM_RESOURCEGROUP: MyChurch
-  AZURE_APIM_SERVICENAME: ChurchAPIapi
-  AZURE_APIM_API_ID: ChurchAPI
-  AZURE_APIM_APPSERVICEURL: https://mychurch-czdwf2enfdfrhchd.uaenorth-01.azurewebsites.net
   # Exact Flutter Web origins (Firebase Hosting serves the app on both domains).
   # Not secrets — these are public origins and must match the browser's Origin header exactly.
   CORS_ALLOWED_ORIGIN_0: https://my-church-e838a.web.app
@@ -51,11 +58,6 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
-
-      - name: Clean
-        run: |
-          dotnet clean "${{ env.API_PROJECT }}" --configuration ${{ env.CONFIGURATION }}
-          dotnet clean "${{ env.TEST_PROJECT }}" --configuration ${{ env.CONFIGURATION }}
 
       - name: Restore
         run: |
@@ -87,14 +89,6 @@ jobs:
             --configuration ${{ env.CONFIGURATION }} \
             --output "${{ env.PUBLISH_DIR }}"
 
-      - name: Create deployment zip
-        run: |
-          set -euo pipefail
-          cd "${{ env.PUBLISH_DIR }}"
-          zip -r ../church-api.zip .
-          cd ..
-          ls -la church-api.zip
-
       - name: Verify publish output is Church.API only
         run: |
           set -euo pipefail
@@ -108,9 +102,6 @@ jobs:
           test -f "$PUBLISH/Church.BLL.dll"
           test -f "$PUBLISH/Church.DAL.dll"
 
-          echo "All runtimeconfig files:"
-          find "$PUBLISH" -name "*.runtimeconfig.json" -print
-
           test ! -f "$PUBLISH/Church.DAL.runtimeconfig.json"
           test ! -f "$PUBLISH/Church.Tests.runtimeconfig.json"
           test ! -f "$PUBLISH/Church.BLL.runtimeconfig.json"
@@ -122,7 +113,22 @@ jobs:
             exit 1
           fi
 
+          # Production secrets live in Azure App Settings. appsettings.Production.json is
+          # gitignored, so it must never appear in the deployment package.
+          if [ -f "$PUBLISH/appsettings.Production.json" ]; then
+            echo "::error::appsettings.Production.json must not be deployed; it holds secrets and is gitignored."
+            exit 1
+          fi
+
           echo "Publish verification succeeded (Church.API only)."
+
+      - name: Create deployment zip
+        run: |
+          set -euo pipefail
+          cd "${{ env.PUBLISH_DIR }}"
+          zip -r ../church-api.zip .
+          cd ..
+          ls -la church-api.zip
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -134,11 +140,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    # Intentionally NO GitHub Environment.
-    # OIDC subject must be:
-    #   repo:John19110/Church-management-system:ref:refs/heads/main
-    # which matches the Azure Portal–created federated credential.
-    # Using environment:ChurchAPIapi_Env caused AADSTS700213.
+    # Intentionally NO GitHub Environment — see the OIDC note at the top of this file.
 
     steps:
       - name: Download artifact
@@ -162,12 +164,9 @@ jobs:
       - name: Azure Login (OIDC)
         uses: azure/login@v2
         with:
-          # Use the App Service deployment identity created by Azure Portal
-          # (same secret names as the auto-generated workflow). Do not mix with
-          # ChurchAPIapi_* vars from a different federated credential.
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_C2F3EDE1DD0E4328B98C9BC85E3779F7 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9BB3C2D3F2C242F598E9DB8960A1D16C }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_C09AEA0595B84DA7B3FF1F55F217576B }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Set Azure App Service startup command
         run: |
@@ -175,25 +174,27 @@ jobs:
           az webapp config set \
             --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
             --name "${{ env.AZURE_WEBAPP_NAME }}" \
-            --startup-file "dotnet Church.API.dll"
+            --startup-file "dotnet Church.API.dll" \
+            --output none
           echo "Startup command set to: dotnet Church.API.dll"
 
-      - name: Ensure required App Settings (CORS origins)
+      - name: Ensure required App Settings
         run: |
           set -euo pipefail
           # appsettings.Production.json is gitignored, so it never reaches CI and is not in the
-          # published zip. Without these settings the API fails fast at startup with
+          # published zip. Without Cors__AllowedOrigins the API fails fast at startup with
           # "Missing required configuration 'Cors:AllowedOrigins'" and the container aborts.
-          # `appsettings set` merges, so SecretKey / ConnectionStrings__cs are left untouched.
+          # `appsettings set` merges, so SecretKey / ConnectionStrings__cs stay untouched.
           # --output none keeps the command from echoing every app setting into the build log.
           az webapp config appsettings set \
             --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
             --name "${{ env.AZURE_WEBAPP_NAME }}" \
             --settings \
+              "ASPNETCORE_ENVIRONMENT=Production" \
               "Cors__AllowedOrigins__0=${{ env.CORS_ALLOWED_ORIGIN_0 }}" \
               "Cors__AllowedOrigins__1=${{ env.CORS_ALLOWED_ORIGIN_1 }}" \
             --output none
-          echo "Ensured Cors__AllowedOrigins__0/__1 on ${{ env.AZURE_WEBAPP_NAME }}."
+          echo "Ensured ASPNETCORE_ENVIRONMENT and Cors__AllowedOrigins__0/__1 on ${{ env.AZURE_WEBAPP_NAME }}."
 
       - name: Deploy to Azure Web App
         run: |
@@ -207,40 +208,40 @@ jobs:
             --restart true \
             --timeout 600000
 
-      - name: Wait for app / Swagger document
-        id: swagger
-        continue-on-error: true
+      - name: Smoke test
         run: |
           set -euo pipefail
-          URL="${{ env.AZURE_APIM_APPSERVICEURL }}/swagger/v1/swagger.json"
+          # Swagger is disabled in Production on purpose, so it cannot be used as a readiness
+          # probe. GET / is anonymous and returns 204 when Swagger is off (200 otherwise),
+          # which proves the container started and the ASP.NET pipeline is serving requests.
+          URL="https://${{ env.AZURE_WEBAPP_HOSTNAME }}/"
           echo "Polling $URL"
           for i in $(seq 1 30); do
-            if curl -fsSL "$URL" -o ./swagger.json; then
-              echo "Downloaded OpenAPI document ($(wc -c < ./swagger.json) bytes)."
-              head -c 200 ./swagger.json || true
-              echo
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 "$URL" || echo "000")
+            if [ "$CODE" = "204" ] || [ "$CODE" = "200" ]; then
+              echo "API is up (HTTP $CODE)."
               exit 0
             fi
-            echo "Attempt $i failed; waiting 10s..."
+            echo "Attempt $i: HTTP $CODE; waiting 10s..."
             sleep 10
           done
-          echo "Swagger document was not available after deploy. APIM import will be skipped."
+          echo "::error::API did not become healthy after deploy."
           exit 1
 
-      - name: Import API into Azure API Management
-        if: steps.swagger.outcome == 'success'
-        continue-on-error: true
+      - name: Verify CORS preflight for Flutter Web origin
         run: |
           set -euo pipefail
-          az apim api import \
-            --path "${{ env.AZURE_APIM_RESOURCE_PATH }}" \
-            --resource-group "${{ env.AZURE_APIM_RESOURCEGROUP }}" \
-            --service-name "${{ env.AZURE_APIM_SERVICENAME }}" \
-            --api-id "${{ env.AZURE_APIM_API_ID }}" \
-            --service-url "${{ env.AZURE_APIM_APPSERVICEURL }}" \
-            --specification-path ./swagger.json \
-            --specification-format OpenApi \
-            --subscription-required false
+          URL="https://${{ env.AZURE_WEBAPP_HOSTNAME }}/api/Account/login"
+          ALLOW=$(curl -s -i -X OPTIONS "$URL" \
+            -H "Origin: ${{ env.CORS_ALLOWED_ORIGIN_0 }}" \
+            -H "Access-Control-Request-Method: POST" \
+            -H "Access-Control-Request-Headers: content-type" \
+            --max-time 30 | tr -d '\r' | grep -i '^access-control-allow-origin:' || true)
+          echo "Preflight response header: ${ALLOW:-<none>}"
+          if [ -z "$ALLOW" ]; then
+            echo "::error::No Access-Control-Allow-Origin returned for ${{ env.CORS_ALLOWED_ORIGIN_0 }}."
+            exit 1
+          fi
 
       - name: Azure logout
         if: always()

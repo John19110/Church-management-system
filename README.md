@@ -1,13 +1,13 @@
 # MyChurch — Multi-Tenant Church Management System
 
-[![.NET](https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
-[![ASP.NET Core](https://img.shields.io/badge/ASP.NET%20Core-8.0-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/apps/aspnet)
+[![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
+[![ASP.NET Core](https://img.shields.io/badge/ASP.NET%20Core-10.0-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/apps/aspnet)
 [![Flutter](https://img.shields.io/badge/Flutter-Mobile-02569B?logo=flutter&logoColor=white)](https://flutter.dev/)
 [![SQL Server](https://img.shields.io/badge/SQL%20Server-Database-CC2927?logo=microsoftsqlserver&logoColor=white)](https://www.microsoft.com/sql-server)
 [![JWT](https://img.shields.io/badge/Auth-JWT-black)](https://jwt.io/)
 [![Architecture](https://img.shields.io/badge/Architecture-Clean%20Layers-blue)](https://learn.microsoft.com/aspnet/core/fundamentals/)
 
-**Church** is a production-oriented church management platform for organizing Sunday schools and youth ministries. It combines an **ASP.NET Core 8 Web API** with a **Flutter** mobile client to help churches manage members, servants, meetings, classrooms, attendance, and tenant-specific configuration — with strong multi-tenancy, role-based security, and bilingual support (English / Arabic).
+**Church** is a production-oriented church management platform for organizing Sunday schools and youth ministries. It combines an **ASP.NET Core 10 Web API** with a **Flutter** mobile client to help churches manage members, servants, meetings, classrooms, attendance, and tenant-specific configuration — with strong multi-tenancy, role-based security, and bilingual support (English / Arabic).
 
 ---
 
@@ -16,9 +16,9 @@
 | Layer | Technology | Responsibility |
 |-------|------------|----------------|
 | **Mobile** | Flutter + Riverpod | Role-aware UI, offline-friendly local cache, JWT auth |
-| **API** | ASP.NET Core 8 | REST endpoints, JWT, Swagger, tenant middleware |
+| **API** | ASP.NET Core 10 | REST endpoints, JWT, Swagger, tenant middleware |
 | **BLL** | C# class library | Business rules, DTOs, caching, unified forms |
-| **DAL** | EF Core 8 + SQL Server | Entities, repositories, migrations, Identity |
+| **DAL** | EF Core 10 + SQL Server | Entities, repositories, migrations, Identity |
 
 The mobile app talks to the API over HTTPS. Each church operates as an isolated tenant; data is scoped by `ChurchId` (and often `MeetingId`) at the database query-filter level and in JWT claims.
 
@@ -55,9 +55,9 @@ The mobile app talks to the API over HTTPS. Each church operates as an isolated 
 
 | Area | Stack |
 |------|-------|
-| Backend runtime | .NET 8, C# 12 |
+| Backend runtime | .NET 10 |
 | Web framework | ASP.NET Core Web API |
-| ORM | Entity Framework Core 8 |
+| ORM | Entity Framework Core 10 |
 | Database | Microsoft SQL Server |
 | Auth | ASP.NET Identity + JWT Bearer |
 | Mapping | AutoMapper |
@@ -149,7 +149,7 @@ flowchart TB
 
 ### Prerequisites
 
-- [.NET 8 SDK](https://dotnet.microsoft.com/download)
+- [.NET 10 SDK](https://dotnet.microsoft.com/download)
 - [SQL Server](https://www.microsoft.com/sql-server) (local or remote)
 - [Flutter SDK](https://docs.flutter.dev/get-started/install) (for mobile)
 - IDE: Visual Studio 2022, VS Code, or Rider
@@ -230,9 +230,46 @@ VS Code launch configs are in `.vscode/launch.json` (`cwd` → `Church.Mobile/mo
 |---------|----------|---------|
 | `ConnectionStrings:cs` | `appsettings.Development.json` | SQL Server connection |
 | `SecretKey` | `appsettings.Development.json` | JWT signing key |
+| `Cors:AllowedOrigins` | `appsettings.*.json` / App Settings | Exact browser origins allowed to call the API |
 | `baseUrl` | Flutter `app_constants.dart` | API base URL for Dio |
 
 > **Security:** Never commit real credentials. Use `appsettings.Development.json` locally (gitignored) or environment variables in production.
+
+Outside Development the API **fails fast at startup** when `Cors:AllowedOrigins` is empty, so it can never silently fall back to allowing every origin.
+
+---
+
+## Deployment
+
+| | |
+|---|---|
+| **Production API** | Azure App Service `mychurchwebapp` |
+| **Hostname** | `https://mychurchwebapp-cdfpdedgfdd7cqhb.germanywestcentral-01.azurewebsites.net` |
+| **Runtime** | .NET 10 |
+| **OS** | Linux |
+| **Region** | Germany West Central |
+| **Database** | MonsterASP SQL Server |
+| **Deployment** | GitHub Actions → `.github/workflows/deploy-api.yml` |
+
+Pushing to `main` (or running the workflow manually) restores, builds, tests, publishes **only** `Church.API/Church.API.csproj`, and zip-deploys the result to `mychurchwebapp`. The workflow authenticates to Azure with OIDC federated credentials — no publish profile or credential file is stored in the repository.
+
+### Where secrets live
+
+All production secrets are configured in **Azure Portal → App Service `mychurchwebapp` → Settings → Environment variables**, never in source control:
+
+| App Setting | Purpose |
+|-------------|---------|
+| `ASPNETCORE_ENVIRONMENT` | Must be `Production` |
+| `ConnectionStrings__cs` | MonsterASP SQL Server connection string |
+| `SecretKey` | JWT signing key |
+| `Cors__AllowedOrigins__0`, `__1` | Flutter Web origins on Firebase Hosting |
+
+`appsettings.Production.json` is gitignored and is **not** part of the deployment package; the workflow fails the build if it ever appears in the publish output.
+
+### Notes
+
+- Swagger is disabled in Production by design, so readiness is probed via the anonymous `GET /` endpoint (returns `204` when Swagger is off).
+- The previous App Service (`mychurch`, UAE North) is retained as a temporary fallback but no longer receives deployments.
 
 ---
 

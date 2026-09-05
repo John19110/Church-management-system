@@ -1,7 +1,7 @@
 class AppConstants {
   /// Production ASP.NET Core API on Azure App Service (HTTPS).
   static const String productionBaseUrl =
-      'https://mychurch-czdwf2enfdfrhchd.uaenorth-01.azurewebsites.net';
+      'https://mychurchwebapp-cdfpdedgfdd7cqhb.germanywestcentral-01.azurewebsites.net';
 
   /// Optional local backends (pass via --dart-define=API_BASE_URL=...).
   /// Android emulator: http://10.0.2.2:5000
