@@ -34,6 +34,10 @@ env:
   AZURE_APIM_SERVICENAME: ChurchAPIapi
   AZURE_APIM_API_ID: ChurchAPI
   AZURE_APIM_APPSERVICEURL: https://mychurch-czdwf2enfdfrhchd.uaenorth-01.azurewebsites.net
+  # Exact Flutter Web origins (Firebase Hosting serves the app on both domains).
+  # Not secrets — these are public origins and must match the browser's Origin header exactly.
+  CORS_ALLOWED_ORIGIN_0: https://my-church-e838a.web.app
+  CORS_ALLOWED_ORIGIN_1: https://my-church-e838a.firebaseapp.com
 
 jobs:
   build:
@@ -173,6 +177,23 @@ jobs:
             --name "${{ env.AZURE_WEBAPP_NAME }}" \
             --startup-file "dotnet Church.API.dll"
           echo "Startup command set to: dotnet Church.API.dll"
+
+      - name: Ensure required App Settings (CORS origins)
+        run: |
+          set -euo pipefail
+          # appsettings.Production.json is gitignored, so it never reaches CI and is not in the
+          # published zip. Without these settings the API fails fast at startup with
+          # "Missing required configuration 'Cors:AllowedOrigins'" and the container aborts.
+          # `appsettings set` merges, so SecretKey / ConnectionStrings__cs are left untouched.
+          # --output none keeps the command from echoing every app setting into the build log.
+          az webapp config appsettings set \
+            --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
+            --name "${{ env.AZURE_WEBAPP_NAME }}" \
+            --settings \
+              "Cors__AllowedOrigins__0=${{ env.CORS_ALLOWED_ORIGIN_0 }}" \
+              "Cors__AllowedOrigins__1=${{ env.CORS_ALLOWED_ORIGIN_1 }}" \
+            --output none
+          echo "Ensured Cors__AllowedOrigins__0/__1 on ${{ env.AZURE_WEBAPP_NAME }}."
 
       - name: Deploy to Azure Web App
         run: |

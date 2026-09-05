@@ -7,6 +7,13 @@ import '../l10n/validation_message_localizer.dart';
 
 const String _defaultApiErrorMessage = 'An error occurred. Please try again.';
 
+/// 403 codes that describe the caller's account state rather than a missing
+/// permission. `GlobalExceptionMiddleware` emits these as the ProblemDetails `type`.
+const Set<String> _accountStatusErrorCodes = {
+  'ACCOUNT_PENDING',
+  'ACCOUNT_REJECTED',
+};
+
 class AppException implements Exception {
   final String message;
   final int? statusCode;
@@ -107,6 +114,13 @@ String userFriendlyMessage(Object error, [AppLocalizations? l10n]) {
 
   if (error is ApiException && error.errorCode == 'AUTH_FAILED') {
     return loc.invalidCredentialsPleaseTryAgain;
+  }
+  // Prefer the localized copy over the server's English detail for these.
+  if (error is ApiException && error.errorCode == 'ACCOUNT_PENDING') {
+    return loc.accountPendingApproval;
+  }
+  if (error is ApiException && error.errorCode == 'ACCOUNT_REJECTED') {
+    return loc.accountRejected;
   }
   if (error is ApiException &&
       (error.errorCode == 'VALIDATION_ERROR' ||
@@ -296,8 +310,19 @@ AppException mapDioException(DioException e) {
     httpStatusCode: statusCode,
   );
 
+  // A 403 is either "your account is not usable yet" or a genuine permission denial.
+  // The API tells them apart with a structured code, so keep the code instead of
+  // collapsing every 403 into the permission message.
   if (statusCode == 403) {
-    return ForbiddenException();
+    if (_accountStatusErrorCodes.contains(parsed.errorCode)) {
+      return ApiException(
+        parsed.message,
+        statusCode: 403,
+        errorCode: parsed.errorCode,
+        fieldErrors: parsed.fieldErrors,
+      );
+    }
+    return const ForbiddenException();
   }
 
   // Login invalid credentials: 401 + AUTH_FAILED (not an expired session).

@@ -73,6 +73,10 @@ class AppLocalizations {
   String get sundaySchool => _t('sundaySchool');
   String get managementSystem => _t('managementSystem');
 
+  /// Product name shown as the browser tab title on web and the task-switcher
+  /// label elsewhere. Drives `MaterialApp.title`, so it follows the locale.
+  String get appTitle => _t('appTitle');
+
   // ── Children ──────────────────────────────────────────────────────────────
   String get noMembers => _t('noMembers');
   String get addMember => _t('addMember');
@@ -748,6 +752,7 @@ class AppLocalizations {
           'We could not delete your account. Please try again.',
       'deletingAccount': 'Deleting account…',
       'sundaySchool': 'Sunday School',
+      'appTitle': 'My Church',
       // Children
       'noMembers': 'No members yet. Tap + to add one.',
       'addMember': 'Add Member',
@@ -1339,6 +1344,7 @@ class AppLocalizations {
       'deleteAccountFailure': 'تعذر حذف حسابك. يرجى المحاولة مرة أخرى.',
       'deletingAccount': 'جارٍ حذف الحساب…',
       'sundaySchool': 'كنيستي',
+      'appTitle': 'كنيستي',
       'managementSystem': 'نظام الإدارة',
       // Children
       'noMembers': 'لا يوجد أعضاء بعد. اضغط + للإضافة.',

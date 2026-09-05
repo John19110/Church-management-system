@@ -150,7 +150,7 @@ class _ChurchAppState extends ConsumerState<ChurchApp>
           children: [
             Positioned.fill(
               child: MaterialApp.router(
-              title: AppLocalizations(locale).sundaySchool,
+              title: AppLocalizations(locale).appTitle,
               theme: AppTheme.lightTheme,
               darkTheme: AppTheme.darkTheme,
               themeMode: themeMode,

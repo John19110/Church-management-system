@@ -88,3 +88,10 @@ flutter_launcher_icons:
   adaptive_icon_foreground_inset: 22
   adaptive_icon_background: "#FFFFFF"
   remove_alpha_ios: true
+  # Web favicon / PWA icons are generated from the same official logo so the
+  # browser never falls back to Flutter's default icon.
+  web:
+    generate: true
+    image_path: "assets/app_logo_adjusted.png"
+    background_color: "#FFFFFF"
+    theme_color: "#2563EB"

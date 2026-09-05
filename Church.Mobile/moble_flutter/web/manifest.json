@@ -1,11 +1,13 @@
 {
-    "name": "Church",
-    "short_name": "Church",
+    "name": "My Church",
+    "short_name": "My Church",
+    "lang": "en",
+    "dir": "ltr",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "Church Management System mobile client.",
+    "background_color": "#FFFFFF",
+    "theme_color": "#2563EB",
+    "description": "My Church — manage your church, meetings, classes, members and attendance.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
