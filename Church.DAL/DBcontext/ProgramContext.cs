@@ -1,15 +1,20 @@
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using System.Reflection;
 using Church.DAL.Abstractions;
-using Microsoft.EntityFrameworkCore;
 using Church.DAL.Models;
 using Church.DAL.Models.CustomFields;
 using Church.Domain;
-using Church.DAL.Configurations;
-using Church.DAL.Models;
-using System.Reflection;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace Church.DAL.DBcontext
 {
+    /// <summary>
+    /// EF Core composition root for Identity + church domain entities.
+    /// Entity shape (relationships, indexes, columns) lives in
+    /// <c>Church.DAL.Configurations</c>; tenant isolation and SaveChanges
+    /// assignment stay here because they depend on request-scoped
+    /// <see cref="ITenantContext"/>.
+    /// </summary>
     public class ProgramContext : IdentityDbContext<ApplicationUser>
     {
         private readonly ITenantContext _tenantContext;
@@ -45,26 +50,20 @@ namespace Church.DAL.DBcontext
         {
             base.OnModelCreating(builder);
 
-            // Member ↔ Classroom
-            builder.Entity<Member>()
-                .HasOne(c => c.Classroom)
-                .WithMany(cl => cl.Members)
-                .HasForeignKey(c => c.ClassroomId)
-                .OnDelete(DeleteBehavior.Restrict);
+            builder.ApplyConfigurationsFromAssembly(typeof(ProgramContext).Assembly);
 
-            // MemberContact ↔ Member (required)
-            builder.Entity<MemberContact>()
-                .HasOne(mc => mc.Member)
-                .WithMany(m => m.PhoneNumbers)
-                .HasForeignKey(mc => mc.MemberId)
-                .OnDelete(DeleteBehavior.Cascade);
+            ApplyTenantQueryFilters(builder);
+            ApplyChurchIdIndexes(builder);
+        }
 
-            builder.ApplyConfiguration(new CustomFieldDefinitionConfiguration());
-            builder.ApplyConfiguration(new CustomFieldOptionConfiguration());
-            builder.ApplyConfiguration(new CustomFieldValueConfiguration());
-
-            // Tenant isolation for custom field dependents (definition is ChurchEntity-filtered).
-            // Church-level definitions often have null MeetingId; allow those when a meeting scope is set.
+        /// <summary>
+        /// Tenant isolation is fail-closed: with no resolved ChurchId, tenant-owned rows
+        /// are invisible. Login, registration, cascade deletes, and startup repair must
+        /// opt out locally with <c>IgnoreQueryFilters()</c>.
+        /// </summary>
+        private void ApplyTenantQueryFilters(ModelBuilder builder)
+        {
+            // Dependents of filtered principals need their own filters (EF10622).
             builder.Entity<CustomFieldOption>()
                 .HasQueryFilter(o =>
                     CurrentChurchId.HasValue &&
@@ -81,170 +80,12 @@ namespace Church.DAL.DBcontext
                      v.Definition!.MeetingId == null ||
                      v.Definition!.MeetingId == CurrentMeetingId));
 
-            // PhoneCall ↔ MemberContact (required)
-            builder.Entity<PhoneCall>()
-                .HasOne(pc => pc.MemberContact)
-                .WithMany(mc => mc.CallsHistory)
-                .HasForeignKey(pc => pc.MemberContactId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // AttendanceSession ↔ Meeting (required)
-            builder.Entity<AttendanceSession>()
-                .HasOne(s => s.Meeting)
-                .WithMany(m => m.AttendanceSessions)
-                .HasForeignKey(s => s.MeetingId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // AttendanceSession ↔ Classroom (optional — null for meeting-level attendance)
-            builder.Entity<AttendanceSession>()
-                .HasOne(s => s.Classroom)
-                .WithMany(c => c.AttendanceHistory)
-                .HasForeignKey(s => s.ClassroomId)
-                .OnDelete(DeleteBehavior.Restrict)
-                .IsRequired(false);
-
-            // Many-to-Many ClassroomServant
-            builder.Entity<ClassroomServant>()
-                .HasKey(cs => new { cs.ServantId, cs.ClassroomId });
-
-            builder.Entity<ClassroomServant>()
-                .HasOne(cs => cs.Servant)
-                .WithMany(s => s.ClassroomServants)
-                .HasForeignKey(cs => cs.ServantId);
-
-            builder.Entity<ClassroomServant>()
-                .HasOne(cs => cs.Classroom)
-                .WithMany(c => c.ClassroomServants)
-                .HasForeignKey(cs => cs.ClassroomId);
-
-            // Attendance uniqueness
-            builder.Entity<AttendanceRecord>()
-                .HasIndex(x => new { x.AttendanceSessionId, x.MemberId })
-                .IsUnique();
-
-            // Meeting-scoped attendance criteria
-            builder.Entity<AttendanceCriterion>()
-                .HasOne(c => c.Meeting)
-                .WithMany(m => m.AttendanceCriteria)
-                .HasForeignKey(c => c.MeetingId)
-                .OnDelete(DeleteBehavior.Restrict)
-                .IsRequired();
-
-            builder.Entity<AttendanceCriterion>()
-                .HasIndex(c => new { c.MeetingId, c.Name })
-                .IsUnique()
-                .HasFilter("[IsDeleted] = 0");
-
-            builder.Entity<AttendanceCriterionResult>()
-                .HasOne(r => r.AttendanceRecord)
-                .WithMany(ar => ar.CriterionResults)
-                .HasForeignKey(r => r.AttendanceRecordId)
-                .OnDelete(DeleteBehavior.Cascade)
-                .IsRequired();
-
-            builder.Entity<AttendanceCriterionResult>()
-                .HasOne(r => r.AttendanceCriterion)
-                .WithMany(c => c.Results)
-                .HasForeignKey(r => r.AttendanceCriterionId)
-                .OnDelete(DeleteBehavior.Restrict)
-                .IsRequired();
-
-            builder.Entity<AttendanceCriterionResult>()
-                .HasIndex(r => new { r.AttendanceRecordId, r.AttendanceCriterionId })
-                .IsUnique();
-
-            // AttendanceCriterion is globally filtered (ChurchEntity), so dependents that require
-            // AttendanceCriterion must be filtered too (EF10622).
             builder.Entity<AttendanceCriterionResult>()
                 .HasQueryFilter(r =>
                     CurrentChurchId.HasValue &&
                     r.AttendanceCriterion.ChurchId == CurrentChurchId &&
                     (!CurrentMeetingId.HasValue || r.AttendanceCriterion.MeetingId == CurrentMeetingId));
 
-            builder.Entity<Member>()
-                .HasIndex(c => c.ClassroomId);
-
-            // Servant ↔ User
-            builder.Entity<Servant>()
-                .HasOne(s => s.ApplicationUser)
-                .WithOne(u => u.ServantProfile)
-                .HasForeignKey<Servant>(s => s.ApplicationUserId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            builder.Entity<Servant>()
-                .HasIndex(s => s.ApplicationUserId)
-                .IsUnique();
-
-            builder.Entity<ApplicationUser>(entity =>
-            {
-                entity.Property(u => u.PhoneNumber)
-                    .HasMaxLength(32);
-
-                entity.HasIndex(u => u.NormalizedUserName)
-                    .HasDatabaseName("UserNameIndex")
-                    .IsUnique(false)
-                    .HasFilter("[NormalizedUserName] IS NOT NULL");
-
-                entity.HasIndex(u => u.PhoneNumber)
-                    .IsUnique()
-                    .HasDatabaseName("IX_AspNetUsers_PhoneNumber")
-                    .HasFilter("[PhoneNumber] IS NOT NULL AND [PhoneNumber] <> ''");
-            });
-
-            // Exam relations
-            builder.Entity<ExamResult>()
-                .HasOne(er => er.Meeting)
-                .WithMany()
-                .HasForeignKey(er => er.MeetingId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Entity<ExamResult>()
-                .HasOne(er => er.Member)
-                .WithMany(m => m.ExamsResults)
-                .HasForeignKey(er => er.MemberId)
-                .OnDelete(DeleteBehavior.NoAction);
-
-            // Church → Pastor
-            builder.Entity<ChurchModel>()
-                .HasOne(c => c.Pastor)
-                .WithMany()
-                .HasForeignKey(c => c.PastorId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Entity<ChurchModel>()
-                .Property(c => c.PublicId)
-                .IsRequired()
-                .HasMaxLength(16);
-
-            builder.Entity<ChurchModel>()
-                .HasIndex(c => c.PublicId)
-                .IsUnique();
-
-            // Meeting → Leader
-            builder.Entity<Meeting>()
-                .HasOne(m => m.LeaderServant)
-                .WithMany()
-                .HasForeignKey(m => m.LeaderServantId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Entity<Meeting>()
-                .Property(m => m.PublicId)
-                .IsRequired()
-                .HasMaxLength(16);
-
-            builder.Entity<Meeting>()
-                .HasIndex(m => m.PublicId)
-                .IsUnique();
-
-            // Classroom → Leader
-            builder.Entity<Classroom>()
-                .HasOne(c => c.LeaderServant)
-                .WithMany()
-                .HasForeignKey(c => c.LeaderServantId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // Keep query filters consistent across required relationships:
-            // Member is globally filtered (ChurchEntity), so dependents that require Member must be filtered too.
             builder.Entity<MemberContact>()
                 .HasQueryFilter(mc =>
                     CurrentChurchId.HasValue &&
@@ -253,10 +94,8 @@ namespace Church.DAL.DBcontext
                     (
                         !IsClassroomScoped ||
                         CurrentClassroomIds.Contains(EF.Property<int>(mc.Member, "ClassroomId"))
-                    )
-                );
+                    ));
 
-            // Classroom is globally filtered (ChurchEntity), so dependents that require Classroom must be filtered too.
             // Meeting-level sessions (ClassroomId null) are scoped via Meeting instead.
             builder.Entity<AttendanceSession>()
                 .HasQueryFilter(s =>
@@ -275,10 +114,8 @@ namespace Church.DAL.DBcontext
                          s.Meeting.ChurchId == CurrentChurchId &&
                          (!CurrentMeetingId.HasValue || s.MeetingId == CurrentMeetingId) &&
                          !IsClassroomScoped)
-                    )
-                );
+                    ));
 
-            // MemberContact is filtered, so dependents that require MemberContact must be filtered too.
             builder.Entity<PhoneCall>()
                 .HasQueryFilter(pc =>
                     CurrentChurchId.HasValue &&
@@ -287,26 +124,23 @@ namespace Church.DAL.DBcontext
                     (
                         !IsClassroomScoped ||
                         CurrentClassroomIds.Contains(EF.Property<int>(pc.MemberContact.Member, "ClassroomId"))
-                    )
-                );
+                    ));
 
-            // 🔥 GLOBAL FILTERS (FIXED)
             foreach (var entityType in builder.Model.GetEntityTypes())
             {
-                if (typeof(ChurchEntity).IsAssignableFrom(entityType.ClrType))
-                {
-                    var hasClassroomId = entityType.FindProperty("ClassroomId") != null;
+                if (!typeof(ChurchEntity).IsAssignableFrom(entityType.ClrType))
+                    continue;
 
-                    var method = typeof(ProgramContext)
-                        .GetMethod(nameof(SetGlobalFilter), BindingFlags.NonPublic | BindingFlags.Instance)
-                        ?.MakeGenericMethod(entityType.ClrType);
+                var hasClassroomId = entityType.FindProperty("ClassroomId") != null;
+                var method = typeof(ProgramContext)
+                    .GetMethod(nameof(SetGlobalFilter), BindingFlags.NonPublic | BindingFlags.Instance)
+                    ?.MakeGenericMethod(entityType.ClrType);
 
-                    method?.Invoke(this, new object[] { builder, hasClassroomId });
-                }
+                method?.Invoke(this, new object[] { builder, hasClassroomId });
             }
 
-            // Church-wide custom field definitions (MeetingId null) must remain visible under meeting scope.
-            // Declared after the loop above so it replaces the generic ChurchEntity filter.
+            // Declared after the ChurchEntity loop so these replace the generic filter.
+            // Church-wide custom field definitions (MeetingId null) must stay visible under meeting scope.
             builder.Entity<CustomFieldDefinition>()
                 .HasQueryFilter(d =>
                     CurrentChurchId.HasValue &&
@@ -315,8 +149,7 @@ namespace Church.DAL.DBcontext
                      d.MeetingId == null ||
                      d.MeetingId == CurrentMeetingId));
 
-            // Classroom is tenant-owned but its own key is "Id", not "ClassroomId", so the generic
-            // filter cannot classroom-scope it. Declared after the loop to replace that filter.
+            // Classroom's own key is Id, not ClassroomId — the generic filter cannot classroom-scope it.
             builder.Entity<Classroom>()
                 .HasQueryFilter(c =>
                     CurrentChurchId.HasValue &&
@@ -324,8 +157,7 @@ namespace Church.DAL.DBcontext
                     (!CurrentMeetingId.HasValue || c.MeetingId == CurrentMeetingId) &&
                     (!IsClassroomScoped || CurrentClassroomIds.Contains(c.Id)));
 
-            // Meeting and Church are tenant roots and do NOT derive from ChurchEntity, so the loop
-            // above never covered them. Without these, cross-church meeting/church reads succeed.
+            // Meeting and Church are tenant roots and do not derive from ChurchEntity.
             builder.Entity<Meeting>()
                 .HasQueryFilter(m =>
                     CurrentChurchId.HasValue &&
@@ -335,8 +167,10 @@ namespace Church.DAL.DBcontext
                 .HasQueryFilter(c =>
                     CurrentChurchId.HasValue &&
                     c.Id == CurrentChurchId);
+        }
 
-            // Index ChurchId
+        private static void ApplyChurchIdIndexes(ModelBuilder builder)
+        {
             foreach (var entityType in builder.Model.GetEntityTypes())
             {
                 if (typeof(ChurchEntity).IsAssignableFrom(entityType.ClrType))
@@ -348,10 +182,7 @@ namespace Church.DAL.DBcontext
         }
 
         /// <summary>
-        /// Tenant isolation filter. Fails CLOSED: when no church tenant has been resolved for the
-        /// request, tenant-owned rows are invisible. Flows that legitimately run without a tenant
-        /// (login, self-registration, cascade deletes, startup repair) must opt out locally and
-        /// visibly with <c>IgnoreQueryFilters()</c>.
+        /// Generic ChurchEntity filter. Fail-closed when CurrentChurchId is unset.
         /// </summary>
         private void SetGlobalFilter<TEntity>(ModelBuilder modelBuilder, bool hasClassroomId)
             where TEntity : ChurchEntity
@@ -366,8 +197,7 @@ namespace Church.DAL.DBcontext
                         (
                             !IsClassroomScoped ||
                             CurrentClassroomIds.Contains(EF.Property<int>(e, "ClassroomId"))
-                        )
-                    );
+                        ));
             }
             else
             {
@@ -375,12 +205,9 @@ namespace Church.DAL.DBcontext
                     .HasQueryFilter(e =>
                         CurrentChurchId.HasValue &&
                         e.ChurchId == CurrentChurchId &&
-                        (!CurrentMeetingId.HasValue || e.MeetingId == CurrentMeetingId)
-                    );
+                        (!CurrentMeetingId.HasValue || e.MeetingId == CurrentMeetingId));
             }
         }
-
-        // ================= CONTEXT VALUES =================
 
         private int? CurrentChurchId => _tenantContext.ChurchId;
 
@@ -389,9 +216,8 @@ namespace Church.DAL.DBcontext
         private string? CurrentScope => _tenantContext.Scope;
 
         /// <summary>
-        /// True when the caller is restricted to an explicit set of classrooms (Servant role).
-        /// A classroom-scoped caller with no assignments sees nothing, which is the intended
-        /// fail-closed outcome rather than "see everything".
+        /// Servant-scoped callers with no classroom assignments see nothing (fail-closed),
+        /// not the entire meeting.
         /// </summary>
         private bool IsClassroomScoped =>
             string.Equals(CurrentScope, TenantScopes.Classroom, StringComparison.OrdinalIgnoreCase);
@@ -399,7 +225,11 @@ namespace Church.DAL.DBcontext
         private List<int> CurrentClassroomIds =>
             _tenantContext.ClassroomIds?.ToList() ?? new List<int>();
 
-        // ================= SAVE HOOKS =================
+        private void ApplyTenantValues()
+        {
+            ApplyChurchId();
+            ApplyMeetingId();
+        }
 
         private void ApplyChurchId()
         {
@@ -436,15 +266,13 @@ namespace Church.DAL.DBcontext
 
         public override int SaveChanges()
         {
-            ApplyChurchId();
-            ApplyMeetingId();
+            ApplyTenantValues();
             return base.SaveChanges();
         }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            ApplyChurchId();
-            ApplyMeetingId();
+            ApplyTenantValues();
             return await base.SaveChangesAsync(cancellationToken);
         }
     }
