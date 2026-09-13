@@ -145,6 +145,140 @@ flowchart TB
 
 ---
 
+## Request Lifecycle
+
+How a typical authenticated API call moves through My Church, using:
+
+```http
+GET /api/Church/{id}
+Authorization: Bearer <JWT>
+```
+
+Configured in `UseApplicationMiddleware()` (`WebApplicationExtensions.cs`) and `MapControllers()`.
+
+### End-to-end flow
+
+```text
+Client (Flutter / Web)
+        ↓
+HTTP Request
+        ↓
+GlobalExceptionMiddleware
+        ↓
+Security Headers
+        ↓
+HTTPS Redirection
+        ↓
+Static Files
+        ↓
+CORS (FlutterWeb)
+        ↓
+Rate Limiting
+        ↓
+JWT Authentication ("jwt")
+        ↓
+Authorization
+        ↓
+TenantContextPopulationMiddleware
+        ↓
+ChurchController.GetById
+        ↓
+ChurchManager.GetByIdAsync
+        ↓
+ChurchRepository.GetByIdAsync
+        ↓
+ProgramContext.Churches
+        ↓
+EF Core global query filter
+        ↓
+SQL Server
+        ↓
+ChurchModel → ChurchReadDTO → Ok(dto)
+        ↓
+JSON Response
+        ↓
+Client
+```
+
+(Non-Production also runs HSTS; Swagger UI only when enabled. Neither changes this business path.)
+
+### 1. Client request
+
+Flutter or Flutter Web calls the API over HTTPS with a JWT in the `Authorization` header. The example route is handled by `ChurchController.GetById`.
+
+### 2. Middleware
+
+| Step | What it does |
+|------|----------------|
+| `GlobalExceptionMiddleware` | Catches unhandled exceptions and returns ProblemDetails |
+| Security headers | Sets `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Cross-Origin-Resource-Policy` |
+| HTTPS redirection | Forces HTTPS |
+| Static files | Serves `/uploads` and `/images` (and privacy pages) |
+| CORS (`FlutterWeb`) | Allows configured Flutter Web origins (fail-closed outside Development) |
+| Rate limiting | Per-IP limits (stricter on auth endpoints) |
+| Authentication | Validates the JWT |
+| Authorization | Enforces `[Authorize]` / fallback policy |
+| `TenantContextPopulationMiddleware` | Copies tenant claims into `TenantContextState` |
+
+### 3. Authentication
+
+```text
+JWT Bearer header
+        ↓
+JWT authentication scheme "jwt"
+        ↓
+ClaimsPrincipal → HttpContext.User
+```
+
+After signature and lifetime checks, `OnTokenValidated` (`ValidateAccountStillAuthorizedAsync`) re-reads the user from the database: account must still exist, be approved, and the token `ChurchId` must still match.
+
+### 4. Authorization
+
+Authentication answers **who are you?** Authorization answers **are you allowed?**
+
+`ChurchController` has `[Authorize]`. The app also sets a **fallback policy** requiring an authenticated user on any endpoint that is not explicitly `[AllowAnonymous]`.
+
+### 5. Tenant isolation
+
+```text
+JWT ChurchId claim
+        ↓
+TenantContextPopulationMiddleware
+        ↓
+TenantContextState.ChurchId
+        ↓
+ChurchManager.EnsureCallerOwnsChurch(id)
+        ↓
+ProgramContext ChurchModel query filter
+        ↓
+SQL restricted to the current church
+```
+
+Defense in depth: the manager rejects cross-tenant route ids, and EF Core hides other churches via a **fail-closed** filter (no resolved `ChurchId` ⇒ no church rows).
+
+### 6. Application layers
+
+| Layer | Class | Responsibility |
+|-------|--------|----------------|
+| API | `ChurchController` | HTTP, status codes |
+| BLL | `ChurchManager` | Tenant ownership, caching, DTO mapping |
+| DAL | `ChurchRepository` | LINQ / includes against `ProgramContext` |
+| EF | `ProgramContext` | DbContext, global query filters |
+| DB | SQL Server | Persistence |
+
+### 7. Response
+
+```text
+SQL Server → EF Core → Repository → Manager → ChurchReadDTO
+        → Ok(dto) → JSON serialization → HTTP 200 → Client
+```
+
+### 8. Errors
+
+Unhandled exceptions (including `NotFoundException` when the church is missing) are handled by `GlobalExceptionMiddleware` and returned as ProblemDetails with the appropriate status code.
+
+---
+
 ## Getting started
 
 ### Prerequisites
