@@ -8,9 +8,9 @@ namespace Church.API.Infrastructure.DependencyInjection
 {
     public static class WebApplicationExtensions
     {
-        public static WebApplication InitializeDatabase(this WebApplication app)
+        public static async Task<WebApplication> InitializeDatabaseAsync(this WebApplication app)
         {
-            DatabaseBootstrap.ApplyMigrationsAndRepairSchema(app.Services, app.Logger);
+            await DatabaseBootstrap.ApplyMigrationsAndRepairSchemaAsync(app.Services, app.Logger);
             return app;
         }
 

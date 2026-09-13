@@ -15,7 +15,7 @@ builder.Services
 
 var app = builder.Build();
 
-app.InitializeDatabase();
+await app.InitializeDatabaseAsync();
 await app.SeedIdentityAsync();
 
 app.UseApplicationMiddleware();
