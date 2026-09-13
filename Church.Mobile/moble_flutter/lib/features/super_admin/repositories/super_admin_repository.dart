@@ -30,18 +30,18 @@ class SuperAdminRepository {
     });
   }
 
-  /// PUT /api/SuperAdmin/approve-admin/{userId}
+  /// POST /api/super-admin/approve-admin/{userId}
   Future<void> approveAdmin(String userId) async {
     return apiCall(() async {
-      await _dio.put(
+      await _dio.post(
           '${AppConstants.superAdminEndpoint}/approve-admin/$userId');
     });
   }
 
-  /// DELETE /api/SuperAdmin/reject-admin/{userId}
+  /// POST /api/super-admin/reject-admin/{userId}
   Future<void> rejectAdmin(String userId) async {
     return apiCall(() async {
-      await _dio.delete(
+      await _dio.post(
           '${AppConstants.superAdminEndpoint}/reject-admin/$userId');
     });
   }

@@ -9,7 +9,7 @@ using System.Net.Mime;
 
 namespace Church.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/custom-fields")]
     [ApiController]
     [Authorize]
     [Produces(MediaTypeNames.Application.Json)]
@@ -22,6 +22,16 @@ namespace Church.API.Controllers
             _customFieldManager = customFieldManager;
         }
 
+        [HttpGet("definitions/{id:int}")]
+        [Authorize(Policy = CustomFieldPolicies.ReadDefinitions)]
+        public async Task<ActionResult<CustomFieldDefinitionReadDto>> GetDefinitionById(int id)
+        {
+            var result = await _customFieldManager.GetDefinitionByIdAsync(id);
+            if (result == null)
+                return NotFound();
+            return Ok(result);
+        }
+
         /// <summary>Get active field definitions for an entity type (Member, Classroom, etc.).</summary>
         [HttpGet("definitions/{entityName}")]
         [Authorize(Policy = CustomFieldPolicies.ReadDefinitions)]
@@ -30,16 +40,6 @@ namespace Church.API.Controllers
             [FromQuery] bool includeInactive = false)
         {
             var result = await _customFieldManager.GetDefinitionsByEntityAsync(entityName, includeInactive);
-            return Ok(result);
-        }
-
-        [HttpGet("definitions/id/{id:int}")]
-        [Authorize(Policy = CustomFieldPolicies.ReadDefinitions)]
-        public async Task<ActionResult<CustomFieldDefinitionReadDto>> GetDefinitionById(int id)
-        {
-            var result = await _customFieldManager.GetDefinitionByIdAsync(id);
-            if (result == null)
-                return NotFound();
             return Ok(result);
         }
 

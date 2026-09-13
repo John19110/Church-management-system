@@ -150,7 +150,7 @@ flowchart TB
 How a typical authenticated API call moves through My Church, using:
 
 ```http
-GET /api/Church/{id}
+GET /api/churches/{id}
 Authorization: Bearer <JWT>
 ```
 
@@ -415,7 +415,7 @@ When running in **Development**, Swagger UI is available at:
 https://localhost:<port>/swagger
 ```
 
-Authenticate protected endpoints with a Bearer token from `POST /api/Account/login`.
+Authenticate protected endpoints with a Bearer token from `POST /api/account/login`.
 
 **Main controller groups:**
 
@@ -443,7 +443,7 @@ Each **church** is a tenant. Many entities inherit from `ChurchEntity` and carry
 - Flutter clears local Hive cache when the active church (tenant) changes.
 - Cache keys include tenant, role, and user segments for safe isolation.
 
-Meeting-scoped lists (e.g. members/servants for one meeting) use dedicated endpoints such as `GET /api/Meeting/{meetingId}/members`.
+Meeting-scoped lists (e.g. members/servants for one meeting) use dedicated endpoints such as `GET /api/meetings/{meetingId}/members`.
 
 ---
 

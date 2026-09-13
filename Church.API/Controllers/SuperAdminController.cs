@@ -9,7 +9,7 @@ using Church.BLL.Manager.Interfaces;
 
 namespace Church.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/super-admin")]
     [ApiController]
     [Authorize(Roles = "SuperAdmin")]
     public class SuperAdminController : ControllerBase
@@ -34,14 +34,14 @@ namespace Church.API.Controllers
             return Ok(pendingAdmins);
         }
 
-        [HttpPut("approve-admin/{userId}")]
+        [HttpPost("approve-admin/{userId}")]
         public async Task<IActionResult> ApproveAdmin(string userId)
         {
             await _superAdminManager.ApproveAdmin(userId);
             return Ok(new { message = "Admin approved successfully." });
         }
 
-        [HttpDelete("reject-admin/{userId}")]
+        [HttpPost("reject-admin/{userId}")]
         public async Task<IActionResult> RejectAdmin(string userId)
         {
             await _superAdminManager.RejectAdmin(userId);

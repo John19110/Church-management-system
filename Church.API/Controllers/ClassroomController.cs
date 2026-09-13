@@ -20,7 +20,7 @@ using System.Threading.Tasks;
 
 namespace Church.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/classrooms")]
     [ApiController]
     [Authorize(Roles = "Servant,Admin,SuperAdmin")]
     public class ClassroomController : ControllerBase
@@ -51,7 +51,7 @@ namespace Church.API.Controllers
         public async Task<IActionResult> Create(ClassroomAddDTO classroom)
         {
             await _classroomManager.AddAsync(classroom);
-            return Ok();
+            return StatusCode(StatusCodes.Status201Created);
         }
 
         [HttpPut("{id:int}")]

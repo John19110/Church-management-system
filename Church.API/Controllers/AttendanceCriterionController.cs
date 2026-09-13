@@ -19,7 +19,7 @@ namespace Church.API.Controllers
         }
 
         /// <summary>Active criteria for take-attendance (Servant/Admin/SuperAdmin).</summary>
-        [HttpGet("Meeting/{meetingId:int}/attendance-criteria")]
+        [HttpGet("meetings/{meetingId:int}/attendance-criteria")]
         [Authorize(Roles = "Servant,Admin,SuperAdmin")]
         public async Task<IActionResult> GetByMeeting(int meetingId, [FromQuery] bool includeInactive = false)
         {
@@ -27,7 +27,7 @@ namespace Church.API.Controllers
             return Ok(result);
         }
 
-        [HttpPost("Meeting/{meetingId:int}/attendance-criteria")]
+        [HttpPost("meetings/{meetingId:int}/attendance-criteria")]
         [Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> Add(int meetingId, [FromBody] AttendanceCriterionAddDTO dto)
         {
@@ -40,7 +40,7 @@ namespace Church.API.Controllers
             }
 
             var created = await _manager.AddAsync(meetingId, dto);
-            return StatusCode(201, created);
+            return StatusCode(StatusCodes.Status201Created, created);
         }
 
         [HttpPut("attendance-criteria/{id:int}")]
@@ -64,10 +64,11 @@ namespace Church.API.Controllers
         public async Task<IActionResult> SoftDelete(int id)
         {
             await _manager.SoftDeleteAsync(id);
-            return Ok(new { message = "Criterion deleted." });
+            return NoContent();
         }
 
-        [HttpPut("Meeting/{meetingId:int}/attendance-criteria/reorder")]
+        /// <summary>Domain action: reorder sibling criteria under a meeting.</summary>
+        [HttpPut("meetings/{meetingId:int}/attendance-criteria/reorder")]
         [Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> Reorder(int meetingId, [FromBody] AttendanceCriterionReorderDTO dto)
         {
@@ -80,7 +81,7 @@ namespace Church.API.Controllers
             }
 
             await _manager.ReorderAsync(meetingId, dto);
-            return Ok(new { message = "Criteria reordered." });
+            return NoContent();
         }
     }
 }

@@ -19,74 +19,70 @@ class AppConstants {
     defaultValue: productionBaseUrl,
   );
 
-  // Auth endpoints
-  static const String loginEndpoint = '/api/Account/login';
-  static const String logoutEndpoint = '/api/Account/logout';
-  static const String deleteAccountEndpoint = '/api/Account';
-  static const String registerServantEndpoint = '/api/Account/register-servant';
+  // Auth endpoints (domain actions — intentional verbs)
+  static const String loginEndpoint = '/api/account/login';
+  static const String logoutEndpoint = '/api/account/logout';
+  static const String deleteAccountEndpoint = '/api/account';
+  static const String registerServantEndpoint = '/api/account/register-servant';
   static const String registerChurchSuperAdminEndpoint =
-      '/api/Account/register-church-superadmin';
+      '/api/account/register-church-superadmin';
   static const String registerMeetingAdminEndpoint =
-      '/api/Account/register-meeting-admin-new-church';
+      '/api/account/register-meeting-admin-new-church';
 
   /// FCM device-token registration with the ASP.NET API.
   /// Empty until the backend ships the endpoint — see [FcmTokenRegistrar].
-  /// Planned: `PUT /api/DeviceToken` (authenticated).
+  /// Planned: `PUT /api/device-tokens` (authenticated).
   static const String deviceTokenEndpoint = '';
 
   // Members (children) endpoints
-  static const String membersEndpoint = '/api/Member';
+  static const String membersEndpoint = '/api/members';
   static const String classroomMembersBasePath = '/api/classrooms';
 
   // Servant endpoints
-  static const String servantEndpoint = '/api/Servant';
-  static const String servantProfileEndpoint = '/api/Servant/profile';
+  static const String servantEndpoint = '/api/servants';
+  static const String servantProfileEndpoint = '/api/servants/profile';
 
   // Admin endpoints
-  static const String adminEndpoint = '/api/Admin';
+  static const String adminEndpoint = '/api/admin';
 
   // Classroom endpoints
-  static const String classroomEndpoint = '/api/Classroom';
+  static const String classroomEndpoint = '/api/classrooms';
 
   // Meeting endpoints
-  static const String meetingEndpoint = '/api/Meeting';
+  static const String meetingEndpoint = '/api/meetings';
 
   // Church endpoints
-  static const String churchEndpoint = '/api/Church';
+  static const String churchEndpoint = '/api/churches';
 
   // SuperAdmin endpoints
-  static const String superAdminEndpoint = '/api/SuperAdmin';
+  static const String superAdminEndpoint = '/api/super-admin';
 
   // Custom fields
-  static const String customFieldEndpoint = '/api/CustomField';
+  static const String customFieldEndpoint = '/api/custom-fields';
 
   // AttendanceSession endpoints
-  static const String attendanceEndpoint = '/api/AttendanceSession';
-  static const String attendanceByClassroomEndpoint =
-      '/api/AttendanceSession/by-classroom';
-  static const String attendanceByMeetingEndpoint =
-      '/api/AttendanceSession/by-meeting';
+  static const String attendanceEndpoint = '/api/attendance-sessions';
 
   static String meetingAttendanceCriteriaEndpoint(int meetingId) =>
-      '/api/Meeting/$meetingId/attendance-criteria';
+      '/api/meetings/$meetingId/attendance-criteria';
   static String attendanceCriterionEndpoint(int id) =>
       '/api/attendance-criteria/$id';
   static String meetingAttendanceCriteriaReorderEndpoint(int meetingId) =>
-      '/api/Meeting/$meetingId/attendance-criteria/reorder';
+      '/api/meetings/$meetingId/attendance-criteria/reorder';
 
   // Select endpoints (all return: {id, name})
-  static const String classroomsSelectEndpoint = '/api/Classroom/select';
-  static const String meetingsSelectEndpoint = '/api/Meeting/select';
-  static const String membersSelectEndpoint = '/api/Member/select';
-  static const String servantsSelectEndpoint = '/api/Servant/select';
+  static const String classroomsSelectEndpoint = '/api/classrooms/select';
+  static const String meetingsSelectEndpoint = '/api/meetings/select';
+  static const String membersSelectEndpoint = '/api/members/select';
+  static const String servantsSelectEndpoint = '/api/servants/select';
 
   static const String tokenKey = 'jwt_token';
 
   // Meeting-scoped endpoints
   static String meetingMembersEndpoint(int meetingId) =>
-      '/api/Meeting/$meetingId/members';
+      '/api/meetings/$meetingId/members';
   static String meetingMembersCreateEndpoint(int meetingId) =>
       '/api/meetings/$meetingId/members';
   static String meetingServantsEndpoint(int meetingId) =>
-      '/api/Meeting/$meetingId/servants';
+      '/api/meetings/$meetingId/servants';
 }

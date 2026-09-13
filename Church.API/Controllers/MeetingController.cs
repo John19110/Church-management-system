@@ -14,7 +14,7 @@ using System.Net.Mime;
 
 namespace Church.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/meetings")]
     [ApiController]
     [Authorize]
     public class MeetingController : ControllerBase
@@ -44,7 +44,7 @@ namespace Church.API.Controllers
         public async Task<IActionResult> Create(MeetingAddDTO meeting)
         {
             await _meetingManager.AddMeeting(meeting);
-            return Ok(new { message = "Meeting added successfully" });
+            return StatusCode(StatusCodes.Status201Created, new { message = "Meeting added successfully" });
         }
 
         [HttpGet("select")]

@@ -10,11 +10,11 @@ namespace Church.BLL.Services.UnifiedForms
         public static string? GetLookupEndpoint(string entityName, string fieldKey) =>
             (entityName, fieldKey.ToLowerInvariant()) switch
             {
-                (CustomFieldEntityNames.Member, "classroomid") => "/api/Classroom/select",
-                (CustomFieldEntityNames.Classroom, "leaderservantid") => "/api/Servant/select",
-                (CustomFieldEntityNames.Servant, "classroomid") => "/api/Classroom/select",
-                (CustomFieldEntityNames.Meeting, "leaderservantid") => "/api/Servant/select",
-                (CustomFieldEntityNames.Church, "pastorid") => "/api/Servant/select",
+                (CustomFieldEntityNames.Member, "classroomid") => "/api/classrooms/select",
+                (CustomFieldEntityNames.Classroom, "leaderservantid") => "/api/servants/select",
+                (CustomFieldEntityNames.Servant, "classroomid") => "/api/classrooms/select",
+                (CustomFieldEntityNames.Meeting, "leaderservantid") => "/api/servants/select",
+                (CustomFieldEntityNames.Church, "pastorid") => "/api/servants/select",
                 _ => null
             };
     }

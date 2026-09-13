@@ -34,7 +34,8 @@ class AttendanceRepository {
       int classroomId) async {
     return apiCall(() async {
       final response = await _dio.get(
-        '${AppConstants.attendanceByClassroomEndpoint}/$classroomId',
+        AppConstants.attendanceEndpoint,
+        queryParameters: {'classroomId': classroomId},
       );
       final list = response.data as List<dynamic>;
       return list
@@ -48,7 +49,8 @@ class AttendanceRepository {
       int meetingId) async {
     return apiCall(() async {
       final response = await _dio.get(
-        '${AppConstants.attendanceByMeetingEndpoint}/$meetingId',
+        AppConstants.attendanceEndpoint,
+        queryParameters: {'meetingId': meetingId},
       );
       final list = response.data as List<dynamic>;
       return list

@@ -33,9 +33,9 @@ namespace Church.BLL.Services.UnifiedForms
                     new("numberOfDisplineMembers", "Number Of Discipline Members", CustomFieldDataType.Number, 30),
                     new("totalMembersCount", "Total Members Count", CustomFieldDataType.Number, 40, IsReadOnly: true),
                     new("leaderServantId", "Leader Servant", CustomFieldDataType.SingleSelect, 50,
-                        LookupEndpoint: "/api/Servant/select"),
+                        LookupEndpoint: "/api/servants/select"),
                     new("servantIds", "Servants", CustomFieldDataType.MultiSelect, 55,
-                        LookupEndpoint: "/api/Servant/select"),
+                        LookupEndpoint: "/api/servants/select"),
                 },
                 [CustomFieldEntityNames.Servant] = new List<Template>
                 {
@@ -44,7 +44,7 @@ namespace Church.BLL.Services.UnifiedForms
                     new("birthDate", "Birth Date", CustomFieldDataType.Date, 30),
                     new("joiningDate", "Joining Date", CustomFieldDataType.Date, 40),
                     new("classroomId", "Classroom", CustomFieldDataType.SingleSelect, 50,
-                        LookupEndpoint: "/api/Classroom/select"),
+                        LookupEndpoint: "/api/classrooms/select"),
                     new("imageUrl", "Photo", CustomFieldDataType.Text, 60, IsHidden: true, HideInCreate: true),
                 },
                 [CustomFieldEntityNames.Member] = new List<Template>
@@ -65,7 +65,7 @@ namespace Church.BLL.Services.UnifiedForms
                     new("notes", "Notes", CustomFieldDataType.Json, 140),
                     new("phoneNumbers", "Phone Numbers", CustomFieldDataType.Json, 150),
                     new("classroomId", "Classroom", CustomFieldDataType.SingleSelect, 160,
-                        LookupEndpoint: "/api/Classroom/select"),
+                        LookupEndpoint: "/api/classrooms/select"),
                     new("imageUrl", "Photo", CustomFieldDataType.Text, 170, IsHidden: true, HideInCreate: true),
                 },
                 [CustomFieldEntityNames.Meeting] = new List<Template>
@@ -74,13 +74,13 @@ namespace Church.BLL.Services.UnifiedForms
                     new("dayOfWeek", "Day Of Week", CustomFieldDataType.Text, 20),
                     new("weeklyAppointment", "Weekly Appointment", CustomFieldDataType.Text, 30),
                     new("leaderServantId", "Leader Servant", CustomFieldDataType.SingleSelect, 40,
-                        LookupEndpoint: "/api/Servant/select"),
+                        LookupEndpoint: "/api/servants/select"),
                 },
                 [CustomFieldEntityNames.Church] = new List<Template>
                 {
                     new("name", "Church Name", CustomFieldDataType.Text, 10, IsRequired: true, IsCritical: true),
                     new("pastorId", "Pastor", CustomFieldDataType.SingleSelect, 20,
-                        LookupEndpoint: "/api/Servant/select"),
+                        LookupEndpoint: "/api/servants/select"),
                 },
             };
 

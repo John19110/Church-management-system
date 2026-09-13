@@ -7,7 +7,7 @@ using Church.BLL.Manager.Interfaces;
 
 namespace Church.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/attendance-sessions")]
     [ApiController]
     [Authorize(Roles = "Servant,Admin,SuperAdmin")]
     public class AttendanceSessionController : ControllerBase
@@ -34,9 +34,8 @@ namespace Church.API.Controllers
 
             await _attendanceManager.TakeAttendanceAsync(attendanceSession);
 
-            // If you have a GET by id endpoint and your repo returns the created id,
-            // prefer CreatedAtAction. For now, OK is fine.
-            return Ok();
+            // Created without Location until TakeAttendance returns the new session id.
+            return StatusCode(StatusCodes.Status201Created);
         }
 
 
@@ -60,36 +59,38 @@ namespace Church.API.Controllers
             return Ok(session);
         }
 
-        [HttpGet("by-classroom/{classroomId:int}")]
-        public async Task<IActionResult> GetHistoryByClassroom(int classroomId)
+        /// <summary>
+        /// List attendance history. Exactly one of classroomId or meetingId is required.
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetHistory(
+            [FromQuery] int? classroomId,
+            [FromQuery] int? meetingId)
         {
-            if (classroomId <= 0)
+            if (classroomId is > 0 && meetingId is > 0)
             {
-                var errors = new Dictionary<string, string[]>
+                throw new ValidationException(new Dictionary<string, string[]>
                 {
-                    ["classroomId"] = new[] { "ClassroomId must be a positive integer." }
-                };
-                throw new ValidationException(errors);
+                    [""] = new[] { "Specify either classroomId or meetingId, not both." }
+                });
             }
 
-            var sessions = await _attendanceManager.GetHistoryByClassroomAsync(classroomId);
-            return Ok(sessions);
-        }
-
-        [HttpGet("by-meeting/{meetingId:int}")]
-        public async Task<IActionResult> GetHistoryByMeeting(int meetingId)
-        {
-            if (meetingId <= 0)
+            if (classroomId is > 0)
             {
-                var errors = new Dictionary<string, string[]>
-                {
-                    ["meetingId"] = new[] { "MeetingId must be a positive integer." }
-                };
-                throw new ValidationException(errors);
+                var sessions = await _attendanceManager.GetHistoryByClassroomAsync(classroomId.Value);
+                return Ok(sessions);
             }
 
-            var sessions = await _attendanceManager.GetHistoryByMeetingAsync(meetingId);
-            return Ok(sessions);
+            if (meetingId is > 0)
+            {
+                var sessions = await _attendanceManager.GetHistoryByMeetingAsync(meetingId.Value);
+                return Ok(sessions);
+            }
+
+            throw new ValidationException(new Dictionary<string, string[]>
+            {
+                [""] = new[] { "Query parameter classroomId or meetingId is required." }
+            });
         }
 
         [HttpPut("{id:int}")]
@@ -115,7 +116,7 @@ namespace Church.API.Controllers
 
             await _attendanceManager.EditAttendanceAsync(attendanceSession);
 
-            return Ok();
+            return NoContent();
         }
 
        

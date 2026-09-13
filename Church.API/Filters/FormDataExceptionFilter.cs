@@ -67,6 +67,7 @@ namespace Church.API.Filters
         private static bool IsFormDataPath(string path) =>
             path.Contains("/form-data", StringComparison.OrdinalIgnoreCase)
             || path.Contains("/form-schema", StringComparison.OrdinalIgnoreCase)
+            || path.Contains("/api/custom-fields/definitions", StringComparison.OrdinalIgnoreCase)
             || path.Contains("/api/CustomField/definitions", StringComparison.OrdinalIgnoreCase)
             || path.Contains("/api/customfield/definitions", StringComparison.OrdinalIgnoreCase);
 

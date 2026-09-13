@@ -29,19 +29,19 @@ class AdminRepository {
     });
   }
 
-  /// PUT /Api/Admin/approve-servant/{userId}
+  /// POST /api/admin/approve-servant/{userId}
   Future<void> approveServant(String userId) async {
     return apiCall(() async {
       await _dio
-          .put('${AppConstants.adminEndpoint}/approve-servant/$userId');
+          .post('${AppConstants.adminEndpoint}/approve-servant/$userId');
     });
   }
 
-  /// DELETE /Api/Admin/reject-servant/{userId}
+  /// POST /api/admin/reject-servant/{userId}
   Future<void> rejectServant(String userId) async {
     return apiCall(() async {
       await _dio
-          .delete('${AppConstants.adminEndpoint}/reject-servant/$userId');
+          .post('${AppConstants.adminEndpoint}/reject-servant/$userId');
     });
   }
 

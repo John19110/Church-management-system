@@ -231,7 +231,7 @@ jobs:
       - name: Verify CORS preflight for Flutter Web origin
         run: |
           set -euo pipefail
-          URL="https://${{ env.AZURE_WEBAPP_HOSTNAME }}/api/Account/login"
+          URL="https://${{ env.AZURE_WEBAPP_HOSTNAME }}/api/account/login"
           ALLOW=$(curl -s -i -X OPTIONS "$URL" \
             -H "Origin: ${{ env.CORS_ALLOWED_ORIGIN_0 }}" \
             -H "Access-Control-Request-Method: POST" \

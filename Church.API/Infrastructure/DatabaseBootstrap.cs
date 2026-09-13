@@ -9,10 +9,9 @@ namespace Church.API.Infrastructure
     /// </summary>
     public static class DatabaseBootstrap
     {
-        public static async Task ApplyMigrationsAndRepairSchemaAsync(
-            IServiceProvider services,
-            ILogger logger)
+        public static async Task ApplyMigrationsAndRepairSchemaAsync(IServiceProvider services,ILogger logger)
         {
+
             using var scope = services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ProgramContext>();
 

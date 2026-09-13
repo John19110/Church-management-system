@@ -12,7 +12,7 @@ DioException _problemDetails({
   String title = 'Error',
   String detail = 'Something happened.',
 }) {
-  final options = RequestOptions(path: '/api/Account/login');
+  final options = RequestOptions(path: '/api/account/login');
   return DioException(
     requestOptions: options,
     type: DioExceptionType.badResponse,
@@ -132,7 +132,7 @@ void main() {
 
     test('connection timeout maps to timeout, not permission', () {
       final mapped = mapDioException(DioException(
-        requestOptions: RequestOptions(path: '/api/Member'),
+        requestOptions: RequestOptions(path: '/api/members'),
         type: DioExceptionType.connectionTimeout,
       ));
 
@@ -141,7 +141,7 @@ void main() {
 
     test('connection error maps to network error', () {
       final mapped = mapDioException(DioException(
-        requestOptions: RequestOptions(path: '/api/Member'),
+        requestOptions: RequestOptions(path: '/api/members'),
         type: DioExceptionType.connectionError,
       ));
 

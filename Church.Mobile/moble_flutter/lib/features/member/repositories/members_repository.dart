@@ -70,7 +70,7 @@ class MembersRepository {
   Future<List<MemberReadDto>> getByClassroom(int classroomId) async {
     return apiCall(() async {
       final response = await _dio.get(
-        '${AppConstants.membersEndpoint}/classroom/$classroomId',
+        '${AppConstants.classroomMembersBasePath}/$classroomId/members',
       );
       final list = response.data as List<dynamic>;
       final members = list

@@ -18,7 +18,7 @@ using System.Net.Mime;
 
 namespace Church.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/servants")]
     [ApiController]
     [Authorize]
     public class ServantController : ControllerBase

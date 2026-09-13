@@ -9,7 +9,7 @@ using Church.BLL.Services.AccountDeletion;
 namespace Church.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/account")]
     // Anonymous credential and account-creation endpoints are the cheapest targets for
     // password guessing and mass account creation, so they get a tighter per-IP budget.
     [EnableRateLimiting("auth")]

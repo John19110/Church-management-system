@@ -13,7 +13,7 @@ using Church.BLL.Manager.Interfaces;
 namespace Church.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/admin")]
     [Authorize(Roles = "Admin,SuperAdmin")]
     public class AdminController : ControllerBase
     {
@@ -60,16 +60,15 @@ namespace Church.API.Controllers
             }
         }
 
-        // Approve servant
-        [HttpPut("approve-servant/{userId}")]
+        // Domain actions: approval/rejection are not CRUD deletes.
+        [HttpPost("approve-servant/{userId}")]
         public async Task<IActionResult> ApproveServant(string userId)
         {
             await _adminManager.ApproveServant(userId);
             return Ok(new { message = "Servant approved successfully" });
         }
 
-        // Reject servant
-        [HttpDelete("reject-servant/{userId}")]
+        [HttpPost("reject-servant/{userId}")]
         public async Task<IActionResult> RejectServant(string userId)
         {
             await _adminManager.RejectServant(userId);

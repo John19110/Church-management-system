@@ -10,7 +10,7 @@ using System.Net.Mime;
 
 namespace Church.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/churches")]
     [ApiController]
     [Authorize]
     public class ChurchController : ControllerBase

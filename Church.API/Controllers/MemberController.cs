@@ -16,7 +16,7 @@ using System.Net.Mime;
 
 namespace Church.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/members")]
     [ApiController]
     [Authorize(Roles = "Servant,Admin,SuperAdmin")]
     public class MemberController : ControllerBase
@@ -102,7 +102,7 @@ namespace Church.API.Controllers
             return Ok(members);
         }
 
-        /// <summary>Literal segment must be registered before <c>{id}</c> so <c>/api/Member/select</c> is not bound as an integer route.</summary>
+        /// <summary>Literal segment must be registered before <c>{id}</c> so <c>/api/members/select</c> is not bound as an integer route.</summary>
         [HttpGet("select")]
         public async Task<IActionResult> GetMembersForSelection()
         {
@@ -187,7 +187,8 @@ namespace Church.API.Controllers
             return Ok(new { message = "Form saved." });
         }
 
-        [HttpGet("classroom/{classroomId}")]
+        /// <summary>Members in a classroom — nested under the classroom resource.</summary>
+        [HttpGet("/api/classrooms/{classroomId:int}/members")]
         public async Task<ActionResult<IEnumerable<MemberReadDTO>>> GetMembersByClassroom(int classroomId)
         {
             if (classroomId <= 0)
