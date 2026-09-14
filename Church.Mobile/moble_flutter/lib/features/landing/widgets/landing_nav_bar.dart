@@ -21,7 +21,9 @@ class LandingNavBar extends ConsumerWidget {
     final isArabic = locale.languageCode == 'ar';
     final scheme = Theme.of(context).colorScheme;
     final width = MediaQuery.sizeOf(context).width;
-    final compact = width < 720;
+    // Arabic Login/Register labels are much wider than English; switch to icon
+    // actions earlier so language + theme toggles are never clipped by Row overflow.
+    final compact = width < (isArabic ? 920 : 720);
 
     return Material(
       color: scheme.surface.withValues(alpha: 0.92),
@@ -29,7 +31,9 @@ class LandingNavBar extends ConsumerWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           border: Border(
-            bottom: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.5)),
+            bottom: BorderSide(
+              color: scheme.outlineVariant.withValues(alpha: 0.5),
+            ),
           ),
         ),
         child: SafeArea(
@@ -43,29 +47,40 @@ class LandingNavBar extends ConsumerWidget {
                   horizontal: AppSpacing.lg,
                   vertical: AppSpacing.sm,
                 ),
+                // Brand may shrink; action controls keep intrinsic size and stay visible.
                 child: Row(
                   children: [
-                    Image.asset(
-                      'assets/app_logo_adjusted.png',
-                      height: 36,
-                      width: 36,
-                      fit: BoxFit.contain,
-                      semanticLabel: l10n.appTitle,
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
                     Flexible(
-                      child: Text(
-                        l10n.appTitle,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: Theme.of(context).brightness == Brightness.dark
-                                  ? Colors.white
-                                  : AppColors.navy,
+                      child: Row(
+                        children: [
+                          Image.asset(
+                            'assets/app_logo_adjusted.png',
+                            height: 36,
+                            width: 36,
+                            fit: BoxFit.contain,
+                            semanticLabel: l10n.appTitle,
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          Flexible(
+                            child: Text(
+                              l10n.appTitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Colors.white
+                                        : AppColors.navy,
+                                  ),
                             ),
+                          ),
+                        ],
                       ),
                     ),
-                    const Spacer(),
                     Semantics(
                       button: true,
                       label: isArabic ? l10n.english : l10n.arabic,
