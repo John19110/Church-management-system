@@ -26,9 +26,8 @@ namespace Church.API.Infrastructure.DependencyInjection
                 var services = scope.ServiceProvider;
 
                 var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-                var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
 
-                await IdentitySeeder.SeedIdentityAsync(roleManager, userManager);
+                await IdentitySeeder.SeedIdentityAsync(roleManager);
             }
             catch (Exception ex)
             {

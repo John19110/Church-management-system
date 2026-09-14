@@ -5,9 +5,8 @@ namespace Church.DAL.DBcontext
 {
     public static class IdentitySeeder
     {
-        public static async Task SeedIdentityAsync(
-            RoleManager<IdentityRole> roleManager,
-            UserManager<ApplicationUser> userManager)
+        public static async Task SeedIdentityAsync(RoleManager<IdentityRole> roleManager)
+                                                  
         {
             string[] roles = { "Admin", "Servant","SuperAdmin" };
 

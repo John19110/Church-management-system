@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -123,8 +124,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   vertical: AppSpacing.xs,
                 ),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
+                    if (kIsWeb)
+                      TextButton.icon(
+                        onPressed: () => context.go(AppRoutes.landing),
+                        icon: const Icon(Icons.home_outlined, size: 18),
+                        label: Text(l10n.landingBackToHome),
+                      ),
+                    const Spacer(),
                     Tooltip(
                       message: isArabic ? l10n.english : l10n.arabic,
                       child: InkWell(

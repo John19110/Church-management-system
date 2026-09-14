@@ -11,11 +11,13 @@ namespace Church.API.Infrastructure
     {
         public static async Task ApplyMigrationsAndRepairSchemaAsync(IServiceProvider services,ILogger logger)
         {
-
+            //Create a temporary DI scope, give me the scoped ProgramContext,
+            //let me use it, and when I'm finished, dispose everything belonging to this scope
             using var scope = services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ProgramContext>();
 
             DatabaseDiagnostics.LogConnectionTarget(db, logger);
+
             await MigrationRunner.ApplyPendingMigrationsOrThrowAsync(db, logger);
 
             try

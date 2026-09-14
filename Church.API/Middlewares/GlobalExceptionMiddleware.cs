@@ -163,9 +163,8 @@ namespace Church.API.Middlewares
 
 
 
-        private void LogExceptionChain(
-            Exception exception,
-            HttpContext context)
+        private void LogExceptionChain( Exception exception,
+    HttpContext context)
         {
             var depth = 0;
 
@@ -209,10 +208,7 @@ namespace Church.API.Middlewares
 
 
 
-        private static (int StatusCode,
-                        string ErrorCode,
-                        string Message)
-            MapException(Exception exception)
+        private static (int StatusCode, string ErrorCode, string Message)  MapException(Exception exception)
         {
 
             return exception switch

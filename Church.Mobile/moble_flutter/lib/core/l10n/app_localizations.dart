@@ -589,6 +589,80 @@ class AppLocalizations {
   String get timeFormatHint => _t('timeFormatHint');
   String get churchBrand => _t('churchBrand');
 
+  // ── Web landing page ──────────────────────────────────────────────────────
+  String get landingBrandSubtitle => _t('landingBrandSubtitle');
+  String get landingHeroHeadline => _t('landingHeroHeadline');
+  String get landingHeroSubtitle => _t('landingHeroSubtitle');
+  String get landingFeaturesTitle => _t('landingFeaturesTitle');
+  String get landingFeaturesSubtitle => _t('landingFeaturesSubtitle');
+  String get landingFeatureChurchTitle => _t('landingFeatureChurchTitle');
+  String get landingFeatureChurchBody => _t('landingFeatureChurchBody');
+  String get landingFeaturePeopleTitle => _t('landingFeaturePeopleTitle');
+  String get landingFeaturePeopleBody => _t('landingFeaturePeopleBody');
+  String get landingFeatureAttendanceTitle =>
+      _t('landingFeatureAttendanceTitle');
+  String get landingFeatureAttendanceBody =>
+      _t('landingFeatureAttendanceBody');
+  String get landingFeatureClassroomsTitle =>
+      _t('landingFeatureClassroomsTitle');
+  String get landingFeatureClassroomsBody =>
+      _t('landingFeatureClassroomsBody');
+  String get landingFeatureCustomFieldsTitle =>
+      _t('landingFeatureCustomFieldsTitle');
+  String get landingFeatureCustomFieldsBody =>
+      _t('landingFeatureCustomFieldsBody');
+  String get landingFeatureRolesTitle => _t('landingFeatureRolesTitle');
+  String get landingFeatureRolesBody => _t('landingFeatureRolesBody');
+  String get landingFeatureTenantTitle => _t('landingFeatureTenantTitle');
+  String get landingFeatureTenantBody => _t('landingFeatureTenantBody');
+  String get landingFeatureNotificationsTitle =>
+      _t('landingFeatureNotificationsTitle');
+  String get landingFeatureNotificationsBody =>
+      _t('landingFeatureNotificationsBody');
+  String get landingRegistrationTitle => _t('landingRegistrationTitle');
+  String get landingRegistrationSubtitle => _t('landingRegistrationSubtitle');
+  String get landingRegStep1 => _t('landingRegStep1');
+  String get landingRegStep2 => _t('landingRegStep2');
+  String get landingRegStep3 => _t('landingRegStep3');
+  String get landingRegStep4 => _t('landingRegStep4');
+  String get landingRegStep5 => _t('landingRegStep5');
+  String get landingRegStep6 => _t('landingRegStep6');
+  String get landingRegStep7 => _t('landingRegStep7');
+  String get landingRegChurchPathTitle => _t('landingRegChurchPathTitle');
+  String get landingRegChurchPathBody => _t('landingRegChurchPathBody');
+  String get landingRegMeetingPathTitle => _t('landingRegMeetingPathTitle');
+  String get landingRegMeetingPathBody => _t('landingRegMeetingPathBody');
+  String get landingHowTitle => _t('landingHowTitle');
+  String get landingHowSubtitle => _t('landingHowSubtitle');
+  String get landingHowStep1Title => _t('landingHowStep1Title');
+  String get landingHowStep1Body => _t('landingHowStep1Body');
+  String get landingHowStep2Title => _t('landingHowStep2Title');
+  String get landingHowStep2Body => _t('landingHowStep2Body');
+  String get landingHowStep3Title => _t('landingHowStep3Title');
+  String get landingHowStep3Body => _t('landingHowStep3Body');
+  String get landingHowStep4Title => _t('landingHowStep4Title');
+  String get landingHowStep4Body => _t('landingHowStep4Body');
+  String get landingHowStep5Title => _t('landingHowStep5Title');
+  String get landingHowStep5Body => _t('landingHowStep5Body');
+  String get landingPlatformsTitle => _t('landingPlatformsTitle');
+  String get landingPlatformsSubtitle => _t('landingPlatformsSubtitle');
+  String get landingPlatformWeb => _t('landingPlatformWeb');
+  String get landingPlatformMobile => _t('landingPlatformMobile');
+  String get landingPlatformsNote => _t('landingPlatformsNote');
+  String get landingContactTitle => _t('landingContactTitle');
+  String get landingContactSubtitle => _t('landingContactSubtitle');
+  String get landingContactPhone => _t('landingContactPhone');
+  String get landingContactEmail => _t('landingContactEmail');
+  String get landingContactHint => _t('landingContactHint');
+  String get landingCtaTitle => _t('landingCtaTitle');
+  String get landingCtaSubtitle => _t('landingCtaSubtitle');
+  String get landingFooterTagline => _t('landingFooterTagline');
+  String get landingPrivacyPolicy => _t('landingPrivacyPolicy');
+  String get landingAccountDeletion => _t('landingAccountDeletion');
+  String get landingBackToHome => _t('landingBackToHome');
+  String landingFooterCopyright(int year) =>
+      _t('landingFooterCopyright').replaceAll('{year}', '$year');
+
   // ── Errors (no context) ───────────────────────────────────────────────────
   String get genericErrorTryAgain => _t('genericErrorTryAgain');
   String get invalidCredentialsPleaseTryAgain =>
@@ -1303,6 +1377,95 @@ class AppLocalizations {
       'selectValidOptionFor': 'Select a valid option for {name}',
       'fieldRequiresAtLeastOneOption': '{name} requires at least one option',
       'invalidSelectionFor': 'Invalid selection for {name}',
+      // Web landing
+      'landingBrandSubtitle': 'كنيستي',
+      'landingHeroHeadline': 'Manage Your Church. Connect Your Community.',
+      'landingHeroSubtitle':
+          'My Church helps Church Admins, Meeting Admins, and servants organize meetings, classrooms, members, attendance, and custom information — with approval-based registration.',
+      'landingFeaturesTitle': 'What you can do',
+      'landingFeaturesSubtitle':
+          'Built for real church workflows already available in My Church.',
+      'landingFeatureChurchTitle': 'Church & meeting management',
+      'landingFeatureChurchBody':
+          'Church Admins manage church and meeting information. Meeting Admins organize their meeting. Public IDs make it easy to invite the right people.',
+      'landingFeaturePeopleTitle': 'Members & servants',
+      'landingFeaturePeopleBody':
+          'Manage members and servants for your church or meeting according to your role and permissions.',
+      'landingFeatureAttendanceTitle': 'Attendance',
+      'landingFeatureAttendanceBody':
+          'Take and review attendance for classrooms and meetings, including meeting-specific attendance criteria.',
+      'landingFeatureClassroomsTitle': 'Classrooms',
+      'landingFeatureClassroomsBody':
+          'Organize classrooms (groups), assign servants, and keep members structured under each meeting.',
+      'landingFeatureCustomFieldsTitle': 'Custom fields',
+      'landingFeatureCustomFieldsBody':
+          'Administrators can add custom fields to Members, Servants, Classrooms, Meetings, and Churches — including text, numbers, dates, booleans, and selections — beyond the default fields.',
+      'landingFeatureRolesTitle': 'Role-based access',
+      'landingFeatureRolesBody':
+          'Church Admin, Meeting Admin, and Servant roles control what each person can see and manage.',
+      'landingFeatureTenantTitle': 'Separated church environments',
+      'landingFeatureTenantBody':
+          'Each church has its own organized environment. Users only access the information they are authorized to use.',
+      'landingFeatureNotificationsTitle': 'In-app notifications',
+      'landingFeatureNotificationsBody':
+          'Receive notifications in the app so you stay informed about important updates.',
+      'landingRegistrationTitle': 'How registration works',
+      'landingRegistrationSubtitle':
+          'Registration is administrator-controlled. An admin registers first, shares a code, reviews requests, then grants access.',
+      'landingRegStep1': 'Administrator',
+      'landingRegStep2': 'Register church / meeting',
+      'landingRegStep3': 'Get Public ID code',
+      'landingRegStep4': 'Share the code',
+      'landingRegStep5': 'Servant registers',
+      'landingRegStep6': 'Admin reviews',
+      'landingRegStep7': 'Access granted',
+      'landingRegChurchPathTitle': 'For a church',
+      'landingRegChurchPathBody':
+          'A Church Admin registers the church first and receives a church Public ID. They share that code with servants or Meeting Admins who should join. Those users register with the code, then the Church Admin reviews and approves pending requests before access is granted.',
+      'landingRegMeetingPathTitle': 'For a meeting',
+      'landingRegMeetingPathBody':
+          'A Meeting Admin registers (or is approved for) a meeting and can share the meeting Public ID. Servants register using the shared code. The Meeting Admin reviews pending servants and users, then approves them so they can access meeting features according to their role.',
+      'landingHowTitle': 'Get started in five steps',
+      'landingHowSubtitle':
+          'From first registration to day-to-day church management.',
+      'landingHowStep1Title': 'Register',
+      'landingHowStep1Body':
+          'Choose existing church or create a new church as Church Admin or Meeting Admin.',
+      'landingHowStep2Title': 'Set up',
+      'landingHowStep2Body':
+          'Complete church or meeting details and receive your Public ID.',
+      'landingHowStep3Title': 'Share the code',
+      'landingHowStep3Body':
+          'Share the church or meeting Public ID with the people who should join.',
+      'landingHowStep4Title': 'Approve servants',
+      'landingHowStep4Body':
+          'Review registration requests and approve or reject them.',
+      'landingHowStep5Title': 'Manage your church',
+      'landingHowStep5Body':
+          'Organize classrooms, members, servants, attendance, and custom fields.',
+      'landingPlatformsTitle': 'Web and mobile',
+      'landingPlatformsSubtitle':
+          'Use My Church where you work — browser or mobile app.',
+      'landingPlatformWeb': 'Web',
+      'landingPlatformMobile': 'Mobile app',
+      'landingPlatformsNote':
+          'Web and mobile connect to the same My Church platform. This landing page is available on the web experience.',
+      'landingContactTitle': 'Have a suggestion?',
+      'landingContactSubtitle':
+          "We'd love to hear your feedback and suggestions for improving My Church.",
+      'landingContactPhone': 'Phone',
+      'landingContactEmail': 'Email',
+      'landingContactHint':
+          'Tap phone or email to contact us about ideas and improvements.',
+      'landingCtaTitle': 'Ready to organize your church?',
+      'landingCtaSubtitle':
+          'Create an account or sign in to continue to My Church.',
+      'landingFooterTagline':
+          'Church management for meetings, classrooms, members, attendance, and more.',
+      'landingPrivacyPolicy': 'Privacy Policy',
+      'landingAccountDeletion': 'Account Deletion',
+      'landingBackToHome': 'Back to home',
+      'landingFooterCopyright': '© {year} My Church (كنيستي)',
     },
     'ar': {
       // Auth
@@ -1885,6 +2048,93 @@ class AppLocalizations {
       'selectValidOptionFor': 'اختر خياراً صالحاً لـ {name}',
       'fieldRequiresAtLeastOneOption': '{name} يتطلب خياراً واحداً على الأقل',
       'invalidSelectionFor': 'اختيار غير صالح لـ {name}',
+      // Web landing
+      'landingBrandSubtitle': 'My Church',
+      'landingHeroHeadline': 'أدر كنيستك وتواصل مع مجتمعك.',
+      'landingHeroSubtitle':
+          'تساعد كنيستي مسؤولي الكنيسة ومسؤولي الاجتماع والخدام على تنظيم الاجتماعات والفصول والمخدومين والحضور والمعلومات المخصصة — مع تسجيل يعتمد على موافقة المسؤول.',
+      'landingFeaturesTitle': 'ماذا يمكنك أن تفعل',
+      'landingFeaturesSubtitle':
+          'مصمم لسير عمل الكنيسة الفعلي المتاح بالفعل في كنيستي.',
+      'landingFeatureChurchTitle': 'إدارة الكنيسة والاجتماعات',
+      'landingFeatureChurchBody':
+          'يدير مسؤول الكنيسة بيانات الكنيسة والاجتماعات. ينظّم مسؤول الاجتماع اجتماعه. تسهل المعرّفات العامة دعوة الأشخاص المناسبين.',
+      'landingFeaturePeopleTitle': 'المخدومون والخدام',
+      'landingFeaturePeopleBody':
+          'أدِر المخدومين والخدام لكنيستك أو اجتماعك وفقًا لدورك وصلاحياتك.',
+      'landingFeatureAttendanceTitle': 'الحضور',
+      'landingFeatureAttendanceBody':
+          'سجّل وراجع حضور الفصول والاجتماعات، بما في ذلك معايير الحضور الخاصة بكل اجتماع.',
+      'landingFeatureClassroomsTitle': 'الفصول / المجموعات',
+      'landingFeatureClassroomsBody':
+          'نظّم الفصول (المجموعات)، عيّن الخدام، واحفظ المخدومين ضمن كل اجتماع.',
+      'landingFeatureCustomFieldsTitle': 'الحقول المخصصة',
+      'landingFeatureCustomFieldsBody':
+          'يمكن للمسؤولين إضافة حقول مخصصة للمخدومين والخدام والفصول والاجتماعات والكنائس — مثل النص والأرقام والتواريخ والاختيارات — بجانب الحقول الأساسية.',
+      'landingFeatureRolesTitle': 'صلاحيات حسب الدور',
+      'landingFeatureRolesBody':
+          'أدوار مسؤول الكنيسة ومسؤول الاجتماع والخادم تحدد ما يمكن لكل شخص رؤيته وإدارته.',
+      'landingFeatureTenantTitle': 'بيئات كنائس منفصلة',
+      'landingFeatureTenantBody':
+          'لكل كنيسة بيئة منظمة خاصة بها. يصل المستخدمون فقط إلى المعلومات المصرّح لهم بها.',
+      'landingFeatureNotificationsTitle': 'الإشعارات داخل التطبيق',
+      'landingFeatureNotificationsBody':
+          'استقبل إشعارات داخل التطبيق للبقاء على اطلاع بالتحديثات المهمة.',
+      'landingRegistrationTitle': 'كيف يعمل التسجيل',
+      'landingRegistrationSubtitle':
+          'التسجيل تحت إشراف المسؤول. يسجّل المسؤول أولاً، يشارك الرمز، يراجع الطلبات، ثم يمنح الوصول.',
+      'landingRegStep1': 'المسؤول',
+      'landingRegStep2': 'تسجيل الكنيسة / الاجتماع',
+      'landingRegStep3': 'الحصول على الرمز',
+      'landingRegStep4': 'مشاركة الرمز',
+      'landingRegStep5': 'تسجيل الخادم',
+      'landingRegStep6': 'مراجعة المسؤول',
+      'landingRegStep7': 'منح الوصول',
+      'landingRegChurchPathTitle': 'للكنيسة',
+      'landingRegChurchPathBody':
+          'يسجّل مسؤول الكنيسة الكنيسة أولاً ويحصل على المعرّف العام للكنيسة. يشارك الرمز مع الخدام أو مسؤولي الاجتماعات. يسجّلون بالرمز، ثم يراجع مسؤول الكنيسة الطلبات ويوافق عليها قبل منح الوصول.',
+      'landingRegMeetingPathTitle': 'للاجتماع',
+      'landingRegMeetingPathBody':
+          'يسجّل مسؤول الاجتماع (أو يُوافق عليه) ويستطيع مشاركة المعرّف العام للاجتماع. يسجّل الخدام باستخدام الرمز. يراجع مسؤول الاجتماع الطلبات ويوافق عليها ليصلوا إلى وظائف الاجتماع حسب دورهم.',
+      'landingHowTitle': 'ابدأ في خمس خطوات',
+      'landingHowSubtitle': 'من أول تسجيل إلى إدارة الكنيسة اليومية.',
+      'landingHowStep1Title': 'التسجيل',
+      'landingHowStep1Body':
+          'اختر كنيسة موجودة أو أنشئ كنيسة جديدة كمسؤول كنيسة أو مسؤول اجتماع.',
+      'landingHowStep2Title': 'الإعداد',
+      'landingHowStep2Body':
+          'أكمل بيانات الكنيسة أو الاجتماع واحصل على المعرّف العام.',
+      'landingHowStep3Title': 'مشاركة الرمز',
+      'landingHowStep3Body':
+          'شارك معرّف الكنيسة أو الاجتماع مع من يجب أن ينضموا.',
+      'landingHowStep4Title': 'الموافقة على الخدام',
+      'landingHowStep4Body': 'راجع طلبات التسجيل ووافق عليها أو ارفضها.',
+      'landingHowStep5Title': 'إدارة كنيستك',
+      'landingHowStep5Body':
+          'نظّم الفصول والمخدومين والخدام والحضور والحقول المخصصة.',
+      'landingPlatformsTitle': 'الويب والجوال',
+      'landingPlatformsSubtitle':
+          'استخدم كنيستي حيث تعمل — من المتصفح أو تطبيق الجوال.',
+      'landingPlatformWeb': 'الويب',
+      'landingPlatformMobile': 'تطبيق الجوال',
+      'landingPlatformsNote':
+          'الويب والجوال يتصلان بنفس منصة كنيستي. صفحة التعريف هذه متاحة في تجربة الويب.',
+      'landingContactTitle': 'لديك اقتراح؟',
+      'landingContactSubtitle':
+          'يسعدنا الاستماع إلى آرائكم واقتراحاتكم لتطوير وتحسين كنيستي.',
+      'landingContactPhone': 'الهاتف',
+      'landingContactEmail': 'البريد الإلكتروني',
+      'landingContactHint':
+          'اضغط على الهاتف أو البريد للتواصل معنا بشأن الأفكار والتحسينات.',
+      'landingCtaTitle': 'هل أنت مستعد لتنظيم كنيستك؟',
+      'landingCtaSubtitle':
+          'أنشئ حسابًا أو سجّل الدخول للمتابعة إلى كنيستي.',
+      'landingFooterTagline':
+          'إدارة الكنيسة للاجتماعات والفصول والمخدومين والحضور والمزيد.',
+      'landingPrivacyPolicy': 'سياسة الخصوصية',
+      'landingAccountDeletion': 'حذف الحساب',
+      'landingBackToHome': 'العودة للرئيسية',
+      'landingFooterCopyright': '© {year} كنيستي (My Church)',
     },
   };
 }
