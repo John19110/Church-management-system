@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Church — Church Management, Simplified</title>
+<meta name="description" content="One platform to run every part of your church: people, attendance, classrooms, roles, and notifications.">
+<link rel="icon" href="assets/images/logo.png" type="image/svg+xml">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ============ NAV BAR ============ -->
+<header class="navbar" id="navbar">
+  <div class="navbar__inner">
+    <a class="navbar__brand" href="#top" aria-label="My Church home">
+      <img src="assets/images/logo.png" alt="" class="navbar__logo" width="36" height="36">
+      <span class="navbar__title" data-i18n="appTitle">My Church</span>
+    </a>
+
+    <div class="navbar__actions">
+      <button class="icon-btn lang-toggle" id="langToggle" type="button" aria-label="Switch language">
+        <img id="langFlag" class="lang-toggle__flag" src="assets/icons/flag-eg.svg" alt="" width="28" height="28">
+      </button>
+
+      <button class="icon-btn theme-toggle" id="themeToggle" type="button" aria-label="Toggle dark mode">
+        <svg id="themeIconMoon" class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.6 6.6 0 0 0 10.5 10.5Z"/>
+        </svg>
+        <svg id="themeIconSun" class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" hidden>
+          <circle cx="12" cy="12" r="4.2"/>
+          <path d="M12 2.5v2.6M12 18.9v2.6M4.6 4.6l1.9 1.9M17.5 17.5l1.9 1.9M2.5 12h2.6M18.9 12h2.6M4.6 19.4l1.9-1.9M17.5 6.5l1.9-1.9"/>
+        </svg>
+      </button>
+
+      <nav class="navbar__links" id="navLinksWide">
+        <button class="btn btn--text" data-route="login" type="button" data-i18n="login">Log in</button>
+        <button class="btn btn--filled" data-route="register" type="button" data-i18n="register">Register</button>
+      </nav>
+
+      <div class="navbar__links navbar__links--compact" id="navLinksCompact">
+        <button class="icon-btn" data-route="login" type="button" aria-label="Log in">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 16l4-4-4-4M14 12H3"/>
+          </svg>
+        </button>
+        <button class="icon-btn" data-route="register" type="button" aria-label="Register">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M11 14H6a3 3 0 0 0-3 3v2M13.5 6.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0ZM18 8v6M15 11h6"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <div class="section-shell hero__inner">
+      <div class="hero__brand-row">
+        <img src="assets/images/logo.png" alt="" class="hero__logo" width="90" height="90">
+        <div>
+          <p class="hero__title" data-i18n="appTitle">My Church</p>
+          <p class="hero__subtitle-tag" data-i18n="landingBrandSubtitle"></p>
+          <p class="hero__subtitle-tag" data-i18n="landingBrandSubtitle2"></p>
+
+        </div>
+      </div>
+
+      <h1 class="hero__headline" data-i18n="landingHeroHeadline">One platform to run every part of your church</h1>
+      <p class="hero__subtitle" data-i18n="landingHeroSubtitle">Manage your congregation, track attendance, organize classes, and keep every ministry connected — all from a single, secure platform built for churches of any size.</p>
+
+      <div class="btn-row">
+        <button class="btn btn--filled btn--lg btn--on-dark" data-route="login" type="button" data-i18n="login">Log in</button>
+        <button class="btn btn--outline btn--lg btn--on-dark" data-route="register" type="button" data-i18n="register">Register</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FEATURES ============ -->
+  <section class="section section--alt">
+    <div class="section-shell">
+      <div class="section-header">
+        <h2 data-i18n="landingFeaturesTitle">Everything your church needs, in one place</h2>
+      </div>
+
+      <div class="feature-grid">
+        <article class="card feature-card">
+          <svg class="feature-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 10.5 12 4l9 6.5M5 9.5V20h5v-6h4v6h5V9.5"/></svg>
+          <h3 data-i18n="landingFeatureChurchTitle">Church profile</h3>
+          <p data-i18n="landingFeatureChurchBody">Set up your church's details, branches, and ministries once, and keep everyone working from the same source of truth.</p>
+        </article>
+        <article class="card feature-card">
+          <svg class="feature-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8.5" cy="8" r="3"/><circle cx="16" cy="9" r="2.4"/><path d="M2.5 19.5c.5-3.4 2.9-5.5 6-5.5s5.5 2.1 6 5.5M14.8 14.5c2.4.2 4.1 1.9 4.7 4.6"/></svg>
+          <h3 data-i18n="landingFeaturePeopleTitle">People</h3>
+          <p data-i18n="landingFeaturePeopleBody">Keep a complete, up-to-date record of every member, visitor, and family in your congregation.</p>
+        </article>
+        <article class="card feature-card">
+          <svg class="feature-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v3.4M16 3v3.4M8.3 14l2.1 2.1L15.7 11"/></svg>
+          <h3 data-i18n="landingFeatureAttendanceTitle">Attendance</h3>
+          <p data-i18n="landingFeatureAttendanceBody">Track attendance for services, classes, and events in seconds, and see participation trends over time.</p>
+        </article>
+        <article class="card feature-card">
+          <svg class="feature-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19.5V5.8L12 3l8 2.8v13.7M8 19.5v-5.2h8v5.2M4 19.5h16"/></svg>
+          <h3 data-i18n="landingFeatureClassroomsTitle">Groups
+          </h3>
+          <p data-i18n="landingFeatureClassroomsBody">Organize Sunday school, Bible study groups, and classes with rosters, schedules, and teachers all in view.</p>
+        </article>
+        <article class="card feature-card">
+          <svg class="feature-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h9M17 7h3M4 12h3M9 12h11M4 17h13M19 17h1"/><circle cx="14" cy="7" r="2"/><circle cx="6" cy="12" r="2"/><circle cx="16" cy="17" r="2"/></svg>
+          <h3 data-i18n="landingFeatureCustomFieldsTitle">Custom fields</h3>
+          <p data-i18n="landingFeatureCustomFieldsBody">Capture exactly the information your church cares about by adding your own fields to any record.</p>
+        </article>
+        <article class="card feature-card">
+          <svg class="feature-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3.5 5 6v5.5c0 4.6 3 7.9 7 9 4-1.1 7-4.4 7-9V6l-7-2.5Z"/><path d="m9.2 12 1.9 1.9 3.7-3.9"/></svg>
+          <h3 data-i18n="landingFeatureRolesTitle">Roles &amp; permissions</h3>
+          <p data-i18n="landingFeatureRolesBody">Give staff and volunteers access to only what they need, with clear roles for every responsibility.</p>
+        </article>
+     
+      </div>
+    </div>
+  </section>
+
+  ```html
+<!-- ============ REGISTRATION PROCESS ============ -->
+<section class="section">
+  <div class="section-shell">
+    <div class="section-header">
+      <h2 data-i18n="landingRegistrationTitle">Getting started</h2>
+      <p data-i18n="landingRegistrationSubtitle">
+        A simple registration flow gets your church online in minutes.
+      </p>
+    </div>
+
+    <ol class="reg-flow" id="regFlow">
+
+      <li class="reg-step">
+        <span class="reg-step__num" data-i18n="landingRegNumber1">1</span>
+        <span class="reg-step__text" data-i18n="landingRegStep1">
+        </span>
+      </li>
+
+      <li class="reg-flow__arrow" aria-hidden="true"></li>
+
+      <li class="reg-step">
+        <span class="reg-step__num" data-i18n="landingRegNumber2">2</span>
+        <span class="reg-step__text" data-i18n="landingRegStep2">
+        </span>
+      </li>
+
+      <li class="reg-flow__arrow" aria-hidden="true"></li>
+
+      <li class="reg-step">
+        <span class="reg-step__num" data-i18n="landingRegNumber3">3</span>
+        <span class="reg-step__text" data-i18n="landingRegStep3">
+        </span>
+      </li>
+
+      <li class="reg-flow__arrow" aria-hidden="true"></li>
+
+      <li class="reg-step">
+        <span class="reg-step__num" data-i18n="landingRegNumber4">4</span>
+        <span class="reg-step__text" data-i18n="landingRegStep4">
+        </span>
+      </li>
+
+      <li class="reg-flow__arrow" aria-hidden="true"></li>
+
+      <li class="reg-step">
+        <span class="reg-step__num" data-i18n="landingRegNumber5">5</span>
+        <span class="reg-step__text" data-i18n="landingRegStep5">
+        </span>
+      </li>
+
+      <li class="reg-flow__arrow" aria-hidden="true"></li>
+
+      <li class="reg-step">
+        <span class="reg-step__num" data-i18n="landingRegNumber6">6</span>
+        <span class="reg-step__text" data-i18n="landingRegStep6">
+        </span>
+      </li>
+
+     
+
+    </ol>
+  </div>
+</section>
+
+
+  <!-- ============ CONTACT ============ -->
+  <section class="section section--alt">
+    <div class="section-shell">
+      <div class="section-header">
+        <h2 data-i18n="landingContactTitle">Contact us</h2>
+        <p data-i18n="landingContactSubtitle">Have a question before you sign up? We're happy to help.</p>
+      </div>
+
+      <div class="contact-actions">
+        <a class="card contact-action" href="tel:01273036464">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4.5 4h4l1.6 4.5-2.2 1.7a12 12 0 0 0 5.9 5.9l1.7-2.2L20 15.5v4a1.5 1.5 0 0 1-1.6 1.5C10.6 20.6 3.4 13.4 3 5.6A1.5 1.5 0 0 1 4.5 4Z"/></svg>
+          <span class="contact-action__text">
+            <span class="contact-action__label" data-i18n="landingContactPhone">Phone</span>
+            <span class="contact-action__value" data-i18n="landingContactPhonenumber"></span>
+          </span>
+        </a>
+        <a class="card contact-action" href="mailto:johnpolis122@gmail.com">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 6.5 8 6 8-6"/></svg>
+          <span class="contact-action__text">
+            <span class="contact-action__label" data-i18n="landingContactEmail">Email</span>
+            <span class="contact-action__value">johnpolis122@gmail.com</span>
+          </span>
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ FINAL CTA ============ -->
+
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="section-shell footer__inner">
+    <p class="footer__brand" data-i18n="appTitle">My Church</p>
+    <p class="footer__tagline" data-i18n="landingFooterTagline">Church management software built for congregations of every size.</p>
+    <p class="footer__copyright" id="footerCopyright">© 2026 My Church. All rights reserved.</p>
+  </div>
+</footer>
+
+<script src="js/script.js"></script>
+</body>
+</html>

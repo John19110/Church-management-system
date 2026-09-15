@@ -19,6 +19,7 @@ import '../../../core/theme/app_palette.dart';
 import '../../../core/error/app_exception.dart';
 import '../../../core/notifications/notification_service.dart';
 import '../../../core/routing/app_router.dart';
+import '../../landing/static_landing_navigation.dart';
 import '../utils/phone_number_validator.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -127,7 +128,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   children: [
                     if (kIsWeb)
                       TextButton.icon(
-                        onPressed: () => context.go(AppRoutes.landing),
+                        onPressed: goToStaticLandingHome,
                         icon: const Icon(Icons.home_outlined, size: 18),
                         label: Text(l10n.landingBackToHome),
                       ),

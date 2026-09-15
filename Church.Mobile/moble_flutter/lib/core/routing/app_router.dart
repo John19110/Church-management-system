@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,7 +9,6 @@ import '../../features/auth/screens/registration_type_screen.dart';
 import '../../features/auth/screens/new_church_role_screen.dart';
 import '../../features/auth/utils/auth_role_utils.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
-import '../../features/landing/screens/landing_page.dart';
 import '../../features/member/screens/members_list_screen.dart';
 import '../../features/member/screens/member_detail_screen.dart';
 import '../../features/member/screens/member_add_screen.dart';
@@ -50,8 +48,8 @@ import '../../core/storage/token_storage.dart';
 import '../../core/notifications/notification_service.dart';
 
 class AppRoutes {
-  /// Web-only marketing landing. Mobile never uses this as initial location.
-  static const landing = '/';
+  /// Static HTML marketing site (web/landing). Not a Flutter GoRoute.
+  static const landing = '/landing/index.html';
   static const login = '/login';
   static const register = '/register';
   static const registerExistingChurch = '/register/existing-church';
@@ -84,8 +82,9 @@ class AppRoutes {
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    // Web opens on the public landing page; mobile keeps the existing login start.
-    initialLocation: kIsWeb ? AppRoutes.landing : AppRoutes.login,
+    // Flutter SPA entry for web/mobile deep links. Site root "/" is the
+    // static HTML landing (see web/index.html + firebase.json rewrites).
+    initialLocation: AppRoutes.login,
 
     redirect: (context, state) async {
       final hasToken = TokenStorage.isCacheWarm
@@ -94,25 +93,13 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       final loc = state.matchedLocation;
 
-      // Mobile must never stay on the marketing root (route is web-only).
-      if (!kIsWeb && loc == AppRoutes.landing) {
-        if (!hasToken) return AppRoutes.login;
-        final token =
-            TokenStorage.cachedToken ?? await TokenStorage.getToken();
-        final role =
-            token != null ? AuthRoleUtils.extractPrimaryRole(token) : null;
-        return AuthRoleUtils.routeForRole(role);
-      }
-
-      final onPublicWebLanding = kIsWeb && loc == AppRoutes.landing;
       final onAuthPage =
           loc == AppRoutes.login ||
           loc == AppRoutes.register ||
-          loc.startsWith(AppRoutes.register) ||
-          onPublicWebLanding;
+          loc.startsWith(AppRoutes.register);
 
       if (!hasToken && !onAuthPage) {
-        return kIsWeb ? AppRoutes.landing : AppRoutes.login;
+        return AppRoutes.login;
       }
 
       if (hasToken) {
@@ -139,11 +126,6 @@ final routerProvider = Provider<GoRouter>((ref) {
     },
 
     routes: [
-      if (kIsWeb)
-        GoRoute(
-          path: AppRoutes.landing,
-          builder: (_, __) => const LandingPage(),
-        ),
       GoRoute(path: AppRoutes.login, builder: (_, __) => const LoginScreen()),
       GoRoute(
         path: AppRoutes.register,

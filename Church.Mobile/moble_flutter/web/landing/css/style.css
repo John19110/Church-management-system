@@ -1,0 +1,772 @@
+/* =========================================================
+   My Church — Landing Page Styles
+   Matches the current HTML structure
+   ========================================================= */
+
+/* =========================== FONTS =========================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap');
+
+
+/* =========================== ROOT VARIABLES =========================== */
+
+:root {
+  /* --- Brand colors --- */
+  --navy-deep: #0B1E33;
+  --navy: #163455;
+  --primary-dark: #1E4976;
+  --gold: #D9A94A;
+
+  /* --- Spacing --- */
+  --sp-xs: 4px;
+  --sp-sm: 8px;
+  --sp-md: 16px;
+  --sp-lg: 24px;
+  --sp-xl: 32px;
+  --sp-xxl: 48px;
+  --sp-xxxl: 64px;
+
+  /* --- Border radius --- */
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 999px;
+
+  /* --- Light theme --- */
+  --surface: #FFFFFF;
+  --surface-alt: #F3F6FA;
+  --border: #E1E7EF;
+  --text: #16202C;
+  --text-secondary: #5B6B7F;
+  --primary: #1E4976;
+  --on-primary: #FFFFFF;
+
+  /* --- Fonts --- */
+  --font-sans: 'Inter', system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-arabic: 'Tajawal', 'Inter', system-ui, sans-serif;
+
+  /* --- Shadow --- */
+  --shadow: 0 1px 2px rgba(15, 30, 51, 0.06);
+}
+
+
+/* =========================== DARK THEME =========================== */
+
+html[data-theme="dark"] {
+  --surface: #0F1B2B;
+  --surface-alt: #16243A;
+  --border: #29405F;
+  --text: #EDF1F6;
+  --text-secondary: #9FB0C3;
+  --primary: #6FA8DC;
+  --on-primary: #0B1E33;
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+
+/* =========================== GLOBAL =========================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--surface);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+html[lang="ar"] body {
+  font-family: var(--font-arabic);
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.icon {
+  width: 22px;
+  height: 22px;
+  flex: none;
+}
+
+
+/* =========================== REDUCED MOTION =========================== */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+
+/* =========================== LAYOUT =========================== */
+
+.section-shell {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--sp-xxxl) var(--sp-xl);
+}
+
+.section {
+  background: var(--surface);
+}
+
+.section--alt {
+  background: var(--surface-alt);
+}
+
+.section-header {
+  max-width: 640px;
+  margin: 0 auto var(--sp-xxl);
+  text-align: center;
+}
+
+.section-header h2 {
+  font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2rem);
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.section-header p {
+  margin-top: var(--sp-sm);
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+
+
+/* =========================== NAVBAR =========================== */
+
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+
+.navbar__inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--sp-sm) var(--sp-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-md);
+}
+
+.navbar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
+}
+
+.navbar__logo {
+  border-radius: 8px;
+  flex: none;
+}
+
+.navbar__title {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--navy);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+html[data-theme="dark"] .navbar__title {
+  color: #FFFFFF;
+}
+
+.navbar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-xs);
+  flex: none;
+}
+
+
+/* =========================== ICON BUTTONS =========================== */
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+}
+
+.icon-btn:hover {
+  background: var(--surface-alt);
+}
+
+.lang-toggle__flag {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+}
+
+
+/* =========================== NAVIGATION LINKS =========================== */
+
+.navbar__links {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-xs);
+}
+
+.navbar__links--compact {
+  display: none;
+}
+
+/* Compact navigation is controlled by JavaScript */
+body.nav-compact .navbar__links:not(.navbar__links--compact) {
+  display: none;
+}
+
+body.nav-compact .navbar__links--compact {
+  display: flex;
+}
+
+
+/* =========================== BUTTONS =========================== */
+
+.btn {
+  border-radius: 10px;
+  border: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 10px var(--sp-lg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    filter 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.btn:hover {
+  filter: brightness(0.94);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.btn--text {
+  background: transparent;
+  color: var(--text);
+}
+
+.btn--text:hover {
+  background: var(--surface-alt);
+}
+
+.btn--filled {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.btn--outline {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn--lg {
+  padding: 14px var(--sp-xl);
+  font-size: 1rem;
+}
+
+.btn--on-dark.btn--filled {
+  background: #FFFFFF;
+  color: var(--navy-deep);
+}
+
+.btn--on-dark.btn--outline {
+  color: #FFFFFF;
+  border-color: rgba(255, 255, 255, 0.45);
+}
+
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-md);
+}
+
+
+/* =========================== HERO =========================== */
+
+.hero {
+  background: linear-gradient(
+    135deg,
+    var(--navy-deep),
+    var(--navy) 55%,
+    var(--primary-dark)
+  );
+}
+
+.hero__inner {
+  padding-top: 72px;
+  padding-bottom: 80px;
+}
+
+.hero__brand-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+}
+
+.hero__logo {
+  border-radius: 19px;
+  flex: none;
+}
+
+.hero__title {
+  color: #FFFFFF;
+  font-size: 1.7rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.hero__subtitle-tag {
+  color: var(--gold);
+  font-weight: 600;
+  font-size: 1.2rem;
+  margin-top: 2px;
+}
+
+.hero__headline {
+  color: #FFFFFF;
+  font-weight: 800;
+  line-height: 1.15;
+  font-size: clamp(1.9rem, 1.3rem + 2.6vw, 2.9rem);
+  margin-top: var(--sp-xxxl);
+  max-width: 800px;
+}
+
+.hero__subtitle {
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 1.15rem;
+  line-height: 1.5;
+  max-width: 700px;
+  margin-top: var(--sp-md);
+}
+
+.hero .btn-row {
+  margin-top: var(--sp-xl);
+}
+
+@media (max-width: 800px) {
+  .hero__inner {
+    padding-top: var(--sp-xxxl);
+    padding-bottom: var(--sp-xxxl);
+  }
+
+  .hero__headline {
+    margin-top: var(--sp-xl);
+  }
+}
+
+
+/* =========================== FEATURES =========================== */
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-md);
+}
+
+@media (max-width: 999px) {
+  .feature-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 679px) {
+  .feature-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.feature-card {
+  padding: var(--sp-xl);
+  text-align: start;
+}
+
+.feature-card__icon {
+  width: 32px;
+  height: 32px;
+  color: var(--primary);
+  margin-bottom: var(--sp-md);
+}
+
+.feature-card h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: var(--sp-sm);
+}
+
+.feature-card p {
+  color: var(--text-secondary);
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+
+/* =========================== REGISTRATION FLOW =========================== */
+
+.reg-flow {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+
+  gap: var(--sp-sm);
+}
+
+.reg-step {
+  width: 140px;
+  min-width: 120px;
+
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+
+  padding: var(--sp-md);
+
+  text-align: center;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  gap: var(--sp-sm);
+}
+
+.reg-step__num {
+  width: 32px;
+  height: 32px;
+
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--on-primary);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-weight: 700;
+  font-size: 0.85rem;
+
+  flex: none;
+}
+
+.reg-step__text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.reg-flow__arrow {
+  width: 20px;
+  height: 20px;
+
+  flex: none;
+
+  background: no-repeat center / contain
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E4976' stroke-width='2'><path d='M4 12h15M13 6l6 6-6 6'/></svg>");
+}
+
+html[data-theme="dark"] .reg-flow__arrow {
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236FA8DC' stroke-width='2'><path d='M4 12h15M13 6l6 6-6 6'/></svg>");
+}
+
+/* RTL arrow */
+html[dir="rtl"] .reg-flow__arrow {
+  transform: scaleX(-1);
+}
+
+
+/* =========================== REGISTRATION MOBILE =========================== */
+
+@media (max-width: 799px) {
+  .reg-flow {
+    flex-direction: column;
+  }
+
+  .reg-step {
+    width: 100%;
+    max-width: 280px;
+  }
+
+  .reg-flow__arrow {
+    transform: rotate(90deg);
+
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E4976' stroke-width='2'><path d='M4 12h15M13 6l6 6-6 6'/></svg>");
+  }
+
+  html[data-theme="dark"] .reg-flow__arrow {
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236FA8DC' stroke-width='2'><path d='M4 12h15M13 6l6 6-6 6'/></svg>");
+  }
+
+  html[dir="rtl"] .reg-flow__arrow {
+    transform: rotate(90deg);
+  }
+}
+
+
+/* =========================== HOW IT WORKS =========================== */
+
+.how-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--sp-md);
+}
+
+@media (max-width: 899px) {
+  .how-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 559px) {
+  .how-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.how-card {
+  padding: var(--sp-lg);
+  text-align: start;
+}
+
+.how-card__num {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: var(--sp-sm);
+}
+
+.how-card h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: var(--sp-xs);
+}
+
+.how-card p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+
+/* =========================== PLATFORMS =========================== */
+
+.platform-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-lg);
+}
+
+.platform-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-sm);
+
+  padding: var(--sp-lg) var(--sp-xl);
+
+  border-radius: var(--r-xl);
+  border: 1px solid var(--border);
+
+  background: var(--surface);
+
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.platform-chip .icon {
+  width: 28px;
+  height: 28px;
+  color: var(--primary);
+}
+
+
+/* =========================== CONTACT =========================== */
+
+.contact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+
+  gap: var(--sp-md);
+}
+
+.contact-action {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+
+  padding: var(--sp-lg) var(--sp-xl);
+
+  text-decoration: none;
+  color: inherit;
+
+  transition: border-color 0.15s ease;
+}
+
+.contact-action:hover {
+  border-color: var(--primary);
+}
+
+.contact-action .icon {
+  width: 24px;
+  height: 24px;
+  color: var(--primary);
+}
+
+.contact-action__text {
+  display: flex;
+  flex-direction: column;
+}
+
+.contact-action__label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.contact-action__value {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+
+/* =========================== FOOTER =========================== */
+
+.footer {
+  background: var(--navy-deep);
+}
+
+.footer__inner {
+  padding: var(--sp-xxl) var(--sp-xl);
+  text-align: start;
+}
+
+.footer__brand {
+  color: #FFFFFF;
+  font-weight: 800;
+  font-size: 1.25rem;
+}
+
+.footer__tagline {
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: var(--sp-xs);
+  line-height: 1.45;
+  max-width: 520px;
+}
+
+.footer__copyright {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.85rem;
+  margin-top: var(--sp-md);
+}
+
+
+/* =========================== RTL =========================== */
+
+html[lang="ar"] {
+  letter-spacing: 0;
+}
+
+html[lang="ar"] body {
+  font-family: var(--font-arabic);
+  letter-spacing: 0;
+}
+
+html[dir="rtl"] .feature-card,
+html[dir="rtl"] .how-card,
+html[dir="rtl"] .footer__inner {
+  text-align: right;
+}
+
+
+/* =========================== RTL PHONE NUMBER =========================== */
+
+/*
+  Phone numbers must remain LTR even when the page is RTL.
+  This prevents the digits from appearing visually reversed.
+*/
+
+html[dir="rtl"] .contact-action__value {
+  direction: ltr;
+  unicode-bidi: isolate;
+  text-align: right;
+}
+
+
+/* =========================== PHONE NUMBER LINKS =========================== */
+
+/*
+  If the phone number itself is an <a>, keep the number LTR as well.
+*/
+
+html[dir="rtl"] .contact-action__value a {
+  direction: ltr;
+  unicode-bidi: isolate;
+}

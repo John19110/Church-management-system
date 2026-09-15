@@ -36,6 +36,21 @@
        replaces this with the localized name (My Church / كنيستي). -->
   <title>My Church</title>
   <link rel="manifest" href="manifest.json">
+
+  <!--
+    Marketing landing is static HTML at /landing/.
+    When Flutter's index is requested at the site root (local flutter run, or
+    direct /index.html), send visitors to the HTML landing instead of booting
+    the SPA on "/". Deep links like /login keep loading Flutter normally.
+  -->
+  <script>
+    (function () {
+      var path = window.location.pathname || '/';
+      if (path === '/' || path === '') {
+        window.location.replace('/landing/index.html');
+      }
+    })();
+  </script>
 </head>
 <body>
   <!--
