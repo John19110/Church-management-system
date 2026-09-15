@@ -238,6 +238,9 @@ html[data-theme="dark"] .navbar__title {
   border: none;
   background: transparent;
   color: var(--text);
+  text-decoration: none;
+  cursor: pointer;
+  box-sizing: border-box;
 }
 
 .icon-btn:hover {
@@ -286,6 +289,10 @@ body.nav-compact .navbar__links--compact {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  box-sizing: border-box;
   transition:
     filter 0.15s ease,
     background-color 0.15s ease;

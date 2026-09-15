@@ -8,7 +8,7 @@
 (function () {
   'use strict';
 
-  /* ---- Configuration: point these at your real app routes ---- */
+  /* ---- Configuration: Flutter SPA auth routes (distinct paths) ---- */
   var CONFIG = {
     baseUrl: 'https://mychurch.app', // used to build the privacy-policy / account-deletion links
     routes: {
@@ -16,6 +16,9 @@
       register: '/register'
     }
   };
+
+  // Login and Register are plain <a href="/login"> / <a href="/register">
+  // in index.html so each button always opens its own Flutter path.
 
   /* ---- Translation strings (EN / AR), keyed the same as the Flutter l10n getters ---- */
   var STRINGS = {
