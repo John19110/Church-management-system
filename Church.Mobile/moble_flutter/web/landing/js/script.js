@@ -211,7 +211,7 @@ landingHowNumber5: '٠٥',
   /* ---- State (kept in memory only — no localStorage, so this mirrors
      the app's own persisted preference rather than assuming one) ---- */
   var state = {
-    lang: 'en',
+    lang: 'ar',
     theme: 'light'
   };
 

@@ -201,8 +201,12 @@ button {
 }
 
 .navbar__logo {
-  border-radius: 8px;
+  border-radius: 10px;
   flex: none;
+  background: #ffffff;
+  padding: 4px;
+  box-sizing: content-box;
+  object-fit: contain;
 }
 
 .navbar__title {
@@ -365,8 +369,12 @@ body.nav-compact .navbar__links--compact {
 }
 
 .hero__logo {
-  border-radius: 19px;
+  border-radius: 20px;
   flex: none;
+  background: #ffffff;
+  padding: 10px;
+  box-sizing: content-box;
+  object-fit: contain;
 }
 
 .hero__title {
