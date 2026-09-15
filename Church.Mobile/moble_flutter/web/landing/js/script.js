@@ -210,10 +210,9 @@ landingHowNumber5: '٠٥',
     }
   };
 
-  /* ---- State (kept in memory only — no localStorage, so this mirrors
-     the app's own persisted preference rather than assuming one) ---- */
+  /* ---- State: always Arabic on load; English only after flag click ---- */
   var state = {
-    lang: 'en',
+    lang: 'ar',
     theme: 'light'
   };
 
@@ -235,29 +234,39 @@ landingHowNumber5: '٠٥',
 
     root.lang = state.lang;
     root.dir = state.lang === 'ar' ? 'rtl' : 'ltr';
-    langFlag.src = state.lang === 'ar'
-      ? 'assets/icons/flag-uk.svg'
-      : 'assets/icons/flag-eg.svg';
-    langFlag.alt = state.lang === 'ar' ? t('english') : t('arabic');
-    document.getElementById('langToggle').setAttribute(
-      'aria-label',
-      state.lang === 'ar' ? t('english') : t('arabic')
-    );
+    document.title = state.lang === 'ar'
+      ? 'كنيستي — My Church'
+      : 'My Church — كنيستي';
 
-   var currentYear = new Date().getFullYear();
+    if (langFlag) {
+      langFlag.src = state.lang === 'ar'
+        ? 'assets/icons/flag-uk.svg'
+        : 'assets/icons/flag-eg.svg';
+      langFlag.alt = state.lang === 'ar' ? t('english') : t('arabic');
+    }
 
-var displayYear = state.lang === 'ar'
-  ? String(currentYear).replace(/\d/g, function (digit) {
-      return '٠١٢٣٤٥٦٧٨٩'[digit];
-    })
-  : String(currentYear);
+    var langToggleEl = document.getElementById('langToggle');
+    if (langToggleEl) {
+      langToggleEl.setAttribute(
+        'aria-label',
+        state.lang === 'ar' ? t('english') : t('arabic')
+      );
+    }
 
-var yearText = state.lang === 'ar'
-  ? '\u00A9 ' + displayYear + ' كنيستي جميع الحقوق محفوظة.'
-  : '\u00A9 ' + displayYear + ' My Church. All rights reserved.';
+    var currentYear = new Date().getFullYear();
+    var displayYear = state.lang === 'ar'
+      ? String(currentYear).replace(/\d/g, function (digit) {
+          return '٠١٢٣٤٥٦٧٨٩'[digit];
+        })
+      : String(currentYear);
 
-footerCopyright.textContent = yearText;
-    footerCopyright.textContent = yearText;
+    var yearText = state.lang === 'ar'
+      ? '\u00A9 ' + displayYear + ' كنيستي جميع الحقوق محفوظة.'
+      : '\u00A9 ' + displayYear + ' My Church. All rights reserved.';
+
+    if (footerCopyright) {
+      footerCopyright.textContent = yearText;
+    }
 
     updateNavCompact();
   }
