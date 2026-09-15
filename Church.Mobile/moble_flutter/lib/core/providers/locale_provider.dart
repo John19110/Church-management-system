@@ -9,11 +9,13 @@ const _localePrefsKey = 'app_locale'; // en | ar
 
 Locale _localeFromPrefs(String? raw) {
   switch (raw) {
+    case 'en':
+      return const Locale('en');
     case 'ar':
       return const Locale('ar');
-    case 'en':
     default:
-      return const Locale('en');
+      // First launch / no preference: Arabic.
+      return const Locale('ar');
   }
 }
 

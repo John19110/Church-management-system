@@ -208,11 +208,22 @@ landingHowNumber5: '٠٥',
     }
   };
 
-  /* ---- State (kept in memory only — no localStorage, so this mirrors
-     the app's own persisted preference rather than assuming one) ---- */
+  /* ---- State: Arabic default; persist lang/theme in localStorage ---- */
   var state = {
-    lang: 'ar',
-    theme: 'light'
+    lang: (function () {
+      try {
+        var saved = localStorage.getItem('landing_lang');
+        if (saved === 'en' || saved === 'ar') return saved;
+      } catch (e) { /* ignore */ }
+      return 'ar';
+    })(),
+    theme: (function () {
+      try {
+        var saved = localStorage.getItem('landing_theme');
+        if (saved === 'light' || saved === 'dark') return saved;
+      } catch (e) { /* ignore */ }
+      return 'light';
+    })()
   };
 
   var root = document.documentElement;
@@ -226,6 +237,13 @@ landingHowNumber5: '٠٥',
     return dict[key] || STRINGS.en[key] || key;
   }
 
+  function persistState() {
+    try {
+      localStorage.setItem('landing_lang', state.lang);
+      localStorage.setItem('landing_theme', state.theme);
+    } catch (e) { /* ignore */ }
+  }
+
   function applyTranslations() {
     document.querySelectorAll('[data-i18n]').forEach(function (el) {
       el.textContent = t(el.getAttribute('data-i18n'));
@@ -233,29 +251,39 @@ landingHowNumber5: '٠٥',
 
     root.lang = state.lang;
     root.dir = state.lang === 'ar' ? 'rtl' : 'ltr';
-    langFlag.src = state.lang === 'ar'
-      ? 'assets/icons/flag-uk.svg'
-      : 'assets/icons/flag-eg.svg';
-    langFlag.alt = state.lang === 'ar' ? t('english') : t('arabic');
-    document.getElementById('langToggle').setAttribute(
-      'aria-label',
-      state.lang === 'ar' ? t('english') : t('arabic')
-    );
+    document.title = state.lang === 'ar'
+      ? 'كنيستي — My Church'
+      : 'My Church — كنيستي';
 
-   var currentYear = new Date().getFullYear();
+    if (langFlag) {
+      langFlag.src = state.lang === 'ar'
+        ? 'assets/icons/flag-uk.svg'
+        : 'assets/icons/flag-eg.svg';
+      langFlag.alt = state.lang === 'ar' ? t('english') : t('arabic');
+    }
 
-var displayYear = state.lang === 'ar'
-  ? String(currentYear).replace(/\d/g, function (digit) {
-      return '٠١٢٣٤٥٦٧٨٩'[digit];
-    })
-  : String(currentYear);
+    var langToggleEl = document.getElementById('langToggle');
+    if (langToggleEl) {
+      langToggleEl.setAttribute(
+        'aria-label',
+        state.lang === 'ar' ? t('english') : t('arabic')
+      );
+    }
 
-var yearText = state.lang === 'ar'
-  ? '\u00A9 ' + displayYear + ' كنيستي جميع الحقوق محفوظة.'
-  : '\u00A9 ' + displayYear + ' My Church. All rights reserved.';
+    var currentYear = new Date().getFullYear();
+    var displayYear = state.lang === 'ar'
+      ? String(currentYear).replace(/\d/g, function (digit) {
+          return '٠١٢٣٤٥٦٧٨٩'[digit];
+        })
+      : String(currentYear);
 
-footerCopyright.textContent = yearText;
-    footerCopyright.textContent = yearText;
+    var yearText = state.lang === 'ar'
+      ? '\u00A9 ' + displayYear + ' كنيستي جميع الحقوق محفوظة.'
+      : '\u00A9 ' + displayYear + ' My Church. All rights reserved.';
+
+    if (footerCopyright) {
+      footerCopyright.textContent = yearText;
+    }
 
     updateNavCompact();
   }
@@ -263,15 +291,17 @@ footerCopyright.textContent = yearText;
   function applyTheme() {
     root.setAttribute('data-theme', state.theme);
     var isDark = state.theme === 'dark';
-    themeIconMoon.hidden = isDark;
-    themeIconSun.hidden = !isDark;
-    document.getElementById('themeToggle').setAttribute(
-      'aria-label',
-      isDark ? t('lightMode') : t('darkMode')
-    );
+    if (themeIconMoon) themeIconMoon.hidden = isDark;
+    if (themeIconSun) themeIconSun.hidden = !isDark;
+    var themeToggleEl = document.getElementById('themeToggle');
+    if (themeToggleEl) {
+      themeToggleEl.setAttribute(
+        'aria-label',
+        isDark ? t('lightMode') : t('darkMode')
+      );
+    }
   }
 
-  /* Mirrors Flutter: `compact = width < (isArabic ? 920 : 720)` */
   function updateNavCompact() {
     var threshold = state.lang === 'ar' ? 920 : 720;
     var isCompact = window.innerWidth < threshold;
@@ -281,16 +311,16 @@ footerCopyright.textContent = yearText;
   function goToRoute(routeName) {
     switch (routeName) {
       case 'login':
-        window.location.href = CONFIG.routes.login;
+        window.location.assign(CONFIG.routes.login);
         break;
       case 'register':
-        window.location.href = CONFIG.routes.register;
+        window.location.assign(CONFIG.routes.register);
         break;
       case 'privacy':
-        window.location.href = CONFIG.baseUrl + '/privacy-policy';
+        window.location.assign(CONFIG.baseUrl + '/privacy-policy');
         break;
       case 'deletion':
-        window.location.href = CONFIG.baseUrl + '/account-deletion';
+        window.location.assign(CONFIG.baseUrl + '/account-deletion');
         break;
       default:
         break;
@@ -298,16 +328,28 @@ footerCopyright.textContent = yearText;
   }
 
   function init() {
-    document.getElementById('langToggle').addEventListener('click', function () {
-      state.lang = state.lang === 'ar' ? 'en' : 'ar';
-      applyTranslations();
-      applyTheme();
-    });
+    applyTranslations();
+    applyTheme();
+    persistState();
 
-    document.getElementById('themeToggle').addEventListener('click', function () {
-      state.theme = state.theme === 'dark' ? 'light' : 'dark';
-      applyTheme();
-    });
+    var langToggleEl = document.getElementById('langToggle');
+    if (langToggleEl) {
+      langToggleEl.addEventListener('click', function () {
+        state.lang = state.lang === 'ar' ? 'en' : 'ar';
+        persistState();
+        applyTranslations();
+        applyTheme();
+      });
+    }
+
+    var themeToggleEl = document.getElementById('themeToggle');
+    if (themeToggleEl) {
+      themeToggleEl.addEventListener('click', function () {
+        state.theme = state.theme === 'dark' ? 'light' : 'dark';
+        persistState();
+        applyTheme();
+      });
+    }
 
     document.querySelectorAll('[data-route]').forEach(function (el) {
       el.addEventListener('click', function () {
@@ -316,10 +358,11 @@ footerCopyright.textContent = yearText;
     });
 
     window.addEventListener('resize', updateNavCompact);
-
-    applyTranslations();
-    applyTheme();
   }
 
-  document.addEventListener('DOMContentLoaded', init);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 })();

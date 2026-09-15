@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -80,11 +81,21 @@ class AppRoutes {
   static const attendanceHistory = '/attendance/history';
 }
 
+String _initialLocation() {
+  if (!kIsWeb) return AppRoutes.login;
+
+  final path = Uri.base.path;
+  if (path.isEmpty || path == '/' || path.startsWith('/landing')) {
+    return AppRoutes.login;
+  }
+  return path;
+}
+
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    // Flutter SPA entry for web/mobile deep links. Site root "/" is the
-    // static HTML landing (see web/index.html + firebase.json rewrites).
-    initialLocation: AppRoutes.login,
+    // On web, respect the browser path (/login, /register, …) from the
+    // HTML landing. On mobile, cold-start at login.
+    initialLocation: _initialLocation(),
 
     redirect: (context, state) async {
       final hasToken = TokenStorage.isCacheWarm

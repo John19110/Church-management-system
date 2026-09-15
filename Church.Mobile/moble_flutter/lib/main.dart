@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/routing/app_router.dart';
 import 'core/theme/app_theme.dart';
@@ -22,6 +23,12 @@ import 'shared/widgets/app_form_shell.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // So /login and /register from the HTML landing resolve as real paths
+  // (not /#/login). Without this, Register often landed on the login screen.
+  if (kIsWeb) {
+    usePathUrlStrategy();
+  }
 
   try {
     // Need prefs before first splash paint so light/dark matches app ThemeMode.
