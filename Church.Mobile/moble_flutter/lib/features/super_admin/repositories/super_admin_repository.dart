@@ -30,19 +30,19 @@ class SuperAdminRepository {
     });
   }
 
-  /// POST /api/super-admin/approve-admin/{userId}
+  /// POST /api/super-admin/admins/{userId}/approve
   Future<void> approveAdmin(String userId) async {
     return apiCall(() async {
       await _dio.post(
-          '${AppConstants.superAdminEndpoint}/approve-admin/$userId');
+          '${AppConstants.superAdminEndpoint}/admins/$userId/approve');
     });
   }
 
-  /// POST /api/super-admin/reject-admin/{userId}
+  /// POST /api/super-admin/admins/{userId}/reject
   Future<void> rejectAdmin(String userId) async {
     return apiCall(() async {
       await _dio.post(
-          '${AppConstants.superAdminEndpoint}/reject-admin/$userId');
+          '${AppConstants.superAdminEndpoint}/admins/$userId/reject');
     });
   }
 
@@ -60,21 +60,21 @@ class SuperAdminRepository {
     });
   }
 
-  /// POST /api/SuperAdmin/approve-user/{userId}
+  /// POST /api/super-admin/users/{userId}/approve
   Future<void> approveUser(String userId, {int? meetingId}) async {
     return apiCall(() async {
       await _dio.post(
-        '${AppConstants.superAdminEndpoint}/approve-user/$userId',
+        '${AppConstants.superAdminEndpoint}/users/$userId/approve',
         data: {'meetingId': meetingId},
       );
     });
   }
 
-  /// POST /api/SuperAdmin/reject-user/{userId}
+  /// POST /api/super-admin/users/{userId}/reject
   Future<void> rejectUser(String userId, {String? reason}) async {
     return apiCall(() async {
       await _dio.post(
-        '${AppConstants.superAdminEndpoint}/reject-user/$userId',
+        '${AppConstants.superAdminEndpoint}/users/$userId/reject',
         data: {'reason': reason},
       );
     });

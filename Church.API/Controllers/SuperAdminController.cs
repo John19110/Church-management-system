@@ -15,15 +15,13 @@ namespace Church.API.Controllers
     public class SuperAdminController : ControllerBase
     {
         private readonly ISuperAdminManager _superAdminManager;
-        private readonly IAdminManager _adminManager;
 
 
 
 
-        public SuperAdminController(ISuperAdminManager superAdminManager, IAdminManager adminManager)
+        public SuperAdminController(ISuperAdminManager superAdminManager)
         {
             _superAdminManager = superAdminManager;
-            _adminManager = adminManager;
         }
 
 
@@ -34,14 +32,14 @@ namespace Church.API.Controllers
             return Ok(pendingAdmins);
         }
 
-        [HttpPost("approve-admin/{userId}")]
+        [HttpPost("admins/{userId}/approve")]
         public async Task<IActionResult> ApproveAdmin(string userId)
         {
             await _superAdminManager.ApproveAdmin(userId);
             return Ok(new { message = "Admin approved successfully." });
         }
 
-        [HttpPost("reject-admin/{userId}")]
+        [HttpPost("admins/{userId}/reject")]
         public async Task<IActionResult> RejectAdmin(string userId)
         {
             await _superAdminManager.RejectAdmin(userId);
@@ -59,7 +57,7 @@ namespace Church.API.Controllers
         }
 
         /// <summary>Approve a pending user, assigning a meeting when the role requires it.</summary>
-        [HttpPost("approve-user/{userId}")]
+        [HttpPost("users/{userId}/approve")]
         public async Task<IActionResult> ApproveUser(string userId, [FromBody] ApproveUserDTO? dto)
         {
             await _superAdminManager.ApproveUser(userId, dto?.MeetingId);
@@ -67,7 +65,7 @@ namespace Church.API.Controllers
         }
 
         /// <summary>Reject a pending user with an optional reason; the user remains unable to login.</summary>
-        [HttpPost("reject-user/{userId}")]
+        [HttpPost("users/{userId}/reject")]
         public async Task<IActionResult> RejectUser(string userId, [FromBody] RejectUserDTO? dto)
         {
             await _superAdminManager.RejectUser(userId, dto?.Reason);

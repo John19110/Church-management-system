@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 import '../../../core/api/dio_client.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../super_admin/models/super_admin_models.dart';
-import '../models/admin_models.dart';
 
 class AdminRepository {
   final Dio _dio;
@@ -21,27 +20,29 @@ class AdminRepository {
     });
   }
 
-  /// PUT /Api/Admin/assign-class/{servantId}/{classroomId}
+  /// PUT /api/admin/servants/{servantId}/classroom
   Future<void> assignClass(int servantId, int classroomId) async {
     return apiCall(() async {
       await _dio.put(
-          '${AppConstants.adminEndpoint}/assign-class/$servantId/$classroomId');
+        '${AppConstants.adminEndpoint}/servants/$servantId/classroom',
+        data: {'classroomId': classroomId},
+      );
     });
   }
 
-  /// POST /api/admin/approve-servant/{userId}
+  /// POST /api/admin/servants/{userId}/approve
   Future<void> approveServant(String userId) async {
     return apiCall(() async {
       await _dio
-          .post('${AppConstants.adminEndpoint}/approve-servant/$userId');
+          .post('${AppConstants.adminEndpoint}/servants/$userId/approve');
     });
   }
 
-  /// POST /api/admin/reject-servant/{userId}
+  /// POST /api/admin/servants/{userId}/reject
   Future<void> rejectServant(String userId) async {
     return apiCall(() async {
       await _dio
-          .post('${AppConstants.adminEndpoint}/reject-servant/$userId');
+          .post('${AppConstants.adminEndpoint}/servants/$userId/reject');
     });
   }
 
@@ -57,21 +58,21 @@ class AdminRepository {
     });
   }
 
-  /// POST /api/Admin/approve-user/{userId}
+  /// POST /api/admin/users/{userId}/approve
   Future<void> approveUser(String userId, {int? meetingId}) async {
     return apiCall(() async {
       await _dio.post(
-        '${AppConstants.adminEndpoint}/approve-user/$userId',
+        '${AppConstants.adminEndpoint}/users/$userId/approve',
         data: {'meetingId': meetingId},
       );
     });
   }
 
-  /// POST /api/Admin/reject-user/{userId}
+  /// POST /api/admin/users/{userId}/reject
   Future<void> rejectUser(String userId, {String? reason}) async {
     return apiCall(() async {
       await _dio.post(
-        '${AppConstants.adminEndpoint}/reject-user/$userId',
+        '${AppConstants.adminEndpoint}/users/$userId/reject',
         data: {'reason': reason},
       );
     });

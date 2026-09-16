@@ -18,18 +18,14 @@ namespace Church.API.Controllers
     public class AdminController : ControllerBase
     {
         private readonly IAdminManager _adminManager;
-        private readonly IFileStorage _filestorage;
-        private readonly IWebHostEnvironment _env;
-        private readonly IServantManager _servantManager;
+      
 
 
 
-        public AdminController(IAdminManager adminmanager, IFileStorage filestorage, IWebHostEnvironment env, IServantManager servantManager)
+        public AdminController(IAdminManager adminmanager)
         {
             _adminManager = adminmanager;
-            _filestorage = filestorage;
-            _env = env;
-            _servantManager = servantManager;
+          
         }
 
         
@@ -42,12 +38,17 @@ namespace Church.API.Controllers
             return Ok(result);
         }
 
-        [HttpPut("assign-class/{servantId}/{classroomId}")]
-        public async Task<ActionResult> AssignClassToServant(int servantId, int classroomId)
+        [HttpPut("servants/{servantId}/classroom")]
+        public async Task<ActionResult> AssignClassToServant(
+            int servantId,
+            [FromBody] AssignServantClassroomRequest request)
         { 
+            if (request == null || request.ClassroomId <= 0)
+                return BadRequest(new { message = "Classroom id must be a positive integer." });
+
             try
             {
-                await _adminManager.AssignClassToServant(servantId, classroomId);
+                await _adminManager.AssignClassToServant(servantId, request.ClassroomId);
                 return Ok(new { message = "Class assigned successfully" });
             }
             catch (NotFoundException ex)
@@ -61,14 +62,14 @@ namespace Church.API.Controllers
         }
 
         // Domain actions: approval/rejection are not CRUD deletes.
-        [HttpPost("approve-servant/{userId}")]
+        [HttpPost("servants/{userId}/approve")]
         public async Task<IActionResult> ApproveServant(string userId)
         {
             await _adminManager.ApproveServant(userId);
             return Ok(new { message = "Servant approved successfully" });
         }
 
-        [HttpPost("reject-servant/{userId}")]
+        [HttpPost("servants/{userId}/reject")]
         public async Task<IActionResult> RejectServant(string userId)
         {
             await _adminManager.RejectServant(userId);
@@ -86,7 +87,7 @@ namespace Church.API.Controllers
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpPost("approve-user/{userId}")]
+        [HttpPost("users/{userId}/approve")]
         public async Task<IActionResult> ApproveUser(string userId, [FromBody] ApproveUserDTO? dto)
         {
             await _adminManager.ApproveUser(userId, dto?.MeetingId);
@@ -94,14 +95,12 @@ namespace Church.API.Controllers
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpPost("reject-user/{userId}")]
+        [HttpPost("users/{userId}/reject")]
         public async Task<IActionResult> RejectUser(string userId, [FromBody] RejectUserDTO? dto)
         {
             await _adminManager.RejectUser(userId, dto?.Reason);
             return Ok(new { message = "User rejected successfully." });
         }
-
-
 
 
     }
