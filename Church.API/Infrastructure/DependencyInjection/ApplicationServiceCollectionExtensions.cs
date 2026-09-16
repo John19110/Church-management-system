@@ -543,7 +543,7 @@ namespace Church.API.Infrastructure.DependencyInjection
             services.AddScoped<
                 IUnifiedEntityFormManager,
                 UnifiedEntityFormManager
-            >;
+            >();
 
 
             // Return IServiceCollection for method chaining.
