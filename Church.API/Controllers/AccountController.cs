@@ -41,6 +41,7 @@ namespace Church.API.Controllers
         [AllowAnonymous]
         public async Task<ActionResult> RegisterChurchSuperAdmin([FromForm] RegisterChurchAdminDTO dto)
         {
+            //_env.WebRootPath is the physical path to your application's web root
             var result = await _accountManager.RegisterChurchSuperAdmin(dto, _env.WebRootPath);
             return result.ToActionResult();
         }

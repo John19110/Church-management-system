@@ -3,7 +3,10 @@ using Church.API.Json;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using System.Reflection.Metadata;
+using System.Security.Cryptography.Xml;
 using System.Text.Json.Serialization;
+using static System.Net.WebRequestMethods;
 
 namespace Church.API.Infrastructure.DependencyInjection
 {
@@ -12,25 +15,55 @@ namespace Church.API.Infrastructure.DependencyInjection
         public static IServiceCollection AddApiServices(this IServiceCollection services)
         {
             services.AddProblemDetails();
-            services.AddHttpContextAccessor();
+            // Problem Details is a standardized structure for HTTP errors.
 
+            services.AddHttpContextAccessor();
+            // This allows services that aren't controllers to access the current HTTP request.
+            //you can inject:
+            // IHttpContextAccessor
+            //and access:
+            //_httpContextAccessor.HttpContext
+
+
+            //This application uses MVC/Web API controllers.
             services.AddControllers(options =>
                 {
+                            //HTTP Request
+                            //     ↓
+                            //Controller
+                            //     ↓
+                            //Action
+                            //     ↓
+                            //Exception ?
+                            //     ↓
+                            //FormDataExceptionFilter
+                            //     ↓
+                            //Handle / transform exception
+
                     options.Filters.Add<FormDataExceptionFilter>();
                 })
                 .AddJsonOptions(o =>
                 {
+                    //This controls how your C# objects are converted to/from JSON.
                     ApiJsonSerializerOptions.Configure(o.JsonSerializerOptions);
+
+                    //This is important for Entity Framework applications.
+                    //If you encounter a circular reference, don't keep following it forever.
                     o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+
+
                     o.JsonSerializerOptions.Converters.Add(new TimeOnlyJsonConverter());
+
                 });
 
+            // ASP.NET Core automatically performs model validation when using [ApiController].
             services.Configure<ApiBehaviorOptions>(options =>
             {
                 options.InvalidModelStateResponseFactory = context =>
                 {
                     var errors = context.ModelState
                         .Where(e => e.Value?.Errors.Count > 0)
+                        //Give me only the fields that contain errors.
                         .ToDictionary(
                             e => e.Key,
                             e => e.Value!.Errors.Select(x => x.ErrorMessage).ToArray());

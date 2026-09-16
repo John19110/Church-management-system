@@ -5,6 +5,8 @@ namespace Church.BLL.Configuration
     /// </summary>
     public class ServantProfileOptions
     {
+
+        //If a user has the Servant role but doesn't have a Servant database row yet, should we automatically create one?
         public const string SectionName = "Servants";
 
         /// <summary>

@@ -11,7 +11,14 @@ namespace Church.API.Authorization
                 options.AddPolicy(CustomFieldPolicies.ManageDefinitions, policy =>
                     policy.RequireRole(CustomFieldRoles.DefinitionManagers));
 
+
+
+
                 options.AddPolicy(CustomFieldPolicies.ReadDefinitions, policy =>
+
+                //RequireAuthenticatedUser()
+                //Means:
+                //The JWT is valid and the user is logged in.
                     policy.RequireAuthenticatedUser());
 
                 // Previously any authenticated principal could write custom field values for any
