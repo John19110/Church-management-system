@@ -1,8 +1,7 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/media/picked_image.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/app_network_avatar.dart';
@@ -17,7 +16,7 @@ import 'member_form_section_card.dart';
 /// Native member form with section cards (personal, dates, phones, etc.).
 class MemberForm extends StatelessWidget {
   final MemberFormController controller;
-  final File? pickedImage;
+  final PickedImage? pickedImage;
   final VoidCallback onPickImage;
   final bool showLastAttendanceDate;
   final VoidCallback onChanged;
@@ -112,7 +111,7 @@ class MemberForm extends StatelessWidget {
 
 class _PersonalSection extends StatelessWidget {
   final MemberFormController controller;
-  final File? pickedImage;
+  final PickedImage? pickedImage;
   final VoidCallback onPickImage;
   final VoidCallback onChanged;
 
@@ -137,7 +136,7 @@ class _PersonalSection extends StatelessWidget {
             child: pickedImage != null
                 ? CircleAvatar(
                     radius: 52,
-                    backgroundImage: FileImage(pickedImage!),
+                    backgroundImage: pickedImage!.memoryImage,
                   )
                 : AppNetworkAvatar(
                     imageUrl: controller.existingImageUrl,

@@ -1,9 +1,7 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
 import '../models/auth_models.dart';
 import '../providers/auth_providers.dart';
 import '../utils/auth_role_utils.dart';
@@ -12,6 +10,7 @@ import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/error/app_exception.dart';
+import '../../../core/media/picked_image.dart';
 import '../../../core/notifications/notification_service.dart';
 import '../../../core/routing/app_router.dart';
 import '../../../core/theme/app_colors.dart';
@@ -84,7 +83,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _birthController = TextEditingController();
   final _joiningController = TextEditingController();
 
-  File? _image;
+  PickedImage? _image;
   _RegisterType _selectedType = _RegisterType.servant;
   bool _loading = false;
   bool _obscurePassword = true;
@@ -304,9 +303,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery);
-    if (picked != null) setState(() => _image = File(picked.path));
+    try {
+      final image = await pickImageFromGallery();
+      if (image != null && mounted) setState(() => _image = image);
+    } catch (e, st) {
+      debugPrint('RegisterScreen._pickImage: $e\n$st');
+      if (mounted) {
+        showErrorSnackbar(
+          context,
+          userFriendlyMessage(e, AppLocalizations.of(context)),
+        );
+      }
+    }
   }
 
   Future<void> _register() async {
@@ -510,7 +518,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         child: CircleAvatar(
           radius: 48,
           backgroundColor: AppColors.primary,
-          backgroundImage: _image != null ? FileImage(_image!) : null,
+          backgroundImage: _image?.memoryImage,
           child: _image == null
               ? Column(
             mainAxisAlignment: MainAxisAlignment.center,

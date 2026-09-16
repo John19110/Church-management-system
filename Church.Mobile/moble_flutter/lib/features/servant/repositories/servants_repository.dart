@@ -1,9 +1,9 @@
-import 'dart:io';
 import 'package:dio/dio.dart';
 import '../../../core/api/dio_client.dart';
 import '../../../core/api/select_api.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/cache/cache_manager.dart';
+import '../../../core/media/picked_image.dart';
 import '../models/servant_models.dart';
 import '../../../core/models/select_option.dart';
 import '../../unified_form/models/unified_form_models.dart';
@@ -112,7 +112,7 @@ class ServantsRepository {
     int? churchId,
     int? meetingId,
     List<int>? classroomIds,
-    File? image,
+    PickedImage? image,
   }) async {
     return apiCall(() async {
       final map = <String, dynamic>{
@@ -123,9 +123,7 @@ class ServantsRepository {
         if (spiritualBirthDate != null) 'SpiritualBirthDate': spiritualBirthDate,
         if (churchId != null) 'ChurchId': churchId.toString(),
         if (meetingId != null) 'MeetingId': meetingId.toString(),
-        if (image != null)
-          'Image': await MultipartFile.fromFile(image.path,
-              filename: image.path.split(Platform.pathSeparator).last),
+        if (image != null) 'Image': image.toMultipartFile(),
       };
 
       final ids = (classroomIds ?? const <int>[])
@@ -157,7 +155,7 @@ class ServantsRepository {
     String? joiningDate,
     String? birthDate,
     int? classroomId,
-    File? image,
+    PickedImage? image,
   }) async {
     _requireServantId(id);
     return apiCall(() async {
@@ -167,9 +165,7 @@ class ServantsRepository {
         if (joiningDate != null) 'JoiningDate': joiningDate,
         if (birthDate != null) 'BirthDate': birthDate,
         if (classroomId != null) 'ClassroomId': classroomId.toString(),
-        if (image != null)
-          'Image': await MultipartFile.fromFile(image.path,
-              filename: image.path.split('/').last),
+        if (image != null) 'Image': image.toMultipartFile(),
       };
       await _dio.put(
         '${AppConstants.servantEndpoint}/$id',

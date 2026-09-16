@@ -1,11 +1,10 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/media/picked_image.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/common_widgets.dart';
@@ -29,7 +28,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
     with UnifiedFormScreenMixin {
   final _formKey = GlobalKey<FormState>();
   final _formController = UnifiedFormController();
-  File? _image;
+  PickedImage? _image;
   bool _loading = false;
 
   @override
@@ -45,8 +44,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
   }
 
   Future<void> _pickImage() async {
-    final file = await pickUnifiedEntityPhoto();
-    if (file != null) setState(() => _image = file);
+    final image = await pickUnifiedEntityPhoto(context);
+    if (image != null) setState(() => _image = image);
   }
 
   List<UnifiedFieldDefinitionDto> _editableFields(List<UnifiedFieldDto> fields) {
@@ -155,7 +154,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                       UnifiedEntityPhotoPicker(
                         fields: formData.fields,
                         imageUrl: profile.displayImageUrl,
-                        pickedFile: _image,
+                        pickedImage: _image,
                         onPick: _pickImage,
                       ),
                       const SizedBox(height: AppSpacing.md),

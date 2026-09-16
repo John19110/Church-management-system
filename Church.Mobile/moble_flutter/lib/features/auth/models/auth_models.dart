@@ -1,5 +1,6 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
+
+import '../../../core/media/picked_image.dart';
 
 /// Result from login/register — JWT on success, or a registration message.
 class AuthFlowResult {
@@ -43,7 +44,7 @@ class RegisterServantDto {
 
   /// Legacy public meeting id — optional, no longer required for self-registration.
   final String meetingPublicId;
-  final File? image;
+  final PickedImage? image;
   final String? birthDate;
   final String? joiningDate;
   final List<int>? classroomsIds;
@@ -71,7 +72,7 @@ class RegisterChurchSuperAdminDto {
   final String password;
   final String confirmPassword;
   final String churchName;
-  final File? image;
+  final PickedImage? image;
   final String? birthDate;
   final String? joiningDate;
 
@@ -97,7 +98,7 @@ class RegisterMeetingAdminDto {
   final TimeOfDay weeklyAppointment;
   final String dayOfWeek;
   final bool hasClassrooms;
-  final File? image;
+  final PickedImage? image;
   final String? birthDate;
   final String? joiningDate;
 

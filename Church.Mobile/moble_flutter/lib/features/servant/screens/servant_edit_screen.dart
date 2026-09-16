@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +6,7 @@ import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/media/picked_image.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../unified_form/widgets/unified_entity_photo_picker.dart';
 import '../../auth/providers/auth_providers.dart';
@@ -30,7 +29,7 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen>
     with UnifiedFormScreenMixin {
   final _formKey = GlobalKey<FormState>();
   final _formController = UnifiedFormController();
-  File? _image;
+  PickedImage? _image;
   bool _loading = false;
 
   @override
@@ -40,8 +39,8 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen>
   }
 
   Future<void> _pickImage() async {
-    final file = await pickUnifiedEntityPhoto();
-    if (file != null) setState(() => _image = file);
+    final image = await pickUnifiedEntityPhoto(context);
+    if (image != null) setState(() => _image = image);
   }
 
   Future<void> _submit(List<UnifiedFieldDefinitionDto> fields) async {
@@ -159,7 +158,7 @@ class _ServantEditScreenState extends ConsumerState<ServantEditScreen>
                   children: [
                     UnifiedEntityPhotoPicker(
                       fields: formData.fields,
-                      pickedFile: _image,
+                      pickedImage: _image,
                       onPick: _pickImage,
                     ),
                     const SizedBox(height: AppSpacing.md),

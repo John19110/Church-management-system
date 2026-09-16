@@ -1,11 +1,10 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/media/picked_image.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/common_widgets.dart';
@@ -26,7 +25,7 @@ class MemberEditScreen extends ConsumerStatefulWidget {
 class _MemberEditScreenState extends ConsumerState<MemberEditScreen> {
   final _formKey = GlobalKey<FormState>();
   final _memberForm = MemberFormController();
-  File? _image;
+  PickedImage? _image;
   bool _loading = false;
   bool _initialized = false;
   int? _classroomId;
@@ -38,8 +37,8 @@ class _MemberEditScreenState extends ConsumerState<MemberEditScreen> {
   }
 
   Future<void> _pickImage() async {
-    final file = await pickUnifiedEntityPhoto();
-    if (file != null) setState(() => _image = file);
+    final image = await pickUnifiedEntityPhoto(context);
+    if (image != null) setState(() => _image = image);
   }
 
   void _rebuild() => setState(() {});

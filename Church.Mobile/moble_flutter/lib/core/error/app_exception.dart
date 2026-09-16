@@ -145,6 +145,10 @@ String userFriendlyMessage(Object error, [AppLocalizations? l10n]) {
   if (error is DioException) {
     return userFriendlyMessage(mapDioException(error), loc);
   }
+  if (error is UnsupportedError) {
+    debugPrint('UnsupportedError: $error');
+    return loc.somethingWentWrongTryAgain;
+  }
 
   final text = error.toString();
   if (_looksLikeTechnicalError(text)) {
@@ -158,6 +162,8 @@ bool _looksLikeTechnicalError(String text) {
   return lower.contains('exception') ||
       lower.contains('stacktrace') ||
       lower.contains('sqlexception') ||
+      lower.contains('unsupported operation') ||
+      lower.contains('multipartfile') ||
       lower.contains(' at ') ||
       text.length > 200;
 }

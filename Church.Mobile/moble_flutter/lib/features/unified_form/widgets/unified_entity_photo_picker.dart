@@ -1,17 +1,17 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 
+import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/media/picked_image.dart';
 import '../../../shared/widgets/app_network_avatar.dart';
+import '../../../shared/widgets/common_widgets.dart';
 import '../models/unified_form_models.dart';
 import '../utils/unified_form_field_utils.dart';
 
 /// Photo control for entities whose `imageUrl` field is hidden from the text form.
 class UnifiedEntityPhotoPicker extends StatelessWidget {
   final List<UnifiedFieldDto> fields;
-  final File? pickedFile;
+  final PickedImage? pickedImage;
   final VoidCallback onPick;
   final double radius;
   final String? imageUrl;
@@ -19,7 +19,7 @@ class UnifiedEntityPhotoPicker extends StatelessWidget {
   const UnifiedEntityPhotoPicker({
     super.key,
     required this.fields,
-    required this.pickedFile,
+    required this.pickedImage,
     required this.onPick,
     this.radius = 48,
     this.imageUrl,
@@ -34,10 +34,10 @@ class UnifiedEntityPhotoPicker extends StatelessWidget {
         GestureDetector(
           onTap: onPick,
           child: Center(
-            child: pickedFile != null
+            child: pickedImage != null
                 ? CircleAvatar(
                     radius: radius,
-                    backgroundImage: FileImage(pickedFile!),
+                    backgroundImage: pickedImage!.memoryImage,
                   )
                 : AppNetworkAvatar(
                     imageUrl: imageUrl ?? photoUrlFromFields(fields),
@@ -60,8 +60,18 @@ class UnifiedEntityPhotoPicker extends StatelessWidget {
   }
 }
 
-Future<File?> pickUnifiedEntityPhoto() async {
-  final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
-  if (picked == null) return null;
-  return File(picked.path);
+/// Gallery picker used by entity photo screens. Returns `null` on cancel.
+Future<PickedImage?> pickUnifiedEntityPhoto(BuildContext context) async {
+  try {
+    return await pickImageFromGallery();
+  } catch (e, st) {
+    debugPrint('pickUnifiedEntityPhoto: $e\n$st');
+    if (context.mounted) {
+      showErrorSnackbar(
+        context,
+        userFriendlyMessage(e, AppLocalizations.of(context)),
+      );
+    }
+    return null;
+  }
 }

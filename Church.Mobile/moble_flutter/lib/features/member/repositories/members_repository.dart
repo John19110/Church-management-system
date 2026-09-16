@@ -1,11 +1,10 @@
-import 'dart:io';
-
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import '../../../core/api/dio_client.dart';
 import '../../../core/api/select_api.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/cache/cache_manager.dart';
+import '../../../core/media/picked_image.dart';
 import '../models/member_models.dart';
 import '../../../core/models/select_option.dart';
 
@@ -14,12 +13,6 @@ class MembersRepository {
   final CacheManager _cache;
 
   MembersRepository(this._dio, this._cache);
-
-  static String _fileName(String path) {
-    final normalized = path.replaceAll('\\', '/');
-    final index = normalized.lastIndexOf('/');
-    return index >= 0 ? normalized.substring(index + 1) : normalized;
-  }
 
   void _requireMemberId(int id) {
     if (id <= 0) {
@@ -141,7 +134,7 @@ class MembersRepository {
   Future<int> create(
     int classroomId,
     MemberAddDto dto, {
-    File? image,
+    PickedImage? image,
     int? meetingId,
   }) async {
     return apiCall(() async {
@@ -161,7 +154,7 @@ class MembersRepository {
   Future<int> createForMeeting(
     int meetingId,
     MemberAddDto dto, {
-    File? image,
+    PickedImage? image,
   }) async {
     return apiCall(() async {
       final map = await _memberAddFormMap(dto, image: image);
@@ -175,7 +168,7 @@ class MembersRepository {
 
   Future<Map<String, dynamic>> _memberAddFormMap(
     MemberAddDto dto, {
-    File? image,
+    PickedImage? image,
   }) async {
     final map = <String, dynamic>{
       if (dto.name1 != null) 'Name1': dto.name1,
@@ -189,11 +182,7 @@ class MembersRepository {
         'SpiritualDateOfBirth': dto.spiritualDateOfBirth,
       if (dto.haveBrothers != null)
         'HaveBrothers': dto.haveBrothers.toString(),
-      if (image != null)
-        'Image': await MultipartFile.fromFile(
-          image.path,
-          filename: _fileName(image.path),
-        ),
+      if (image != null) 'Image': image.toMultipartFile(),
     };
     _appendCollections(map, dto);
     return map;
@@ -209,7 +198,7 @@ class MembersRepository {
   }
 
   /// Update member: JSON when no new image; multipart form when image is provided.
-  Future<void> updateMember(int id, MemberUpdateDto dto, {File? image}) async {
+  Future<void> updateMember(int id, MemberUpdateDto dto, {PickedImage? image}) async {
     _requireMemberId(id);
     if (image != null) {
       return _updateViaForm(id, dto, image: image);
@@ -223,20 +212,17 @@ class MembersRepository {
   Future<void> updateWithImage(
     int id,
     MemberUpdateDto dto, {
-    required File image,
+    required PickedImage image,
   }) => updateMember(id, dto, image: image);
 
   Future<void> _updateViaForm(
     int id,
     MemberUpdateDto dto, {
-    required File image,
+    required PickedImage image,
   }) async {
     return apiCall(() async {
       final map = _memberFormMap(dto, id: id);
-      map['Image'] = await MultipartFile.fromFile(
-        image.path,
-        filename: _fileName(image.path),
-      );
+      map['Image'] = image.toMultipartFile();
       await _dio.put(
         '${AppConstants.membersEndpoint}/$id/form',
         data: FormData.fromMap(map),

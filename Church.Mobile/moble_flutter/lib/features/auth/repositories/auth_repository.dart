@@ -53,11 +53,7 @@ class AuthRepository {
           'MeetingPublicId': dto.meetingPublicId,
         if (dto.birthDate != null) 'BirthDate': dto.birthDate,
         if (dto.joiningDate != null) 'JoiningDate': dto.joiningDate,
-        if (dto.image != null)
-          'Image': await MultipartFile.fromFile(
-            dto.image!.path,
-            filename: dto.image!.path.split('/').last,
-          ),
+        if (dto.image != null) 'Image': dto.image!.toMultipartFile(),
         if (dto.classroomsIds != null)
           for (var i = 0; i < dto.classroomsIds!.length; i++)
             'classroomsIds[$i]': dto.classroomsIds![i].toString(),
@@ -87,11 +83,7 @@ class AuthRepository {
         'ChurchName': dto.churchName,
         if (dto.birthDate != null) 'BirthDate': dto.birthDate,
         if (dto.joiningDate != null) 'JoiningDate': dto.joiningDate,
-        if (dto.image != null)
-          'Image': await MultipartFile.fromFile(
-            dto.image!.path,
-            filename: dto.image!.path.split('/').last,
-          ),
+        if (dto.image != null) 'Image': dto.image!.toMultipartFile(),
       };
       final response = await _dio.post(
         AppConstants.registerChurchSuperAdminEndpoint,
@@ -123,11 +115,7 @@ class AuthRepository {
         'HasClassrooms': dto.hasClassrooms.toString(),
         if (dto.birthDate != null) 'BirthDate': dto.birthDate,
         if (dto.joiningDate != null) 'JoiningDate': dto.joiningDate,
-        if (dto.image != null)
-          'Image': await MultipartFile.fromFile(
-            dto.image!.path,
-            filename: dto.image!.path.split('/').last,
-          ),
+        if (dto.image != null) 'Image': dto.image!.toMultipartFile(),
       };
       final response = await _dio.post(
         AppConstants.registerMeetingAdminEndpoint,

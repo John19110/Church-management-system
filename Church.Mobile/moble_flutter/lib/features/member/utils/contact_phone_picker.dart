@@ -1,5 +1,4 @@
-import 'dart:io';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
@@ -20,7 +19,9 @@ abstract final class ContactPhonePicker {
   static Future<String?> pickPhoneNumber(BuildContext context) async {
     final l10n = AppLocalizations.of(context);
 
-    if (!Platform.isAndroid && !Platform.isIOS) {
+    if (kIsWeb ||
+        (defaultTargetPlatform != TargetPlatform.android &&
+            defaultTargetPlatform != TargetPlatform.iOS)) {
       if (context.mounted) {
         showErrorSnackbar(context, l10n.contactsPickerUnavailable);
       }
