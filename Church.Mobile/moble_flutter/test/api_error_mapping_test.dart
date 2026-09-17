@@ -11,8 +11,9 @@ DioException _problemDetails({
   String? type,
   String title = 'Error',
   String detail = 'Something happened.',
+  String path = '/api/account/login',
 }) {
-  final options = RequestOptions(path: '/api/account/login');
+  final options = RequestOptions(path: path);
   return DioException(
     requestOptions: options,
     type: DioExceptionType.badResponse,
@@ -71,6 +72,7 @@ void main() {
         type: 'FORBIDDEN',
         title: 'Forbidden',
         detail: 'Forbidden',
+        path: '/api/classrooms',
       ));
 
       expect(mapped, isA<ForbiddenException>());
@@ -78,7 +80,11 @@ void main() {
     });
 
     test('403 with no structured code maps to ForbiddenException', () {
-      final mapped = mapDioException(_problemDetails(status: 403, title: 'Forbidden'));
+      final mapped = mapDioException(_problemDetails(
+        status: 403,
+        title: 'Forbidden',
+        path: '/api/classrooms',
+      ));
 
       expect(mapped, isA<ForbiddenException>());
     });
@@ -91,6 +97,37 @@ void main() {
 
       expect(mapped, isNot(isA<ForbiddenException>()));
       expect(mapped.statusCode, 400);
+    });
+  });
+
+  group('login 403 is not shown as a missing permission', () {
+    test('RFC 7807 type URI with pending detail stays pending', () {
+      final mapped = mapDioException(_problemDetails(
+        status: 403,
+        type: 'https://tools.ietf.org/html/rfc9110#section-15.5.4',
+        title: 'Forbidden',
+        detail:
+            'Your account is waiting for approval from the church administrator.',
+      ));
+
+      expect(mapped, isA<ApiException>());
+      expect((mapped as ApiException).errorCode, 'ACCOUNT_PENDING');
+      expect(userFriendlyMessage(mapped, en), en.accountPendingApproval);
+    });
+
+    test('generic login 403 is credentials, not permission', () {
+      final mapped = mapDioException(_problemDetails(
+        status: 403,
+        type: 'FORBIDDEN',
+        title: 'Forbidden',
+        detail: 'Forbidden',
+      ));
+
+      expect(mapped, isNot(isA<ForbiddenException>()));
+      expect(userFriendlyMessage(mapped, en), isNot(
+        "You don't have permission to perform this action.",
+      ));
+      expect(userFriendlyMessage(mapped, en), en.invalidCredentialsPleaseTryAgain);
     });
   });
 

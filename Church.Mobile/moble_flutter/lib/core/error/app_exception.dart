@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
 import '../l10n/validation_message_localizer.dart';
+import '../constants/app_constants.dart';
 
 const String _defaultApiErrorMessage = 'An error occurred. Please try again.';
 
@@ -194,7 +195,28 @@ String? _errorCodeFromMap(Map<String, dynamic> map) {
   final raw = map['errorCode'] ?? map['type'];
   if (raw == null) return null;
   final code = raw.toString().trim();
-  return code.isEmpty ? null : code;
+  if (code.isEmpty) return null;
+  // RFC 7807 default type is a documentation URI, not our application code.
+  final lower = code.toLowerCase();
+  if (lower.startsWith('http://') || lower.startsWith('https://')) {
+    return null;
+  }
+  return code;
+}
+
+bool _looksLikeAccountPending(ParsedApiError parsed) {
+  if (parsed.errorCode == 'ACCOUNT_PENDING') return true;
+  final text = parsed.message.toLowerCase();
+  return text.contains('waiting for approval') ||
+      text.contains('not approved') ||
+      text.contains('not linked to a church') ||
+      text.contains('pending approval');
+}
+
+bool _looksLikeAccountRejected(ParsedApiError parsed) {
+  if (parsed.errorCode == 'ACCOUNT_REJECTED') return true;
+  final text = parsed.message.toLowerCase();
+  return text.contains('was rejected') || text.contains('account rejected');
 }
 
 int? _statusFromMap(Map<String, dynamic> map) {
@@ -320,11 +342,33 @@ AppException mapDioException(DioException e) {
   // The API tells them apart with a structured code, so keep the code instead of
   // collapsing every 403 into the permission message.
   if (statusCode == 403) {
-    if (_accountStatusErrorCodes.contains(parsed.errorCode)) {
+    if (parsed.errorCode == 'ACCOUNT_REJECTED' ||
+        _looksLikeAccountRejected(parsed)) {
       return ApiException(
         parsed.message,
         statusCode: 403,
-        errorCode: parsed.errorCode,
+        errorCode: 'ACCOUNT_REJECTED',
+        fieldErrors: parsed.fieldErrors,
+      );
+    }
+    if (_accountStatusErrorCodes.contains(parsed.errorCode) ||
+        _looksLikeAccountPending(parsed)) {
+      return ApiException(
+        parsed.message,
+        statusCode: 403,
+        errorCode: 'ACCOUNT_PENDING',
+        fieldErrors: parsed.fieldErrors,
+      );
+    }
+    // Login/register 403 is never a missing-permission problem. A leftover JWT
+    // or default ASP.NET ProblemDetails URI would otherwise show:
+    // "You don't have permission to perform this action."
+    if (AppConstants.isAnonymousAuthPath(e.requestOptions.path)) {
+      final code = parsed.errorCode;
+      return ApiException(
+        parsed.message,
+        statusCode: 403,
+        errorCode: (code == null || code == 'FORBIDDEN') ? 'AUTH_FAILED' : code,
         fieldErrors: parsed.fieldErrors,
       );
     }

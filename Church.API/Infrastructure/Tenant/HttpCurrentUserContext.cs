@@ -24,7 +24,16 @@ namespace Church.API.Infrastructure.Tenant
             ?? Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
 
         public bool IsInRole(string role) =>
-            Principal?.IsInRole(role) == true;
+            Principal?.IsInRole(role) == true
+            || Principal?.Claims.Any(c =>
+                IsRoleClaimType(c.Type)
+                && string.Equals(c.Value, role, StringComparison.OrdinalIgnoreCase)) == true;
+
+        private static bool IsRoleClaimType(string claimType) =>
+            string.Equals(claimType, ClaimTypes.Role, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(claimType, "role", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(claimType, "roles", StringComparison.OrdinalIgnoreCase)
+            || claimType.EndsWith("/role", StringComparison.OrdinalIgnoreCase);
 
         public string? GetClaim(string claimType) =>
             Principal?.FindFirstValue(claimType);

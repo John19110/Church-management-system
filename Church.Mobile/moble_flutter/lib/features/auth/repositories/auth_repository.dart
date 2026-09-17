@@ -23,6 +23,8 @@ class AuthRepository {
 
   Future<AuthFlowResult> login(LoginDto dto) async {
     return apiCall(() async {
+      // Drop any previous session so login is a clean credential POST.
+      await TokenStorage.deleteToken();
       final response = await _dio.post(
         AppConstants.loginEndpoint,
         data: dto.toJson(),

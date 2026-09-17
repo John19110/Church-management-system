@@ -4,6 +4,7 @@ using System.Text;
 using Church.DAL.DBcontext;
 using Church.DAL.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -19,6 +20,7 @@ namespace Church.API.Infrastructure.DependencyInjection
                 {
                     option.DefaultAuthenticateScheme = "jwt";
                     option.DefaultChallengeScheme = "jwt";
+                    option.DefaultForbidScheme = "jwt";
                 })
                 .AddJwtBearer("jwt", options =>
                 {
@@ -38,6 +40,7 @@ namespace Church.API.Infrastructure.DependencyInjection
                             "Configuration value 'SecretKey' must be at least 32 bytes (256 bits) to safely sign HS256 tokens.");
                     }
 
+                    options.MapInboundClaims = true;
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         IssuerSigningKey = new SymmetricSecurityKey(secretKeyBytes),
@@ -46,18 +49,52 @@ namespace Church.API.Infrastructure.DependencyInjection
                         ValidateLifetime = true,
                         ClockSkew = TimeSpan.FromSeconds(30),
                         ValidateIssuer = false,
-                        ValidateAudience = false
+                        ValidateAudience = false,
+                        NameClaimType = JwtRegisteredClaimNames.Sub,
+                        RoleClaimType = ClaimTypes.Role
                     };
 
                     // Stateless JWTs must stop authorizing immediately after account deletion,
-                    // demotion, or church reassignment.
+                    // demotion, or church reassignment. Anonymous login/register must ignore a
+                    // leftover Bearer token so sign-in is not blocked with HTTP 403.
                     options.Events = new JwtBearerEvents
                     {
-                        OnTokenValidated = ValidateAccountStillAuthorizedAsync
+                        OnTokenValidated = context =>
+                        {
+                            if (IsAnonymousRequest(context.HttpContext))
+                            {
+                                return Task.CompletedTask;
+                            }
+
+                            return ValidateAccountStillAuthorizedAsync(context);
+                        },
+                        OnAuthenticationFailed = context =>
+                        {
+                            if (IsAnonymousRequest(context.HttpContext))
+                            {
+                                context.NoResult();
+                            }
+
+                            return Task.CompletedTask;
+                        }
                     };
                 });
 
             return services;
+        }
+
+        private static bool IsAnonymousRequest(HttpContext http)
+        {
+            if (http.GetEndpoint()?.Metadata.GetMetadata<IAllowAnonymous>() != null)
+            {
+                return true;
+            }
+
+            var path = http.Request.Path;
+            return path.StartsWithSegments("/api/account/login")
+                || path.StartsWithSegments("/api/account/register-servant")
+                || path.StartsWithSegments("/api/account/register-church-superadmin")
+                || path.StartsWithSegments("/api/account/register-meeting-admin-new-church");
         }
 
         /// <summary>
@@ -67,8 +104,10 @@ namespace Church.API.Infrastructure.DependencyInjection
         /// </summary>
         private static async Task ValidateAccountStillAuthorizedAsync(TokenValidatedContext context)
         {
-            var userId = context.Principal?.FindFirstValue(JwtRegisteredClaimNames.Sub)
-                ?? context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = FindClaimValue(
+                context.Principal,
+                JwtRegisteredClaimNames.Sub,
+                ClaimTypes.NameIdentifier);
 
             if (string.IsNullOrWhiteSpace(userId))
             {
@@ -97,12 +136,29 @@ namespace Church.API.Infrastructure.DependencyInjection
                 return;
             }
 
-            var tokenChurchId = context.Principal?.FindFirstValue("ChurchId");
+            var tokenChurchId = FindClaimValue(context.Principal, "ChurchId", "churchId");
             if (!int.TryParse(tokenChurchId, out var claimChurchId)
                 || account.ChurchId != claimChurchId)
             {
                 context.Fail("Church assignment has changed; sign in again.");
             }
+        }
+
+        private static string? FindClaimValue(ClaimsPrincipal? principal, params string[] types)
+        {
+            if (principal == null) return null;
+
+            foreach (var type in types)
+            {
+                var direct = principal.FindFirstValue(type);
+                if (!string.IsNullOrWhiteSpace(direct)) return direct;
+
+                var match = principal.Claims.FirstOrDefault(c =>
+                    string.Equals(c.Type, type, StringComparison.OrdinalIgnoreCase));
+                if (!string.IsNullOrWhiteSpace(match?.Value)) return match!.Value;
+            }
+
+            return null;
         }
     }
 }

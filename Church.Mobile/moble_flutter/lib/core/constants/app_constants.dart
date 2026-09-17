@@ -29,6 +29,13 @@ class AppConstants {
   static const String registerMeetingAdminEndpoint =
       '/api/account/register-meeting-admin-new-church';
 
+  /// Login/register must not send a leftover Bearer token.
+  static bool isAnonymousAuthPath(String path) {
+    final normalized = path.toLowerCase();
+    return normalized.contains(loginEndpoint) ||
+        normalized.contains('/api/account/register-');
+  }
+
   /// FCM device-token registration with the ASP.NET API.
   /// Empty until the backend ships the endpoint — see [FcmTokenRegistrar].
   /// Planned: `PUT /api/device-tokens` (authenticated).

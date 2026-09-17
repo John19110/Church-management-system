@@ -795,7 +795,11 @@ namespace Church.BLL.Manager.Implementations
             });
 
             foreach (var role in roles)
+            {
                 claims.Add(new TokenClaimDescriptor { Type = ClaimTypes.Role, Value = role });
+                // Short name so [Authorize(Roles)] and IsInRole work with JsonWebTokenHandler.
+                claims.Add(new TokenClaimDescriptor { Type = "role", Value = role });
+            }
 
             return claims;
         }

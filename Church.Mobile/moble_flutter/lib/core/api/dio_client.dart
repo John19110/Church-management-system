@@ -64,13 +64,19 @@ class _FullUrlLogger extends Interceptor {
   }
 }
 
-/// Adds JWT Bearer token to every request using the in-memory cache when warm.
+/// Adds JWT Bearer token to authenticated requests using the in-memory cache.
 class _AuthInterceptor extends Interceptor {
   @override
   Future<void> onRequest(
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
+    if (AppConstants.isAnonymousAuthPath(options.path)) {
+      options.headers.remove('Authorization');
+      handler.next(options);
+      return;
+    }
+
     final token = TokenStorage.cachedToken ?? await TokenStorage.getToken();
     if (token != null && token.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $token';
