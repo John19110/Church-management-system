@@ -128,13 +128,24 @@ class _MemberExcelScreenState extends ConsumerState<MemberExcelScreen> {
   Future<void> _downloadTemplate() async {
     final l10n = AppLocalizations.of(context);
     final lang = ref.read(localeProvider).languageCode;
+    // Chromium desktop: open Save dialog in this click (keeps user gesture).
+    final saveHandle = await beginMemberExcelSave(
+      suggestedFileName: widget.churchWide
+          ? 'members-template-church.xlsx'
+          : 'members-template-meeting.xlsx',
+    );
+    if (identical(saveHandle, memberExcelSaveCancelled)) return;
     await _withBusy(() async {
       final file = await ref.read(memberExcelRepositoryProvider).downloadTemplate(
             churchWide: widget.churchWide,
             meetingId: widget.meetingId,
             languageCode: lang,
           );
-      final saved = await saveMemberExcelFile(file.bytes, file.fileName);
+      final saved = await saveMemberExcelFile(
+        file.bytes,
+        file.fileName,
+        saveHandle: saveHandle,
+      );
       await _finishExcelSave(saved, l10n.memberExcelTemplateDownloaded);
     });
   }
@@ -217,6 +228,12 @@ class _MemberExcelScreenState extends ConsumerState<MemberExcelScreen> {
       cw.showErrorSnackbar(context, l10n.memberExcelExportNoFields);
       return;
     }
+    final saveHandle = await beginMemberExcelSave(
+      suggestedFileName: widget.churchWide
+          ? 'members-export-church.xlsx'
+          : 'members-export-meeting.xlsx',
+    );
+    if (identical(saveHandle, memberExcelSaveCancelled)) return;
     await _withBusy(() async {
       final file = await ref.read(memberExcelRepositoryProvider).exportMembers(
             churchWide: widget.churchWide,
@@ -224,7 +241,11 @@ class _MemberExcelScreenState extends ConsumerState<MemberExcelScreen> {
             languageCode: lang,
             fields: _selectedExportKeys.toList(),
           );
-      final saved = await saveMemberExcelFile(file.bytes, file.fileName);
+      final saved = await saveMemberExcelFile(
+        file.bytes,
+        file.fileName,
+        saveHandle: saveHandle,
+      );
       await _finishExcelSave(saved, l10n.memberExcelExportDownloaded);
     });
   }

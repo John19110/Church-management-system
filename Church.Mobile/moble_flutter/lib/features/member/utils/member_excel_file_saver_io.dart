@@ -5,7 +5,8 @@ import 'package:path_provider/path_provider.dart';
 
 import 'member_excel_file_saver_stub.dart' show MemberExcelSaveResult;
 
-export 'member_excel_file_saver_stub.dart' show MemberExcelSaveResult;
+export 'member_excel_file_saver_stub.dart'
+    show MemberExcelSaveResult, memberExcelSaveCancelled;
 
 Future<Object?> beginMemberExcelSave({required String suggestedFileName}) async =>
     null;

@@ -1,9 +1,9 @@
 /// Result of preparing an Excel file for the user to keep.
 class MemberExcelSaveResult {
-  /// False when the file was already written/opened (mobile/desktop IO).
+  /// False when the file was already written/opened (IO or native Save picker).
   final bool needsConfirmation;
 
-  /// Browser URL (blob: or data:) used when [needsConfirmation] is true.
+  /// Browser blob: URL used when [needsConfirmation] is true.
   final String? downloadUrl;
 
   final String fileName;
@@ -15,17 +15,15 @@ class MemberExcelSaveResult {
   });
 }
 
-/// Starts a save that must run inside the button click (user gesture).
-/// Web returns null; confirmation dialog supplies the gesture after the API.
+/// Sentinel when the user cancels a native Save dialog.
+const Object memberExcelSaveCancelled = Object();
+
+/// Starts a save during the button click (user gesture). Web Chromium opens
+/// the native Save dialog; other platforms return null.
 Future<Object?> beginMemberExcelSave({required String suggestedFileName}) =>
     Future<Object?>.value(null);
 
-/// Sentinel used when the user cancels a native Save dialog (unused on web).
-const Object memberExcelSaveCancelled = Object();
-
-
-/// Finishes a save started with [beginMemberExcelSave], or prepares a
-/// confirmation download when no handle was obtained.
+/// Writes/opens bytes, or prepares a blob: URL for a confirmation click.
 Future<MemberExcelSaveResult> saveMemberExcelFile(
   List<int> bytes,
   String fileName, {

@@ -58,7 +58,7 @@ class MemberExcelRepository {
         queryParameters: {'culture': _culture(languageCode)},
         options: Options(responseType: ResponseType.bytes),
       );
-      final bytes = response.data ?? const <int>[];
+      final bytes = _asBytes(response.data);
       final fileName = _fileNameFromHeaders(response.headers) ??
           (churchWide
               ? 'members-template-church.xlsx'
@@ -139,7 +139,7 @@ class MemberExcelRepository {
         },
         options: Options(responseType: ResponseType.bytes),
       );
-      final bytes = response.data ?? const <int>[];
+      final bytes = _asBytes(response.data);
       final fileName = _fileNameFromHeaders(response.headers) ??
           (churchWide
               ? 'members-export-church.xlsx'
@@ -151,7 +151,34 @@ class MemberExcelRepository {
   String? _fileNameFromHeaders(Headers headers) {
     final disposition = headers.value('content-disposition');
     if (disposition == null) return null;
-    final match = RegExp(r'filename="?([^"]+)"?').firstMatch(disposition);
-    return match?.group(1);
+    // filename*=UTF-8''name.xlsx
+    final star = RegExp(
+      r"filename\*\s*=\s*(?:UTF-8''|utf-8'')([^;]+)",
+      caseSensitive: false,
+    ).firstMatch(disposition);
+    if (star != null) {
+      final raw = star.group(1)?.trim();
+      if (raw != null && raw.isNotEmpty) {
+        try {
+          return Uri.decodeComponent(raw.replaceAll('"', ''));
+        } catch (_) {
+          return raw.replaceAll('"', '');
+        }
+      }
+    }
+    final match = RegExp(
+      r'filename\s*=\s*"([^"]+)"|filename\s*=\s*([^;]+)',
+      caseSensitive: false,
+    ).firstMatch(disposition);
+    final name = (match?.group(1) ?? match?.group(2))?.trim();
+    if (name == null || name.isEmpty) return null;
+    return name.replaceAll('"', '');
+  }
+
+  List<int> _asBytes(dynamic data) {
+    if (data == null) return const <int>[];
+    if (data is List<int>) return data;
+    if (data is List) return List<int>.from(data);
+    throw StateError('Unexpected binary response type: ${data.runtimeType}');
   }
 }
