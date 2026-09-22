@@ -64,8 +64,8 @@ class AuthRoleUtils {
 
   static String routeForRole(String? role) {
     if (role == 'superadmin') return '/super-admin-home';
-    // Default "home" for admin + servant is Classrooms.
-    if (role == 'admin') return '/classrooms-home';
+    // Meeting Admin home = their Meeting preview (same as SuperAdmin detail).
+    if (role == 'admin') return '/admin-home';
     if (role == 'servant') return '/classrooms-home';
     return '/dashboard';
   }

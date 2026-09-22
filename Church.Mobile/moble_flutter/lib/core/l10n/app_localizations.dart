@@ -419,7 +419,6 @@ class AppLocalizations {
   String get churchIdCopied => _t('churchIdCopied');
   String get meetingIdLabel => _t('meetingIdLabel');
   String get meetingIdCopied => _t('meetingIdCopied');
-  String get meetingMoreActions => _t('meetingMoreActions');
   String get meetingSettings => _t('meetingSettings');
   String get memberViews => _t('memberViews');
   String get memberViewAssignedOnlyTitle => _t('memberViewAssignedOnlyTitle');
@@ -1191,7 +1190,6 @@ class AppLocalizations {
       'churchIdCopied': 'Church ID copied to clipboard',
       'meetingIdLabel': 'Meeting ID',
       'meetingIdCopied': 'Meeting ID copied to clipboard',
-      'meetingMoreActions': 'More actions',
       'meetingSettings': 'Meeting settings',
       'memberViews': 'Member views',
       'memberViewAssignedOnlyTitle': 'Assigned members only',
@@ -1879,7 +1877,6 @@ class AppLocalizations {
       'churchIdCopied': 'تم نسخ كود الكنيسة',
       'meetingIdLabel': 'كود الاجتماع',
       'meetingIdCopied': 'تم نسخ كود الاجتماع',
-      'meetingMoreActions': 'المزيد من الإجراءات',
       'meetingSettings': 'إعدادات الاجتماع',
       'memberViews': 'طرق عرض الأعضاء',
       'memberViewAssignedOnlyTitle': 'الأعضاء المعيَّنين فقط',

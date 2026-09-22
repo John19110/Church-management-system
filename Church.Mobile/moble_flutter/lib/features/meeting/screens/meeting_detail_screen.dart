@@ -4,30 +4,39 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/routing/app_router.dart';
+import '../../../core/theme/app_dimens.dart';
+import '../../../core/theme/app_palette.dart';
+import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
+import '../../../shared/widgets/section_header.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
+import '../../auth/utils/auth_session.dart';
+import '../../classroom/widgets/classrooms_list_section.dart';
+import '../../servant/models/servant_models.dart';
+import '../../servant/providers/servants_providers.dart';
 import '../../unified_form/models/unified_form_models.dart';
 import '../../unified_form/providers/unified_form_providers.dart';
 import '../../unified_form/utils/unified_form_field_utils.dart';
 import '../../unified_form/widgets/entity_fields_empty_state.dart';
 import '../../unified_form/widgets/unified_entity_detail_header.dart';
 import '../../unified_form/widgets/unified_entity_form.dart';
-import '../../classroom/widgets/classrooms_list_section.dart';
-import '../../../shared/widgets/section_header.dart';
-import '../../../core/theme/app_dimens.dart';
-import '../../../core/theme/app_palette.dart';
-import '../../../core/routing/app_router.dart';
 import '../models/meeting_models.dart';
 import '../providers/meeting_providers.dart';
 import '../utils/meeting_delete_actions.dart';
-import '../../servant/providers/servants_providers.dart';
-import '../../servant/models/servant_models.dart';
 
 class MeetingDetailScreen extends ConsumerWidget {
   final MeetingReadDto meeting;
 
-  const MeetingDetailScreen({super.key, required this.meeting});
+  /// When true (Meeting Admin home), show section bottom nav and treat as home.
+  final bool showSectionBottomNav;
+
+  const MeetingDetailScreen({
+    super.key,
+    required this.meeting,
+    this.showSectionBottomNav = false,
+  });
 
   Future<void> _openMeetingSettings(
     BuildContext context,
@@ -71,6 +80,7 @@ class MeetingDetailScreen extends ConsumerWidget {
                     );
                     if (saved == true && context.mounted) {
                       ref.invalidate(entityFormDataProvider(formQuery));
+                      ref.invalidate(visibleMeetingsProvider);
                     }
                   },
                 ),
@@ -317,8 +327,20 @@ class MeetingDetailScreen extends ConsumerWidget {
       orElse: () => meeting.name ?? l10n.meetingDetails,
     );
 
-    return Scaffold(
-      appBar: AppBar(title: Text(appBarTitle)),
+    final homeRoute = AuthRoleUtils.routeForRole(role);
+    final currentLocation = GoRouterState.of(context).matchedLocation;
+
+    final scaffold = Scaffold(
+      appBar: AppBar(
+        title: Text(appBarTitle),
+        actions: [
+          if (showSectionBottomNav)
+            IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: () => logoutSession(ref, context),
+            ),
+        ],
+      ),
       floatingActionButton: showManageFab
           ? FloatingActionButton(
               tooltip: l10n.meetingSettings,
@@ -330,6 +352,12 @@ class MeetingDetailScreen extends ConsumerWidget {
                 canDelete: canDelete,
               ),
               child: const Icon(Icons.settings_outlined),
+            )
+          : null,
+      bottomNavigationBar: showSectionBottomNav
+          ? AppSectionBottomNavigationBar(
+              currentIndex: 0,
+              homeRoute: homeRoute,
             )
           : null,
       body: ListView(
@@ -437,6 +465,17 @@ class MeetingDetailScreen extends ConsumerWidget {
           ],
         ],
       ),
+    );
+
+    if (!showSectionBottomNav) return scaffold;
+
+    return PopScope(
+      canPop: currentLocation == homeRoute,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        context.go(homeRoute);
+      },
+      child: scaffold,
     );
   }
 }

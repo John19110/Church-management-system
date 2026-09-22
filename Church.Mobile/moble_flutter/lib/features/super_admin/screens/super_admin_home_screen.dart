@@ -6,8 +6,6 @@ import '../../../core/l10n/app_localizations.dart';
 import '../../../core/l10n/weekday_l10n.dart';
 import '../../../core/startup/deferred_startup_mixin.dart';
 import '../../../core/routing/app_router.dart';
-import '../../auth/providers/auth_providers.dart';
-import '../../auth/utils/auth_role_utils.dart';
 import '../../auth/utils/auth_session.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../shared/widgets/app_form_fields.dart';
@@ -15,7 +13,6 @@ import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../meeting/models/meeting_models.dart';
 import '../../meeting/providers/meeting_providers.dart';
-import '../../meeting/utils/meeting_delete_actions.dart';
 import '../../meeting/widgets/meeting_list_card.dart';
 import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
 import '../providers/super_admin_providers.dart';
@@ -257,11 +254,7 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen>
   Widget _buildMeetingsList(
     AppLocalizations l10n,
     AsyncValue<List<MeetingReadDto>> meetingsAsync,
-    String? role,
   ) {
-    final canEdit = AuthRoleUtils.canEditMeeting(role);
-    final canDelete = AuthRoleUtils.canDeleteMeeting(role);
-
     return meetingsAsync.when(
       data: (meetings) {
         if (meetings.isEmpty) {
@@ -277,26 +270,12 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen>
           children: meetings
               .map(
                 (m) {
-                  final meetingId = m.id;
                   return MeetingListCard(
                     meeting: m,
-                    canEdit: canEdit,
-                    canDelete: canDelete,
                     onOpen: () => context.push(
                       AppRoutes.meetingDetail,
                       extra: m,
                     ),
-                    onEdit: canEdit && meetingId != null && meetingId > 0
-                        ? () => context.push('/meetings/$meetingId/edit')
-                        : null,
-                    onDelete: canDelete && meetingId != null && meetingId > 0
-                        ? () => confirmAndDeleteMeeting(
-                              context,
-                              ref,
-                              meetingId: meetingId,
-                              l10n: l10n,
-                            )
-                        : null,
                   );
                 },
               )
@@ -322,7 +301,6 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final role = ref.watch(currentUserRoleProvider).resolvedRoleOrNull;
     final meetingsAsync = deferredReady
         ? ref.watch(visibleMeetingsProvider)
         : const AsyncValue<List<MeetingReadDto>>.loading();
@@ -370,7 +348,7 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen>
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            _buildMeetingsList(l10n, meetingsAsync, role),
+            _buildMeetingsList(l10n, meetingsAsync),
           ],
         ),
       ),
