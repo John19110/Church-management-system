@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Identity;
+using Church.BLL.Abstractions.Caching;
 using Church.BLL.DTOS.AccountDtos;
 using Church.BLL.Exceptions;
 using Church.DAL.Models;
 using Church.DAL.Repository.Interfaces;
 using Church.Domain;
-using Church.DAL.Models;
 
 namespace Church.BLL.Services
 {
@@ -17,17 +17,23 @@ namespace Church.BLL.Services
         private readonly IServantRepository _servantRepository;
         private readonly IMeetingRepository _meetingRepository;
         private readonly IChurchRepository _churchRepository;
+        private readonly ICacheService _cache;
+        private readonly ICacheContextAccessor _cacheContext;
 
         public UserRegistrationApprovalService(
             UserManager<ApplicationUser> userManager,
             IServantRepository servantRepository,
             IMeetingRepository meetingRepository,
-            IChurchRepository churchRepository)
+            IChurchRepository churchRepository,
+            ICacheService cache,
+            ICacheContextAccessor cacheContext)
         {
             _userManager = userManager;
             _servantRepository = servantRepository;
             _meetingRepository = meetingRepository;
             _churchRepository = churchRepository;
+            _cache = cache;
+            _cacheContext = cacheContext;
         }
 
         public async Task<List<PendingUserDTO>> MapPendingUsersAsync(
@@ -207,6 +213,7 @@ namespace Church.BLL.Services
             user.RejectionReason = null;
 
             await UpdateUserOrThrow(user);
+            await InvalidateMinistriesCachesAsync();
         }
 
         public async Task RejectUserAsync(
@@ -259,6 +266,16 @@ namespace Church.BLL.Services
             if (string.Equals(value, "ChurchAdmin", StringComparison.OrdinalIgnoreCase))
                 return "SuperAdmin";
             return "Servant";
+        }
+
+        private async Task InvalidateMinistriesCachesAsync()
+        {
+            var ctx = _cacheContext.TryGet();
+            if (ctx is null)
+                return;
+
+            await _cache.RemoveTenantSegmentAsync("ministries", ctx);
+            await _cache.RemoveTenantSegmentAsync("dashboard", ctx);
         }
 
         private async Task UpdateUserOrThrow(ApplicationUser user)

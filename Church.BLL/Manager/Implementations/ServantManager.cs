@@ -73,6 +73,8 @@ namespace Church.BLL.Manager.Implementations
             user.IsApproved = true;
             user.PhoneNumberConfirmed = true;
             await _userManager.UpdateAsync(user);
+
+            await InvalidateMinistriesCachesAsync();
         }
 
         public async Task<IEnumerable<ServantReadDTO>> GetAllAsync()
@@ -93,7 +95,16 @@ namespace Church.BLL.Manager.Implementations
             }
             else
             {
-                var key = _cacheKeys.TenantRole(ctx.Role!, "ministries", ("resource", "servants"));
+                // Meeting-scoped tenants share a church+role cache segment; key MUST include MeetingId
+                // or Admin A and Admin B in different meetings bleed lists across each other.
+                var meetingKey = _tenantContext.MeetingId is int mid && mid > 0
+                    ? (object)mid
+                    : "all";
+                var key = _cacheKeys.TenantRole(
+                    ctx.Role!,
+                    "ministries",
+                    ("resource", "servants"),
+                    ("meetingId", meetingKey));
                 servants = await _cache.GetOrCreateAsync(
                     key,
                     new CacheEntryOptions(CacheTtls.Ministries),
@@ -105,21 +116,16 @@ namespace Church.BLL.Manager.Implementations
                     });
             }
 
-            // After shared tenant/role cache — never bake per-user exclusion into the cache entry.
-            return await ExcludeCurrentUserAsync(servants);
+            // Return every approved servant in the caller's tenant/meeting scope (including self).
+            // Hiding the caller previously made sole-admin/superadmin churches show an empty list.
+            return servants;
         }
 
         public async Task<IEnumerable<ServantReadDTO>> GetByMeetingIdAsync(int meetingId)
         {
             await EnsureServantCanAccessMeetingAsync(meetingId);
 
-            var servants = await LoadByMeetingIdCachedAsync(meetingId);
-
-            // Peer list for servants includes the caller; admins still hide their own row when linked.
-            if (_currentUser.IsInRole("Servant"))
-                return servants;
-
-            return await ExcludeCurrentUserAsync(servants);
+            return await LoadByMeetingIdCachedAsync(meetingId);
         }
 
         private async Task<IEnumerable<ServantReadDTO>> LoadByMeetingIdCachedAsync(int meetingId)
@@ -176,22 +182,14 @@ namespace Church.BLL.Manager.Implementations
             }
         }
 
-        /// <summary>
-        /// Hides the authenticated user's own servant row from list endpoints.
-        /// Identity comes from JWT via <see cref="ICurrentUserContext"/>; no-op if no linked servant.
-        /// </summary>
-        private async Task<IEnumerable<ServantReadDTO>> ExcludeCurrentUserAsync(
-            IEnumerable<ServantReadDTO> servants)
+        private async Task InvalidateMinistriesCachesAsync()
         {
-            if (!_currentUser.IsAuthenticated || string.IsNullOrWhiteSpace(_currentUser.UserId))
-                return servants;
+            var ctx = _cacheContext.TryGet();
+            if (ctx is null)
+                return;
 
-            var me = await _servantRepository.GetByApplicationUserIdAsync(_currentUser.UserId);
-            if (me is null)
-                return servants;
-
-            var myServantId = me.Id;
-            return servants.Where(s => s.Id != myServantId).ToList();
+            await _cache.RemoveTenantSegmentAsync("ministries", ctx);
+            await _cache.RemoveTenantSegmentAsync("dashboard", ctx);
         }
 
         public async Task<List<SelectOptionDTO>> GetServantsForSelection()
@@ -203,7 +201,14 @@ namespace Church.BLL.Manager.Implementations
                 return raw.Select(s => new SelectOptionDTO { Id = s.Id, Name = s.Item2 }).ToList();
             }
 
-            var key = _cacheKeys.TenantRole(ctx.Role!, "ministries", ("view", "select"));
+            var meetingKey = _tenantContext.MeetingId is int mid && mid > 0
+                ? (object)mid
+                : "all";
+            var key = _cacheKeys.TenantRole(
+                ctx.Role!,
+                "ministries",
+                ("view", "select"),
+                ("meetingId", meetingKey));
             return await _cache.GetOrCreateAsync(
                 key,
                 new CacheEntryOptions(CacheTtls.Ministries),
@@ -358,13 +363,7 @@ namespace Church.BLL.Manager.Implementations
             }
 
             await _servantRepository.UpdateAsync(existing);
-
-            var ctx = _cacheContext.TryGet();
-            if (ctx is not null)
-            {
-                await _cache.RemoveTenantSegmentAsync("ministries", ctx);
-                await _cache.RemoveTenantSegmentAsync("dashboard", ctx);
-            }
+            await InvalidateMinistriesCachesAsync();
         }
 
         public async Task<bool> DeleteAsync(int id)
@@ -392,13 +391,7 @@ namespace Church.BLL.Manager.Implementations
                     await _userManager.UpdateSecurityStampAsync(user);
             }
 
-            var ctx = _cacheContext.TryGet();
-            if (ctx is not null)
-            {
-                await _cache.RemoveTenantSegmentAsync("ministries", ctx);
-                await _cache.RemoveTenantSegmentAsync("dashboard", ctx);
-            }
-
+            await InvalidateMinistriesCachesAsync();
             return true;
         }
     }
