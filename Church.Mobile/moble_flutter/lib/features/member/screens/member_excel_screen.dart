@@ -1,4 +1,3 @@
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -8,6 +7,7 @@ import '../../../core/providers/locale_provider.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../models/member_excel_models.dart';
 import '../repositories/member_excel_repository.dart';
+import '../utils/member_excel_file_picker.dart';
 import '../utils/member_excel_file_saver.dart';
 
 /// Meeting-level or church-wide Member Excel Import & Export.
@@ -154,27 +154,20 @@ class _MemberExcelScreenState extends ConsumerState<MemberExcelScreen> {
     final l10n = AppLocalizations.of(context);
     final lang = ref.read(localeProvider).languageCode;
 
-    FilePickerResult? picked;
+    MemberExcelPickedFile? picked;
     try {
-      // FileType.any is more reliable on desktop web than custom extensions.
-      picked = await FilePicker.platform.pickFiles(
-        type: FileType.any,
-        withData: true,
-        allowMultiple: false,
-      );
+      picked = await pickMemberExcelFile();
     } catch (e) {
       if (!mounted) return;
       cw.showErrorSnackbar(context, userFriendlyMessage(e, l10n));
       return;
     }
 
-    if (picked == null || picked.files.isEmpty) return;
-    final file = picked.files.first;
-    final bytes = file.bytes;
-    final name = file.name;
+    if (picked == null) return;
+    final bytes = picked.bytes;
+    final name = picked.fileName;
     final lower = name.toLowerCase();
-    if (bytes == null ||
-        bytes.isEmpty ||
+    if (bytes.isEmpty ||
         !(lower.endsWith('.xlsx') || lower.endsWith('.xls'))) {
       if (!mounted) return;
       cw.showErrorSnackbar(context, l10n.memberExcelInvalidFile);
