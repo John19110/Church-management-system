@@ -6,8 +6,8 @@ import 'dart:js_util' as jsu;
 
 import 'package:web/web.dart' as web;
 
-/// Build stamp — must appear in desktop console when Import Members is clicked.
-const String kMemberExcelWebPickerStamp = 'MEMBER_EXCEL_WEB_PICKER_V2';
+/// Build stamp — must appear in the browser console on Import Members.
+const String kMemberExcelWebPickerStamp = 'MEMBER_EXCEL_WEB_PICKER_V3';
 
 /// Picked Excel file for import (bytes + name; no filesystem path).
 class MemberExcelPickedFile {
@@ -40,19 +40,20 @@ List<int> _bytesFromArrayBuffer(Object arrayBuffer) {
 
 /// Opens the browser file dialog and returns selected Excel bytes.
 ///
-/// Desktop Chrome/Edge: do **not** cancel on window `focus` — that race closes
-/// the picker before the user chooses a file. Use the input `cancel` event only.
-Future<MemberExcelPickedFile?> pickMemberExcelFile() async {
+/// [upload.click] must run synchronously inside the button's user-gesture
+/// stack. Any `await` before click breaks Edge desktop and Chrome mobile
+/// (desktop Chrome often still allows it).
+Future<MemberExcelPickedFile?> pickMemberExcelFile() {
   _log('$kMemberExcelWebPickerStamp USED');
 
   final upload = web.HTMLInputElement()
     ..type = 'file'
-    ..accept =
-        '.xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel'
+    // Keep accept short — long MIME lists break some mobile browsers.
+    ..accept = '.xlsx,.xls'
     ..multiple = false;
 
-  // Keep visible to the browser layout engine but off-screen (some desktop
-  // browsers ignore click() on display:none inputs).
+  // Off-screen but still "visible" to the UA. Avoid display:none and
+  // pointer-events:none — both can block click() on Edge / mobile Chrome.
   upload.style
     ..position = 'fixed'
     ..left = '0'
@@ -60,8 +61,8 @@ Future<MemberExcelPickedFile?> pickMemberExcelFile() async {
     ..width = '1px'
     ..height = '1px'
     ..opacity = '0'
-    ..zIndex = '9999'
-    ..pointerEvents = 'none';
+    ..overflow = 'hidden'
+    ..zIndex = '2147483647';
 
   web.document.body?.appendChild(upload);
 
@@ -115,8 +116,7 @@ Future<MemberExcelPickedFile?> pickMemberExcelFile() async {
     reader.readAsArrayBuffer(file);
   });
 
-  // Explicit cancel only (Chrome/Edge). Do NOT use window focus — that fires
-  // when the dialog opens and aborted the previous desktop implementation.
+  // Optional cancel (Chrome 113+ / Edge). Must not block click().
   try {
     jsu.callMethod(upload, 'addEventListener', [
       'cancel',
@@ -125,13 +125,9 @@ Future<MemberExcelPickedFile?> pickMemberExcelFile() async {
         finish(null);
       }),
     ]);
-  } catch (_) {
-    // Older browsers without the cancel event: user must dismiss; we leave the
-    // input until a change arrives. No auto-timeout that races the dialog.
-  }
+  } catch (_) {}
 
-  // Defer click to the next frame so it stays tied to the user gesture.
-  await Future<void>.delayed(Duration.zero);
+  // CRITICAL: click in the same synchronous turn as the button handler.
   upload.click();
   _log('$kMemberExcelWebPickerStamp dialog-opened');
 
