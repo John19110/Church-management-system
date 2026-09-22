@@ -1,4 +1,8 @@
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
+
+/// Build stamp for non-web Import picker.
+const String kMemberExcelIoPickerStamp = 'MEMBER_EXCEL_IO_PICKER_V2';
 
 /// Picked Excel file for import (bytes + name; no filesystem path required).
 class MemberExcelPickedFile {
@@ -13,6 +17,7 @@ class MemberExcelPickedFile {
 
 /// Opens a file picker and returns Excel bytes, or null if cancelled.
 Future<MemberExcelPickedFile?> pickMemberExcelFile() async {
+  debugPrint('$kMemberExcelIoPickerStamp USED');
   final picked = await FilePicker.platform.pickFiles(
     type: FileType.any,
     withData: true,

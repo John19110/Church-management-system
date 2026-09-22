@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Excel picker desktop smoke</title></head>
+<body>
+  <button id="btn">Import Members smoke</button>
+  <pre id="out">Click the button. Desktop file dialog should open.</pre>
+  <script>
+    document.getElementById('btn').onclick = function () {
+      var out = document.getElementById('out');
+      out.textContent = 'MEMBER_EXCEL_WEB_PICKER_V2 USED\n';
+      var upload = document.createElement('input');
+      upload.type = 'file';
+      upload.accept = '.xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel';
+      upload.multiple = false;
+      upload.style.position = 'fixed';
+      upload.style.left = '0';
+      upload.style.top = '0';
+      upload.style.width = '1px';
+      upload.style.height = '1px';
+      upload.style.opacity = '0';
+      document.body.appendChild(upload);
+      upload.addEventListener('change', function () {
+        var f = upload.files && upload.files[0];
+        if (!f) { out.textContent += 'empty\n'; return; }
+        out.textContent += 'selected=' + f.name + ' size=' + f.size + '\n';
+        var reader = new FileReader();
+        reader.onloadend = function () {
+          var buf = reader.result;
+          var bytes = new Uint8Array(buf);
+          out.textContent += 'bytes=' + bytes.length + '\nOK';
+          upload.remove();
+        };
+        reader.readAsArrayBuffer(f);
+      });
+      upload.addEventListener('cancel', function () {
+        out.textContent += 'cancelled\n';
+        upload.remove();
+      });
+      upload.click();
+      out.textContent += 'dialog-opened\n';
+    };
+  </script>
+</body>
+</html>
