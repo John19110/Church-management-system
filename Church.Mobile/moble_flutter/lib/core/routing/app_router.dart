@@ -14,6 +14,7 @@ import '../../features/member/screens/members_list_screen.dart';
 import '../../features/member/screens/member_detail_screen.dart';
 import '../../features/member/screens/member_add_screen.dart';
 import '../../features/member/screens/member_edit_screen.dart';
+import '../../features/member/screens/member_excel_screen.dart';
 import '../../features/servant/screens/servants_list_screen.dart';
 import '../../features/servant/screens/servant_detail_screen.dart';
 import '../../features/servant/screens/servant_edit_screen.dart';
@@ -67,6 +68,7 @@ class AppRoutes {
   static const profileEdit = '/profile/edit';
   static const settings = '/settings';
   static const customFieldsHub = '/settings/custom-fields';
+  static const churchMembersExcel = '/church/members/excel';
   static const pendingAdmins = '/super-admin/pending-admins';
   static const pendingUsers = '/super-admin/pending-users';
   static const pendingServants = '/admin/pending-servants';
@@ -225,6 +227,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.customFieldsHub,
         builder: (_, __) => const CustomFieldsHubScreen(),
+      ),
+
+      GoRoute(
+        path: AppRoutes.churchMembersExcel,
+        builder: (_, __) => const MemberExcelScreen(churchWide: true),
       ),
 
       GoRoute(
@@ -412,6 +419,27 @@ final routerProvider = Provider<GoRouter>((ref) {
           final meetingName =
               state.extra is String ? state.extra as String : null;
           return AttendanceCriteriaScreen(
+            meetingId: meetingId,
+            meetingName: meetingName,
+          );
+        },
+      ),
+
+      GoRoute(
+        path: '/meetings/:meetingId/members/excel',
+        builder: (_, state) {
+          final meetingId = int.tryParse(
+            state.pathParameters['meetingId'] ?? '',
+          );
+          if (meetingId == null || meetingId <= 0) {
+            return _MissingRouteDataScreen(
+              titleBuilder: (l10n) => l10n.memberExcelTitle,
+            );
+          }
+          final meetingName =
+              state.extra is String ? state.extra as String : null;
+          return MemberExcelScreen(
+            churchWide: false,
             meetingId: meetingId,
             meetingName: meetingName,
           );

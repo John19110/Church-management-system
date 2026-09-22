@@ -407,6 +407,35 @@ class AppLocalizations {
   String get servantInformation => _t('servantInformation');
   String get appSettings => _t('appSettings');
   String get settings => _t('settings');
+  String get memberExcelTitle => _t('memberExcelTitle');
+  String get memberExcelChurchTitle => _t('memberExcelChurchTitle');
+  String get memberExcelInstructionsTitle => _t('memberExcelInstructionsTitle');
+  String get memberExcelInstructionsBody => _t('memberExcelInstructionsBody');
+  String get memberExcelNameRequiredHint => _t('memberExcelNameRequiredHint');
+  String get memberExcelDownloadTemplate => _t('memberExcelDownloadTemplate');
+  String get memberExcelImportMembers => _t('memberExcelImportMembers');
+  String get memberExcelExportMembers => _t('memberExcelExportMembers');
+  String get memberExcelExportTitle => _t('memberExcelExportTitle');
+  String get memberExcelExportHint => _t('memberExcelExportHint');
+  String get memberExcelTemplateDownloaded => _t('memberExcelTemplateDownloaded');
+  String get memberExcelExportDownloaded => _t('memberExcelExportDownloaded');
+  String get memberExcelInvalidFile => _t('memberExcelInvalidFile');
+  String get memberExcelTemplateOutdated => _t('memberExcelTemplateOutdated');
+  String get memberExcelInvalidColumns => _t('memberExcelInvalidColumns');
+  String get memberExcelImportPreview => _t('memberExcelImportPreview');
+  String get memberExcelTotalRows => _t('memberExcelTotalRows');
+  String get memberExcelValidRows => _t('memberExcelValidRows');
+  String get memberExcelDuplicateRows => _t('memberExcelDuplicateRows');
+  String get memberExcelInvalidRows => _t('memberExcelInvalidRows');
+  String get memberExcelSkipDuplicates => _t('memberExcelSkipDuplicates');
+  String get memberExcelUpdateDuplicates => _t('memberExcelUpdateDuplicates');
+  String get memberExcelImportCompleted => _t('memberExcelImportCompleted');
+  String get memberExcelSuccessfullyImported =>
+      _t('memberExcelSuccessfullyImported');
+  String get memberExcelUpdated => _t('memberExcelUpdated');
+  String get memberExcelDuplicatesSkipped => _t('memberExcelDuplicatesSkipped');
+  String get memberExcelFailed => _t('memberExcelFailed');
+  String get memberExcelSettingsTile => _t('memberExcelSettingsTile');
   String get tapToChangePhoto => _t('tapToChangePhoto');
   String get saveLabel => _t('saveLabel');
   String get done => _t('done');
@@ -1178,6 +1207,38 @@ class AppLocalizations {
       'servantInformation': 'Servant information',
       'appSettings': 'App settings',
       'settings': 'Settings',
+      'memberExcelTitle': 'Excel Import & Export',
+      'memberExcelChurchTitle': 'Church Members Excel',
+      'memberExcelInstructionsTitle': 'How to use',
+      'memberExcelInstructionsBody':
+          'Download the template generated from the current Member fields, fill it, then import it. If Member fields change later, the old template is no longer valid — download a new template before importing again.',
+      'memberExcelNameRequiredHint':
+          'First Name, Middle Name, and Last Name are all required. All other fields are optional.',
+      'memberExcelDownloadTemplate': 'Download Template',
+      'memberExcelImportMembers': 'Import Members',
+      'memberExcelExportMembers': 'Export Members',
+      'memberExcelExportTitle': 'Export fields',
+      'memberExcelExportHint':
+          'Choose which fields to include. All are selected by default.',
+      'memberExcelTemplateDownloaded': 'Template downloaded.',
+      'memberExcelExportDownloaded': 'Export downloaded.',
+      'memberExcelInvalidFile': 'Please choose a valid Excel file (.xlsx or .xls).',
+      'memberExcelTemplateOutdated':
+          'This Excel template is outdated. Please download the latest template.',
+      'memberExcelInvalidColumns': 'Invalid columns',
+      'memberExcelImportPreview': 'Import preview',
+      'memberExcelTotalRows': 'Total rows',
+      'memberExcelValidRows': 'Valid rows',
+      'memberExcelDuplicateRows': 'Duplicate rows',
+      'memberExcelInvalidRows': 'Invalid rows',
+      'memberExcelSkipDuplicates': 'Import (skip duplicates)',
+      'memberExcelUpdateDuplicates': 'Import (update duplicates)',
+      'memberExcelImportCompleted': 'Import completed',
+      'memberExcelSuccessfullyImported': 'Successfully imported',
+      'memberExcelUpdated': 'Updated',
+      'memberExcelDuplicatesSkipped': 'Duplicates skipped',
+      'memberExcelFailed': 'Failed',
+      'memberExcelSettingsTile': 'Excel Import & Export',
       'tapToChangePhoto': 'Tap to change photo',
       'saveLabel': 'Save',
       'done': 'Done',
@@ -1865,6 +1926,38 @@ class AppLocalizations {
       'servantInformation': 'معلومات الخادم',
       'appSettings': 'إعدادات التطبيق',
       'settings': 'الإعدادات',
+      'memberExcelTitle': 'استيراد وتصدير Excel',
+      'memberExcelChurchTitle': 'Excel لأعضاء الكنيسة',
+      'memberExcelInstructionsTitle': 'طريقة الاستخدام',
+      'memberExcelInstructionsBody':
+          'حمّل القالب المُنشأ حسب حقول الأعضاء الحالية، املأه، ثم استورده. إذا تغيّرت حقول الأعضاء لاحقاً يصبح القالب القديم غير صالح — حمّل قالباً جديداً قبل الاستيراد مرة أخرى.',
+      'memberExcelNameRequiredHint':
+          'الاسم الأول والأوسط والأخير مطلوبة جميعاً. باقي الحقول اختيارية.',
+      'memberExcelDownloadTemplate': 'تحميل القالب',
+      'memberExcelImportMembers': 'استيراد الأعضاء',
+      'memberExcelExportMembers': 'تصدير الأعضاء',
+      'memberExcelExportTitle': 'حقول التصدير',
+      'memberExcelExportHint':
+          'اختر الحقول المطلوب تضمينها. كل الحقول محددة افتراضياً.',
+      'memberExcelTemplateDownloaded': 'تم تحميل القالب.',
+      'memberExcelExportDownloaded': 'تم تحميل ملف التصدير.',
+      'memberExcelInvalidFile': 'يرجى اختيار ملف Excel صالح (.xlsx أو .xls).',
+      'memberExcelTemplateOutdated':
+          'قالب Excel قديم. يرجى تحميل أحدث قالب.',
+      'memberExcelInvalidColumns': 'أعمدة غير صالحة',
+      'memberExcelImportPreview': 'معاينة الاستيراد',
+      'memberExcelTotalRows': 'إجمالي الصفوف',
+      'memberExcelValidRows': 'صفوف صالحة',
+      'memberExcelDuplicateRows': 'صفوف مكررة',
+      'memberExcelInvalidRows': 'صفوف غير صالحة',
+      'memberExcelSkipDuplicates': 'استيراد (تجاهل المكرر)',
+      'memberExcelUpdateDuplicates': 'استيراد (تحديث المكرر)',
+      'memberExcelImportCompleted': 'اكتمل الاستيراد',
+      'memberExcelSuccessfullyImported': 'تم الاستيراد بنجاح',
+      'memberExcelUpdated': 'تم التحديث',
+      'memberExcelDuplicatesSkipped': 'تم تجاهل المكرر',
+      'memberExcelFailed': 'فشل',
+      'memberExcelSettingsTile': 'استيراد وتصدير Excel',
       'tapToChangePhoto': 'اضغط لتغيير الصورة',
       'saveLabel': 'حفظ',
       'done': 'تم',

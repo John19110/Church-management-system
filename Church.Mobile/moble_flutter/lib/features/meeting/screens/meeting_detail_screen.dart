@@ -110,6 +110,18 @@ class MeetingDetailScreen extends ConsumerWidget {
                     );
                   },
                 ),
+              if (canEdit)
+                ListTile(
+                  leading: const Icon(Icons.table_view_outlined),
+                  title: Text(l10n.memberExcelSettingsTile),
+                  onTap: () {
+                    Navigator.of(sheetContext).pop();
+                    context.push(
+                      '/meetings/$meetingId/members/excel',
+                      extra: meeting.name,
+                    );
+                  },
+                ),
               if (canDelete)
                 ListTile(
                   leading: Icon(

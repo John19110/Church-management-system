@@ -545,6 +545,7 @@ namespace Church.API.Infrastructure.DependencyInjection
                 UnifiedEntityFormManager
             >();
 
+            services.AddScoped<IMemberExcelService, MemberExcelService>();
 
             // Return IServiceCollection for method chaining.
             return services;

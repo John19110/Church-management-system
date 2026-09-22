@@ -41,6 +41,8 @@ dependencies:
   shared_preferences: ^2.5.5
   intl: ^0.20.2
   web: ^1.1.1
+  file_picker: ^8.1.7
+  open_filex: ^4.7.0
 
   # Image processing
   image: ^4.9.1

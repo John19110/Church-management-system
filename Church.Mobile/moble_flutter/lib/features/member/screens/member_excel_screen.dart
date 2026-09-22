@@ -1,0 +1,435 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
+
+import '../../../core/error/app_exception.dart';
+import '../../../core/l10n/app_localizations.dart';
+import '../../../core/providers/locale_provider.dart';
+import '../../../shared/widgets/common_widgets.dart' as cw;
+import '../models/member_excel_models.dart';
+import '../repositories/member_excel_repository.dart';
+
+/// Meeting-level or church-wide Member Excel Import & Export.
+class MemberExcelScreen extends ConsumerStatefulWidget {
+  final bool churchWide;
+  final int? meetingId;
+  final String? meetingName;
+
+  const MemberExcelScreen({
+    super.key,
+    required this.churchWide,
+    this.meetingId,
+    this.meetingName,
+  });
+
+  @override
+  ConsumerState<MemberExcelScreen> createState() => _MemberExcelScreenState();
+}
+
+class _MemberExcelScreenState extends ConsumerState<MemberExcelScreen> {
+  bool _busy = false;
+  MemberExcelPreviewDto? _preview;
+  MemberExcelImportResultDto? _result;
+  String? _pickedFileName;
+  List<int>? _pickedBytes;
+  List<MemberExcelExportFieldDto> _exportFields = const [];
+  final Set<String> _selectedExportKeys = {};
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadExportFields());
+  }
+
+  Future<void> _loadExportFields() async {
+    final l10n = AppLocalizations.of(context);
+    final lang = ref.read(localeProvider).languageCode;
+    try {
+      final fields = await ref.read(memberExcelRepositoryProvider).getExportFields(
+            churchWide: widget.churchWide,
+            meetingId: widget.meetingId,
+            languageCode: lang,
+          );
+      if (!mounted) return;
+      setState(() {
+        _exportFields = fields;
+        _selectedExportKeys
+          ..clear()
+          ..addAll(fields.map((f) => f.fieldKey));
+      });
+    } catch (e) {
+      if (!mounted) return;
+      cw.showErrorSnackbar(context, userFriendlyMessage(e, l10n));
+    }
+  }
+
+  Future<void> _withBusy(Future<void> Function() action) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      await action();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _saveAndOpen(List<int> bytes, String fileName) async {
+    final dir = await getTemporaryDirectory();
+    final file = File('${dir.path}/$fileName');
+    await file.writeAsBytes(bytes, flush: true);
+    await OpenFilex.open(file.path);
+  }
+
+  Future<void> _downloadTemplate() async {
+    final l10n = AppLocalizations.of(context);
+    final lang = ref.read(localeProvider).languageCode;
+    await _withBusy(() async {
+      final file = await ref.read(memberExcelRepositoryProvider).downloadTemplate(
+            churchWide: widget.churchWide,
+            meetingId: widget.meetingId,
+            languageCode: lang,
+          );
+      await _saveAndOpen(file.bytes, file.fileName);
+      if (!mounted) return;
+      cw.showSuccessSnackbar(context, l10n.memberExcelTemplateDownloaded);
+    });
+  }
+
+  Future<void> _pickAndPreview() async {
+    final l10n = AppLocalizations.of(context);
+    final lang = ref.read(localeProvider).languageCode;
+    final picked = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const ['xlsx', 'xls'],
+      withData: true,
+    );
+    if (picked == null || picked.files.isEmpty) return;
+    final file = picked.files.first;
+    final bytes = file.bytes;
+    if (bytes == null || bytes.isEmpty) {
+      if (!mounted) return;
+      cw.showErrorSnackbar(context, l10n.memberExcelInvalidFile);
+      return;
+    }
+
+    await _withBusy(() async {
+      final preview = await ref.read(memberExcelRepositoryProvider).previewImport(
+            churchWide: widget.churchWide,
+            meetingId: widget.meetingId,
+            languageCode: lang,
+            fileName: file.name,
+            bytes: bytes,
+          );
+      if (!mounted) return;
+      setState(() {
+        _pickedFileName = file.name;
+        _pickedBytes = bytes;
+        _preview = preview;
+        _result = null;
+      });
+    });
+  }
+
+  Future<void> _commitImport(String duplicateMode) async {
+    final l10n = AppLocalizations.of(context);
+    final lang = ref.read(localeProvider).languageCode;
+    final bytes = _pickedBytes;
+    final name = _pickedFileName;
+    if (bytes == null || name == null) return;
+
+    await _withBusy(() async {
+      final result = await ref.read(memberExcelRepositoryProvider).importMembers(
+            churchWide: widget.churchWide,
+            meetingId: widget.meetingId,
+            languageCode: lang,
+            fileName: name,
+            bytes: bytes,
+            duplicateMode: duplicateMode,
+          );
+      if (!mounted) return;
+      setState(() => _result = result);
+      cw.showSuccessSnackbar(context, l10n.memberExcelImportCompleted);
+    });
+  }
+
+  Future<void> _export() async {
+    final l10n = AppLocalizations.of(context);
+    final lang = ref.read(localeProvider).languageCode;
+    await _withBusy(() async {
+      final file = await ref.read(memberExcelRepositoryProvider).exportMembers(
+            churchWide: widget.churchWide,
+            meetingId: widget.meetingId,
+            languageCode: lang,
+            fields: _selectedExportKeys.toList(),
+          );
+      await _saveAndOpen(file.bytes, file.fileName);
+      if (!mounted) return;
+      cw.showSuccessSnackbar(context, l10n.memberExcelExportDownloaded);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final title = widget.churchWide
+        ? l10n.memberExcelChurchTitle
+        : (widget.meetingName?.trim().isNotEmpty == true
+            ? '${l10n.memberExcelTitle} — ${widget.meetingName}'
+            : l10n.memberExcelTitle);
+
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: Stack(
+        children: [
+          ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              Text(
+                l10n.memberExcelInstructionsTitle,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              Text(l10n.memberExcelInstructionsBody),
+              const SizedBox(height: 8),
+              Text(
+                l10n.memberExcelNameRequiredHint,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                l10n.members,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+              const SizedBox(height: 12),
+              FilledButton.icon(
+                onPressed: _busy ? null : _downloadTemplate,
+                icon: const Icon(Icons.download_outlined),
+                label: Text(l10n.memberExcelDownloadTemplate),
+              ),
+              const SizedBox(height: 8),
+              FilledButton.tonalIcon(
+                onPressed: _busy ? null : _pickAndPreview,
+                icon: const Icon(Icons.upload_file_outlined),
+                label: Text(l10n.memberExcelImportMembers),
+              ),
+              if (_preview != null) ...[
+                const SizedBox(height: 16),
+                _PreviewCard(
+                  preview: _preview!,
+                  fileName: _pickedFileName,
+                  onSkipDuplicates: () => _commitImport('Skip'),
+                  onUpdateDuplicates: () => _commitImport('Update'),
+                  busy: _busy,
+                ),
+              ],
+              if (_result != null) ...[
+                const SizedBox(height: 16),
+                _ResultCard(result: _result!),
+              ],
+              const SizedBox(height: 24),
+              Text(
+                l10n.memberExcelExportTitle,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              Text(l10n.memberExcelExportHint),
+              const SizedBox(height: 8),
+              ..._exportFields.map(
+                (f) => CheckboxListTile(
+                  dense: true,
+                  value: _selectedExportKeys.contains(f.fieldKey),
+                  title: Text(f.header),
+                  onChanged: _busy
+                      ? null
+                      : (checked) {
+                          setState(() {
+                            if (checked == true) {
+                              _selectedExportKeys.add(f.fieldKey);
+                            } else {
+                              _selectedExportKeys.remove(f.fieldKey);
+                            }
+                          });
+                        },
+                ),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: _busy || _selectedExportKeys.isEmpty ? null : _export,
+                icon: const Icon(Icons.table_view_outlined),
+                label: Text(l10n.memberExcelExportMembers),
+              ),
+            ],
+          ),
+          if (_busy)
+            const ColoredBox(
+              color: Color(0x33000000),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PreviewCard extends StatelessWidget {
+  final MemberExcelPreviewDto preview;
+  final String? fileName;
+  final void Function() onSkipDuplicates;
+  final void Function() onUpdateDuplicates;
+  final bool busy;
+
+  const _PreviewCard({
+    required this.preview,
+    required this.fileName,
+    required this.onSkipDuplicates,
+    required this.onUpdateDuplicates,
+    required this.busy,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+
+    if (!preview.isTemplateValid) {
+      return Card(
+        color: theme.colorScheme.errorContainer,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                preview.templateError ?? l10n.memberExcelTemplateOutdated,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onErrorContainer,
+                ),
+              ),
+              if (preview.invalidColumns.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text(
+                  '${l10n.memberExcelInvalidColumns}: ${preview.invalidColumns.join(', ')}',
+                ),
+              ],
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              fileName ?? l10n.memberExcelImportPreview,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text('${l10n.memberExcelTotalRows}: ${preview.totalRows}'),
+            Text('${l10n.memberExcelValidRows}: ${preview.validRows.length}'),
+            Text(
+              '${l10n.memberExcelDuplicateRows}: ${preview.duplicateRows.length}',
+            ),
+            Text(
+              '${l10n.memberExcelInvalidRows}: ${preview.invalidRows.length}',
+            ),
+            if (preview.invalidRows.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              ...preview.invalidRows.take(8).map(
+                    (r) => Text('• ${r.reason}', style: theme.textTheme.bodySmall),
+                  ),
+            ],
+            if (preview.duplicateRows.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              ...preview.duplicateRows.take(8).map(
+                    (r) => Text('• ${r.reason}', style: theme.textTheme.bodySmall),
+                  ),
+            ],
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                FilledButton(
+                  onPressed: busy ||
+                          (preview.validRows.isEmpty &&
+                              preview.duplicateRows.isEmpty)
+                      ? null
+                      : onSkipDuplicates,
+                  child: Text(l10n.memberExcelSkipDuplicates),
+                ),
+                FilledButton.tonal(
+                  onPressed: busy || preview.duplicateRows.isEmpty
+                      ? null
+                      : onUpdateDuplicates,
+                  child: Text(l10n.memberExcelUpdateDuplicates),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ResultCard extends StatelessWidget {
+  final MemberExcelImportResultDto result;
+
+  const _ResultCard({required this.result});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.memberExcelImportCompleted,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text('${l10n.memberExcelTotalRows}: ${result.totalRows}'),
+            Text(
+              '${l10n.memberExcelSuccessfullyImported}: ${result.successfullyImported}',
+            ),
+            Text('${l10n.memberExcelUpdated}: ${result.updated}'),
+            Text(
+              '${l10n.memberExcelDuplicatesSkipped}: ${result.duplicatesSkipped}',
+            ),
+            Text('${l10n.memberExcelFailed}: ${result.failed}'),
+            if (result.failures.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              ...result.failures.take(12).map(
+                    (r) => Text('• ${r.reason}', style: theme.textTheme.bodySmall),
+                  ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}

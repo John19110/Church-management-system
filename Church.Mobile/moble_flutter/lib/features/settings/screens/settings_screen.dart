@@ -76,6 +76,18 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
           ],
+          if (role == 'superadmin') ...[
+            const SizedBox(height: 16),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.table_view_outlined),
+                title: Text(l10n.memberExcelChurchTitle),
+                subtitle: Text(l10n.memberExcelSettingsTile),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push(AppRoutes.churchMembersExcel),
+              ),
+            ),
+          ],
         ],
       ),
     );

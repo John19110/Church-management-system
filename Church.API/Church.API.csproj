@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Church.BLL\Church.BLL.csproj" />
+    <ProjectReference Include="..\Church.Excel\Church.Excel.csproj" />
     <!-- Direct reference so EF tools and the host can resolve DbContext/migrations assembly -->
     <ProjectReference Include="..\Church.DAL\Church.DAL.csproj" />
   </ItemGroup>

@@ -310,6 +310,11 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen>
         title: Text(l10n.superAdminHome),
         actions: [
           IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: l10n.settings,
+            onPressed: () => context.push(AppRoutes.settings),
+          ),
+          IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () => logoutSession(ref, context),
           ),
