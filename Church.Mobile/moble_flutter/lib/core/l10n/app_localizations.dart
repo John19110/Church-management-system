@@ -422,6 +422,10 @@ class AppLocalizations {
   String get memberExcelExportNoFields => _t('memberExcelExportNoFields');
   String get memberExcelExportFieldsLoading =>
       _t('memberExcelExportFieldsLoading');
+  String get memberExcelFileReadyTitle => _t('memberExcelFileReadyTitle');
+  String get memberExcelFileReadyBody => _t('memberExcelFileReadyBody');
+  String get memberExcelSaveFile => _t('memberExcelSaveFile');
+  String get memberExcelSaveFailed => _t('memberExcelSaveFailed');
   String get memberExcelInvalidFile => _t('memberExcelInvalidFile');
   String get memberExcelTemplateOutdated => _t('memberExcelTemplateOutdated');
   String get memberExcelInvalidColumns => _t('memberExcelInvalidColumns');
@@ -1227,6 +1231,11 @@ class AppLocalizations {
       'memberExcelExportDownloaded': 'Export downloaded.',
       'memberExcelExportNoFields': 'Select at least one field to export.',
       'memberExcelExportFieldsLoading': 'Loading export fields…',
+      'memberExcelFileReadyTitle': 'File ready',
+      'memberExcelFileReadyBody':
+          'Your Excel file is ready. Click Save File to download it.',
+      'memberExcelSaveFile': 'Save File',
+      'memberExcelSaveFailed': 'Could not prepare the Excel file for download.',
       'memberExcelInvalidFile': 'Please choose a valid Excel file (.xlsx or .xls).',
       'memberExcelTemplateOutdated':
           'This Excel template is outdated. Please download the latest template.',
@@ -1948,6 +1957,11 @@ class AppLocalizations {
       'memberExcelExportDownloaded': 'تم تحميل ملف التصدير.',
       'memberExcelExportNoFields': 'اختر حقلًا واحدًا على الأقل للتصدير.',
       'memberExcelExportFieldsLoading': 'جاري تحميل حقول التصدير…',
+      'memberExcelFileReadyTitle': 'الملف جاهز',
+      'memberExcelFileReadyBody':
+          'ملف Excel جاهز. اضغط "حفظ الملف" لتنزيله.',
+      'memberExcelSaveFile': 'حفظ الملف',
+      'memberExcelSaveFailed': 'تعذر تجهيز ملف Excel للتنزيل.',
       'memberExcelInvalidFile': 'يرجى اختيار ملف Excel صالح (.xlsx أو .xls).',
       'memberExcelTemplateOutdated':
           'قالب Excel قديم. يرجى تحميل أحدث قالب.',

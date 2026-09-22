@@ -78,6 +78,53 @@ class _MemberExcelScreenState extends ConsumerState<MemberExcelScreen> {
     }
   }
 
+  Future<void> _finishExcelSave(
+    MemberExcelSaveResult saved,
+    String successMessage,
+  ) async {
+    if (!mounted) return;
+    if (!saved.needsConfirmation) {
+      cw.showSuccessSnackbar(context, successMessage);
+      return;
+    }
+
+    final l10n = AppLocalizations.of(context);
+    final url = saved.downloadUrl;
+    if (url == null || url.isEmpty) {
+      cw.showErrorSnackbar(context, l10n.memberExcelSaveFailed);
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(l10n.memberExcelFileReadyTitle),
+          content: Text(l10n.memberExcelFileReadyBody),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(l10n.cancel),
+            ),
+            FilledButton(
+              onPressed: () {
+                confirmMemberExcelDownload(url, saved.fileName);
+                Navigator.of(dialogContext).pop(true);
+              },
+              child: Text(l10n.memberExcelSaveFile),
+            ),
+          ],
+        );
+      },
+    );
+
+    releaseMemberExcelDownloadUrl(url);
+    if (!mounted) return;
+    if (confirmed == true) {
+      cw.showSuccessSnackbar(context, successMessage);
+    }
+  }
+
   Future<void> _downloadTemplate() async {
     final l10n = AppLocalizations.of(context);
     final lang = ref.read(localeProvider).languageCode;
@@ -87,9 +134,8 @@ class _MemberExcelScreenState extends ConsumerState<MemberExcelScreen> {
             meetingId: widget.meetingId,
             languageCode: lang,
           );
-      await saveMemberExcelFile(file.bytes, file.fileName);
-      if (!mounted) return;
-      cw.showSuccessSnackbar(context, l10n.memberExcelTemplateDownloaded);
+      final saved = await saveMemberExcelFile(file.bytes, file.fileName);
+      await _finishExcelSave(saved, l10n.memberExcelTemplateDownloaded);
     });
   }
 
@@ -99,9 +145,9 @@ class _MemberExcelScreenState extends ConsumerState<MemberExcelScreen> {
 
     FilePickerResult? picked;
     try {
+      // FileType.any is more reliable on desktop web than custom extensions.
       picked = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: const ['xlsx', 'xls'],
+        type: FileType.any,
         withData: true,
         allowMultiple: false,
       );
@@ -178,9 +224,8 @@ class _MemberExcelScreenState extends ConsumerState<MemberExcelScreen> {
             languageCode: lang,
             fields: _selectedExportKeys.toList(),
           );
-      await saveMemberExcelFile(file.bytes, file.fileName);
-      if (!mounted) return;
-      cw.showSuccessSnackbar(context, l10n.memberExcelExportDownloaded);
+      final saved = await saveMemberExcelFile(file.bytes, file.fileName);
+      await _finishExcelSave(saved, l10n.memberExcelExportDownloaded);
     });
   }
 
