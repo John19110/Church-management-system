@@ -40,6 +40,7 @@ class MemberReadDto {
   final bool? haveBrothers;
   final List<String>? brothersNames;
   final int? classroomId;
+  final String? classroomName;
   final List<String>? notes;
 
   const MemberReadDto({
@@ -62,6 +63,7 @@ class MemberReadDto {
     this.haveBrothers,
     this.brothersNames,
     this.classroomId,
+    this.classroomName,
     this.notes,
   });
 
@@ -112,6 +114,7 @@ class MemberReadDto {
             ?.map((e) => e as String)
             .toList(),
         classroomId: json['classroomId'] as int?,
+        classroomName: _str(json, 'classroomName', 'ClassroomName'),
         notes: (json['notes'] as List<dynamic>?)?.map((e) => e as String).toList(),
       );
 
@@ -135,6 +138,7 @@ class MemberReadDto {
         'haveBrothers': haveBrothers,
         'brothersNames': brothersNames,
         'classroomId': classroomId,
+        'classroomName': classroomName,
         'notes': notes,
       };
 }

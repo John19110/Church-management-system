@@ -43,6 +43,17 @@ namespace Church.DAL.Repository.Interfaces
         /// <summary>Returns all members whose <c>MeetingId</c> matches the given meeting.</summary>
         Task<IEnumerable<Member>> GetByMeetingIdAsync(int meetingId);
 
+        /// <summary>
+        /// Meeting-wide member list that bypasses classroom scope filters while still
+        /// requiring an explicit church + meeting match (caller must authorize).
+        /// </summary>
+        Task<IEnumerable<Member>> GetAllByMeetingForTenantAsync(int churchId, int meetingId);
+
+        /// <summary>
+        /// Loads a member by id ignoring tenant filters. Caller must enforce church/meeting rules.
+        /// </summary>
+        Task<Member?> GetByIdIgnoringFiltersAsync(int id);
+
         Task SaveAsync();
     }
 }

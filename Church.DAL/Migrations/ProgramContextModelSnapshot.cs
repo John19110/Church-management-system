@@ -638,6 +638,11 @@ namespace Church.DAL.Migrations
                     b.Property<int?>("LeaderServantId")
                         .HasColumnType("int");
 
+                    b.Property<int>("MemberViewMode")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
@@ -659,6 +664,26 @@ namespace Church.DAL.Migrations
                         .IsUnique();
 
                     b.ToTable("Meetings");
+                });
+
+            modelBuilder.Entity("Church.DAL.Models.MeetingAllMembersViewer", b =>
+                {
+                    b.Property<int>("MeetingId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ServantId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ChurchId")
+                        .HasColumnType("int");
+
+                    b.HasKey("MeetingId", "ServantId");
+
+                    b.HasIndex("ChurchId");
+
+                    b.HasIndex("ServantId");
+
+                    b.ToTable("MeetingAllMembersViewers");
                 });
 
             modelBuilder.Entity("Church.DAL.Models.PhoneCall", b =>
@@ -1505,6 +1530,31 @@ namespace Church.DAL.Migrations
                     b.Navigation("Servant");
                 });
 
+            modelBuilder.Entity("Church.DAL.Models.MeetingAllMembersViewer", b =>
+                {
+                    b.HasOne("Church.DAL.Models.Church", "Church")
+                        .WithMany()
+                        .HasForeignKey("ChurchId");
+
+                    b.HasOne("Church.DAL.Models.Meeting", "Meeting")
+                        .WithMany("AllMembersViewers")
+                        .HasForeignKey("MeetingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Church.Domain.Servant", "Servant")
+                        .WithMany("AllMembersMeetingViews")
+                        .HasForeignKey("ServantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Church");
+
+                    b.Navigation("Meeting");
+
+                    b.Navigation("Servant");
+                });
+
             modelBuilder.Entity("MemberContact", b =>
                 {
                     b.HasOne("Church.Domain.Member", "Member")
@@ -1610,6 +1660,8 @@ namespace Church.DAL.Migrations
 
             modelBuilder.Entity("Church.DAL.Models.Meeting", b =>
                 {
+                    b.Navigation("AllMembersViewers");
+
                     b.Navigation("AttendanceCriteria");
 
                     b.Navigation("AttendanceSessions");
@@ -1639,6 +1691,8 @@ namespace Church.DAL.Migrations
 
             modelBuilder.Entity("Church.Domain.Servant", b =>
                 {
+                    b.Navigation("AllMembersMeetingViews");
+
                     b.Navigation("ClassroomServants");
                 });
 

@@ -51,8 +51,13 @@ class MeetingRepository {
     );
   }
 
-  /// PUT /api/Meeting/{id} — update meeting (currently supports LeaderServantId)
-  Future<void> update(int id, {int? leaderServantId}) async {
+  /// PUT /api/meetings/{id}
+  Future<void> update(
+    int id, {
+    int? leaderServantId,
+    MemberViewMode? memberViewMode,
+    List<int>? allMembersViewerServantIds,
+  }) async {
     if (id <= 0) {
       throw ArgumentError.value(id, 'id', 'Meeting id must be a positive integer');
     }
@@ -61,6 +66,9 @@ class MeetingRepository {
         '${AppConstants.meetingEndpoint}/$id',
         data: {
           'leaderServantId': leaderServantId,
+          if (memberViewMode != null) 'memberViewMode': memberViewMode.apiValue,
+          if (allMembersViewerServantIds != null)
+            'allMembersViewerServantIds': allMembersViewerServantIds,
         },
       );
     });

@@ -128,13 +128,43 @@ namespace Church.API.Controllers
             return NoContent();
         }
 
-        /// <summary>Returns only the members assigned to a specific meeting.</summary>
+        /// <summary>
+        /// Default meeting members list (assigned-scoped for servants).
+        /// </summary>
         [HttpGet("{meetingId:int}/members")]
+        [Authorize(Roles = "Servant,Admin,SuperAdmin")]
         [Produces(MediaTypeNames.Application.Json)]
         public async Task<ActionResult<IEnumerable<MemberReadDTO>>> GetMembersByMeeting(int meetingId)
         {
             if (meetingId <= 0) return BadRequest("Meeting id must be a positive integer.");
             var members = await _memberManager.GetByMeetingIdAsync(meetingId);
+            return Ok(members);
+        }
+
+        /// <summary>
+        /// All members of the meeting. Requires AllAndAssigned mode and an explicit
+        /// viewer grant for servants.
+        /// </summary>
+        [HttpGet("{meetingId:int}/members/all")]
+        [Authorize(Roles = "Servant,Admin,SuperAdmin")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<IEnumerable<MemberReadDTO>>> GetAllMembersByMeeting(int meetingId)
+        {
+            if (meetingId <= 0) return BadRequest("Meeting id must be a positive integer.");
+            var members = await _memberManager.GetAllMembersByMeetingIdAsync(meetingId);
+            return Ok(members);
+        }
+
+        /// <summary>
+        /// Members the calling servant is assigned/authorized to see within the meeting.
+        /// </summary>
+        [HttpGet("{meetingId:int}/members/assigned")]
+        [Authorize(Roles = "Servant,Admin,SuperAdmin")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<IEnumerable<MemberReadDTO>>> GetAssignedMembersByMeeting(int meetingId)
+        {
+            if (meetingId <= 0) return BadRequest("Meeting id must be a positive integer.");
+            var members = await _memberManager.GetAssignedByMeetingIdAsync(meetingId);
             return Ok(members);
         }
 

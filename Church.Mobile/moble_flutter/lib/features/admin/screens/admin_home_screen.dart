@@ -156,7 +156,7 @@ class _MeetingWithoutClassroomsHome extends StatelessWidget {
         ElevatedButton.icon(
           onPressed: () => context.push(
             '/meetings/$meetingId/members',
-            extra: meeting.name,
+            extra: meeting,
           ),
           icon: const Icon(Icons.group),
           label: Text(l10n.addUpdateRemoveMembers),

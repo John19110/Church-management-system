@@ -421,6 +421,18 @@ class AppLocalizations {
   String get meetingIdCopied => _t('meetingIdCopied');
   String get meetingMoreActions => _t('meetingMoreActions');
   String get meetingSettings => _t('meetingSettings');
+  String get memberViews => _t('memberViews');
+  String get memberViewAssignedOnlyTitle => _t('memberViewAssignedOnlyTitle');
+  String get memberViewAssignedOnlyDesc => _t('memberViewAssignedOnlyDesc');
+  String get memberViewAllAndAssignedTitle =>
+      _t('memberViewAllAndAssignedTitle');
+  String get memberViewAllAndAssignedDesc => _t('memberViewAllAndAssignedDesc');
+  String get selectServantsForAllMembersView =>
+      _t('selectServantsForAllMembersView');
+  String get noServantsInMeetingYet => _t('noServantsInMeetingYet');
+  String get memberViewModeUpdated => _t('memberViewModeUpdated');
+  String get allMeetingMembers => _t('allMeetingMembers');
+  String get myAssignedMembers => _t('myAssignedMembers');
   String get churchMeetingsIdsTitle => _t('churchMeetingsIdsTitle');
   String get publicMeetingIdLabel => _t('publicMeetingIdLabel');
   String get meetingLabel => _t('meetingLabel');
@@ -1181,6 +1193,19 @@ class AppLocalizations {
       'meetingIdCopied': 'Meeting ID copied to clipboard',
       'meetingMoreActions': 'More actions',
       'meetingSettings': 'Meeting settings',
+      'memberViews': 'Member views',
+      'memberViewAssignedOnlyTitle': 'Assigned members only',
+      'memberViewAssignedOnlyDesc':
+          'Servants can only view members they are assigned to.',
+      'memberViewAllAndAssignedTitle': 'Allow selected servants to view all members',
+      'memberViewAllAndAssignedDesc':
+          'Choose which servants can see all meeting members. Others only see their assigned members.',
+      'selectServantsForAllMembersView':
+          'Servants allowed to view all members',
+      'noServantsInMeetingYet': 'No servants in this meeting yet.',
+      'memberViewModeUpdated': 'Member view setting updated',
+      'allMeetingMembers': 'All members',
+      'myAssignedMembers': 'My assigned members',
       'churchMeetingsIdsTitle': 'Meeting IDs in your church',
       'meetingLabel': 'Meeting',
       'selectMeeting': 'Select meeting',
@@ -1856,6 +1881,19 @@ class AppLocalizations {
       'meetingIdCopied': 'تم نسخ كود الاجتماع',
       'meetingMoreActions': 'المزيد من الإجراءات',
       'meetingSettings': 'إعدادات الاجتماع',
+      'memberViews': 'طرق عرض الأعضاء',
+      'memberViewAssignedOnlyTitle': 'الأعضاء المعيَّنين فقط',
+      'memberViewAssignedOnlyDesc':
+          'يمكن للخدام رؤية الأعضاء المعيَّنين لهم فقط.',
+      'memberViewAllAndAssignedTitle': 'السماح لخدام محددين برؤية كل الأعضاء',
+      'memberViewAllAndAssignedDesc':
+          'اختر الخدام الذين يمكنهم رؤية كل أعضاء الاجتماع. الباقون يرون أعضائهم المعيَّنين فقط.',
+      'selectServantsForAllMembersView':
+          'الخدام المسموح لهم برؤية كل الأعضاء',
+      'noServantsInMeetingYet': 'لا يوجد خدام في هذا الاجتماع بعد.',
+      'memberViewModeUpdated': 'تم تحديث إعداد عرض الأعضاء',
+      'allMeetingMembers': 'كل الأعضاء',
+      'myAssignedMembers': 'أعضائي',
       'churchMeetingsIdsTitle': 'أكواد الاجتماعات في كنيستك',
       'meetingLabel': 'الاجتماع',
       'selectMeeting': 'اختر الاجتماع',

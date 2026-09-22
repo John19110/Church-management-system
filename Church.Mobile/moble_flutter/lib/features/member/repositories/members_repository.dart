@@ -279,11 +279,37 @@ class MembersRepository {
     });
   }
 
-  /// GET /api/Meeting/{meetingId}/members — members belonging to a specific meeting.
+  /// GET /api/meetings/{meetingId}/members
   Future<List<MemberReadDto>> getByMeeting(int meetingId) async {
     return apiCall(() async {
       final response = await _dio.get(
         AppConstants.meetingMembersEndpoint(meetingId),
+      );
+      final list = response.data as List<dynamic>;
+      return list
+          .map((e) => MemberReadDto.fromJson(e as Map<String, dynamic>))
+          .toList();
+    });
+  }
+
+  /// GET /api/meetings/{meetingId}/members/all
+  Future<List<MemberReadDto>> getAllByMeeting(int meetingId) async {
+    return apiCall(() async {
+      final response = await _dio.get(
+        AppConstants.meetingAllMembersEndpoint(meetingId),
+      );
+      final list = response.data as List<dynamic>;
+      return list
+          .map((e) => MemberReadDto.fromJson(e as Map<String, dynamic>))
+          .toList();
+    });
+  }
+
+  /// GET /api/meetings/{meetingId}/members/assigned
+  Future<List<MemberReadDto>> getAssignedByMeeting(int meetingId) async {
+    return apiCall(() async {
+      final response = await _dio.get(
+        AppConstants.meetingAssignedMembersEndpoint(meetingId),
       );
       final list = response.data as List<dynamic>;
       return list

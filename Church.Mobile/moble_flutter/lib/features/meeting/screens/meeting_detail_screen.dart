@@ -19,7 +19,10 @@ import '../../../core/theme/app_dimens.dart';
 import '../../../core/theme/app_palette.dart';
 import '../../../core/routing/app_router.dart';
 import '../models/meeting_models.dart';
+import '../providers/meeting_providers.dart';
 import '../utils/meeting_delete_actions.dart';
+import '../../servant/providers/servants_providers.dart';
+import '../../servant/models/servant_models.dart';
 
 class MeetingDetailScreen extends ConsumerWidget {
   final MeetingReadDto meeting;
@@ -73,6 +76,20 @@ class MeetingDetailScreen extends ConsumerWidget {
                 ),
               if (canEdit)
                 ListTile(
+                  leading: const Icon(Icons.visibility_outlined),
+                  title: Text(l10n.memberViews),
+                  subtitle: Text(
+                    meeting.memberViewMode == MemberViewMode.allAndAssigned
+                        ? l10n.memberViewAllAndAssignedTitle
+                        : l10n.memberViewAssignedOnlyTitle,
+                  ),
+                  onTap: () async {
+                    Navigator.of(sheetContext).pop();
+                    await _editMemberViewMode(context, ref);
+                  },
+                ),
+              if (canEdit)
+                ListTile(
                   leading: const Icon(Icons.checklist_outlined),
                   title: Text(l10n.attendanceCriteria),
                   onTap: () {
@@ -111,6 +128,156 @@ class MeetingDetailScreen extends ConsumerWidget {
         );
       },
     );
+  }
+
+  Future<void> _editMemberViewMode(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    final meetingId = meeting.id;
+    if (meetingId == null || meetingId <= 0) return;
+
+    var selectedMode = meeting.memberViewMode;
+    final selectedViewerIds = meeting.allMembersViewerServantIds.toSet();
+    List<ServantReadDto> servants = const [];
+    try {
+      servants = await ref.read(servantsByMeetingProvider(meetingId).future);
+    } catch (_) {
+      servants = const [];
+    }
+
+    if (!context.mounted) return;
+
+    final result = await showDialog<({MemberViewMode mode, List<int> viewerIds})>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text(l10n.memberViews),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: Icon(
+                          selectedMode == MemberViewMode.assignedOnly
+                              ? Icons.radio_button_checked
+                              : Icons.radio_button_off,
+                        ),
+                        title: Text(l10n.memberViewAssignedOnlyTitle),
+                        subtitle: Text(l10n.memberViewAssignedOnlyDesc),
+                        onTap: () => setState(
+                          () => selectedMode = MemberViewMode.assignedOnly,
+                        ),
+                      ),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: Icon(
+                          selectedMode == MemberViewMode.allAndAssigned
+                              ? Icons.radio_button_checked
+                              : Icons.radio_button_off,
+                        ),
+                        title: Text(l10n.memberViewAllAndAssignedTitle),
+                        subtitle: Text(l10n.memberViewAllAndAssignedDesc),
+                        onTap: () => setState(
+                          () => selectedMode = MemberViewMode.allAndAssigned,
+                        ),
+                      ),
+                      if (selectedMode == MemberViewMode.allAndAssigned) ...[
+                        const SizedBox(height: 12),
+                        Text(
+                          l10n.selectServantsForAllMembersView,
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                        const SizedBox(height: 8),
+                        if (servants.isEmpty)
+                          Text(l10n.noServantsInMeetingYet)
+                        else
+                          ...servants.map((servant) {
+                            final checked =
+                                selectedViewerIds.contains(servant.id);
+                            return CheckboxListTile(
+                              contentPadding: EdgeInsets.zero,
+                              value: checked,
+                              title: Text(
+                                servant.name?.trim().isNotEmpty == true
+                                    ? servant.name!
+                                    : l10n.unknownName,
+                              ),
+                              onChanged: (value) {
+                                setState(() {
+                                  if (value == true) {
+                                    selectedViewerIds.add(servant.id);
+                                  } else {
+                                    selectedViewerIds.remove(servant.id);
+                                  }
+                                });
+                              },
+                            );
+                          }),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: Text(l10n.cancel),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(dialogContext).pop((
+                    mode: selectedMode,
+                    viewerIds: selectedViewerIds.toList(),
+                  )),
+                  child: Text(l10n.save),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (result == null || !context.mounted) return;
+
+    final modeUnchanged = result.mode == meeting.memberViewMode;
+    final viewersUnchanged = _sameIntSet(
+      result.viewerIds,
+      meeting.allMembersViewerServantIds,
+    );
+    if (modeUnchanged &&
+        (result.mode == MemberViewMode.assignedOnly || viewersUnchanged)) {
+      return;
+    }
+
+    try {
+      await ref.read(meetingRepositoryProvider).update(
+            meetingId,
+            leaderServantId: meeting.leaderServantId,
+            memberViewMode: result.mode,
+            allMembersViewerServantIds: result.mode == MemberViewMode.assignedOnly
+                ? const <int>[]
+                : result.viewerIds,
+          );
+      ref.invalidate(visibleMeetingsProvider);
+      if (context.mounted) {
+        cw.showSuccessSnackbar(context, l10n.memberViewModeUpdated);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        cw.showErrorSnackbar(context, userFriendlyMessage(e, l10n));
+      }
+    }
+  }
+
+  static bool _sameIntSet(List<int> a, List<int> b) {
+    if (a.length != b.length) return false;
+    final setA = a.toSet();
+    return b.every(setA.contains);
   }
 
   @override
@@ -252,7 +419,7 @@ class MeetingDetailScreen extends ConsumerWidget {
           ElevatedButton.icon(
             onPressed: () => context.push(
               '/meetings/$meetingId/members',
-              extra: meeting.name,
+              extra: meeting,
             ),
             icon: const Icon(Icons.group_add),
             label: Text(l10n.addUpdateRemoveMembers),

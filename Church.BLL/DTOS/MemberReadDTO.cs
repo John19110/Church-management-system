@@ -31,6 +31,7 @@ namespace Church.BLL.DTOS
         public bool? HaveBrothers { get; set; }
         public List<string>? BrothersNames { get; set; }
         public int?  ClassroomId { get; set; }
+        public string? ClassroomName { get; set; }
         public List<string>? Notes { get; set; }
         public List<AttendanceRecordReadDTO> AttendanceHistory { get; set; } = new();
 

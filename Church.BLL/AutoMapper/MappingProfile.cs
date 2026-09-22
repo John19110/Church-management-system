@@ -27,7 +27,9 @@ namespace Church.BLL.AutoMapper
                 .ForMember(dest => dest.Name2, opt => opt.MapFrom(src => src.Name2))
                 .ForMember(dest => dest.Name3, opt => opt.MapFrom(src => src.Name3))
                 .ForMember(dest => dest.FullName,
-                           opt => opt.MapFrom(src => src.FullName));
+                           opt => opt.MapFrom(src => src.FullName))
+                .ForMember(dest => dest.ClassroomName,
+                           opt => opt.MapFrom(src => src.Classroom != null ? src.Classroom.Name : null));
             CreateMap<Member, MemberUpdateDTO>().ReverseMap();
             CreateMap<MemberContact, MemberContactDTO>().ReverseMap();
 
@@ -130,7 +132,9 @@ namespace Church.BLL.AutoMapper
 
 
             CreateMap<Meeting, MeetingReadDTO>()
-                .ForMember(d => d.WeeklyAppointment, o => o.MapFrom(s => s.Weekly_appointment));
+                .ForMember(d => d.WeeklyAppointment, o => o.MapFrom(s => s.Weekly_appointment))
+                .ForMember(d => d.AllMembersViewerServantIds, o => o.Ignore())
+                .ForMember(d => d.CanViewAllMembers, o => o.Ignore());
 
             // =========================
             // Custom fields

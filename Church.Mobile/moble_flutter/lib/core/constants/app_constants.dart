@@ -88,6 +88,10 @@ class AppConstants {
   // Meeting-scoped endpoints
   static String meetingMembersEndpoint(int meetingId) =>
       '/api/meetings/$meetingId/members';
+  static String meetingAllMembersEndpoint(int meetingId) =>
+      '/api/meetings/$meetingId/members/all';
+  static String meetingAssignedMembersEndpoint(int meetingId) =>
+      '/api/meetings/$meetingId/members/assigned';
   static String meetingMembersCreateEndpoint(int meetingId) =>
       '/api/meetings/$meetingId/members';
   static String meetingServantsEndpoint(int meetingId) =>

@@ -169,8 +169,36 @@ namespace Church.DAL.Repository.Implementations
             return await _context.Members
                 .AsNoTracking()
                 .Include(m => m.PhoneNumbers)
+                .Include(m => m.Classroom)
                 .Where(m => m.MeetingId == meetingId)
                 .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Member>> GetAllByMeetingForTenantAsync(int churchId, int meetingId)
+        {
+            if (churchId <= 0 || meetingId <= 0)
+                return Array.Empty<Member>();
+
+            return await _context.Members
+                .IgnoreQueryFilters()
+                .AsNoTracking()
+                .Include(m => m.PhoneNumbers)
+                .Include(m => m.Classroom)
+                .Where(m => m.ChurchId == churchId && m.MeetingId == meetingId)
+                .ToListAsync();
+        }
+
+        public async Task<Member?> GetByIdIgnoringFiltersAsync(int id)
+        {
+            if (id <= 0)
+                return null;
+
+            return await _context.Members
+                .IgnoreQueryFilters()
+                .AsNoTracking()
+                .Include(m => m.PhoneNumbers)
+                .Include(m => m.Classroom)
+                .FirstOrDefaultAsync(m => m.Id == id);
         }
 
         public async Task SaveAsync()

@@ -27,6 +27,17 @@ namespace Church.DAL.Models
         /// </summary>
         public bool HasClassrooms { get; set; } = true;
 
+        /// <summary>
+        /// How servants view members in this meeting.
+        /// Defaults to <see cref="MemberViewMode.AssignedOnly"/> (current behavior).
+        /// When <see cref="MemberViewMode.AllAndAssigned"/>, only servants listed in
+        /// <see cref="AllMembersViewers"/> may open the all-members view.
+        /// </summary>
+        public MemberViewMode MemberViewMode { get; set; } = MemberViewMode.AssignedOnly;
+
+        public ICollection<MeetingAllMembersViewer> AllMembersViewers { get; set; }
+            = new List<MeetingAllMembersViewer>();
+
         public ChurchModel? Church { get; set; }
         public ICollection<Servant> Servants { get; set; } = new List<Servant>();
         public ICollection<Member> Members { get; set; } = new List<Member>();

@@ -214,8 +214,36 @@ namespace Church.BLL.Manager.Implementations
             }
 
             var dtos = _mapper.Map<List<MeetingReadDTO>>(meetings);
+            int? callerServantId = null;
+            if (_currentUser.IsInRole("Servant"))
+            {
+                var servant = await _servantRepo.EnsureServantProfileAsync(
+                    appUser,
+                    _servantProfileOptions.AutoCreateMissingProfile);
+                callerServantId = servant?.Id;
+            }
+
             foreach (var dto in dtos)
+            {
                 dto.PublicId = string.Empty;
+                dto.AllMembersViewerServantIds =
+                    await _meetingRepository.GetAllMembersViewerServantIdsAsync(dto.Id);
+
+                if (_currentUser.IsInRole("Admin") || _currentUser.IsInRole("SuperAdmin"))
+                {
+                    dto.CanViewAllMembers = true;
+                }
+                else if (_currentUser.IsInRole("Servant") && callerServantId.HasValue)
+                {
+                    dto.CanViewAllMembers =
+                        dto.MemberViewMode == MemberViewMode.AllAndAssigned &&
+                        dto.AllMembersViewerServantIds.Contains(callerServantId.Value);
+                }
+                else
+                {
+                    dto.CanViewAllMembers = false;
+                }
+            }
 
             return dtos;
         }
@@ -230,6 +258,7 @@ namespace Church.BLL.Manager.Implementations
             model.ChurchId = churchId;
             model.PublicId = await _meetingPublicIdService.GenerateUniqueAsync(churchId);
             model.HasClassrooms = meeting.HasClassrooms;
+            model.MemberViewMode = meeting.MemberViewMode;
             await  _meetingRepository.AddAsync(model);
             await _attendanceCriterionRepository.EnsureDefaultsForMeetingAsync(model.Id, churchId);
 
@@ -269,13 +298,70 @@ namespace Church.BLL.Manager.Implementations
             // allow explicitly clearing leader by setting null
             meeting.LeaderServantId = dto.LeaderServantId;
 
+            if (dto.MemberViewMode.HasValue)
+            {
+                if (!Enum.IsDefined(typeof(MemberViewMode), dto.MemberViewMode.Value))
+                {
+                    throw new ValidationException(new Dictionary<string, string[]>
+                    {
+                        ["MemberViewMode"] = new[] { "Member view mode is invalid." }
+                    });
+                }
+
+                meeting.MemberViewMode = dto.MemberViewMode.Value;
+            }
+
             await _meetingRepository.UpdateAsync(meeting);
+
+            var effectiveMode = meeting.MemberViewMode;
+            if (dto.AllMembersViewerServantIds != null || dto.MemberViewMode.HasValue)
+            {
+                if (effectiveMode == MemberViewMode.AssignedOnly)
+                {
+                    await _meetingRepository.ReplaceAllMembersViewersAsync(
+                        meeting.Id,
+                        meeting.ChurchId,
+                        Array.Empty<int>());
+                }
+                else if (dto.AllMembersViewerServantIds != null)
+                {
+                    var requested = dto.AllMembersViewerServantIds
+                        .Where(id => id > 0)
+                        .Distinct()
+                        .ToList();
+
+                    if (requested.Count > 0)
+                    {
+                        var meetingServants = await _servantRepo.GetByMeetingIdAsync(meeting.Id);
+                        var meetingServantIds = meetingServants.Select(s => s.Id).ToHashSet();
+
+                        var invalid = requested.Where(id => !meetingServantIds.Contains(id)).ToList();
+                        if (invalid.Count > 0)
+                        {
+                            throw new ValidationException(new Dictionary<string, string[]>
+                            {
+                                ["AllMembersViewerServantIds"] = new[]
+                                {
+                                    "One or more selected servants do not belong to this meeting."
+                                }
+                            });
+                        }
+                    }
+
+                    await _meetingRepository.ReplaceAllMembersViewersAsync(
+                        meeting.Id,
+                        meeting.ChurchId,
+                        requested);
+                }
+            }
 
             var ctx = _cacheContext.TryGet();
             if (ctx is not null)
             {
                 await _cache.RemoveTenantSegmentAsync("events", ctx);
                 await _cache.RemoveTenantSegmentAsync("dashboard", ctx);
+                await _cache.RemoveTenantSegmentAsync("member-list", ctx);
+                await _cache.RemoveTenantSegmentAsync("members", ctx);
             }
         }
 

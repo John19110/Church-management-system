@@ -32,5 +32,18 @@ namespace Church.DAL.Repository.Interfaces
         Task UpdateAsync(Meeting meeting);
         Task DeleteAsync(int id);
         Task DeleteWithDependenciesAsync(int id);
+
+        Task<List<int>> GetAllMembersViewerServantIdsAsync(int meetingId);
+
+        Task<bool> IsServantAllMembersViewerAsync(int meetingId, int servantId);
+
+        /// <summary>
+        /// Replaces the all-members viewer set for a meeting.
+        /// Caller must ensure servant ids belong to the meeting.
+        /// </summary>
+        Task ReplaceAllMembersViewersAsync(
+            int meetingId,
+            int churchId,
+            IReadOnlyCollection<int> servantIds);
     }
 }

@@ -46,6 +46,22 @@ final membersByMeetingProvider =
   return ref.watch(membersRepositoryProvider).getByMeeting(meetingId);
 });
 
+/// All meeting members (requires backend all-members permission).
+final allMembersByMeetingProvider =
+    FutureProvider.family<List<MemberReadDto>, int>((ref, meetingId) async {
+  ref.watch(authSessionEpochProvider);
+  ref.watch(authStateProvider);
+  return ref.watch(membersRepositoryProvider).getAllByMeeting(meetingId);
+});
+
+/// Assigned-only meeting members (second tab when caller can view all members).
+final assignedMembersByMeetingProvider =
+    FutureProvider.family<List<MemberReadDto>, int>((ref, meetingId) async {
+  ref.watch(authSessionEpochProvider);
+  ref.watch(authStateProvider);
+  return ref.watch(membersRepositoryProvider).getAssignedByMeeting(meetingId);
+});
+
 final membersForSelectionProvider = FutureProvider<List<SelectOption>>((ref) async {
   ref.watch(authSessionEpochProvider);
   ref.watch(authStateProvider);

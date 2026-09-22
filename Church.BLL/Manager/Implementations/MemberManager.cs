@@ -8,10 +8,10 @@ using Church.BLL.DTOS;
 using Church.BLL.Exceptions;
 using Church.BLL.Manager.Interfaces;
 using Church.BLL.Services;
+using Church.DAL.Abstractions;
 using Church.DAL.Repository.Interfaces;
 using Church.DAL.Models;
 using Church.Domain;
-using Church.DAL.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -28,6 +28,7 @@ namespace Church.BLL.Manager.Implementations
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IMapper _mapper;
         private readonly ICurrentUserContext _currentUser;
+        private readonly ITenantContext _tenantContext;
         private readonly ServantProfileOptions _servantProfileOptions;
         private readonly ICacheService _cache;
         private readonly ICacheKeyBuilder _cacheKeys;
@@ -38,6 +39,7 @@ namespace Church.BLL.Manager.Implementations
             IMemberRepository memberRepository,
             IMapper mapper,
             ICurrentUserContext currentUser,
+            ITenantContext tenantContext,
             UserManager<ApplicationUser> userManager,
             IClassroomRepository classroomRepository,
             IMeetingRepository meetingRepository,
@@ -50,6 +52,7 @@ namespace Church.BLL.Manager.Implementations
             _memberRepository = memberRepository;
             _mapper = mapper;
             _currentUser = currentUser;
+            _tenantContext = tenantContext;
             _userManager = userManager;
             _classroomRepository = classroomRepository;
             _meetingRepository = meetingRepository;
@@ -86,7 +89,7 @@ namespace Church.BLL.Manager.Implementations
             var ctx = _cacheContext.TryGet();
             if (ctx is null)
             {
-                var member = await _memberRepository.GetByIdAsync(id);
+                var member = await LoadMemberForReadAsync(id);
                 return member == null ? null : _mapper.Map<MemberReadDTO>(member);
             }
 
@@ -97,7 +100,7 @@ namespace Church.BLL.Manager.Implementations
                 ctx,
                 async _ =>
                 {
-                    var member = await _memberRepository.GetByIdAsync(id);
+                    var member = await LoadMemberForReadAsync(id);
                     return member == null ? null : _mapper.Map<MemberReadDTO>(member);
                 });
         }
@@ -129,6 +132,79 @@ namespace Church.BLL.Manager.Implementations
 
         public async Task<IEnumerable<MemberReadDTO>> GetByMeetingIdAsync(int meetingId)
         {
+            await RequireAccessibleMeetingAsync(meetingId);
+            // Default meeting members list stays assigned-scoped for servants.
+            // All-members access is only via GetAllMembersByMeetingIdAsync.
+            return await LoadAssignedMeetingMembersCachedAsync(meetingId);
+        }
+
+        public async Task<IEnumerable<MemberReadDTO>> GetAllMembersByMeetingIdAsync(int meetingId)
+        {
+            var meeting = await RequireAccessibleMeetingAsync(meetingId);
+            await EnsureCanViewAllMeetingMembersAsync(meeting);
+            return await LoadAllMeetingMembersCachedAsync(meeting);
+        }
+
+        public async Task<IEnumerable<MemberReadDTO>> GetAssignedByMeetingIdAsync(int meetingId)
+        {
+            await RequireAccessibleMeetingAsync(meetingId);
+            return await LoadAssignedMeetingMembersCachedAsync(meetingId);
+        }
+
+        private async Task EnsureCanViewAllMeetingMembersAsync(Meeting meeting)
+        {
+            if (_currentUser.IsInRole("SuperAdmin") || _currentUser.IsInRole("Admin"))
+                return;
+
+            if (!_currentUser.IsInRole("Servant"))
+                throw new UnauthorizedAccessException("User role is not allowed.");
+
+            if (meeting.MemberViewMode != MemberViewMode.AllAndAssigned)
+            {
+                throw new UnauthorizedAccessException(
+                    "All members view is not enabled for this meeting.");
+            }
+
+            var appUser = await RequireCurrentUserAsync();
+            var servant = await _servantRepository.EnsureServantProfileAsync(
+                appUser,
+                _servantProfileOptions.AutoCreateMissingProfile);
+
+            if (servant == null)
+                throw new UnauthorizedAccessException("Servant profile was not found.");
+
+            var allowed = await _meetingRepository.IsServantAllMembersViewerAsync(
+                meeting.Id,
+                servant.Id);
+
+            if (!allowed)
+            {
+                throw new UnauthorizedAccessException(
+                    "You are not permitted to view all members for this meeting.");
+            }
+        }
+
+        private async Task<bool> CanCurrentServantViewAllMembersAsync(Meeting meeting)
+        {
+            if (meeting.MemberViewMode != MemberViewMode.AllAndAssigned)
+                return false;
+
+            if (!_currentUser.IsInRole("Servant"))
+                return _currentUser.IsInRole("Admin") || _currentUser.IsInRole("SuperAdmin");
+
+            var appUser = await RequireCurrentUserAsync();
+            var servant = await _servantRepository.EnsureServantProfileAsync(
+                appUser,
+                _servantProfileOptions.AutoCreateMissingProfile);
+
+            if (servant == null)
+                return false;
+
+            return await _meetingRepository.IsServantAllMembersViewerAsync(meeting.Id, servant.Id);
+        }
+
+        private async Task<IEnumerable<MemberReadDTO>> LoadAssignedMeetingMembersCachedAsync(int meetingId)
+        {
             var ctx = _cacheContext.TryGet();
             if (ctx is null || string.IsNullOrWhiteSpace(ctx.Role))
             {
@@ -136,7 +212,11 @@ namespace Church.BLL.Manager.Implementations
                 return _mapper.Map<IEnumerable<MemberReadDTO>>(raw);
             }
 
-            var key = _cacheKeys.TenantRole(ctx.Role!, "member-list", ("meetingId", meetingId));
+            var key = _cacheKeys.TenantRole(
+                ctx.Role!,
+                "member-list",
+                ("meetingId", meetingId),
+                ("view", "assigned"));
             return await _cache.GetOrCreateAsync(
                 key,
                 new CacheEntryOptions(CacheTtls.Dashboard),
@@ -146,6 +226,127 @@ namespace Church.BLL.Manager.Implementations
                     var raw = await _memberRepository.GetByMeetingIdAsync(meetingId);
                     return _mapper.Map<List<MemberReadDTO>>(raw);
                 });
+        }
+
+        private async Task<IEnumerable<MemberReadDTO>> LoadAllMeetingMembersCachedAsync(Meeting meeting)
+        {
+            var churchId = meeting.ChurchId;
+            var meetingId = meeting.Id;
+            var ctx = _cacheContext.TryGet();
+            if (ctx is null || string.IsNullOrWhiteSpace(ctx.Role))
+            {
+                var raw = await _memberRepository.GetAllByMeetingForTenantAsync(churchId, meetingId);
+                return _mapper.Map<IEnumerable<MemberReadDTO>>(raw);
+            }
+
+            var key = _cacheKeys.TenantRole(
+                ctx.Role!,
+                "member-list",
+                ("meetingId", meetingId),
+                ("view", "all"));
+            return await _cache.GetOrCreateAsync(
+                key,
+                new CacheEntryOptions(CacheTtls.Dashboard),
+                ctx,
+                async _ =>
+                {
+                    var raw = await _memberRepository.GetAllByMeetingForTenantAsync(churchId, meetingId);
+                    return _mapper.Map<List<MemberReadDTO>>(raw);
+                });
+        }
+
+        private async Task<Meeting> RequireAccessibleMeetingAsync(int meetingId)
+        {
+            if (meetingId <= 0)
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["MeetingId"] = new[] { "Meeting id must be a positive integer." }
+                });
+            }
+
+            var meeting = await _meetingRepository.GetByIdAsync(meetingId);
+            if (meeting == null)
+                throw new NotFoundException($"Meeting with id {meetingId} was not found.");
+
+            await EnsureCallerCanAccessMeetingAsync(meeting);
+            return meeting;
+        }
+
+        private async Task EnsureCallerCanAccessMeetingAsync(Meeting meeting)
+        {
+            if (_currentUser.IsInRole("SuperAdmin"))
+            {
+                if (_tenantContext.ChurchId.HasValue && meeting.ChurchId != _tenantContext.ChurchId.Value)
+                    throw new UnauthorizedAccessException("You can only access meetings in your church.");
+                return;
+            }
+
+            if (_currentUser.IsInRole("Admin"))
+            {
+                var appUser = await RequireCurrentUserAsync();
+                if (appUser.MeetingId == null || appUser.MeetingId.Value != meeting.Id)
+                    throw new UnauthorizedAccessException("You can only access members in your assigned meeting.");
+                return;
+            }
+
+            if (_currentUser.IsInRole("Servant"))
+            {
+                var appUser = await RequireCurrentUserAsync();
+                var servant = await _servantRepository.EnsureServantProfileAsync(
+                    appUser,
+                    _servantProfileOptions.AutoCreateMissingProfile);
+
+                if (servant == null || servant.MeetingId == null || servant.MeetingId.Value != meeting.Id)
+                    throw new UnauthorizedAccessException("You can only access members in your assigned meeting.");
+                return;
+            }
+
+            throw new UnauthorizedAccessException("User role is not allowed.");
+        }
+
+        private async Task<Member?> LoadMemberForReadAsync(int id)
+        {
+            var member = await _memberRepository.GetByIdAsync(id);
+            if (member != null)
+                return member;
+
+            // Selected all-members viewers may open members outside assigned classrooms.
+            if (!_currentUser.IsInRole("Servant"))
+                return null;
+
+            var unfiltered = await _memberRepository.GetByIdIgnoringFiltersAsync(id);
+            if (unfiltered == null)
+                return null;
+
+            if (!_tenantContext.ChurchId.HasValue || unfiltered.ChurchId != _tenantContext.ChurchId.Value)
+                return null;
+
+            if (unfiltered.MeetingId is not int memberMeetingId || memberMeetingId <= 0)
+                return null;
+
+            var meeting = await _meetingRepository.GetByIdAsync(memberMeetingId);
+            if (meeting == null)
+                return null;
+
+            await EnsureCallerCanAccessMeetingAsync(meeting);
+
+            if (!await CanCurrentServantViewAllMembersAsync(meeting))
+                return null;
+
+            return unfiltered;
+        }
+
+        private async Task<ApplicationUser> RequireCurrentUserAsync()
+        {
+            if (!_currentUser.IsAuthenticated || string.IsNullOrEmpty(_currentUser.UserId))
+                throw new UnauthorizedAccessException("User is not authenticated.");
+
+            var appUser = await _userManager.FindByIdAsync(_currentUser.UserId);
+            if (appUser == null)
+                throw new UnauthorizedAccessException("User not found.");
+
+            return appUser;
         }
 
         public async Task<int> AddAsync(

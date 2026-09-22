@@ -16,6 +16,18 @@ namespace Church.BLL.Manager.Interfaces
 
         Task<IEnumerable<MemberReadDTO>> GetByMeetingIdAsync(int meetingId);
 
+        /// <summary>
+        /// All members of the meeting. Requires AllAndAssigned mode and explicit
+        /// viewer permission for servants (admins/superadmins always allowed).
+        /// </summary>
+        Task<IEnumerable<MemberReadDTO>> GetAllMembersByMeetingIdAsync(int meetingId);
+
+        /// <summary>
+        /// Members the calling servant is assigned/authorized to see within the meeting.
+        /// Admins/SuperAdmins receive the normal meeting-scoped list.
+        /// </summary>
+        Task<IEnumerable<MemberReadDTO>> GetAssignedByMeetingIdAsync(int meetingId);
+
         Task<MemberReadDTO?> GetByIdAsync(int id);
          Task<List<SelectOptionDTO>> GetMembersForSelection();
 

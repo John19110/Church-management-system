@@ -375,12 +375,25 @@ final routerProvider = Provider<GoRouter>((ref) {
               titleBuilder: (l10n) => l10n.members,
             );
           }
-          final meetingName = state.extra is String
-              ? state.extra as String
-              : null;
+          String? meetingName;
+          var hasClassrooms = true;
+          var memberViewMode = MemberViewMode.assignedOnly;
+          var canViewAllMembers = false;
+          final extra = state.extra;
+          if (extra is MeetingReadDto) {
+            meetingName = extra.name;
+            hasClassrooms = extra.hasClassrooms;
+            memberViewMode = extra.memberViewMode;
+            canViewAllMembers = extra.canViewAllMembers;
+          } else if (extra is String) {
+            meetingName = extra;
+          }
           return MembersListScreen(
             meetingId: meetingId,
             meetingName: meetingName,
+            hasClassrooms: hasClassrooms,
+            memberViewMode: memberViewMode,
+            canViewAllMembers: canViewAllMembers,
           );
         },
       ),

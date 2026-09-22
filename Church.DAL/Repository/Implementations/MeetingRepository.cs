@@ -159,6 +159,63 @@ namespace Church.DAL.Repository.Implementations
             await _context.SaveChangesAsync();
         }
 
+        public async Task<List<int>> GetAllMembersViewerServantIdsAsync(int meetingId)
+        {
+            if (meetingId <= 0)
+                return new List<int>();
+
+            return await _context.MeetingAllMembersViewers
+                .AsNoTracking()
+                .Where(v => v.MeetingId == meetingId)
+                .Select(v => v.ServantId)
+                .ToListAsync();
+        }
+
+        public async Task<bool> IsServantAllMembersViewerAsync(int meetingId, int servantId)
+        {
+            if (meetingId <= 0 || servantId <= 0)
+                return false;
+
+            return await _context.MeetingAllMembersViewers
+                .AsNoTracking()
+                .AnyAsync(v => v.MeetingId == meetingId && v.ServantId == servantId);
+        }
+
+        public async Task ReplaceAllMembersViewersAsync(
+            int meetingId,
+            int churchId,
+            IReadOnlyCollection<int> servantIds)
+        {
+            if (meetingId <= 0)
+                return;
+
+            var existing = await _context.MeetingAllMembersViewers
+                .IgnoreQueryFilters()
+                .Where(v => v.MeetingId == meetingId)
+                .ToListAsync();
+
+            if (existing.Count > 0)
+                _context.MeetingAllMembersViewers.RemoveRange(existing);
+
+            var distinctIds = servantIds?
+                .Where(id => id > 0)
+                .Distinct()
+                .ToList()
+                ?? new List<int>();
+
+            foreach (var servantId in distinctIds)
+            {
+                _context.MeetingAllMembersViewers.Add(new MeetingAllMembersViewer
+                {
+                    MeetingId = meetingId,
+                    ServantId = servantId,
+                    ChurchId = churchId
+                });
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
         public async Task DeleteAsync(int id)
         {
             await DeleteWithDependenciesAsync(id);
@@ -206,6 +263,11 @@ namespace Church.DAL.Repository.Implementations
                     await _context.ClassroomServants
                         .IgnoreQueryFilters()
                         .Where(cs => cs.MeetingId == id)
+                        .ExecuteDeleteAsync();
+
+                    await _context.MeetingAllMembersViewers
+                        .IgnoreQueryFilters()
+                        .Where(v => v.MeetingId == id)
                         .ExecuteDeleteAsync();
 
                     await _context.Servants

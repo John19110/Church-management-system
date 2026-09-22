@@ -19,6 +19,11 @@ namespace Church.DAL.Configurations
 
             builder.HasIndex(m => m.PublicId)
                 .IsUnique();
+
+            builder.Property(m => m.MemberViewMode)
+                .HasConversion<int>()
+                .HasDefaultValue(MemberViewMode.AssignedOnly)
+                .IsRequired();
         }
     }
 }

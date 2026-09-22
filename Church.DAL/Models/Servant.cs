@@ -17,6 +17,10 @@ namespace Church.Domain
         //public List<Classroom>? Classrooms { get; set; } = new();
 
         public ICollection<ClassroomServant> ClassroomServants { get; set; } = new List<ClassroomServant>();
+
+        /// <summary>Meetings where this servant may view all members (when mode allows).</summary>
+        public ICollection<MeetingAllMembersViewer> AllMembersMeetingViews { get; set; }
+            = new List<MeetingAllMembersViewer>();
         
 
     }

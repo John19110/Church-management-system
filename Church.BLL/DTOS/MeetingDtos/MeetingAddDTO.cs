@@ -1,3 +1,4 @@
+using Church.DAL.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,5 +19,10 @@ namespace Church.BLL.DTOS.Meeting
         /// Defaults to true when omitted (backward compatible).
         /// </summary>
         public bool HasClassrooms { get; set; } = true;
+
+        /// <summary>
+        /// Servant member-view mode. Defaults to AssignedOnly (backward compatible).
+        /// </summary>
+        public MemberViewMode MemberViewMode { get; set; } = MemberViewMode.AssignedOnly;
     }
 }

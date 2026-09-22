@@ -31,6 +31,7 @@ namespace Church.DAL.DBcontext
         public DbSet<Servant> Servants { get; set; }
         public DbSet<Classroom> Classrooms { get; set; }
         public DbSet<ClassroomServant> ClassroomServants { get; set; }
+        public DbSet<MeetingAllMembersViewer> MeetingAllMembersViewers { get; set; }
         public DbSet<AttendanceSession> AttendanceSessions { get; set; }
         public DbSet<AttendanceRecord> AttendanceRecords { get; set; }
         public DbSet<AttendanceCriterion> AttendanceCriteria { get; set; }
