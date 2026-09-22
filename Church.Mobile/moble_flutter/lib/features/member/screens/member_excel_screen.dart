@@ -1,10 +1,6 @@
-import 'dart:io';
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:open_filex/open_filex.dart';
-import 'package:path_provider/path_provider.dart';
 
 import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
@@ -12,6 +8,7 @@ import '../../../core/providers/locale_provider.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../models/member_excel_models.dart';
 import '../repositories/member_excel_repository.dart';
+import '../utils/member_excel_file_saver.dart';
 
 /// Meeting-level or church-wide Member Excel Import & Export.
 class MemberExcelScreen extends ConsumerStatefulWidget {
@@ -69,19 +66,16 @@ class _MemberExcelScreenState extends ConsumerState<MemberExcelScreen> {
 
   Future<void> _withBusy(Future<void> Function() action) async {
     if (_busy) return;
+    final l10n = AppLocalizations.of(context);
     setState(() => _busy = true);
     try {
       await action();
+    } catch (e) {
+      if (!mounted) return;
+      cw.showErrorSnackbar(context, userFriendlyMessage(e, l10n));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
-  }
-
-  Future<void> _saveAndOpen(List<int> bytes, String fileName) async {
-    final dir = await getTemporaryDirectory();
-    final file = File('${dir.path}/$fileName');
-    await file.writeAsBytes(bytes, flush: true);
-    await OpenFilex.open(file.path);
   }
 
   Future<void> _downloadTemplate() async {
@@ -93,7 +87,7 @@ class _MemberExcelScreenState extends ConsumerState<MemberExcelScreen> {
             meetingId: widget.meetingId,
             languageCode: lang,
           );
-      await _saveAndOpen(file.bytes, file.fileName);
+      await saveMemberExcelFile(file.bytes, file.fileName);
       if (!mounted) return;
       cw.showSuccessSnackbar(context, l10n.memberExcelTemplateDownloaded);
     });
@@ -102,15 +96,29 @@ class _MemberExcelScreenState extends ConsumerState<MemberExcelScreen> {
   Future<void> _pickAndPreview() async {
     final l10n = AppLocalizations.of(context);
     final lang = ref.read(localeProvider).languageCode;
-    final picked = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: const ['xlsx', 'xls'],
-      withData: true,
-    );
+
+    FilePickerResult? picked;
+    try {
+      picked = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: const ['xlsx', 'xls'],
+        withData: true,
+        allowMultiple: false,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      cw.showErrorSnackbar(context, userFriendlyMessage(e, l10n));
+      return;
+    }
+
     if (picked == null || picked.files.isEmpty) return;
     final file = picked.files.first;
     final bytes = file.bytes;
-    if (bytes == null || bytes.isEmpty) {
+    final name = file.name;
+    final lower = name.toLowerCase();
+    if (bytes == null ||
+        bytes.isEmpty ||
+        !(lower.endsWith('.xlsx') || lower.endsWith('.xls'))) {
       if (!mounted) return;
       cw.showErrorSnackbar(context, l10n.memberExcelInvalidFile);
       return;
@@ -121,12 +129,12 @@ class _MemberExcelScreenState extends ConsumerState<MemberExcelScreen> {
             churchWide: widget.churchWide,
             meetingId: widget.meetingId,
             languageCode: lang,
-            fileName: file.name,
+            fileName: name,
             bytes: bytes,
           );
       if (!mounted) return;
       setState(() {
-        _pickedFileName = file.name;
+        _pickedFileName = name;
         _pickedBytes = bytes;
         _preview = preview;
         _result = null;
@@ -159,6 +167,10 @@ class _MemberExcelScreenState extends ConsumerState<MemberExcelScreen> {
   Future<void> _export() async {
     final l10n = AppLocalizations.of(context);
     final lang = ref.read(localeProvider).languageCode;
+    if (_selectedExportKeys.isEmpty) {
+      cw.showErrorSnackbar(context, l10n.memberExcelExportNoFields);
+      return;
+    }
     await _withBusy(() async {
       final file = await ref.read(memberExcelRepositoryProvider).exportMembers(
             churchWide: widget.churchWide,
@@ -166,7 +178,7 @@ class _MemberExcelScreenState extends ConsumerState<MemberExcelScreen> {
             languageCode: lang,
             fields: _selectedExportKeys.toList(),
           );
-      await _saveAndOpen(file.bytes, file.fileName);
+      await saveMemberExcelFile(file.bytes, file.fileName);
       if (!mounted) return;
       cw.showSuccessSnackbar(context, l10n.memberExcelExportDownloaded);
     });
@@ -246,6 +258,14 @@ class _MemberExcelScreenState extends ConsumerState<MemberExcelScreen> {
               const SizedBox(height: 8),
               Text(l10n.memberExcelExportHint),
               const SizedBox(height: 8),
+              if (_exportFields.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    l10n.memberExcelExportFieldsLoading,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
               ..._exportFields.map(
                 (f) => CheckboxListTile(
                   dense: true,

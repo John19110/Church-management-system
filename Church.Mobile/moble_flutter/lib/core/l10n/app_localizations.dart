@@ -419,6 +419,9 @@ class AppLocalizations {
   String get memberExcelExportHint => _t('memberExcelExportHint');
   String get memberExcelTemplateDownloaded => _t('memberExcelTemplateDownloaded');
   String get memberExcelExportDownloaded => _t('memberExcelExportDownloaded');
+  String get memberExcelExportNoFields => _t('memberExcelExportNoFields');
+  String get memberExcelExportFieldsLoading =>
+      _t('memberExcelExportFieldsLoading');
   String get memberExcelInvalidFile => _t('memberExcelInvalidFile');
   String get memberExcelTemplateOutdated => _t('memberExcelTemplateOutdated');
   String get memberExcelInvalidColumns => _t('memberExcelInvalidColumns');
@@ -1222,6 +1225,8 @@ class AppLocalizations {
           'Choose which fields to include. All are selected by default.',
       'memberExcelTemplateDownloaded': 'Template downloaded.',
       'memberExcelExportDownloaded': 'Export downloaded.',
+      'memberExcelExportNoFields': 'Select at least one field to export.',
+      'memberExcelExportFieldsLoading': 'Loading export fields…',
       'memberExcelInvalidFile': 'Please choose a valid Excel file (.xlsx or .xls).',
       'memberExcelTemplateOutdated':
           'This Excel template is outdated. Please download the latest template.',
@@ -1941,6 +1946,8 @@ class AppLocalizations {
           'اختر الحقول المطلوب تضمينها. كل الحقول محددة افتراضياً.',
       'memberExcelTemplateDownloaded': 'تم تحميل القالب.',
       'memberExcelExportDownloaded': 'تم تحميل ملف التصدير.',
+      'memberExcelExportNoFields': 'اختر حقلًا واحدًا على الأقل للتصدير.',
+      'memberExcelExportFieldsLoading': 'جاري تحميل حقول التصدير…',
       'memberExcelInvalidFile': 'يرجى اختيار ملف Excel صالح (.xlsx أو .xls).',
       'memberExcelTemplateOutdated':
           'قالب Excel قديم. يرجى تحميل أحدث قالب.',
