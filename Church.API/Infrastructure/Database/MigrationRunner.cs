@@ -21,6 +21,15 @@ namespace Church.API.Infrastructure.Database
             if (pending.Count == 0)
                 return;
 
+            if (db.Database.HasPendingModelChanges())
+            {
+                logger.LogWarning(
+                    "EF compiled model differs from ProgramContextModelSnapshot. "
+                    + "PendingModelChangesWarning is ignored so MigrateAsync can apply "
+                    + "pending SQL migration(s): [{Pending}].",
+                    string.Join(", ", pending));
+            }
+
             try
             {
                 await db.Database.MigrateAsync();

@@ -1,5 +1,6 @@
 using Church.DAL.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Church.DAL.Abstractions;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
@@ -41,6 +42,8 @@ namespace Church.DAL.DBcontext
             connectionString = SqlServerResilience.PrepareConnectionString(connectionString);
 
             var optionsBuilder = new DbContextOptionsBuilder<ProgramContext>();
+            optionsBuilder.ConfigureWarnings(w =>
+                w.Ignore(RelationalEventId.PendingModelChangesWarning));
             optionsBuilder.UseSqlServer(
                 connectionString,
                 sql => SqlServerResilience.ConfigureEfSqlOptions(
