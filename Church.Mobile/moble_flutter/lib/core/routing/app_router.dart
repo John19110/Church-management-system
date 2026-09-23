@@ -22,6 +22,17 @@ import '../../features/servant/screens/profile_screen.dart';
 import '../../features/servant/screens/edit_profile_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
 import '../../features/settings/screens/custom_fields_hub_screen.dart';
+import '../../features/custom_feature/screens/features_hub_screen.dart';
+import '../../features/custom_feature/screens/feature_form_screen.dart';
+import '../../features/custom_feature/screens/feature_detail_screen.dart';
+import '../../features/custom_feature/screens/entity_form_screen.dart';
+import '../../features/custom_feature/screens/entity_manage_screen.dart';
+import '../../features/custom_feature/screens/field_form_screen.dart';
+import '../../features/custom_feature/screens/permissions_screen.dart';
+import '../../features/custom_feature/screens/record_list_screen.dart';
+import '../../features/custom_feature/screens/record_form_screen.dart';
+import '../../features/custom_feature/screens/record_detail_screen.dart';
+import '../../features/custom_feature/models/custom_feature_models.dart';
 import '../../features/attendance/screens/attendance_take_screen.dart';
 import '../../features/attendance/screens/attendance_view_screen.dart';
 import '../../features/attendance/screens/attendance_history_screen.dart';
@@ -68,6 +79,9 @@ class AppRoutes {
   static const profileEdit = '/profile/edit';
   static const settings = '/settings';
   static const customFieldsHub = '/settings/custom-fields';
+  static const customFeaturesHub = '/settings/features';
+  static const customFeatureNew = '/settings/features/new';
+  static const customEntities = '/custom-entities';
   static const churchMembersExcel = '/church/members/excel';
   static const pendingAdmins = '/super-admin/pending-admins';
   static const pendingUsers = '/super-admin/pending-users';
@@ -227,6 +241,99 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.customFieldsHub,
         builder: (_, __) => const CustomFieldsHubScreen(),
+      ),
+
+      GoRoute(
+        path: AppRoutes.customFeaturesHub,
+        builder: (_, __) => const FeaturesHubScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.customFeatureNew,
+        builder: (_, __) => const FeatureFormScreen(),
+      ),
+      GoRoute(
+        path: '${AppRoutes.customFeaturesHub}/:featureId',
+        builder: (_, state) => FeatureDetailScreen(
+          featureId: int.parse(state.pathParameters['featureId']!),
+        ),
+      ),
+      GoRoute(
+        path: '${AppRoutes.customFeaturesHub}/:featureId/edit',
+        builder: (_, state) => FeatureFormScreen(
+          existing: state.extra is CustomFeatureReadDto
+              ? state.extra as CustomFeatureReadDto
+              : null,
+        ),
+      ),
+      GoRoute(
+        path: '${AppRoutes.customFeaturesHub}/:featureId/entities/new',
+        builder: (_, state) => EntityFormScreen(
+          featureId: int.parse(state.pathParameters['featureId']!),
+        ),
+      ),
+      GoRoute(
+        path: '${AppRoutes.customEntities}/:entityId',
+        builder: (_, state) => EntityManageScreen(
+          entityId: int.parse(state.pathParameters['entityId']!),
+        ),
+      ),
+      GoRoute(
+        path: '${AppRoutes.customEntities}/:entityId/edit',
+        builder: (_, state) => EntityFormScreen(
+          featureId: state.extra is CustomEntityReadDto
+              ? (state.extra as CustomEntityReadDto).featureId
+              : 0,
+          existing: state.extra is CustomEntityReadDto
+              ? state.extra as CustomEntityReadDto
+              : null,
+        ),
+      ),
+      GoRoute(
+        path: '${AppRoutes.customEntities}/:entityId/fields/new',
+        builder: (_, state) => FieldFormScreen(
+          entityId: int.parse(state.pathParameters['entityId']!),
+        ),
+      ),
+      GoRoute(
+        path: '${AppRoutes.customEntities}/:entityId/fields/:fieldId/edit',
+        builder: (_, state) => FieldFormScreen(
+          entityId: int.parse(state.pathParameters['entityId']!),
+          existing: state.extra is CustomEntityFieldReadDto
+              ? state.extra as CustomEntityFieldReadDto
+              : null,
+        ),
+      ),
+      GoRoute(
+        path: '${AppRoutes.customEntities}/:entityId/permissions',
+        builder: (_, state) => PermissionsScreen(
+          entityId: int.parse(state.pathParameters['entityId']!),
+        ),
+      ),
+      GoRoute(
+        path: '${AppRoutes.customEntities}/:entityId/records',
+        builder: (_, state) => RecordListScreen(
+          entityId: int.parse(state.pathParameters['entityId']!),
+        ),
+      ),
+      GoRoute(
+        path: '${AppRoutes.customEntities}/:entityId/records/new',
+        builder: (_, state) => RecordFormScreen(
+          entityId: int.parse(state.pathParameters['entityId']!),
+        ),
+      ),
+      GoRoute(
+        path: '${AppRoutes.customEntities}/:entityId/records/:recordId',
+        builder: (_, state) => RecordDetailScreen(
+          entityId: int.parse(state.pathParameters['entityId']!),
+          recordId: int.parse(state.pathParameters['recordId']!),
+        ),
+      ),
+      GoRoute(
+        path: '${AppRoutes.customEntities}/:entityId/records/:recordId/edit',
+        builder: (_, state) => RecordFormScreen(
+          entityId: int.parse(state.pathParameters['entityId']!),
+          recordId: int.parse(state.pathParameters['recordId']!),
+        ),
       ),
 
       GoRoute(

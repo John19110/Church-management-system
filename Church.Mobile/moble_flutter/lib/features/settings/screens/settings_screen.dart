@@ -75,6 +75,15 @@ class SettingsScreen extends ConsumerWidget {
                 onTap: () => context.push(AppRoutes.customFieldsHub),
               ),
             ),
+            const SizedBox(height: 16),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.extension_outlined),
+                title: Text(l10n.customFeatures),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push(AppRoutes.customFeaturesHub),
+              ),
+            ),
           ],
           if (role == 'superadmin') ...[
             const SizedBox(height: 16),

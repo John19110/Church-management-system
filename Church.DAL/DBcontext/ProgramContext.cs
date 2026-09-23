@@ -2,6 +2,7 @@ using System.Reflection;
 using Church.DAL.Abstractions;
 using Church.DAL.Models;
 using Church.DAL.Models.CustomFields;
+using Church.DAL.Models.CustomFeatures;
 using Church.Domain;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -46,6 +47,14 @@ namespace Church.DAL.DBcontext
         public DbSet<CustomFieldDefinition> CustomFieldDefinitions { get; set; }
         public DbSet<CustomFieldOption> CustomFieldOptions { get; set; }
         public DbSet<CustomFieldValue> CustomFieldValues { get; set; }
+
+        public DbSet<CustomFeature> CustomFeatures { get; set; }
+        public DbSet<CustomEntity> CustomEntities { get; set; }
+        public DbSet<CustomEntityField> CustomEntityFields { get; set; }
+        public DbSet<CustomEntityFieldOption> CustomEntityFieldOptions { get; set; }
+        public DbSet<CustomEntityPermission> CustomEntityPermissions { get; set; }
+        public DbSet<CustomEntityRecord> CustomEntityRecords { get; set; }
+        public DbSet<CustomEntityRecordReference> CustomEntityRecordReferences { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -149,6 +158,63 @@ namespace Church.DAL.DBcontext
                     (!CurrentMeetingId.HasValue ||
                      d.MeetingId == null ||
                      d.MeetingId == CurrentMeetingId));
+
+            // Church-wide custom features (MeetingId null) stay visible under meeting scope.
+            builder.Entity<CustomFeature>()
+                .HasQueryFilter(f =>
+                    CurrentChurchId.HasValue &&
+                    f.ChurchId == CurrentChurchId &&
+                    (!CurrentMeetingId.HasValue ||
+                     f.MeetingId == null ||
+                     f.MeetingId == CurrentMeetingId));
+
+            builder.Entity<CustomEntity>()
+                .HasQueryFilter(e =>
+                    CurrentChurchId.HasValue &&
+                    e.ChurchId == CurrentChurchId &&
+                    (!CurrentMeetingId.HasValue ||
+                     e.MeetingId == null ||
+                     e.MeetingId == CurrentMeetingId));
+
+            builder.Entity<CustomEntityField>()
+                .HasQueryFilter(f =>
+                    CurrentChurchId.HasValue &&
+                    f.ChurchId == CurrentChurchId &&
+                    (!CurrentMeetingId.HasValue ||
+                     f.MeetingId == null ||
+                     f.MeetingId == CurrentMeetingId));
+
+            builder.Entity<CustomEntityPermission>()
+                .HasQueryFilter(p =>
+                    CurrentChurchId.HasValue &&
+                    p.ChurchId == CurrentChurchId &&
+                    (!CurrentMeetingId.HasValue ||
+                     p.MeetingId == null ||
+                     p.MeetingId == CurrentMeetingId));
+
+            builder.Entity<CustomEntityRecord>()
+                .HasQueryFilter(r =>
+                    CurrentChurchId.HasValue &&
+                    r.ChurchId == CurrentChurchId &&
+                    (!CurrentMeetingId.HasValue ||
+                     r.MeetingId == null ||
+                     r.MeetingId == CurrentMeetingId));
+
+            builder.Entity<CustomEntityFieldOption>()
+                .HasQueryFilter(o =>
+                    CurrentChurchId.HasValue &&
+                    o.Field!.ChurchId == CurrentChurchId &&
+                    (!CurrentMeetingId.HasValue ||
+                     o.Field!.MeetingId == null ||
+                     o.Field!.MeetingId == CurrentMeetingId));
+
+            builder.Entity<CustomEntityRecordReference>()
+                .HasQueryFilter(r =>
+                    CurrentChurchId.HasValue &&
+                    r.Record!.ChurchId == CurrentChurchId &&
+                    (!CurrentMeetingId.HasValue ||
+                     r.Record!.MeetingId == null ||
+                     r.Record!.MeetingId == CurrentMeetingId));
 
             // Classroom's own key is Id, not ClassroomId — the generic filter cannot classroom-scope it.
             builder.Entity<Classroom>()

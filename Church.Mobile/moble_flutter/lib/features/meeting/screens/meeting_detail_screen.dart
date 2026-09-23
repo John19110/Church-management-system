@@ -25,6 +25,7 @@ import '../../unified_form/widgets/unified_entity_form.dart';
 import '../models/meeting_models.dart';
 import '../providers/meeting_providers.dart';
 import '../utils/meeting_delete_actions.dart';
+import '../../custom_feature/widgets/enabled_features_section.dart';
 
 class MeetingDetailScreen extends ConsumerWidget {
   final MeetingReadDto meeting;
@@ -475,6 +476,8 @@ class MeetingDetailScreen extends ConsumerWidget {
               label: Text(l10n.manageServants),
             ),
           ],
+          const SizedBox(height: 24),
+          const EnabledFeaturesSection(),
         ],
       ),
     );

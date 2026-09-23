@@ -16,6 +16,7 @@ import '../../meeting/providers/meeting_providers.dart';
 import '../../meeting/widgets/meeting_list_card.dart';
 import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
 import '../providers/super_admin_providers.dart';
+import '../../custom_feature/widgets/enabled_features_section.dart';
 
 class SuperAdminHomeScreen extends ConsumerStatefulWidget {
   const SuperAdminHomeScreen({super.key});
@@ -354,6 +355,8 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen>
             ),
             const SizedBox(height: 8),
             _buildMeetingsList(l10n, meetingsAsync),
+            const SizedBox(height: 24),
+            const EnabledFeaturesSection(),
           ],
         ),
       ),

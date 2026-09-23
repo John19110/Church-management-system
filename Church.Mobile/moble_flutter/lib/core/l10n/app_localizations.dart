@@ -622,6 +622,43 @@ class AppLocalizations {
   String get customFieldsAdminDescription => _t('customFieldsAdminDescription');
   String get recommendedSyncKeysHint => _t('recommendedSyncKeysHint');
 
+  String get customFeatures => _t('customFeatures');
+  String get noCustomFeaturesYet => _t('noCustomFeaturesYet');
+  String get newCustomFeature => _t('newCustomFeature');
+  String get editCustomFeature => _t('editCustomFeature');
+  String get deleteCustomFeature => _t('deleteCustomFeature');
+  String get deleteCustomFeatureForever => _t('deleteCustomFeatureForever');
+  String get customEntities => _t('customEntities');
+  String get noCustomEntitiesYet => _t('noCustomEntitiesYet');
+  String get newCustomEntity => _t('newCustomEntity');
+  String get editCustomEntity => _t('editCustomEntity');
+  String get deleteCustomEntity => _t('deleteCustomEntity');
+  String get deleteCustomEntityForever => _t('deleteCustomEntityForever');
+  String get pluralDisplayNameEnglish => _t('pluralDisplayNameEnglish');
+  String get pluralDisplayNameArabic => _t('pluralDisplayNameArabic');
+  String get fields => _t('fields');
+  String get permissions => _t('permissions');
+  String get openRecords => _t('openRecords');
+  String get uniqueField => _t('uniqueField');
+  String get searchableField => _t('searchableField');
+  String get showOnList => _t('showOnList');
+  String get showOnForm => _t('showOnForm');
+  String get showOnDetails => _t('showOnDetails');
+  String get targetEntity => _t('targetEntity');
+  String get deleteCustomFieldForever => _t('deleteCustomFieldForever');
+  String get permissionRead => _t('permissionRead');
+  String get permissionCreate => _t('permissionCreate');
+  String get permissionUpdate => _t('permissionUpdate');
+  String get permissionDelete => _t('permissionDelete');
+  String get noRecordsYet => _t('noRecordsYet');
+  String recordsCount(int count) =>
+      _t('recordsCount').replaceAll('{count}', count.toString());
+  String get newRecord => _t('newRecord');
+  String get editRecord => _t('editRecord');
+  String get deleteRecord => _t('deleteRecord');
+  String get deleteRecordForever => _t('deleteRecordForever');
+  String get manageFeature => _t('manageFeature');
+
   // ── Auth extras ─────────────────────────────────────────────────────────────
   String get registrationSuccessfulPleaseSignIn =>
       _t('registrationSuccessfulPleaseSignIn');
@@ -1402,6 +1439,53 @@ class AppLocalizations {
       'cfdt_json': 'Structured data',
       'cfdt_singleSelect': 'Single choice',
       'cfdt_multiSelect': 'Multiple choice',
+      'cfdt_time': 'Time',
+      'cfdt_phone': 'Phone',
+      'cfdt_email': 'Email',
+      'cfdt_url': 'URL',
+      'cfdt_dropdown': 'Dropdown',
+      'cfdt_memberReference': 'Member',
+      'cfdt_servantReference': 'Servant',
+      'cfdt_entityReference': 'Entity reference',
+      'cfdt_entityMultiReference': 'Entity multi-reference',
+      'customFeatures': 'Features',
+      'noCustomFeaturesYet': 'No custom features yet.',
+      'newCustomFeature': 'New feature',
+      'editCustomFeature': 'Edit feature',
+      'deleteCustomFeature': 'Delete feature',
+      'deleteCustomFeatureForever':
+          'This permanently deletes the feature, its entities, and all records.',
+      'customEntities': 'Entities',
+      'noCustomEntitiesYet': 'No entities yet.',
+      'newCustomEntity': 'New entity',
+      'editCustomEntity': 'Edit entity',
+      'deleteCustomEntity': 'Delete entity',
+      'deleteCustomEntityForever':
+          'This permanently deletes the entity, its fields, and all records.',
+      'pluralDisplayNameEnglish': 'Plural name (English)',
+      'pluralDisplayNameArabic': 'Plural name (Arabic)',
+      'fields': 'Fields',
+      'permissions': 'Permissions',
+      'openRecords': 'Open records',
+      'uniqueField': 'Unique',
+      'searchableField': 'Searchable',
+      'showOnList': 'Show on list',
+      'showOnForm': 'Show on form',
+      'showOnDetails': 'Show on details',
+      'targetEntity': 'Target entity',
+      'deleteCustomFieldForever':
+          'This permanently deletes the field and its stored values.',
+      'permissionRead': 'Read',
+      'permissionCreate': 'Create',
+      'permissionUpdate': 'Update',
+      'permissionDelete': 'Delete',
+      'noRecordsYet': 'No records yet.',
+      'recordsCount': '{count} records',
+      'newRecord': 'New record',
+      'editRecord': 'Edit record',
+      'deleteRecord': 'Delete record',
+      'deleteRecordForever': 'This permanently deletes the record.',
+      'manageFeature': 'Manage feature',
       'changesSaved': 'Changes saved.',
       'entityFieldsNotConfigured':
           'An admin must define which attributes to store for this entity (Custom Fields).',
@@ -2126,6 +2210,52 @@ class AppLocalizations {
       'cfdt_json': 'بيانات منظمة',
       'cfdt_singleSelect': 'اختيار واحد',
       'cfdt_multiSelect': 'اختيار متعدد',
+      'cfdt_time': 'وقت',
+      'cfdt_phone': 'هاتف',
+      'cfdt_email': 'بريد إلكتروني',
+      'cfdt_url': 'رابط',
+      'cfdt_dropdown': 'قائمة',
+      'cfdt_memberReference': 'مخدوم',
+      'cfdt_servantReference': 'خادم',
+      'cfdt_entityReference': 'مرجع كيان',
+      'cfdt_entityMultiReference': 'مراجع كيان متعددة',
+      'customFeatures': 'الميزات',
+      'noCustomFeaturesYet': 'لا توجد ميزات بعد.',
+      'newCustomFeature': 'ميزة جديدة',
+      'editCustomFeature': 'تعديل الميزة',
+      'deleteCustomFeature': 'حذف الميزة',
+      'deleteCustomFeatureForever':
+          'هيتمسح الميزة والكيانات والسجلات كلها نهائي.',
+      'customEntities': 'الكيانات',
+      'noCustomEntitiesYet': 'لا توجد كيانات بعد.',
+      'newCustomEntity': 'كيان جديد',
+      'editCustomEntity': 'تعديل الكيان',
+      'deleteCustomEntity': 'حذف الكيان',
+      'deleteCustomEntityForever':
+          'هيتمسح الكيان والحقول والسجلات كلها نهائي.',
+      'pluralDisplayNameEnglish': 'الاسم الجمع (إنجليزي)',
+      'pluralDisplayNameArabic': 'الاسم الجمع (عربي)',
+      'fields': 'الحقول',
+      'permissions': 'الصلاحيات',
+      'openRecords': 'فتح السجلات',
+      'uniqueField': 'فريد',
+      'searchableField': 'قابل للبحث',
+      'showOnList': 'يظهر في القائمة',
+      'showOnForm': 'يظهر في النموذج',
+      'showOnDetails': 'يظهر في التفاصيل',
+      'targetEntity': 'الكيان المستهدف',
+      'deleteCustomFieldForever': 'هيتمسح الحقل وقيمه نهائي.',
+      'permissionRead': 'قراءة',
+      'permissionCreate': 'إنشاء',
+      'permissionUpdate': 'تعديل',
+      'permissionDelete': 'حذف',
+      'noRecordsYet': 'لا توجد سجلات بعد.',
+      'recordsCount': '{count} سجل',
+      'newRecord': 'سجل جديد',
+      'editRecord': 'تعديل السجل',
+      'deleteRecord': 'حذف السجل',
+      'deleteRecordForever': 'هيتمسح السجل نهائي.',
+      'manageFeature': 'إدارة الميزة',
       'changesSaved': 'تم حفظ التغييرات.',
       'entityFieldsNotConfigured':
           'يجب على المسؤول تحديد السمات التي تُخزَّن لهذا الكيان (المعلومات الجديده).',

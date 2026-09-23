@@ -67,6 +67,9 @@ class AppConstants {
   // Custom fields
   static const String customFieldEndpoint = '/api/custom-fields';
 
+  static const String customFeaturesEndpoint = '/api/custom-features';
+  static const String customEntitiesEndpoint = '/api/custom-entities';
+
   // AttendanceSession endpoints
   static const String attendanceEndpoint = '/api/attendance-sessions';
 
