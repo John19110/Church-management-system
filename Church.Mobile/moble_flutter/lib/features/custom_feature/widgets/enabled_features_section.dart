@@ -32,7 +32,7 @@ class EnabledFeaturesSection extends ConsumerWidget {
           children: [
             Text(
               l10n.customFeatures,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             for (final feature in visible)

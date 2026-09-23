@@ -8,7 +8,9 @@ import '../../../core/routing/app_router.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
 import '../../auth/utils/auth_session.dart';
-import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
+import '../../../shared/widgets/app_section_navigation.dart';
+import '../../../core/theme/app_dimens.dart';
+import '../../../core/theme/app_icons.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../models/classroom_models.dart';
 import '../providers/classroom_providers.dart';
@@ -84,8 +86,10 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen>
         if (didPop) return;
         context.go(homeRoute);
       },
-      child: Scaffold(
-        primary: widget.showAppBar,
+      child: AppAdaptiveScaffold(
+        destination: AppNavDestination.home,
+        homeRoute: homeRoute,
+        role: role,
         appBar: widget.showAppBar
             ? AppBar(
                 title: Text(title),
@@ -100,8 +104,21 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen>
                         '/meetings/${widget.meetingId}/edit',
                       ),
                     ),
+                  if (canDeleteMeeting)
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline),
+                      tooltip: l10n.deleteMeeting,
+                      onPressed: () => confirmAndDeleteMeeting(
+                        context,
+                        ref,
+                        meetingId: widget.meetingId!,
+                        l10n: l10n,
+                        onDeleted: () => context.go(homeRoute),
+                      ),
+                    ),
                   IconButton(
                     icon: const Icon(Icons.logout),
+                    tooltip: l10n.logout,
                     onPressed: () => logoutSession(ref, context),
                   ),
                 ],
@@ -117,16 +134,16 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen>
                       .toList()
                   : classrooms;
               return ListView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 children: [
                   const EnabledFeaturesSection(),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.md),
                   if (filtered.isEmpty)
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Text(l10n.noVisibleClassroomsFound),
-                      ),
+                    cw.EmptyWidget(
+                      message: l10n.noVisibleClassroomsFound,
+                      icon: Icons.class_outlined,
+                      actionLabel: canAddClassroom ? l10n.addClassroom : null,
+                      onAction: canAddClassroom ? _openAddClassroom : null,
                     )
                   else
                     ...filtered.map(
@@ -167,8 +184,8 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen>
                                             ),
                                       ),
                                     ),
-                                    Icon(
-                                      Icons.chevron_right,
+                                    AppIcons.chevronForward(
+                                      context,
                                       color: Theme.of(context)
                                           .colorScheme
                                           .onSurfaceVariant,
@@ -204,34 +221,23 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen>
                 ],
               );
             },
-            loading: () => ListView(
-              padding: const EdgeInsets.all(16),
-              children: const [
-                Padding(
-                  padding: EdgeInsets.symmetric(vertical: 32),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-              ],
-            ),
-            error: (e, _) => ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                cw.AppErrorWidget(
-                  message: userFriendlyMessage(e, l10n),
-                  onRetry: _refresh,
-                ),
-              ],
+            loading: () => const cw.LoadingWidget(useSkeleton: true),
+            error: (e, _) => cw.AppErrorWidget(
+              message: userFriendlyMessage(e, l10n),
+              onRetry: _refresh,
             ),
           ),
         ),
-        bottomNavigationBar: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (canAddClassroom)
-              SafeArea(
+        bottomAction: canAddClassroom
+            ? SafeArea(
                 top: false,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.xs,
+                    AppSpacing.md,
+                    AppSpacing.xs,
+                  ),
                   child: SizedBox(
                     width: double.infinity,
                     child: FilledButton.icon(
@@ -241,44 +247,8 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen>
                     ),
                   ),
                 ),
-              ),
-            if (canDeleteMeeting)
-              SafeArea(
-                top: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () => confirmAndDeleteMeeting(
-                        context,
-                        ref,
-                        meetingId: widget.meetingId!,
-                        l10n: l10n,
-                        onDeleted: () => context.go(homeRoute),
-                      ),
-                      icon: Icon(Icons.delete_outline,
-                          color: Theme.of(context).colorScheme.error),
-                      label: Text(
-                        l10n.deleteMeeting,
-                        style: TextStyle(
-                            color: Theme.of(context).colorScheme.error),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(
-                            color: Theme.of(context).colorScheme.error),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            AppSectionBottomNavigationBar(
-              currentIndex: 0,
-              homeRoute: homeRoute,
-            ),
-          ],
-        ),
+              )
+            : null,
       ),
     );
   }

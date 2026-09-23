@@ -4,15 +4,12 @@ import 'package:go_router/go_router.dart';
 import '../models/attendance_models.dart';
 import '../models/attendance_criterion_models.dart';
 import '../providers/attendance_providers.dart';
-import '../../auth/providers/auth_providers.dart';
-import '../../auth/utils/auth_role_utils.dart';
 import '../../classroom/providers/classroom_providers.dart';
 import '../../member/providers/members_providers.dart';
 import '../../member/models/member_models.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_form_fields.dart';
-import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../../shared/widgets/endpoint_select_fields.dart';
 import '../../../core/error/app_exception.dart';
@@ -230,18 +227,9 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final role = ref.watch(currentUserRoleProvider).resolvedRoleOrNull;
-    final homeRoute = AuthRoleUtils.routeForRole(role);
-    final currentLocation = GoRouterState.of(context).matchedLocation;
     final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
 
-    return PopScope(
-      canPop: currentLocation == homeRoute,
-      onPopInvokedWithResult: (didPop, _) {
-        if (didPop) return;
-        context.go(homeRoute);
-      },
-      child: Scaffold(
+    return Scaffold(
         appBar: AppBar(title: Text(l10n.takeAttendance)),
         body: Column(
           children: [
@@ -327,7 +315,7 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
                   children: [
                     Flexible(
                       child: Text(
-                        '${l10n.formatInteger(_records!.length)} ${l10n.members.toLowerCase()}',
+                        l10n.membersCountLine(_records!.length),
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ),
@@ -443,11 +431,6 @@ class _AttendanceTakeScreenState extends ConsumerState<AttendanceTakeScreen> {
             ),
           ],
         ),
-        bottomNavigationBar: AppSectionBottomNavigationBar(
-          currentIndex: 3,
-          homeRoute: homeRoute,
-        ),
-      ),
     );
   }
 }

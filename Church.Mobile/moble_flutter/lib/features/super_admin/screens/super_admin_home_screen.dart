@@ -14,7 +14,8 @@ import '../../../shared/widgets/common_widgets.dart';
 import '../../meeting/models/meeting_models.dart';
 import '../../meeting/providers/meeting_providers.dart';
 import '../../meeting/widgets/meeting_list_card.dart';
-import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
+import '../../../shared/widgets/app_section_navigation.dart';
+import '../../../shared/widgets/section_header.dart';
 import '../providers/super_admin_providers.dart';
 import '../../custom_feature/widgets/enabled_features_section.dart';
 
@@ -259,11 +260,12 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen>
     return meetingsAsync.when(
       data: (meetings) {
         if (meetings.isEmpty) {
-          return Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(l10n.noVisibleMeetingsFound),
-            ),
+          return EmptyWidget(
+            title: l10n.noMeetingsYetTitle,
+            message: l10n.noMeetingsYetBody,
+            icon: Icons.event_outlined,
+            actionLabel: l10n.addMeeting,
+            onAction: _showAddMeetingDialog,
           );
         }
 
@@ -283,18 +285,10 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen>
               .toList(),
         );
       },
-      loading: () => const Padding(
-        padding: EdgeInsets.symmetric(vertical: 32),
-        child: Center(child: CircularProgressIndicator()),
-      ),
-      error: (e, _) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Text(
-            userFriendlyMessage(e, l10n),
-            textAlign: TextAlign.center,
-          ),
-        ),
+      loading: () => const LoadingWidget(useSkeleton: true),
+      error: (e, _) => AppErrorWidget(
+        message: userFriendlyMessage(e, l10n),
+        onRetry: _refresh,
       ),
     );
   }
@@ -306,7 +300,10 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen>
         ? ref.watch(visibleMeetingsProvider)
         : const AsyncValue<List<MeetingReadDto>>.loading();
 
-    return Scaffold(
+    return AppAdaptiveScaffold(
+      destination: AppNavDestination.home,
+      homeRoute: AppRoutes.superAdminHome,
+      role: 'superadmin',
       appBar: AppBar(
         title: Text(l10n.superAdminHome),
         actions: [
@@ -317,45 +314,38 @@ class _SuperAdminHomeScreenState extends ConsumerState<SuperAdminHomeScreen>
           ),
           IconButton(
             icon: const Icon(Icons.logout),
+            tooltip: l10n.logout,
             onPressed: () => logoutSession(ref, context),
           ),
         ],
       ),
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SafeArea(
-            top: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-              child: SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: _showAddMeetingDialog,
-                  icon: const Icon(Icons.add),
-                  label: Text(l10n.addMeeting),
-                ),
-              ),
+      bottomAction: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            AppSpacing.xs,
+            AppSpacing.md,
+            AppSpacing.xs,
+          ),
+          child: SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: _showAddMeetingDialog,
+              icon: const Icon(Icons.add),
+              label: Text(l10n.addMeeting),
             ),
           ),
-          const AppSectionBottomNavigationBar(
-            currentIndex: 0,
-            homeRoute: AppRoutes.superAdminHome,
-          ),
-        ],
+        ),
       ),
       body: RefreshIndicator(
         onRefresh: _refresh,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppSpacing.md),
           children: [
-            Text(
-              l10n.visibleMeetings,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
+            SectionHeader(title: l10n.visibleMeetings),
             _buildMeetingsList(l10n, meetingsAsync),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xl),
             const EnabledFeaturesSection(),
           ],
         ),

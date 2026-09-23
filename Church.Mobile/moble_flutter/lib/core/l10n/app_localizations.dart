@@ -399,6 +399,26 @@ class AppLocalizations {
   String get addUpdateRemoveMembers => _t('addUpdateRemoveMembers');
   String get manageServants => _t('manageServants');
   String get home => _t('home');
+  String get approvals => _t('approvals');
+  String get approvalsSubtitle => _t('approvalsSubtitle');
+  String get assignedMembersScopeHint => _t('assignedMembersScopeHint');
+  String get allMembersScopeHint => _t('allMembersScopeHint');
+  String get noMembersYetTitle => _t('noMembersYetTitle');
+  String get noMembersYetBody => _t('noMembersYetBody');
+  String get noMembersSearchTitle => _t('noMembersSearchTitle');
+  String get noMembersSearchBody => _t('noMembersSearchBody');
+  String get noMeetingsYetTitle => _t('noMeetingsYetTitle');
+  String get noMeetingsYetBody => _t('noMeetingsYetBody');
+  String get noServantsYetTitle => _t('noServantsYetTitle');
+  String get noServantsYetBody => _t('noServantsYetBody');
+  String get showPassword => _t('showPassword');
+  String get hidePassword => _t('hidePassword');
+  String get loginFailedNoToken => _t('loginFailedNoToken');
+  String get close => _t('close');
+  String get memberExcelConfirmUpdateTitle => _t('memberExcelConfirmUpdateTitle');
+  String get memberExcelConfirmUpdateBody => _t('memberExcelConfirmUpdateBody');
+  String get englishShort => _t('englishShort');
+  String get arabicShort => _t('arabicShort');
 
   // ── Profile / Forms ───────────────────────────────────────────────────────
   String get profile => _t('profile');
@@ -1648,6 +1668,33 @@ class AppLocalizations {
       'landingAccountDeletion': 'Account Deletion',
       'landingBackToHome': 'Back to home',
       'landingFooterCopyright': '© {year} My Church (كنيستي)',
+      'approvals': 'Approvals',
+      'approvalsSubtitle':
+          'Review people waiting to join this church or meeting.',
+      'assignedMembersScopeHint':
+          'You are viewing members assigned to your classroom or group — not every member in this meeting.',
+      'allMembersScopeHint':
+          'You are viewing every member in this meeting.',
+      'noMembersYetTitle': 'No members yet',
+      'noMembersYetBody':
+          'No members have been added here yet. Add a member if you have permission.',
+      'noMembersSearchTitle': 'No matching members',
+      'noMembersSearchBody': 'Try a different name or clear the search.',
+      'noMeetingsYetTitle': 'No meetings yet',
+      'noMeetingsYetBody':
+          'Create the first meeting so servants and members have a place to belong.',
+      'noServantsYetTitle': 'No servants yet',
+      'noServantsYetBody':
+          'No servants are listed here yet. New registrations appear under Approvals.',
+      'showPassword': 'Show password',
+      'hidePassword': 'Hide password',
+      'loginFailedNoToken': 'Sign-in did not complete. Please try again.',
+      'close': 'Close',
+      'memberExcelConfirmUpdateTitle': 'Update existing members?',
+      'memberExcelConfirmUpdateBody':
+          'This will overwrite existing member records that match the imported file. This cannot be undone from here.',
+      'englishShort': 'EN',
+      'arabicShort': 'ع',
     },
     'ar': {
       // Auth
@@ -2414,6 +2461,31 @@ class AppLocalizations {
       'landingAccountDeletion': 'حذف الحساب',
       'landingBackToHome': 'العودة للرئيسية',
       'landingFooterCopyright': '© {year} كنيستي (My Church)',
+      'approvals': 'الموافقات',
+      'approvalsSubtitle': 'راجع الأشخاص الذين ينتظرون الانضمام إلى هذه الكنيسة أو هذا الاجتماع.',
+      'assignedMembersScopeHint':
+          'أنت تعرض الأعضاء المعيَّنين لفصلك أو مجموعتك فقط — وليس كل أعضاء الاجتماع.',
+      'allMembersScopeHint': 'أنت تعرض كل أعضاء هذا الاجتماع.',
+      'noMembersYetTitle': 'لا يوجد أعضاء بعد',
+      'noMembersYetBody':
+          'لم تتم إضافة أعضاء هنا بعد. يمكنك إضافة عضو إذا كان لديك صلاحية.',
+      'noMembersSearchTitle': 'لا توجد نتائج',
+      'noMembersSearchBody': 'جرّب اسماً آخر أو امسح البحث.',
+      'noMeetingsYetTitle': 'لا توجد اجتماعات بعد',
+      'noMeetingsYetBody':
+          'أنشئ أول اجتماع حتى يتمكن الخدام والأعضاء من الانتماء إليه.',
+      'noServantsYetTitle': 'لا يوجد خدام بعد',
+      'noServantsYetBody':
+          'لا يوجد خدام هنا بعد. تظهر طلبات التسجيل الجديدة في الموافقات.',
+      'showPassword': 'إظهار كلمة المرور',
+      'hidePassword': 'إخفاء كلمة المرور',
+      'loginFailedNoToken': 'لم يكتمل تسجيل الدخول. حاول مرة أخرى.',
+      'close': 'إغلاق',
+      'memberExcelConfirmUpdateTitle': 'تحديث الأعضاء الحاليين؟',
+      'memberExcelConfirmUpdateBody':
+          'سيتم استبدال بيانات الأعضاء الحاليين المطابقة للملف المستورد. لا يمكن التراجع من هنا.',
+      'englishShort': 'EN',
+      'arabicShort': 'ع',
     },
   };
 }

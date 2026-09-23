@@ -7,7 +7,7 @@ import '../../../core/l10n/app_localizations.dart';
 import '../../../core/routing/app_router.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../core/theme/app_palette.dart';
-import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
+import '../../../shared/widgets/app_section_navigation.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../../../shared/widgets/section_header.dart';
 import '../../auth/providers/auth_providers.dart';
@@ -343,13 +343,17 @@ class MeetingDetailScreen extends ConsumerWidget {
     final homeRoute = AuthRoleUtils.routeForRole(role);
     final currentLocation = GoRouterState.of(context).matchedLocation;
 
-    final scaffold = Scaffold(
+    final scaffold = AppAdaptiveScaffold(
+      destination: showSectionBottomNav ? AppNavDestination.home : null,
+      homeRoute: homeRoute,
+      role: role,
       appBar: AppBar(
         title: Text(appBarTitle),
         actions: [
           if (showSectionBottomNav)
             IconButton(
               icon: const Icon(Icons.logout),
+              tooltip: l10n.logout,
               onPressed: () => logoutSession(ref, context),
             ),
         ],
@@ -367,18 +371,12 @@ class MeetingDetailScreen extends ConsumerWidget {
               child: const Icon(Icons.settings_outlined),
             )
           : null,
-      bottomNavigationBar: showSectionBottomNav
-          ? AppSectionBottomNavigationBar(
-              currentIndex: 0,
-              homeRoute: homeRoute,
-            )
-          : null,
       body: ListView(
         padding: EdgeInsets.fromLTRB(
-          16,
-          16,
-          16,
-          showManageFab ? 88 : 16,
+          AppSpacing.md,
+          AppSpacing.md,
+          AppSpacing.md,
+          showManageFab ? AppSpacing.xxl * 2 : AppSpacing.md,
         ),
         children: [
           formAsync.when(

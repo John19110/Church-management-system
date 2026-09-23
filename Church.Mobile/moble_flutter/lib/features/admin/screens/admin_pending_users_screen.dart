@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../../shared/widgets/app_network_avatar.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../../super_admin/models/super_admin_models.dart';
@@ -172,7 +173,7 @@ class _AdminPendingUserCardState extends ConsumerState<_AdminPendingUserCard> {
                 spacing: 8,
                 children: [
                   TextButton.icon(
-                    icon: const Icon(Icons.close, color: Colors.red),
+                    icon: Icon(Icons.close, color: context.palette.danger),
                     label: Text(l10n.reject),
                     onPressed: _isProcessing ? null : () => _reject(context),
                   ),

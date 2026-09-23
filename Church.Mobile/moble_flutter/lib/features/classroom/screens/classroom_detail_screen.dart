@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/routing/app_router.dart';
+import '../../../core/theme/app_breakpoints.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
@@ -326,11 +327,15 @@ class ClassroomDetailScreen extends ConsumerWidget {
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                childAspectRatio: 0.72,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: context.gridCrossAxisCount(
+                  compact: 2,
+                  medium: 3,
+                  expanded: 4,
+                ),
+                mainAxisSpacing: AppSpacing.sm,
+                crossAxisSpacing: AppSpacing.sm,
+                childAspectRatio: 0.78,
               ),
               delegate: SliverChildBuilderDelegate(
                 (context, index) {

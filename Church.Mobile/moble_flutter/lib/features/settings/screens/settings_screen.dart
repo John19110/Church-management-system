@@ -6,6 +6,8 @@ import '../../../core/l10n/app_localizations.dart';
 import '../../../core/providers/locale_provider.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../../../core/routing/app_router.dart';
+import '../../../core/theme/app_dimens.dart';
+import '../../../core/theme/app_icons.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
 
@@ -18,15 +20,14 @@ class SettingsScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final role = ref.watch(currentUserRoleProvider).resolvedRoleOrNull;
     final canManageFields = AuthRoleUtils.canManageCustomFields(role);
-    final themeMode = ref.watch(themeModeProvider);
     final locale = ref.watch(localeProvider);
-    final isDark = themeMode == ThemeMode.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isArabic = locale.languageCode == 'ar';
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settings)),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.md),
         children: [
           Align(
             alignment: AlignmentDirectional.centerStart,
@@ -71,7 +72,7 @@ class SettingsScreen extends ConsumerWidget {
               child: ListTile(
                 leading: const Icon(Icons.tune),
                 title: Text(l10n.customFields),
-                trailing: const Icon(Icons.chevron_right),
+                trailing: AppIcons.chevronForward(context),
                 onTap: () => context.push(AppRoutes.customFieldsHub),
               ),
             ),
@@ -80,7 +81,7 @@ class SettingsScreen extends ConsumerWidget {
               child: ListTile(
                 leading: const Icon(Icons.extension_outlined),
                 title: Text(l10n.customFeatures),
-                trailing: const Icon(Icons.chevron_right),
+                trailing: AppIcons.chevronForward(context),
                 onTap: () => context.push(AppRoutes.customFeaturesHub),
               ),
             ),
@@ -92,7 +93,7 @@ class SettingsScreen extends ConsumerWidget {
                 leading: const Icon(Icons.table_view_outlined),
                 title: Text(l10n.memberExcelChurchTitle),
                 subtitle: Text(l10n.memberExcelSettingsTile),
-                trailing: const Icon(Icons.chevron_right),
+                trailing: AppIcons.chevronForward(context),
                 onTap: () => context.push(AppRoutes.churchMembersExcel),
               ),
             ),

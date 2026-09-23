@@ -9,7 +9,7 @@ import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
 import '../models/app_notification.dart';
 import '../providers/notifications_providers.dart';
-import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
+import '../../../shared/widgets/app_section_navigation.dart';
 import '../../../shared/widgets/common_widgets.dart';
 
 class NotificationsScreen extends ConsumerWidget {
@@ -29,7 +29,10 @@ class NotificationsScreen extends ConsumerWidget {
         if (didPop) return;
         context.go(homeRoute);
       },
-      child: Scaffold(
+      child: AppAdaptiveScaffold(
+        destination: AppNavDestination.notifications,
+        homeRoute: homeRoute,
+        role: role,
         appBar: AppBar(title: Text(l10n.notifications)),
         body: SafeArea(
           child: inboxAsync.when(
@@ -65,10 +68,6 @@ class NotificationsScreen extends ConsumerWidget {
             },
           ),
         ),
-        bottomNavigationBar: AppSectionBottomNavigationBar(
-          currentIndex: 1,
-          homeRoute: homeRoute,
-        ),
       ),
     );
   }
@@ -97,7 +96,7 @@ class NotificationsScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(AppLocalizations.of(ctx).cancel),
+            child: Text(AppLocalizations.of(ctx).close),
           ),
         ],
       ),
@@ -117,7 +116,10 @@ class _NotificationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final time = DateFormat.yMMMd().add_jm().format(notification.receivedAt.toLocal());
+    final locale = Localizations.localeOf(context).toString();
+    final time = DateFormat.yMMMd(locale).add_jm().format(
+          notification.receivedAt.toLocal(),
+        );
 
     return ListTile(
       leading: Icon(

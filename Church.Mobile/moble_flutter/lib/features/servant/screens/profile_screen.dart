@@ -6,10 +6,13 @@ import 'package:go_router/go_router.dart';
 import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/routing/app_router.dart';
+import '../../../core/theme/app_dimens.dart';
+import '../../../core/theme/app_icons.dart';
+import '../../auth/widgets/delete_account_section.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
-import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
+import '../../../shared/widgets/app_section_navigation.dart';
 import '../../unified_form/models/unified_form_models.dart';
 import '../../unified_form/providers/unified_form_providers.dart';
 import '../../unified_form/widgets/entity_fields_empty_state.dart';
@@ -30,14 +33,13 @@ class ProfileScreen extends ConsumerWidget {
     final role = ref.watch(currentUserRoleProvider).resolvedRoleOrNull;
     final homeRoute = AuthRoleUtils.routeForRole(role);
 
-    return Scaffold(
+    return AppAdaptiveScaffold(
+      destination: AppNavDestination.profile,
+      homeRoute: homeRoute,
+      role: role,
       appBar: showAppBar ? AppBar(title: Text(l10n.profile)) : null,
-      bottomNavigationBar: AppSectionBottomNavigationBar(
-        currentIndex: 3,
-        homeRoute: homeRoute,
-      ),
       body: profileAsync.when(
-        loading: () => const cw.LoadingWidget(),
+        loading: () => const cw.LoadingWidget(useSkeleton: true),
         error: (e, _) => cw.AppErrorWidget(
           message: userFriendlyMessage(e, l10n),
           onRetry: () => ref.invalidate(servantProfileProvider),
@@ -61,7 +63,7 @@ class ProfileScreen extends ConsumerWidget {
               );
             },
             child: ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppSpacing.md),
               children: [
                 formAsync.when(
                   loading: () => Column(
@@ -131,27 +133,32 @@ class ProfileScreen extends ConsumerWidget {
                   child: ListTile(
                     leading: const Icon(Icons.settings_outlined),
                     title: Text(l10n.settings),
-                    trailing: const Icon(Icons.chevron_right),
+                    trailing: AppIcons.chevronForward(context),
                     onTap: () => context.push(AppRoutes.settings),
                   ),
                 ),
-                const SizedBox(height: 16),
-                ElevatedButton.icon(
-                  onPressed: () async {
-                    await context.push(AppRoutes.profileEdit);
-                    ref.invalidate(servantProfileProvider);
-                    ref.invalidate(servantProfileFormDataProvider);
-                    ref.invalidate(
-                      entityFormDataProvider((
-                        entity: UnifiedEntityNames.servant,
-                        id: profile.id,
-                      )),
-                    );
-                  },
-                  icon: const Icon(Icons.edit),
-                  label: Text(l10n.editProfile),
+                const SizedBox(height: AppSpacing.md),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: () async {
+                      await context.push(AppRoutes.profileEdit);
+                      ref.invalidate(servantProfileProvider);
+                      ref.invalidate(servantProfileFormDataProvider);
+                      ref.invalidate(
+                        entityFormDataProvider((
+                          entity: UnifiedEntityNames.servant,
+                          id: profile.id,
+                        )),
+                      );
+                    },
+                    icon: const Icon(Icons.edit_outlined),
+                    label: Text(l10n.editProfile),
+                  ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.xl),
+                const DeleteAccountSection(),
+                const SizedBox(height: AppSpacing.md),
               ],
             ),
           );

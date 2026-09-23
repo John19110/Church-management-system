@@ -6,7 +6,8 @@ import '../../auth/utils/auth_role_utils.dart';
 import '../../meeting/models/meeting_models.dart';
 import '../providers/members_providers.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
-import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
+import '../../../shared/widgets/app_scope_banner.dart';
+import '../../../shared/widgets/app_section_navigation.dart';
 import '../../../shared/widgets/app_list_row.dart';
 import '../../../shared/widgets/app_search_field.dart';
 import '../../../core/error/app_exception.dart';
@@ -123,7 +124,11 @@ class _MembersListScreenState extends ConsumerState<MembersListScreen>
           appBar: AppBar(title: Text(buildTitle())),
           body: cw.AppErrorWidget(message: userFriendlyMessage(e, l10n)),
         ),
-        data: (role) => Scaffold(
+        data: (role) => AppAdaptiveScaffold(
+          destination: null,
+          homeRoute: homeRoute,
+          role: role,
+          constrainBody: false,
           appBar: AppBar(
             title: Text(buildTitle()),
             bottom: _showDualViews && _tabController != null
@@ -137,6 +142,7 @@ class _MembersListScreenState extends ConsumerState<MembersListScreen>
                 : null,
           ),
           floatingActionButton: FloatingActionButton.extended(
+            tooltip: l10n.addMember,
             onPressed: () async {
               if (_isMeetingScoped) {
                 await context.push(
@@ -164,6 +170,7 @@ class _MembersListScreenState extends ConsumerState<MembersListScreen>
                       onRetry: _invalidate,
                       showClassroom: widget.hasClassrooms,
                       l10n: l10n,
+                      scopeMessage: l10n.allMembersScopeHint,
                     ),
                     _MembersListBody(
                       membersAsync: ref.watch(
@@ -175,6 +182,7 @@ class _MembersListScreenState extends ConsumerState<MembersListScreen>
                       onRetry: _invalidate,
                       showClassroom: widget.hasClassrooms,
                       l10n: l10n,
+                      scopeMessage: l10n.assignedMembersScopeHint,
                     ),
                   ],
                 )
@@ -190,12 +198,9 @@ class _MembersListScreenState extends ConsumerState<MembersListScreen>
                   onRetry: _invalidate,
                   showClassroom: _isMeetingScoped && widget.hasClassrooms,
                   l10n: l10n,
-                ),
-          bottomNavigationBar: _isMeetingScoped
-              ? null
-              : AppSectionBottomNavigationBar(
-                  currentIndex: 1,
-                  homeRoute: homeRoute,
+                  scopeMessage: _isMeetingScoped
+                      ? l10n.assignedMembersScopeHint
+                      : null,
                 ),
         ),
       ),
@@ -211,6 +216,7 @@ class _MembersListBody extends StatelessWidget {
   final void Function() onRetry;
   final bool showClassroom;
   final AppLocalizations l10n;
+  final String? scopeMessage;
 
   const _MembersListBody({
     required this.membersAsync,
@@ -220,6 +226,7 @@ class _MembersListBody extends StatelessWidget {
     required this.onRetry,
     required this.showClassroom,
     required this.l10n,
+    this.scopeMessage,
   });
 
   @override
@@ -233,7 +240,8 @@ class _MembersListBody extends StatelessWidget {
       data: (members) {
         if (members.isEmpty) {
           return cw.EmptyWidget(
-            message: l10n.noMembers,
+            title: l10n.noMembersYetTitle,
+            message: l10n.noMembersYetBody,
             icon: Icons.group_outlined,
           );
         }
@@ -264,10 +272,21 @@ class _MembersListBody extends StatelessWidget {
                   onChanged: onQueryChanged,
                 ),
               ),
+              if (scopeMessage != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    0,
+                    AppSpacing.md,
+                    AppSpacing.xs,
+                  ),
+                  child: AppScopeBanner(message: scopeMessage!),
+                ),
               Expanded(
                 child: filtered.isEmpty
                     ? cw.EmptyWidget(
-                        message: l10n.noMembers,
+                        title: l10n.noMembersSearchTitle,
+                        message: l10n.noMembersSearchBody,
                         icon: Icons.search_off,
                       )
                     : ListView.separated(
@@ -308,8 +327,8 @@ class _MembersListBody extends StatelessWidget {
                               ).colorScheme.primary,
                               placeholder: Text(
                                 initial,
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.onPrimary,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),

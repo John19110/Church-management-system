@@ -49,6 +49,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _loading = true);
+    final l10n = AppLocalizations.of(context);
 
     try {
       final phone =
@@ -62,7 +63,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       final token = result.token;
       if (token == null || token.isEmpty) {
-        throw Exception('Login did not return a token.');
+        throw Exception(l10n.loginFailedNoToken);
       }
 
       final role = AuthRoleUtils.extractPrimaryRole(token);
@@ -139,9 +140,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         borderRadius: BorderRadius.circular(24),
                         onTap: () => ref.read(localeProvider.notifier).toggle(),
                         child: Padding(
-                          padding: const EdgeInsets.all(4),
+                          padding: const EdgeInsets.all(AppSpacing.xs),
                           child: CircleAvatar(
-                            radius: 16,
+                            radius: 18,
                             backgroundImage: AssetImage(
                               isArabic
                                   ? 'assets/flags/uk.png'
@@ -218,8 +219,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   : null,
                               suffixIcon: IconButton(
                                 tooltip: _obscurePassword
-                                    ? l10n.password
-                                    : l10n.password,
+                                    ? l10n.showPassword
+                                    : l10n.hidePassword,
                                 icon: Icon(
                                   _obscurePassword
                                       ? Icons.visibility_outlined

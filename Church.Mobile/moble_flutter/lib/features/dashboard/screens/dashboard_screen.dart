@@ -30,7 +30,7 @@ class DashboardScreen extends ConsumerWidget {
           TextButton(
             onPressed: () => ref.read(localeProvider.notifier).toggle(),
             child: Text(
-              isArabic ? 'EN' : 'ع',
+              isArabic ? l10n.englishShort : l10n.arabicShort,
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
@@ -93,10 +93,16 @@ class DashboardScreen extends ConsumerWidget {
                       onTap: () => context.push(AppRoutes.churchSettings),
                     ),
                     _DashboardAction(
-                      icon: Icons.logout,
-                      label: l10n.logout,
-                      color: palette.danger,
-                      onTap: () => logoutSession(ref, context),
+                      icon: Icons.notifications_outlined,
+                      label: l10n.notifications,
+                      color: palette.info,
+                      onTap: () => context.go(AppRoutes.notifications),
+                    ),
+                    _DashboardAction(
+                      icon: Icons.person_outline,
+                      label: l10n.profile,
+                      color: scheme.secondary,
+                      onTap: () => context.go(AppRoutes.profile),
                     ),
                   ];
                   return GridView.count(

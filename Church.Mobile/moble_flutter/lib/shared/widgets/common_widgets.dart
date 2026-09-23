@@ -27,7 +27,7 @@ class LoadingWidget extends StatelessWidget {
     return Center(
       child: Semantics(
         liveRegion: true,
-        label: message ?? 'Loading',
+        label: message ?? AppLocalizations.of(context).loading,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -228,7 +228,7 @@ void showErrorSnackbarFixed(BuildContext context, String message) {
   _showSnackbar(
     context,
     message,
-    background: AppColors.danger,
+    background: context.palette.danger,
     icon: Icons.error_outline_rounded,
   );
 }
@@ -237,7 +237,7 @@ void showSuccessSnackbarFixed(BuildContext context, String message) {
   _showSnackbar(
     context,
     message,
-    background: AppColors.success,
+    background: context.palette.success,
     icon: Icons.check_circle_outline_rounded,
   );
 }
@@ -255,7 +255,7 @@ void _showSnackbar(
       content: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: Colors.white, size: 20),
+          Icon(icon, color: Theme.of(context).colorScheme.onPrimary, size: 20),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(

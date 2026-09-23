@@ -6,7 +6,7 @@ import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
 import '../providers/servants_providers.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
-import '../../../shared/widgets/app_section_bottom_navigation_bar.dart';
+import '../../../shared/widgets/app_section_navigation.dart';
 import '../../../shared/widgets/app_list_row.dart';
 import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
@@ -56,21 +56,20 @@ class ServantsListScreen extends ConsumerWidget {
         if (didPop) return;
         context.go(homeRoute);
       },
-      child: Scaffold(
+      child: AppAdaptiveScaffold(
+        destination: _isMeetingScoped ? null : AppNavDestination.servants,
+        homeRoute: homeRoute,
+        role: role,
+        constrainBody: false,
         appBar: AppBar(
           title: Text(buildTitle()),
           actions: [
-            if (!_isMeetingScoped && role == 'superadmin')
+            if (!_isMeetingScoped &&
+                (role == 'superadmin' || role == 'admin'))
               IconButton(
                 icon: const Icon(Icons.pending_actions),
-                tooltip: l10n.pendingUsers,
-                onPressed: () => context.push(AppRoutes.pendingUsers),
-              ),
-            if (!_isMeetingScoped && role == 'admin')
-              IconButton(
-                icon: const Icon(Icons.pending_actions),
-                tooltip: l10n.pendingUsers,
-                onPressed: () => context.push(AppRoutes.adminPendingUsers),
+                tooltip: l10n.approvals,
+                onPressed: () => context.go(AppRoutes.approvals),
               ),
           ],
         ),
@@ -83,8 +82,9 @@ class ServantsListScreen extends ConsumerWidget {
           data: (servants) {
             if (servants.isEmpty) {
               return cw.EmptyWidget(
-                message: l10n.noServants,
-                icon: Icons.people,
+                title: l10n.noServantsYetTitle,
+                message: l10n.noServantsYetBody,
+                icon: Icons.people_outline,
               );
             }
             return RefreshIndicator(
@@ -112,8 +112,8 @@ class ServantsListScreen extends ConsumerWidget {
                       backgroundColor: Theme.of(context).colorScheme.primary,
                       placeholder: Text(
                         initial,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onPrimary,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -139,12 +139,6 @@ class ServantsListScreen extends ConsumerWidget {
             );
           },
         ),
-        bottomNavigationBar: _isMeetingScoped
-            ? null
-            : AppSectionBottomNavigationBar(
-                currentIndex: 2,
-                homeRoute: homeRoute,
-              ),
       ),
     );
   }

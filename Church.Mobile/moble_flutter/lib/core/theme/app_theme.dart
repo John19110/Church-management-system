@@ -32,10 +32,13 @@ class AppTheme {
 
   // ---------------------------------------------------------------------------
 
-  static ThemeData get lightTheme => _build(Brightness.light);
-  static ThemeData get darkTheme => _build(Brightness.dark);
+  static ThemeData get lightTheme => build(Brightness.light);
+  static ThemeData get darkTheme => build(Brightness.dark);
 
-  static ThemeData _build(Brightness brightness) {
+  /// Builds a theme for the given [brightness] and optional [locale].
+  ///
+  /// Arabic uses Cairo so body text is designed for RTL, not Latin fallbacks.
+  static ThemeData build(Brightness brightness, {Locale? locale}) {
     final isDark = brightness == Brightness.dark;
 
     final scheme = ColorScheme.fromSeed(
@@ -55,10 +58,27 @@ class AppTheme {
         isDark ? AppColors.darkBackground : AppColors.background;
     final surface = isDark ? AppColors.darkSurface : AppColors.surface;
 
-    final baseText = GoogleFonts.poppinsTextTheme(
-      isDark ? ThemeData.dark().textTheme : ThemeData.light().textTheme,
-    );
+    final isArabic = locale?.languageCode == 'ar';
+    final platformText =
+        isDark ? ThemeData.dark().textTheme : ThemeData.light().textTheme;
+    final baseText = isArabic
+        ? GoogleFonts.cairoTextTheme(platformText)
+        : GoogleFonts.poppinsTextTheme(platformText);
     final textTheme = _textTheme(baseText, textPrimary, palette.textSecondary);
+    TextStyle buttonText({double size = 16}) => isArabic
+        ? GoogleFonts.cairo(fontWeight: FontWeight.w600, fontSize: size)
+        : GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: size);
+    TextStyle appBarTitleStyle() => isArabic
+        ? GoogleFonts.cairo(
+            color: textPrimary,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+          )
+        : GoogleFonts.poppins(
+            color: textPrimary,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+          );
 
     return ThemeData(
       useMaterial3: true,
@@ -74,11 +94,7 @@ class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0.5,
         centerTitle: true,
-        titleTextStyle: GoogleFonts.poppins(
-          color: textPrimary,
-          fontSize: 18,
-          fontWeight: FontWeight.w700,
-        ),
+        titleTextStyle: appBarTitleStyle(),
         iconTheme: IconThemeData(color: textPrimary),
       ),
       cardTheme: CardThemeData(
@@ -108,38 +124,32 @@ class AppTheme {
           foregroundColor: scheme.onPrimary,
           disabledBackgroundColor: scheme.primary.withValues(alpha: 0.5),
           disabledForegroundColor: scheme.onPrimary.withValues(alpha: 0.8),
-          minimumSize: const Size(double.infinity, 52),
+          minimumSize: const Size(64, 48),
           elevation: 0,
           shape: const RoundedRectangleBorder(borderRadius: AppRadius.mdAll),
-          textStyle: GoogleFonts.poppins(
-            fontWeight: FontWeight.w600,
-            fontSize: 16,
-          ),
+          textStyle: buttonText(),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          minimumSize: const Size(double.infinity, 52),
+          minimumSize: const Size(64, 48),
           shape: const RoundedRectangleBorder(borderRadius: AppRadius.mdAll),
-          textStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          textStyle: buttonText(),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: scheme.primary,
-          minimumSize: const Size(double.infinity, 52),
+          minimumSize: const Size(64, 48),
           shape: const RoundedRectangleBorder(borderRadius: AppRadius.mdAll),
           side: BorderSide(color: scheme.primary, width: 1.5),
-          textStyle: GoogleFonts.poppins(
-            fontWeight: FontWeight.w600,
-            fontSize: 16,
-          ),
+          textStyle: buttonText(),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: scheme.primary,
-          textStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          textStyle: buttonText(),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -193,6 +203,19 @@ class AppTheme {
         indicatorColor: scheme.primary.withValues(alpha: 0.12),
         elevation: 0,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+      ),
+      navigationRailTheme: NavigationRailThemeData(
+        backgroundColor: surface,
+        indicatorColor: scheme.primary.withValues(alpha: 0.12),
+        selectedIconTheme: IconThemeData(color: scheme.primary),
+        unselectedIconTheme: IconThemeData(color: palette.textTertiary),
+        selectedLabelTextStyle: textTheme.labelMedium?.copyWith(
+          color: scheme.primary,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelTextStyle: textTheme.labelMedium?.copyWith(
+          color: palette.textTertiary,
+        ),
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: surface,

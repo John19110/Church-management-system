@@ -10,6 +10,7 @@ import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/app_network_avatar.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../../../core/theme/app_dimens.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../meeting/providers/meeting_providers.dart';
 import '../models/super_admin_models.dart';
 import '../providers/super_admin_providers.dart';
@@ -226,7 +227,7 @@ class _PendingUserCardState extends ConsumerState<_PendingUserCard> {
             runSpacing: 4,
             children: [
               TextButton.icon(
-                icon: const Icon(Icons.close, color: Colors.red),
+                icon: Icon(Icons.close, color: context.palette.danger),
                 label: Text(l10n.reject),
                 onPressed: _isProcessing ? null : () => _reject(context),
               ),
@@ -492,7 +493,7 @@ class _PendingUserCardState extends ConsumerState<_PendingUserCard> {
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
+                  backgroundColor: context.palette.danger,
                   minimumSize: const Size(88, 48),
                 ),
                 onPressed: () => Navigator.of(ctx).pop(true),

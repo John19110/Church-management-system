@@ -6,7 +6,7 @@ import '../../core/utils/api_image_url.dart';
 class AppNetworkAvatar extends StatefulWidget {
   final String? imageUrl;
   final double radius;
-  final Color backgroundColor;
+  final Color? backgroundColor;
   final Widget? placeholder;
   /// Optional tag for debug logging (e.g. "member-list", "member-detail").
   final String? debugTag;
@@ -15,7 +15,7 @@ class AppNetworkAvatar extends StatefulWidget {
     super.key,
     required this.imageUrl,
     this.radius = 24,
-    this.backgroundColor = const Color(0xFFE2E8F0),
+    this.backgroundColor,
     this.placeholder,
     this.debugTag,
   });
@@ -37,6 +37,8 @@ class _AppNetworkAvatarState extends State<AppNetworkAvatar> {
 
   @override
   Widget build(BuildContext context) {
+    final fallbackColor = widget.backgroundColor ??
+        Theme.of(context).colorScheme.surfaceContainerHighest;
     final resolved =
         _loadFailed ? null : resolveApiImageUrl(widget.imageUrl);
 
@@ -50,7 +52,7 @@ class _AppNetworkAvatarState extends State<AppNetworkAvatar> {
     if (resolved == null) {
       return CircleAvatar(
         radius: widget.radius,
-        backgroundColor: widget.backgroundColor,
+        backgroundColor: fallbackColor,
         child: widget.placeholder,
       );
     }
@@ -61,7 +63,7 @@ class _AppNetworkAvatarState extends State<AppNetworkAvatar> {
     // triggers credentialed CORS fetches that fail for public /uploads assets.
     return CircleAvatar(
       radius: widget.radius,
-      backgroundColor: widget.backgroundColor,
+      backgroundColor: fallbackColor,
       child: ClipOval(
         child: Image.network(
           resolved,

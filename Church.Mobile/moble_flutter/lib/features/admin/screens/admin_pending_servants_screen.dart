@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_dimens.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../providers/admin_providers.dart';
@@ -125,7 +126,7 @@ class AdminPendingServantsScreen extends ConsumerWidget {
                       children: [
                         IconButton(
                           tooltip: l10n.approve,
-                          icon: const Icon(Icons.check, color: Colors.green),
+                          icon: Icon(Icons.check, color: context.palette.success),
                           onPressed: () async {
                             try {
                               await ref
@@ -150,7 +151,7 @@ class AdminPendingServantsScreen extends ConsumerWidget {
                         ),
                         IconButton(
                           tooltip: l10n.reject,
-                          icon: const Icon(Icons.close, color: Colors.red),
+                          icon: Icon(Icons.close, color: context.palette.danger),
                           onPressed: () async {
                             final ok = await cw.showConfirmDialog(
                               context,

@@ -192,6 +192,18 @@ class _MemberExcelScreenState extends ConsumerState<MemberExcelScreen> {
     });
   }
 
+  Future<void> _confirmAndUpdateDuplicates() async {
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await cw.showConfirmDialog(
+      context,
+      title: l10n.memberExcelConfirmUpdateTitle,
+      content: l10n.memberExcelConfirmUpdateBody,
+      confirmText: l10n.memberExcelUpdateDuplicates,
+    );
+    if (!confirmed) return;
+    await _commitImport('Update');
+  }
+
   Future<void> _commitImport(String duplicateMode) async {
     final l10n = AppLocalizations.of(context);
     final lang = ref.read(localeProvider).languageCode;
@@ -299,7 +311,7 @@ class _MemberExcelScreenState extends ConsumerState<MemberExcelScreen> {
                   preview: _preview!,
                   fileName: _pickedFileName,
                   onSkipDuplicates: () => _commitImport('Skip'),
-                  onUpdateDuplicates: () => _commitImport('Update'),
+                  onUpdateDuplicates: () => _confirmAndUpdateDuplicates(),
                   busy: _busy,
                 ),
               ],
@@ -352,9 +364,9 @@ class _MemberExcelScreenState extends ConsumerState<MemberExcelScreen> {
             ],
           ),
           if (_busy)
-            const ColoredBox(
-              color: Color(0x33000000),
-              child: Center(child: CircularProgressIndicator()),
+            ColoredBox(
+              color: Theme.of(context).colorScheme.scrim.withValues(alpha: 0.32),
+              child: const Center(child: CircularProgressIndicator()),
             ),
         ],
       ),
