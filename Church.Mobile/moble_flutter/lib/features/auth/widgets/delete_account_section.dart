@@ -11,7 +11,7 @@ import '../../../shared/widgets/common_widgets.dart';
 import '../providers/auth_providers.dart';
 import '../utils/account_data_cleaner.dart';
 
-/// Destructive account action shown at the bottom of the Profile/Settings page.
+/// Destructive account action shown in the Settings Account / Danger zone.
 class DeleteAccountSection extends ConsumerStatefulWidget {
   const DeleteAccountSection({super.key});
 

@@ -472,6 +472,9 @@ class AppLocalizations {
   String get profileInformation => _t('profileInformation');
   String get servantInformation => _t('servantInformation');
   String get appSettings => _t('appSettings');
+  String get accountSection => _t('accountSection');
+  String get dangerZone => _t('dangerZone');
+  String get appearance => _t('appearance');
   String get settings => _t('settings');
   String get memberExcelTitle => _t('memberExcelTitle');
   String get memberExcelChurchTitle => _t('memberExcelChurchTitle');
@@ -1316,6 +1319,9 @@ class AppLocalizations {
       'profileInformation': 'Profile information',
       'servantInformation': 'Servant information',
       'appSettings': 'App settings',
+      'accountSection': 'Account',
+      'dangerZone': 'Danger zone',
+      'appearance': 'Appearance',
       'settings': 'Settings',
       'memberExcelTitle': 'Excel Import & Export',
       'memberExcelChurchTitle': 'Church Members Excel',
@@ -2172,6 +2178,9 @@ class AppLocalizations {
       'profileInformation': 'معلومات الملف الشخصي',
       'servantInformation': 'معلومات الخادم',
       'appSettings': 'إعدادات التطبيق',
+      'accountSection': 'الحساب',
+      'dangerZone': 'منطقة خطرة',
+      'appearance': 'المظهر',
       'settings': 'الإعدادات',
       'memberExcelTitle': 'استيراد وتصدير Excel',
       'memberExcelChurchTitle': 'Excel لأعضاء الكنيسة',

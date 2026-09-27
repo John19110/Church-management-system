@@ -8,7 +8,6 @@ import '../../../core/l10n/app_localizations.dart';
 import '../../../core/routing/app_router.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../core/theme/app_icons.dart';
-import '../../auth/widgets/delete_account_section.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
@@ -156,8 +155,6 @@ class ProfileScreen extends ConsumerWidget {
                     label: Text(l10n.editProfile),
                   ),
                 ),
-                const SizedBox(height: AppSpacing.xl),
-                const DeleteAccountSection(),
                 const SizedBox(height: AppSpacing.md),
               ],
             ),
