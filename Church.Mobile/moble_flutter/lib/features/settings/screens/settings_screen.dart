@@ -2,16 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/l10n/organization_languages.dart';
 import '../../../core/providers/locale_provider.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../../../core/routing/app_router.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../core/theme/app_icons.dart';
+import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
+import '../models/language_settings.dart';
+import '../providers/language_settings_providers.dart';
 
-/// App-wide settings: theme/language for all roles; Custom Fields for admins.
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
@@ -19,10 +23,12 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final role = ref.watch(currentUserRoleProvider).resolvedRoleOrNull;
-    final canManageFields = AuthRoleUtils.canManageCustomFields(role);
+    final canManage = AuthRoleUtils.canManageCustomFields(role);
     final locale = ref.watch(localeProvider);
+    final church = ref.watch(churchLanguagesProvider).valueOrNull ??
+        ChurchLanguages.bilingual();
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isArabic = locale.languageCode == 'ar';
+    final supported = church.supportedLanguages;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settings)),
@@ -52,37 +58,46 @@ class SettingsScreen extends ConsumerWidget {
                       ref.read(themeModeProvider.notifier).toggle(),
                 ),
                 const Divider(height: 0),
-                ListTile(
-                  leading: const Icon(Icons.language),
-                  title: Text(l10n.language),
-                  subtitle: Text(isArabic ? l10n.arabic : l10n.english),
-                  trailing: TextButton(
-                    onPressed: () =>
-                        ref.read(localeProvider.notifier).toggle(),
-                    child: Text(isArabic ? l10n.english : l10n.arabic),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                  child: Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Text(l10n.appLanguage),
                   ),
-                  onTap: () => ref.read(localeProvider.notifier).toggle(),
                 ),
+                for (final code in supported)
+                  RadioListTile<String>(
+                    value: code,
+                    groupValue: locale.languageCode,
+                    title: Text(
+                      code == OrganizationLanguages.arabic
+                          ? l10n.arabic
+                          : l10n.english,
+                    ),
+                    onChanged: (value) => _changeLanguage(context, ref, value),
+                  ),
               ],
             ),
           ),
-          if (canManageFields) ...[
+          if (canManage) ...[
             const SizedBox(height: 16),
             Card(
               child: ListTile(
-                leading: const Icon(Icons.tune),
-                title: Text(l10n.customFields),
+                leading: const Icon(Icons.translate),
+                title: Text(l10n.churchLanguages),
+                subtitle: Text(l10n.churchLanguagesDescription),
                 trailing: AppIcons.chevronForward(context),
-                onTap: () => context.push(AppRoutes.customFieldsHub),
+                onTap: () => context.push(AppRoutes.churchLanguages),
               ),
             ),
             const SizedBox(height: 16),
             Card(
               child: ListTile(
-                leading: const Icon(Icons.extension_outlined),
-                title: Text(l10n.customFeatures),
+                leading: const Icon(Icons.tune),
+                title: Text(l10n.customization),
+                subtitle: Text(l10n.customizeYourChurch),
                 trailing: AppIcons.chevronForward(context),
-                onTap: () => context.push(AppRoutes.customFeaturesHub),
+                onTap: () => context.push(AppRoutes.customization),
               ),
             ),
           ],
@@ -101,5 +116,25 @@ class SettingsScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _changeLanguage(
+    BuildContext context,
+    WidgetRef ref,
+    String? code,
+  ) async {
+    if (code == null) return;
+    final l10n = AppLocalizations.of(context);
+    await ref.read(localeProvider.notifier).setLocale(Locale(code));
+    try {
+      await ref
+          .read(languageSettingsRepositoryProvider)
+          .updatePreferredLanguage(code);
+      ref.invalidate(languageProfileProvider);
+    } catch (e) {
+      if (context.mounted) {
+        cw.showErrorSnackbar(context, userFriendlyMessage(e, l10n));
+      }
+    }
   }
 }

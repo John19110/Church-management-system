@@ -24,6 +24,10 @@ namespace Church.BLL.Manager.Interfaces
         Task<AuthFlowResultDto> RegisterChurchSuperAdmin(RegisterChurchAdminDTO dto, string webRootPath);
         Task<AuthFlowResultDto> RegisterMeetingAdminNewChurch(RegisterMeetingAdminNewChurchDTO dto, string webRootPath);
 
+        Task<Church.BLL.DTOS.ChurchDtos.ChurchLanguagesDto> GetOrganizationLanguagesAsync(string publicId);
+        Task<LanguageProfileDto> GetLanguageProfileAsync(string userId);
+        Task UpdatePreferredLanguageAsync(string userId, string preferredLanguage);
+
         //    Task<string> RegisterMeetingAdminExistingChurch(RegisterMeetingAdminExistingChurch registerDTO);
 
     }

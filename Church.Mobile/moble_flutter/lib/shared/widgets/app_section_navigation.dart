@@ -10,18 +10,9 @@ import '../../features/auth/utils/auth_role_utils.dart';
 import 'app_content.dart';
 
 /// Primary app sections shown in the bottom bar / navigation rail.
-enum AppNavDestination { home, notifications, servants, approvals, profile }
+enum AppNavDestination { home, notifications, servants, profile }
 
 List<AppNavDestination> appNavDestinationsForRole(String? role) {
-  if (role == 'admin' || role == 'superadmin') {
-    return const [
-      AppNavDestination.home,
-      AppNavDestination.notifications,
-      AppNavDestination.servants,
-      AppNavDestination.approvals,
-      AppNavDestination.profile,
-    ];
-  }
   return const [
     AppNavDestination.home,
     AppNavDestination.notifications,
@@ -35,7 +26,6 @@ String appNavRouteFor(AppNavDestination destination, String homeRoute) {
     AppNavDestination.home => homeRoute,
     AppNavDestination.notifications => AppRoutes.notifications,
     AppNavDestination.servants => AppRoutes.servants,
-    AppNavDestination.approvals => AppRoutes.approvals,
     AppNavDestination.profile => AppRoutes.profile,
   };
 }
@@ -45,7 +35,6 @@ String appNavLabel(AppLocalizations l10n, AppNavDestination destination) {
     AppNavDestination.home => l10n.home,
     AppNavDestination.notifications => l10n.notifications,
     AppNavDestination.servants => l10n.servants,
-    AppNavDestination.approvals => l10n.approvals,
     AppNavDestination.profile => l10n.profile,
   };
 }
@@ -58,10 +47,6 @@ String appNavLabel(AppLocalizations l10n, AppNavDestination destination) {
         AppIcons.notificationsSelected,
       ),
     AppNavDestination.servants => (AppIcons.servants, AppIcons.servantsSelected),
-    AppNavDestination.approvals => (
-        AppIcons.approvals,
-        AppIcons.approvalsSelected,
-      ),
     AppNavDestination.profile => (AppIcons.profile, AppIcons.profileSelected),
   };
 }

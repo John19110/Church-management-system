@@ -37,8 +37,13 @@ class CustomFieldsHubScreen extends ConsumerWidget {
         padding: const EdgeInsets.all(16),
         children: [
           Text(
-            l10n.customFieldsAdminDescription,
+            l10n.customFieldsLanding,
             style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.customFieldsExamples,
+            style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 16),
           for (final (entity, icon) in _scopes) ...[

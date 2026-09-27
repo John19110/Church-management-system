@@ -14,6 +14,7 @@ public sealed class ModelSnapshotSyncTests
         var migrations = db.Database.GetMigrations().ToList();
 
         Assert.Contains("20260923150000_AddCustomFeatures", migrations);
+        Assert.Contains("20260927120000_AddOrganizationAndUserLanguages", migrations);
     }
 
     [Fact]

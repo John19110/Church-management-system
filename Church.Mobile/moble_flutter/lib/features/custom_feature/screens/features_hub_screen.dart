@@ -40,7 +40,10 @@ class FeaturesHubScreen extends ConsumerWidget {
         ),
         data: (features) {
           if (features.isEmpty) {
-            return EmptyWidget(message: l10n.noCustomFeaturesYet);
+            return EmptyWidget(
+              title: l10n.noCustomFeaturesYet,
+              message: l10n.noCustomFeaturesYetBody,
+            );
           }
           return ListView.separated(
             padding: const EdgeInsets.all(16),
@@ -57,9 +60,13 @@ class FeaturesHubScreen extends ConsumerWidget {
                   ),
                   title: Text(featureDisplayName(feature, l10n)),
                   subtitle: Text(
-                    feature.isActive
-                        ? l10n.active
-                        : l10n.inactive,
+                    [
+                      feature.isActive ? l10n.active : l10n.inactive,
+                      if ((feature.displayNameAr ?? '').trim().isEmpty)
+                        l10n.arabicTranslationMissing
+                      else
+                        '${l10n.englishShort} ✓   ${l10n.arabicShort} ✓',
+                    ].join('\n'),
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () =>

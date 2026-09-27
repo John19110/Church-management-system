@@ -64,6 +64,11 @@ class FieldDefinitionCard extends StatelessWidget {
               localizedFieldCardSubtitle(definition, l10n),
               style: theme.textTheme.bodySmall,
             ),
+            const SizedBox(height: 4),
+            Text(
+              _translationStatus(definition, l10n),
+              style: theme.textTheme.bodySmall,
+            ),
             const SizedBox(height: 2),
             Text(
               definition.isRequired
@@ -94,6 +99,22 @@ class FieldDefinitionCard extends StatelessWidget {
         trailing: _buildTrailing(l10n, theme),
       ),
     );
+  }
+
+  String _translationStatus(
+    CustomFieldDefinitionReadDto definition,
+    AppLocalizations l10n,
+  ) {
+    final hasEn = definition.displayName.trim().isNotEmpty;
+    final hasAr = (definition.displayNameAr ?? '').trim().isNotEmpty;
+    if (hasEn && hasAr) return '${l10n.englishShort} ✓   ${l10n.arabicShort} ✓';
+    if (hasEn && !hasAr) {
+      return '${l10n.englishShort} ✓   ${l10n.arabicShort} ⚠  ${l10n.arabicTranslationMissing}';
+    }
+    if (!hasEn && hasAr) {
+      return '${l10n.englishShort} ⚠   ${l10n.arabicShort} ✓  ${l10n.englishTranslationMissing}';
+    }
+    return l10n.translationMissing;
   }
 
   Widget _buildTrailing(AppLocalizations l10n, ThemeData theme) {

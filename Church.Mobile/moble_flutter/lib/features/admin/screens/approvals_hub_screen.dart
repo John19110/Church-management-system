@@ -29,7 +29,7 @@ class ApprovalsHubScreen extends ConsumerWidget {
         context.go(homeRoute);
       },
       child: AppAdaptiveScaffold(
-        destination: AppNavDestination.approvals,
+        destination: AppNavDestination.servants,
         homeRoute: homeRoute,
         role: role,
         appBar: AppBar(title: Text(l10n.approvals)),

@@ -17,6 +17,16 @@ namespace Church.DAL.Configurations
                 .IsRequired()
                 .HasMaxLength(16);
 
+            builder.Property(c => c.SupportedLanguages)
+                .IsRequired()
+                .HasMaxLength(16)
+                .HasDefaultValue("en,ar");
+
+            builder.Property(c => c.DefaultLanguage)
+                .IsRequired()
+                .HasMaxLength(8)
+                .HasDefaultValue("en");
+
             builder.HasIndex(c => c.PublicId)
                 .IsUnique();
         }

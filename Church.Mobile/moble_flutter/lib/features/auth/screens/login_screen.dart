@@ -20,6 +20,7 @@ import '../../../core/error/app_exception.dart';
 import '../../../core/notifications/notification_service.dart';
 import '../../../core/routing/app_router.dart';
 import '../../landing/static_landing_navigation.dart';
+import '../../settings/providers/language_settings_providers.dart';
 import '../utils/phone_number_validator.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -72,6 +73,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ref.read(authStateProvider.notifier).state = true;
       // Request notification permission (once) and obtain FCM token for this user.
       unawaited(NotificationService.instance.onUserAuthenticated());
+      try {
+        final profile = await ref
+            .read(languageSettingsRepositoryProvider)
+            .getLanguageProfile();
+        final preferred = profile.preferredLanguage ??
+            profile.church.defaultLanguage;
+        await ref.read(localeProvider.notifier).setLocale(Locale(preferred));
+      } catch (_) {
+        // Keep the device language if the profile is unavailable.
+      }
 
       if (!mounted) return;
       // Prefer Notifications screen when the user opened the app from a tap.

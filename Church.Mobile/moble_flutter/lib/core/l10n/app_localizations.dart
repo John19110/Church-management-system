@@ -411,6 +411,52 @@ class AppLocalizations {
   String get noMeetingsYetBody => _t('noMeetingsYetBody');
   String get noServantsYetTitle => _t('noServantsYetTitle');
   String get noServantsYetBody => _t('noServantsYetBody');
+  String get pendingRequests => _t('pendingRequests');
+  String pendingRequestsCount(int count) =>
+      _t('pendingRequestsCount').replaceAll('{count}', '$count');
+  String get noPendingRequests => _t('noPendingRequests');
+  String get noPendingRequestsBody => _t('noPendingRequestsBody');
+  String get activeServants => _t('activeServants');
+  String get searchServants => _t('searchServants');
+  String get requestedAccess => _t('requestedAccess');
+  String get approveRequestTitle => _t('approveRequestTitle');
+  String approveRequestBody(String name, String role) => _t('approveRequestBody')
+      .replaceAll('{name}', name)
+      .replaceAll('{role}', role);
+  String get rejectRequestTitle => _t('rejectRequestTitle');
+  String get rejectRequestBody => _t('rejectRequestBody');
+  String get requestApproved => _t('requestApproved');
+  String get requestRejected => _t('requestRejected');
+  String get requestApproveFailed => _t('requestApproveFailed');
+  String get requestAlreadyProcessed => _t('requestAlreadyProcessed');
+  String get servantActive => _t('servantActive');
+  String get churchLanguages => _t('churchLanguages');
+  String get churchLanguagesDescription => _t('churchLanguagesDescription');
+  String get defaultLanguage => _t('defaultLanguage');
+  String get usersChoosePreferredLanguage => _t('usersChoosePreferredLanguage');
+  String removeLanguageTitle(String language) =>
+      _t('removeLanguageTitle').replaceAll('{language}', language);
+  String removeLanguageBody(String language) =>
+      _t('removeLanguageBody').replaceAll('{language}', language);
+  String removeLanguageConfirm(String language) =>
+      _t('removeLanguageConfirm').replaceAll('{language}', language);
+  String get appLanguage => _t('appLanguage');
+  String get chooseYourLanguage => _t('chooseYourLanguage');
+  String get chooseYourLanguageHint => _t('chooseYourLanguageHint');
+  String get arabicTranslationOptional => _t('arabicTranslationOptional');
+  String get translationMissing => _t('translationMissing');
+  String get missingTranslationWarning => _t('missingTranslationWarning');
+  String get saveAnyway => _t('saveAnyway');
+  String get customization => _t('customization');
+  String get customizeYourChurch => _t('customizeYourChurch');
+  String get customizationIntro => _t('customizationIntro');
+  String get customFieldsLanding => _t('customFieldsLanding');
+  String get customFieldsExamples => _t('customFieldsExamples');
+  String get customFeaturesLanding => _t('customFeaturesLanding');
+  String get noCustomFeaturesYetBody => _t('noCustomFeaturesYetBody');
+  String get arabicTranslationMissing => _t('arabicTranslationMissing');
+  String get englishTranslationMissing => _t('englishTranslationMissing');
+  String get fieldNameHelp => _t('fieldNameHelp');
   String get showPassword => _t('showPassword');
   String get hidePassword => _t('hidePassword');
   String get loginFailedNoToken => _t('loginFailedNoToken');
@@ -1685,7 +1731,63 @@ class AppLocalizations {
           'Create the first meeting so servants and members have a place to belong.',
       'noServantsYetTitle': 'No servants yet',
       'noServantsYetBody':
-          'No servants are listed here yet. New registrations appear under Approvals.',
+          'No servants are listed here yet. New registration requests appear under Pending Requests.',
+      'pendingRequests': 'Pending Requests',
+      'pendingRequestsCount': '{count} people are waiting for approval.',
+      'noPendingRequests': 'No pending requests.',
+      'noPendingRequestsBody':
+          'New registration requests will appear here.',
+      'activeServants': 'Active',
+      'searchServants': 'Search servants...',
+      'requestedAccess': 'Requested access',
+      'approveRequestTitle': 'Approve this request?',
+      'approveRequestBody':
+          '{name} will be added as a {role} and will receive access according to the permissions configured for this meeting.',
+      'rejectRequestTitle': 'Reject this request?',
+      'rejectRequestBody':
+          'This person will not be given access to this meeting.',
+      'requestApproved': 'Request approved successfully.',
+      'requestRejected': 'Request rejected.',
+      'requestApproveFailed':
+          "We couldn't approve this request. Please try again.",
+      'requestAlreadyProcessed':
+          'This request has already been processed.',
+      'servantActive': 'Active',
+      'churchLanguages': 'Languages',
+      'churchLanguagesDescription':
+          'Choose which languages are available to people using this church.',
+      'defaultLanguage': 'Default language',
+      'usersChoosePreferredLanguage':
+          'Users can choose their preferred language from the languages supported by this church.',
+      'removeLanguageTitle': 'Remove {language} support?',
+      'removeLanguageBody':
+          'Existing translations will be kept, but {language} will no longer be available as a user language.',
+      'removeLanguageConfirm': 'Remove {language}',
+      'appLanguage': 'App Language',
+      'chooseYourLanguage': 'Choose your language',
+      'chooseYourLanguageHint':
+          'Select the language you would like to use in My Church.',
+      'arabicTranslationOptional': 'Arabic translation is optional.',
+      'translationMissing': 'Translation missing',
+      'missingTranslationWarning':
+          'A translation has not been added. Users who use the other language may see the default name.',
+      'saveAnyway': 'Save anyway',
+      'customization': 'Customization',
+      'customizeYourChurch': 'Customize your church',
+      'customizationIntro':
+          'Custom Fields store additional information. Custom Features add extra functionality.',
+      'customFieldsLanding':
+          'Add additional information that is specific to your church or meeting.',
+      'customFieldsExamples':
+          'For example: Birth Date, School, Address, or Service.',
+      'customFeaturesLanding':
+          'Customize your meeting with additional features that fit the way your church works.',
+      'noCustomFeaturesYetBody':
+          'Custom features can help you add information, workflows, or options that are not part of the standard setup.',
+      'arabicTranslationMissing': 'Arabic translation missing',
+      'englishTranslationMissing': 'English translation missing',
+      'fieldNameHelp':
+          'The field name is what servants and administrators will see when viewing or editing a member.',
       'showPassword': 'Show password',
       'hidePassword': 'Hide password',
       'loginFailedNoToken': 'Sign-in did not complete. Please try again.',
@@ -2476,7 +2578,63 @@ class AppLocalizations {
           'أنشئ أول اجتماع حتى يتمكن الخدام والأعضاء من الانتماء إليه.',
       'noServantsYetTitle': 'لا يوجد خدام بعد',
       'noServantsYetBody':
-          'لا يوجد خدام هنا بعد. تظهر طلبات التسجيل الجديدة في الموافقات.',
+          'لا يوجد خدام هنا بعد. تظهر طلبات التسجيل الجديدة في الطلبات المعلقة.',
+      'pendingRequests': 'الطلبات المعلقة',
+      'pendingRequestsCount': '{count} أشخاص ينتظرون الموافقة.',
+      'noPendingRequests': 'لا توجد طلبات معلقة.',
+      'noPendingRequestsBody':
+          'ستظهر طلبات التسجيل الجديدة هنا.',
+      'activeServants': 'النشطون',
+      'searchServants': 'ابحث عن الخدام...',
+      'requestedAccess': 'الوصول المطلوب',
+      'approveRequestTitle': 'الموافقة على هذا الطلب؟',
+      'approveRequestBody':
+          'ستتم إضافة {name} كـ {role} وسيحصل على الصلاحيات المعرّفة لهذا الاجتماع.',
+      'rejectRequestTitle': 'رفض هذا الطلب؟',
+      'rejectRequestBody':
+          'لن يُمنح هذا الشخص وصولاً إلى هذا الاجتماع.',
+      'requestApproved': 'تمت الموافقة على الطلب بنجاح.',
+      'requestRejected': 'تم رفض الطلب.',
+      'requestApproveFailed':
+          'تعذرت الموافقة على هذا الطلب. حاول مرة أخرى.',
+      'requestAlreadyProcessed':
+          'تمت معالجة هذا الطلب مسبقاً.',
+      'servantActive': 'نشط',
+      'churchLanguages': 'اللغات',
+      'churchLanguagesDescription':
+          'اختر اللغات المتاحة للأشخاص الذين يستخدمون هذه الكنيسة.',
+      'defaultLanguage': 'اللغة الافتراضية',
+      'usersChoosePreferredLanguage':
+          'يمكن للمستخدمين اختيار لغتهم المفضلة من اللغات التي تدعمها هذه الكنيسة.',
+      'removeLanguageTitle': 'إزالة دعم {language}؟',
+      'removeLanguageBody':
+          'سيتم الاحتفاظ بالترجمات الحالية، لكن {language} لن تبقى متاحة كلغة للمستخدم.',
+      'removeLanguageConfirm': 'إزالة {language}',
+      'appLanguage': 'لغة التطبيق',
+      'chooseYourLanguage': 'اختر لغتك',
+      'chooseYourLanguageHint':
+          'اختر اللغة التي تريد استخدامها في كنيستي.',
+      'arabicTranslationOptional': 'الترجمة العربية اختيارية.',
+      'translationMissing': 'الترجمة غير مكتملة',
+      'missingTranslationWarning':
+          'لم تُضف ترجمة. قد يرى مستخدمو اللغة الأخرى الاسم الافتراضي.',
+      'saveAnyway': 'حفظ على أي حال',
+      'customization': 'التخصيص',
+      'customizeYourChurch': 'خصّص كنيستك',
+      'customizationIntro':
+          'الحقول المخصصة تخزن معلومات إضافية. الميزات المخصصة تضيف وظائف إضافية.',
+      'customFieldsLanding':
+          'أضف معلومات إضافية خاصة بكنيستك أو اجتماعك.',
+      'customFieldsExamples':
+          'مثال: تاريخ الميلاد، المدرسة، العنوان، أو الخدمة.',
+      'customFeaturesLanding':
+          'خصّص اجتماعك بميزات إضافية تناسب طريقة عمل كنيستك.',
+      'noCustomFeaturesYetBody':
+          'تساعد الميزات المخصصة على إضافة معلومات أو خطوات عمل أو خيارات ليست ضمن الإعداد القياسي.',
+      'arabicTranslationMissing': 'الترجمة العربية غير موجودة',
+      'englishTranslationMissing': 'الترجمة الإنجليزية غير موجودة',
+      'fieldNameHelp':
+          'اسم الحقل هو ما يراه الخدام والمسؤولون عند عرض العضو أو تعديله.',
       'showPassword': 'إظهار كلمة المرور',
       'hidePassword': 'إخفاء كلمة المرور',
       'loginFailedNoToken': 'لم يكتمل تسجيل الدخول. حاول مرة أخرى.',

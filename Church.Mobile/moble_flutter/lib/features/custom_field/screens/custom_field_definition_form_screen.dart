@@ -14,6 +14,8 @@ import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../../core/theme/app_dimens.dart';
+import '../../settings/providers/language_settings_providers.dart';
+import '../../settings/widgets/translated_name_fields.dart';
 
 class CustomFieldDefinitionFormScreen extends ConsumerStatefulWidget {
   final String entityName;
@@ -203,19 +205,14 @@ class _CustomFieldDefinitionFormScreenState
                     ),
                   ),
                 if (_isSystemField) const SizedBox(height: AppSpacing.sm),
-                AppTextField(
-                  controller: _displayNameController,
-                  label: l10n.displayNameEnglishLabel,
-                  textInputAction: TextInputAction.next,
-                  textCapitalization: TextCapitalization.sentences,
-                  validator: (v) => v == null || v.trim().isEmpty
-                      ? l10n.displayNameRequired
-                      : null,
+                Text(
+                  l10n.fieldNameHelp,
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
-                const SizedBox(height: 12),
-                AppTextField(
-                  controller: _displayNameArController,
-                  label: l10n.displayNameArabicLabel,
+                const SizedBox(height: AppSpacing.sm),
+                TranslatedNameFields(
+                  english: _displayNameController,
+                  arabic: _displayNameArController,
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<CustomFieldDataType>(
@@ -360,7 +357,23 @@ class _CustomFieldDefinitionFormScreenState
     final displayPosition = _displayPosition ??
         positionOptionCount(isCreate: !_isEdit, sortedActive: sortedActive);
 
-    final displayNameAr = _displayNameArController.text.trim();
+    var displayName = _displayNameController.text.trim();
+    var displayNameAr = _displayNameArController.text.trim();
+    if (displayName.isEmpty && displayNameAr.isNotEmpty) {
+      displayName = displayNameAr;
+    }
+    if (displayNameAr.isEmpty && displayName.isNotEmpty) {
+      final church = ref.read(churchLanguagesProvider).valueOrNull;
+      if (church != null && church.isBilingual) {
+        final saveAnyway = await showConfirmDialog(
+          context,
+          title: l10n.translationMissing,
+          content: l10n.missingTranslationWarning,
+          confirmText: l10n.saveAnyway,
+        );
+        if (!saveAnyway) return;
+      }
+    }
 
     setState(() => _loading = true);
 
@@ -370,7 +383,7 @@ class _CustomFieldDefinitionFormScreenState
         await repo.updateDefinition(
           widget.existing!.id,
           CustomFieldDefinitionUpdateDto(
-            displayName: _displayNameController.text.trim(),
+            displayName: displayName,
             displayNameAr: displayNameAr.isEmpty ? '' : displayNameAr,
             isRequired: _isRequired,
             isReadOnly: _isReadOnly,
@@ -388,7 +401,7 @@ class _CustomFieldDefinitionFormScreenState
       } else {
         await repo.createDefinition(
           CustomFieldDefinitionCreateDto(
-            displayName: _displayNameController.text.trim(),
+            displayName: displayName,
             displayNameAr: displayNameAr.isEmpty ? null : displayNameAr,
             entityName: widget.entityName,
             dataType: customFieldDataTypeToApi(_dataType),

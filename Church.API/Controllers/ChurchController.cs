@@ -77,6 +77,19 @@ namespace Church.API.Controllers
             await _churchManager.UpdateAsync(id, dto, generateDefaults: generate);
             return NoContent();
         }
+
+        [HttpPut("{id:int}/languages")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        public async Task<IActionResult> UpdateLanguages(
+            int id,
+            [FromBody] ChurchLanguagesUpdateDto dto)
+        {
+            if (id <= 0) return BadRequest("Church id must be a positive integer.");
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+            await _churchManager.UpdateLanguagesAsync(id, dto);
+            return NoContent();
+        }
     }
 }
 

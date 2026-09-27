@@ -71,5 +71,8 @@ namespace Church.DAL.Models
 
         // auditing
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        /// <summary>User UI language (<c>en</c> or <c>ar</c>). Independent of church supported languages.</summary>
+        public string? PreferredLanguage { get; set; }
     }
 }

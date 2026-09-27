@@ -6,6 +6,7 @@ namespace Church.BLL.Manager.Interfaces
     {
         Task<ChurchReadDTO> GetByIdAsync(int id);
         Task UpdateAsync(int id, ChurchUpdateDTO dto, bool generateDefaults = false);
+        Task UpdateLanguagesAsync(int id, ChurchLanguagesUpdateDto dto);
     }
 }
 

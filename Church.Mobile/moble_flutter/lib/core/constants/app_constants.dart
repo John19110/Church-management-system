@@ -33,8 +33,15 @@ class AppConstants {
   static bool isAnonymousAuthPath(String path) {
     final normalized = path.toLowerCase();
     return normalized.contains(loginEndpoint) ||
-        normalized.contains('/api/account/register-');
+        normalized.contains('/api/account/register-') ||
+        normalized.contains('/api/account/organization-languages');
   }
+
+  static const String organizationLanguagesEndpoint =
+      '/api/account/organization-languages';
+  static const String languageProfileEndpoint = '/api/account/language-profile';
+  static const String preferredLanguageEndpoint =
+      '/api/account/preferred-language';
 
   /// FCM device-token registration with the ASP.NET API.
   /// Empty until the backend ships the endpoint — see [FcmTokenRegistrar].

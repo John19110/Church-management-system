@@ -11,6 +11,9 @@ namespace Church.DAL.Configurations
             builder.Property(u => u.PhoneNumber)
                 .HasMaxLength(32);
 
+            builder.Property(u => u.PreferredLanguage)
+                .HasMaxLength(8);
+
             builder.HasIndex(u => u.NormalizedUserName)
                 .HasDatabaseName("UserNameIndex")
                 .IsUnique(false)

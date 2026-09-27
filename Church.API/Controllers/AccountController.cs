@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -60,6 +61,37 @@ namespace Church.API.Controllers
         {
             var result = await _accountManager.RegisterServant(dto, _env.WebRootPath);
             return result.ToActionResult();
+        }
+
+        [HttpGet("organization-languages")]
+        [AllowAnonymous]
+        public async Task<ActionResult> GetOrganizationLanguages([FromQuery] string publicId)
+        {
+            var dto = await _accountManager.GetOrganizationLanguagesAsync(publicId);
+            return Ok(dto);
+        }
+
+        [HttpGet("language-profile")]
+        [Authorize]
+        public async Task<ActionResult> GetLanguageProfile()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var dto = await _accountManager.GetLanguageProfileAsync(userId ?? string.Empty);
+            return Ok(dto);
+        }
+
+        [HttpPut("preferred-language")]
+        [Authorize]
+        public async Task<IActionResult> UpdatePreferredLanguage(
+            [FromBody] UpdatePreferredLanguageDto dto)
+        {
+            if (dto == null)
+                return BadRequest("Request body is required.");
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            await _accountManager.UpdatePreferredLanguageAsync(
+                userId ?? string.Empty,
+                dto.PreferredLanguage);
+            return NoContent();
         }
 
         /// <summary>

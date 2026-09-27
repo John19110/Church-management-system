@@ -26,5 +26,13 @@ namespace Church.BLL.DTOS.AccountDtos
 
         public DateOnly? BirthDate { get; set; }
         public DateOnly? JoiningDate { get; set; }
+
+        /// <summary>Comma-separated church languages, e.g. <c>en,ar</c>.</summary>
+        public string? SupportedLanguages { get; set; }
+
+        public string? DefaultLanguage { get; set; }
+
+        /// <summary>User UI language: <c>en</c> or <c>ar</c>.</summary>
+        public string? PreferredLanguage { get; set; }
     }
 }

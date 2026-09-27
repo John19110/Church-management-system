@@ -48,6 +48,7 @@ class RegisterServantDto {
   final String? birthDate;
   final String? joiningDate;
   final List<int>? classroomsIds;
+  final String? preferredLanguage;
 
   const RegisterServantDto({
     required this.name,
@@ -63,6 +64,7 @@ class RegisterServantDto {
     this.birthDate,
     this.joiningDate,
     this.classroomsIds,
+    this.preferredLanguage,
   });
 }
 
@@ -75,6 +77,9 @@ class RegisterChurchSuperAdminDto {
   final PickedImage? image;
   final String? birthDate;
   final String? joiningDate;
+  final String? supportedLanguages;
+  final String? defaultLanguage;
+  final String? preferredLanguage;
 
   const RegisterChurchSuperAdminDto({
     required this.name,
@@ -85,6 +90,9 @@ class RegisterChurchSuperAdminDto {
     this.image,
     this.birthDate,
     this.joiningDate,
+    this.supportedLanguages,
+    this.defaultLanguage,
+    this.preferredLanguage,
   });
 }
 
@@ -101,6 +109,9 @@ class RegisterMeetingAdminDto {
   final PickedImage? image;
   final String? birthDate;
   final String? joiningDate;
+  final String? supportedLanguages;
+  final String? defaultLanguage;
+  final String? preferredLanguage;
 
   const RegisterMeetingAdminDto({
     required this.name,
@@ -115,5 +126,8 @@ class RegisterMeetingAdminDto {
     this.image,
     this.birthDate,
     this.joiningDate,
+    this.supportedLanguages,
+    this.defaultLanguage,
+    this.preferredLanguage,
   });
 }

@@ -36,5 +36,8 @@ namespace Church.BLL.DTOS.AccountDtos
 
         public DateOnly? BirthDate { get; set; }
         public DateOnly? JoiningDate { get; set; }
+
+        /// <summary>User UI language: <c>en</c> or <c>ar</c>.</summary>
+        public string? PreferredLanguage { get; set; }
     }
 }

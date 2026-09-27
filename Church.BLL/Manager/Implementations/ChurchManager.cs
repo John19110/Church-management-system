@@ -3,6 +3,7 @@ using Church.BLL.Abstractions;
 using Church.BLL.Abstractions.Caching;
 using Church.BLL.Exceptions;
 using Church.BLL.Manager.Interfaces;
+using Church.BLL.Services;
 using Church.DAL.Abstractions;
 using Church.DAL.Repository.Interfaces;
 
@@ -93,6 +94,7 @@ namespace Church.BLL.Manager.Implementations
                 pastorName = pastor?.Name;
             }
 
+            var supported = OrganizationLanguages.ParseSupported(church.SupportedLanguages);
             return new ChurchReadDTO
             {
                 Id = church.Id,
@@ -100,6 +102,10 @@ namespace Church.BLL.Manager.Implementations
                 Name = church.Name,
                 PastorId = church.PastorId,
                 PastorName = pastorName,
+                SupportedLanguages = supported,
+                DefaultLanguage = OrganizationLanguages.NormalizeDefault(
+                    church.DefaultLanguage,
+                    supported),
             };
         }
 
@@ -155,6 +161,14 @@ namespace Church.BLL.Manager.Implementations
                 church.PastorId = dto.PastorId;
             }
 
+            if (dto.SupportedLanguages != null || dto.DefaultLanguage != null)
+            {
+                ApplyLanguages(
+                    church,
+                    dto.SupportedLanguages ?? OrganizationLanguages.ParseSupported(church.SupportedLanguages),
+                    dto.DefaultLanguage ?? church.DefaultLanguage);
+            }
+
             await _churchRepository.UpdateAsync(church);
 
             var ctx = _cacheContext.TryGet();
@@ -164,6 +178,55 @@ namespace Church.BLL.Manager.Implementations
                 await _cache.RemoveTenantSegmentAsync("settings", ctx);
                 await _cache.RemoveTenantSegmentAsync("dashboard", ctx);
             }
+        }
+
+        public async Task UpdateLanguagesAsync(int id, ChurchLanguagesUpdateDto dto)
+        {
+            if (id <= 0)
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["ChurchId"] = new[] { "Church id must be a positive integer." }
+                });
+
+            if (dto == null)
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["Languages"] = new[] { "Request body cannot be empty." }
+                });
+
+            EnsureCallerOwnsChurch(id);
+
+            var church = await _churchRepository.GetByIdAsync(id);
+            if (church == null)
+                throw new NotFoundException($"Church with id {id} not found.");
+
+            ApplyLanguages(church, dto.SupportedLanguages, dto.DefaultLanguage);
+            await _churchRepository.UpdateAsync(church);
+
+            var ctx = _cacheContext.TryGet();
+            if (ctx is not null)
+            {
+                await _cache.RemoveTenantSegmentAsync("settings", ctx);
+            }
+        }
+
+        private static void ApplyLanguages(
+            ChurchModel church,
+            IEnumerable<string>? supportedRaw,
+            string? defaultRaw)
+        {
+            var supported = OrganizationLanguages.ParseSupported(
+                OrganizationLanguages.Serialize(supportedRaw));
+            if (supported.Count == 0)
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["SupportedLanguages"] = new[] { "Select at least one language." }
+                });
+            }
+
+            church.SupportedLanguages = OrganizationLanguages.Serialize(supported);
+            church.DefaultLanguage = OrganizationLanguages.NormalizeDefault(defaultRaw, supported);
         }
     }
 }

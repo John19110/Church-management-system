@@ -19,6 +19,9 @@ import '../../../core/l10n/validation_message_localizer.dart';
 import '../../../core/l10n/weekday_l10n.dart';
 import '../utils/registration_navigation.dart';
 import '../utils/phone_number_validator.dart';
+import '../../../core/l10n/organization_languages.dart';
+import '../../../core/providers/locale_provider.dart';
+import '../../settings/providers/language_settings_providers.dart';
 
 enum _RegisterType { servant, churchAdmin, meetingAdmin }
 
@@ -70,6 +73,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   // Requested role for existing-church member registration.
   String _requestedRole = 'Servant';
+  String _preferredLanguage = OrganizationLanguages.arabic;
+  bool _supportEnglish = true;
+  bool _supportArabic = true;
+  String _defaultLanguage = OrganizationLanguages.english;
+  List<String> _existingChurchLanguages = OrganizationLanguages.bilingual;
 
   // Church/Meeting admin controllers
   final _churchNameController = TextEditingController();
@@ -113,6 +121,46 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       RegisterFormMode.newChurchMeetingAdmin => _RegisterType.meetingAdmin,
       RegisterFormMode.newChurchSuperAdmin => _RegisterType.churchAdmin,
     };
+    _churchIdController.addListener(_onChurchIdChanged);
+  }
+
+  bool _didInitLocale = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_didInitLocale) return;
+    _didInitLocale = true;
+    _preferredLanguage = ref.read(localeProvider).languageCode == 'ar'
+        ? OrganizationLanguages.arabic
+        : OrganizationLanguages.english;
+  }
+
+  Future<void> _onChurchIdChanged() async {
+    final publicId = _churchIdController.text.trim();
+    if (publicId.length < 4) return;
+    try {
+      final languages = await ref
+          .read(languageSettingsRepositoryProvider)
+          .getOrganizationLanguages(publicId);
+      if (!mounted) return;
+      setState(() {
+        _existingChurchLanguages = languages.supportedLanguages;
+        if (!_existingChurchLanguages.contains(_preferredLanguage)) {
+          _preferredLanguage = languages.defaultLanguage;
+        }
+      });
+    } catch (_) {
+      // Keep bilingual options until the church is identified.
+    }
+  }
+
+  String get _supportedLanguagesPayload {
+    final codes = <String>[
+      if (_supportEnglish) OrganizationLanguages.english,
+      if (_supportArabic) OrganizationLanguages.arabic,
+    ];
+    return codes.join(',');
   }
 
   @override
@@ -122,6 +170,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     _phoneFocus.dispose();
     _passwordFocus.dispose();
     _confirmFocus.dispose();
+    _churchIdController.removeListener(_onChurchIdChanged);
     _churchIdFocus.dispose();
     _requestedMeetingFocus.dispose();
     _meetingAdminPhoneFocus.dispose();
@@ -371,6 +420,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               birthDate: _birthController.text.trim().nullIfEmpty,
               joiningDate: _joiningController.text.trim().nullIfEmpty,
               image: _image,
+              preferredLanguage: _preferredLanguage,
             ),
           );
           break;
@@ -387,6 +437,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               birthDate: _birthController.text.trim().nullIfEmpty,
               joiningDate: _joiningController.text.trim().nullIfEmpty,
               image: _image,
+              supportedLanguages: _supportedLanguagesPayload,
+              defaultLanguage: _defaultLanguage,
+              preferredLanguage: _preferredLanguage,
             ),
           );
           break;
@@ -406,6 +459,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               birthDate: _birthController.text.trim().nullIfEmpty,
               joiningDate: _joiningController.text.trim().nullIfEmpty,
               image: _image,
+              supportedLanguages: _supportedLanguagesPayload,
+              defaultLanguage: _defaultLanguage,
+              preferredLanguage: _preferredLanguage,
             ),
           );
           break;
@@ -708,6 +764,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  _preferredLanguageFields(
+                    supported: _existingChurchLanguages,
+                  ),
+                  const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
                     value: _requestedRole,
                     decoration: InputDecoration(
@@ -807,6 +867,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           : null,
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  _churchLanguageFields(),
+                  _preferredLanguageFields(
+                    supported: [
+                      if (_supportEnglish) OrganizationLanguages.english,
+                      if (_supportArabic) OrganizationLanguages.arabic,
+                    ],
+                  ),
                 ],
 
                 if (_selectedType == _RegisterType.meetingAdmin) ...[
@@ -822,6 +890,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           ? l10n.churchNameRequired
                           : null,
                     ),
+                  ),
+                  const SizedBox(height: 16),
+                  _churchLanguageFields(),
+                  _preferredLanguageFields(
+                    supported: [
+                      if (_supportEnglish) OrganizationLanguages.english,
+                      if (_supportArabic) OrganizationLanguages.arabic,
+                    ],
                   ),
                   const SizedBox(height: 16),
                   AppTextField(
@@ -925,6 +1001,95 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         ),
       ),
     ),
+    );
+  }
+
+  Widget _churchLanguageFields() {
+    final l10n = AppLocalizations.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l10n.churchLanguages, style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: 8),
+        Text(l10n.churchLanguagesDescription),
+        CheckboxListTile(
+          value: _supportEnglish,
+          title: Text(l10n.english),
+          onChanged: (value) {
+            if (value == false && !_supportArabic) return;
+            setState(() {
+              _supportEnglish = value ?? true;
+              if (!_supportEnglish) {
+                _defaultLanguage = OrganizationLanguages.arabic;
+                _preferredLanguage = OrganizationLanguages.arabic;
+              }
+            });
+          },
+        ),
+        CheckboxListTile(
+          value: _supportArabic,
+          title: Text(l10n.arabic),
+          onChanged: (value) {
+            if (value == false && !_supportEnglish) return;
+            setState(() {
+              _supportArabic = value ?? true;
+              if (!_supportArabic) {
+                _defaultLanguage = OrganizationLanguages.english;
+                _preferredLanguage = OrganizationLanguages.english;
+              }
+            });
+          },
+        ),
+        DropdownButtonFormField<String>(
+          initialValue: _defaultLanguage,
+          decoration: InputDecoration(labelText: l10n.defaultLanguage),
+          items: [
+            if (_supportEnglish)
+              DropdownMenuItem(
+                value: OrganizationLanguages.english,
+                child: Text(l10n.english),
+              ),
+            if (_supportArabic)
+              DropdownMenuItem(
+                value: OrganizationLanguages.arabic,
+                child: Text(l10n.arabic),
+              ),
+          ],
+          onChanged: (value) {
+            if (value == null) return;
+            setState(() => _defaultLanguage = value);
+          },
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget _preferredLanguageFields({required List<String> supported}) {
+    final l10n = AppLocalizations.of(context);
+    final options = supported.isEmpty
+        ? OrganizationLanguages.bilingual
+        : supported;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l10n.chooseYourLanguage, style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: 4),
+        Text(l10n.chooseYourLanguageHint),
+        for (final code in options)
+          RadioListTile<String>(
+            value: code,
+            groupValue: _preferredLanguage,
+            title: Text(
+              code == OrganizationLanguages.arabic ? l10n.arabic : l10n.english,
+            ),
+            onChanged: (value) {
+              if (value == null) return;
+              setState(() => _preferredLanguage = value);
+              ref.read(localeProvider.notifier).setLocale(Locale(value));
+            },
+          ),
+      ],
     );
   }
 }

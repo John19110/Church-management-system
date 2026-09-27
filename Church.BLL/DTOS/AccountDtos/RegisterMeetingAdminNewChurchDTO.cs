@@ -38,5 +38,9 @@ namespace Church.BLL.DTOS.AccountDtos
         /// Defaults to true when omitted.
         /// </summary>
         public bool HasClassrooms { get; set; } = true;
+
+        public string? SupportedLanguages { get; set; }
+        public string? DefaultLanguage { get; set; }
+        public string? PreferredLanguage { get; set; }
     }
 }

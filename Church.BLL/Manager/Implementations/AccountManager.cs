@@ -162,15 +162,21 @@ namespace Church.BLL.Manager.Implementations
 
             await RunInTransactionAsync(async () =>
             {
+                var churchLanguages = OrganizationLanguages.FromRegistration(
+                    dto.SupportedLanguages,
+                    dto.DefaultLanguage);
                 var church = new ChurchModel
                 {
                     Name = dto.ChurchName.Trim(),
-                    PublicId = await _churchPublicIdService.GenerateUniqueAsync()
+                    PublicId = await _churchPublicIdService.GenerateUniqueAsync(),
+                    SupportedLanguages = churchLanguages.Supported,
+                    DefaultLanguage = churchLanguages.Default
                 };
 
                 await _churchRepo.AddAsync(church);
                 await _unitOfWork.SaveChangesAsync();
 
+                var supported = OrganizationLanguages.ParseSupported(church.SupportedLanguages);
                 var user = new ApplicationUser
                 {
                     UserName = dto.Name,
@@ -178,7 +184,10 @@ namespace Church.BLL.Manager.Implementations
                     IsApproved = true,
                     RegistrationStatus = RegistrationStatus.Approved,
                     ApprovalDate = DateTime.Now,
-                    ChurchId = church.Id
+                    ChurchId = church.Id,
+                    PreferredLanguage = OrganizationLanguages.NormalizePreferred(
+                        dto.PreferredLanguage,
+                        supported) ?? church.DefaultLanguage
                 };
 
                 var createUserResult = await _userManager.CreateAsync(user, dto.Password);
@@ -265,10 +274,15 @@ namespace Church.BLL.Manager.Implementations
 
             await RunInTransactionAsync(async () =>
             {
+                var churchLanguages = OrganizationLanguages.FromRegistration(
+                    registerMeetingAdminDTO.SupportedLanguages,
+                    registerMeetingAdminDTO.DefaultLanguage);
                 var church = new ChurchModel
                 {
                     Name = registerMeetingAdminDTO.ChurchName.Trim(),
-                    PublicId = await _churchPublicIdService.GenerateUniqueAsync()
+                    PublicId = await _churchPublicIdService.GenerateUniqueAsync(),
+                    SupportedLanguages = churchLanguages.Supported,
+                    DefaultLanguage = churchLanguages.Default
                 };
                 await _churchRepo.AddAsync(church);
                 await _unitOfWork.SaveChangesAsync();
@@ -286,6 +300,7 @@ namespace Church.BLL.Manager.Implementations
                 await _unitOfWork.SaveChangesAsync();
                 await _attendanceCriterionRepository.EnsureDefaultsForMeetingAsync(meeting.Id, church.Id);
 
+                var supported = OrganizationLanguages.ParseSupported(church.SupportedLanguages);
                 var user = new ApplicationUser
                 {
                     UserName = registerMeetingAdminDTO.Name,
@@ -294,7 +309,10 @@ namespace Church.BLL.Manager.Implementations
                     RegistrationStatus = RegistrationStatus.Approved,
                     ApprovalDate = DateTime.Now,
                     ChurchId = church.Id,
-                    MeetingId = meeting.Id
+                    MeetingId = meeting.Id,
+                    PreferredLanguage = OrganizationLanguages.NormalizePreferred(
+                        registerMeetingAdminDTO.PreferredLanguage,
+                        supported) ?? church.DefaultLanguage
                 };
 
                 var result = await _userManager.CreateAsync(user, registerMeetingAdminDTO.Password);
@@ -512,6 +530,9 @@ namespace Church.BLL.Manager.Implementations
 
             await RunInTransactionAsync(async () =>
             {
+                var churchForLanguage = await _churchRepo.GetByIdUnscopedAsync(churchId);
+                var supported = OrganizationLanguages.ParseSupported(
+                    churchForLanguage?.SupportedLanguages);
                 var user = new ApplicationUser
                 {
                     UserName = registerDto.Name,
@@ -533,7 +554,10 @@ namespace Church.BLL.Manager.Implementations
                     JoiningDate = registerDto.JoiningDate ?? registerDto.BirthDate,
                     // Pending users are NOT yet attached to a church/meeting; that happens on approval.
                     ChurchId = isApproved ? churchId : null,
-                    MeetingId = isApproved ? meetingId : null
+                    MeetingId = isApproved ? meetingId : null,
+                    PreferredLanguage = OrganizationLanguages.NormalizePreferred(
+                        registerDto.PreferredLanguage,
+                        supported)
                 };
 
                 var result = await _userManager.CreateAsync(user, registerDto.Password);
@@ -814,6 +838,96 @@ namespace Church.BLL.Manager.Implementations
                 return TenantScopes.Meeting;
 
             return TenantScopes.Classroom;
+        }
+
+        public async Task<Church.BLL.DTOS.ChurchDtos.ChurchLanguagesDto> GetOrganizationLanguagesAsync(
+            string publicId)
+        {
+            if (string.IsNullOrWhiteSpace(publicId))
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["PublicId"] = new[] { "A church or meeting identifier is required." }
+                });
+            }
+
+            var church = await _publicIdResolver.GetChurchByPublicIdAsync(publicId);
+            if (church == null)
+            {
+                var meeting = await _publicIdResolver.GetMeetingByPublicIdAsync(publicId);
+                if (meeting != null)
+                    church = await _churchRepo.GetByIdUnscopedAsync(meeting.ChurchId);
+            }
+
+            if (church == null)
+                throw new NotFoundException("Church or meeting not found.");
+
+            var supported = OrganizationLanguages.ParseSupported(church.SupportedLanguages);
+            return new Church.BLL.DTOS.ChurchDtos.ChurchLanguagesDto
+            {
+                SupportedLanguages = supported,
+                DefaultLanguage = OrganizationLanguages.NormalizeDefault(
+                    church.DefaultLanguage,
+                    supported)
+            };
+        }
+
+        public async Task<LanguageProfileDto> GetLanguageProfileAsync(string userId)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+                throw new UnauthorizedAccessException("User is not authenticated.");
+
+            var user = await _userManager.FindByIdAsync(userId)
+                ?? throw new NotFoundException("User not found.");
+
+            var churchId = user.ChurchId ?? user.RequestedChurchId;
+            ChurchModel? church = null;
+            if (churchId is > 0)
+                church = await _churchRepo.GetByIdUnscopedAsync(churchId.Value);
+
+            var supported = OrganizationLanguages.ParseSupported(church?.SupportedLanguages);
+            var defaultLanguage = OrganizationLanguages.NormalizeDefault(
+                church?.DefaultLanguage,
+                supported);
+
+            return new LanguageProfileDto
+            {
+                PreferredLanguage = OrganizationLanguages.NormalizePreferred(
+                    user.PreferredLanguage,
+                    supported),
+                SupportedLanguages = supported,
+                DefaultLanguage = defaultLanguage
+            };
+        }
+
+        public async Task UpdatePreferredLanguageAsync(string userId, string preferredLanguage)
+        {
+            var profile = await GetLanguageProfileAsync(userId);
+            var code = OrganizationLanguages.NormalizePreferred(
+                preferredLanguage,
+                profile.SupportedLanguages);
+            if (code == null)
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["PreferredLanguage"] = new[]
+                    {
+                        "Choose a language supported by this church."
+                    }
+                });
+            }
+
+            var user = await _userManager.FindByIdAsync(userId)
+                ?? throw new NotFoundException("User not found.");
+            user.PreferredLanguage = code;
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+            {
+                throw new ValidationException(
+                    result.Errors
+                        .GroupBy(e => e.Code)
+                        .ToDictionary(g => g.Key, g => g.Select(e => e.Description).ToArray()));
+            }
         }
     }
 }

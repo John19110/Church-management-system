@@ -16,5 +16,11 @@ namespace Church.DAL.Models
 
         public int? PastorId { get; set; }
         public Servant? Pastor { get; set; }
+
+        /// <summary>Comma-separated language codes this church supports, e.g. <c>en,ar</c>.</summary>
+        public string SupportedLanguages { get; set; } = "en,ar";
+
+        /// <summary>Fallback language for user-generated content. Must be one of <see cref="SupportedLanguages"/>.</summary>
+        public string DefaultLanguage { get; set; } = "en";
     }
 }

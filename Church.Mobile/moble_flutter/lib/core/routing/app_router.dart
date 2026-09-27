@@ -38,8 +38,6 @@ import '../../features/attendance/screens/attendance_view_screen.dart';
 import '../../features/attendance/screens/attendance_history_screen.dart';
 import '../../features/attendance/screens/attendance_criteria_screen.dart';
 import '../../features/super_admin/screens/super_admin_home_screen.dart';
-import '../../features/super_admin/screens/super_admin_pending_admins_screen.dart';
-import '../../features/super_admin/screens/super_admin_pending_users_screen.dart';
 import '../../features/meeting/models/meeting_models.dart';
 import '../../features/meeting/screens/meeting_detail_screen.dart';
 import '../../features/church/screens/church_detail_screen.dart';
@@ -48,9 +46,8 @@ import '../../features/classroom/screens/classroom_detail_screen.dart';
 import '../../features/classroom/screens/classroom_add_screen.dart';
 import '../../features/classroom/screens/classrooms_home_screen.dart';
 import '../../features/admin/screens/admin_home_screen.dart';
-import '../../features/admin/screens/admin_pending_servants_screen.dart';
-import '../../features/admin/screens/admin_pending_users_screen.dart';
-import '../../features/admin/screens/approvals_hub_screen.dart';
+import '../../features/settings/screens/customization_hub_screen.dart';
+import '../../features/settings/screens/church_languages_screen.dart';
 import '../../features/servant/screens/servant_home_screen.dart';
 import '../../features/notifications/screens/notifications_screen.dart';
 import '../../features/custom_field/screens/custom_field_definitions_screen.dart';
@@ -79,6 +76,8 @@ class AppRoutes {
   static const profile = '/profile';
   static const profileEdit = '/profile/edit';
   static const settings = '/settings';
+  static const customization = '/settings/customization';
+  static const churchLanguages = '/settings/languages';
   static const customFieldsHub = '/settings/custom-fields';
   static const customFeaturesHub = '/settings/features';
   static const customFeatureNew = '/settings/features/new';
@@ -241,6 +240,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
 
       GoRoute(
+        path: AppRoutes.customization,
+        builder: (_, __) => const CustomizationHubScreen(),
+      ),
+
+      GoRoute(
+        path: AppRoutes.churchLanguages,
+        builder: (_, __) => const ChurchLanguagesScreen(),
+      ),
+
+      GoRoute(
         path: AppRoutes.customFieldsHub,
         builder: (_, __) => const CustomFieldsHubScreen(),
       ),
@@ -345,27 +354,27 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       GoRoute(
         path: AppRoutes.pendingAdmins,
-        builder: (_, __) => const SuperAdminPendingAdminsScreen(),
+        redirect: (_, __) => '${AppRoutes.servants}?tab=pending',
       ),
 
       GoRoute(
         path: AppRoutes.pendingUsers,
-        builder: (_, __) => const SuperAdminPendingUsersScreen(),
+        redirect: (_, __) => '${AppRoutes.servants}?tab=pending',
       ),
 
       GoRoute(
         path: AppRoutes.pendingServants,
-        builder: (_, __) => const AdminPendingServantsScreen(),
+        redirect: (_, __) => '${AppRoutes.servants}?tab=pending',
       ),
 
       GoRoute(
         path: AppRoutes.adminPendingUsers,
-        builder: (_, __) => const AdminPendingUsersScreen(),
+        redirect: (_, __) => '${AppRoutes.servants}?tab=pending',
       ),
 
       GoRoute(
         path: AppRoutes.approvals,
-        builder: (_, __) => const ApprovalsHubScreen(),
+        redirect: (_, __) => '${AppRoutes.servants}?tab=pending',
       ),
 
       GoRoute(
@@ -639,7 +648,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Servants (general church list — no meeting context)
       GoRoute(
         path: AppRoutes.servants,
-        builder: (_, __) => const ServantsListScreen(),
+        builder: (_, state) => ServantsListScreen(
+          initialPending: state.uri.queryParameters['tab'] == 'pending',
+        ),
       ),
 
       // Meeting-scoped servant list

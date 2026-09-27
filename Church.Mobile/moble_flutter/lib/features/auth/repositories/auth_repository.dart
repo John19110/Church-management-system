@@ -59,6 +59,8 @@ class AuthRepository {
         if (dto.classroomsIds != null)
           for (var i = 0; i < dto.classroomsIds!.length; i++)
             'classroomsIds[$i]': dto.classroomsIds![i].toString(),
+        if (dto.preferredLanguage != null)
+          'PreferredLanguage': dto.preferredLanguage,
       };
       final response = await _dio.post(
         AppConstants.registerServantEndpoint,
@@ -86,6 +88,11 @@ class AuthRepository {
         if (dto.birthDate != null) 'BirthDate': dto.birthDate,
         if (dto.joiningDate != null) 'JoiningDate': dto.joiningDate,
         if (dto.image != null) 'Image': dto.image!.toMultipartFile(),
+        if (dto.supportedLanguages != null)
+          'SupportedLanguages': dto.supportedLanguages,
+        if (dto.defaultLanguage != null) 'DefaultLanguage': dto.defaultLanguage,
+        if (dto.preferredLanguage != null)
+          'PreferredLanguage': dto.preferredLanguage,
       };
       final response = await _dio.post(
         AppConstants.registerChurchSuperAdminEndpoint,
@@ -118,6 +125,11 @@ class AuthRepository {
         if (dto.birthDate != null) 'BirthDate': dto.birthDate,
         if (dto.joiningDate != null) 'JoiningDate': dto.joiningDate,
         if (dto.image != null) 'Image': dto.image!.toMultipartFile(),
+        if (dto.supportedLanguages != null)
+          'SupportedLanguages': dto.supportedLanguages,
+        if (dto.defaultLanguage != null) 'DefaultLanguage': dto.defaultLanguage,
+        if (dto.preferredLanguage != null)
+          'PreferredLanguage': dto.preferredLanguage,
       };
       final response = await _dio.post(
         AppConstants.registerMeetingAdminEndpoint,

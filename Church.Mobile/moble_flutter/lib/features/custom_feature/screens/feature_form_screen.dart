@@ -4,9 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
-import '../../../shared/widgets/app_form_fields.dart';
+import '../../../core/theme/app_dimens.dart';
 import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/common_widgets.dart';
+import '../../settings/widgets/translated_name_fields.dart';
 import '../models/custom_feature_models.dart';
 import '../providers/custom_feature_providers.dart';
 
@@ -88,15 +89,14 @@ class _FeatureFormScreenState extends ConsumerState<FeatureFormScreen> {
         key: _formKey,
         child: AppFormListView(
           children: [
-          AppTextField(
-            controller: _displayName,
-            label: l10n.displayNameEnglishLabel,
-            validator: (v) =>
-                (v == null || v.trim().isEmpty) ? l10n.required : null,
+          Text(
+            l10n.customFeaturesLanding,
+            style: Theme.of(context).textTheme.bodySmall,
           ),
-          AppTextField(
-            controller: _displayNameAr,
-            label: l10n.displayNameArabicLabel,
+          const SizedBox(height: AppSpacing.sm),
+          TranslatedNameFields(
+            english: _displayName,
+            arabic: _displayNameAr,
           ),
           if (_isEdit)
             SwitchListTile(

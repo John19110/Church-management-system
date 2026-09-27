@@ -5,6 +5,8 @@ namespace Church.BLL.DTOS.ChurchDtos
         public int Id { get; set; }
         public string? Name { get; set; }
         public int? PastorId { get; set; }
+        public IReadOnlyList<string>? SupportedLanguages { get; set; }
+        public string? DefaultLanguage { get; set; }
     }
 }
 
