@@ -441,6 +441,14 @@ class AppLocalizations {
   String removeLanguageConfirm(String language) =>
       _t('removeLanguageConfirm').replaceAll('{language}', language);
   String get appLanguage => _t('appLanguage');
+  String get applicationLanguage => _t('applicationLanguage');
+  String get applicationLanguageDescription =>
+      _t('applicationLanguageDescription');
+  String get customizationLanguage => _t('customizationLanguage');
+  String get customizationLanguageDescription =>
+      _t('customizationLanguageDescription');
+  String get customizationWorkingLanguageHint =>
+      _t('customizationWorkingLanguageHint');
   String get chooseYourLanguage => _t('chooseYourLanguage');
   String get chooseYourLanguageHint => _t('chooseYourLanguageHint');
   String get arabicTranslationOptional => _t('arabicTranslationOptional');
@@ -475,6 +483,10 @@ class AppLocalizations {
   String get accountSection => _t('accountSection');
   String get dangerZone => _t('dangerZone');
   String get appearance => _t('appearance');
+  String get appearanceDescription => _t('appearanceDescription');
+  String get appearanceLight => _t('appearanceLight');
+  String get appearanceDark => _t('appearanceDark');
+  String get appearanceSystem => _t('appearanceSystem');
   String get settings => _t('settings');
   String get memberExcelTitle => _t('memberExcelTitle');
   String get memberExcelChurchTitle => _t('memberExcelChurchTitle');
@@ -1322,6 +1334,10 @@ class AppLocalizations {
       'accountSection': 'Account',
       'dangerZone': 'Danger zone',
       'appearance': 'Appearance',
+      'appearanceDescription': 'Choose how My Church looks on your device.',
+      'appearanceLight': 'Light',
+      'appearanceDark': 'Dark',
+      'appearanceSystem': 'System',
       'settings': 'Settings',
       'memberExcelTitle': 'Excel Import & Export',
       'memberExcelChurchTitle': 'Church Members Excel',
@@ -1769,7 +1785,15 @@ class AppLocalizations {
       'removeLanguageBody':
           'Existing translations will be kept, but {language} will no longer be available as a user language.',
       'removeLanguageConfirm': 'Remove {language}',
-      'appLanguage': 'App Language',
+      'appLanguage': 'Application Language',
+      'applicationLanguage': 'Application Language',
+      'applicationLanguageDescription':
+          'Choose the language used throughout the My Church application.',
+      'customizationLanguage': 'Customization Language',
+      'customizationLanguageDescription':
+          'Choose the language used when creating and managing custom fields and custom features. This does not change the language of the My Church application.',
+      'customizationWorkingLanguageHint':
+          'The selected customization language is shown first when editing names.',
       'chooseYourLanguage': 'Choose your language',
       'chooseYourLanguageHint':
           'Select the language you would like to use in My Church.',
@@ -2181,6 +2205,10 @@ class AppLocalizations {
       'accountSection': 'الحساب',
       'dangerZone': 'منطقة خطرة',
       'appearance': 'المظهر',
+      'appearanceDescription': 'اختر شكل تطبيق كنيستي على جهازك.',
+      'appearanceLight': 'فاتح',
+      'appearanceDark': 'داكن',
+      'appearanceSystem': 'حسب النظام',
       'settings': 'الإعدادات',
       'memberExcelTitle': 'استيراد وتصدير Excel',
       'memberExcelChurchTitle': 'Excel لأعضاء الكنيسة',
@@ -2620,6 +2648,14 @@ class AppLocalizations {
           'سيتم الاحتفاظ بالترجمات الحالية، لكن {language} لن تبقى متاحة كلغة للمستخدم.',
       'removeLanguageConfirm': 'إزالة {language}',
       'appLanguage': 'لغة التطبيق',
+      'applicationLanguage': 'لغة التطبيق',
+      'applicationLanguageDescription':
+          'اختر اللغة المستخدمة في واجهة تطبيق كنيستي.',
+      'customizationLanguage': 'لغة التخصيص',
+      'customizationLanguageDescription':
+          'اختر اللغة المستخدمة عند إنشاء الحقول والميزات المخصصة وإدارتها. هذا لا يغيّر لغة تطبيق كنيستي.',
+      'customizationWorkingLanguageHint':
+          'تظهر لغة التخصيص المحددة أولاً عند تعديل الأسماء.',
       'chooseYourLanguage': 'اختر لغتك',
       'chooseYourLanguageHint':
           'اختر اللغة التي تريد استخدامها في كنيستي.',

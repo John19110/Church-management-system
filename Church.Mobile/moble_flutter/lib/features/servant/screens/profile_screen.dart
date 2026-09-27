@@ -17,6 +17,7 @@ import '../../unified_form/providers/unified_form_providers.dart';
 import '../../unified_form/widgets/entity_fields_empty_state.dart';
 import '../../unified_form/widgets/unified_entity_detail_header.dart';
 import '../../unified_form/widgets/unified_entity_form.dart';
+import '../../settings/widgets/appearance_mode_card.dart';
 import '../models/servant_models.dart';
 import '../providers/servants_providers.dart';
 
@@ -125,6 +126,8 @@ class ProfileScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
+                const SizedBox(height: 16),
+                const AppearanceModeCard(),
                 const SizedBox(height: 16),
                 _RoleContextCard(profile: profile, role: role),
                 const SizedBox(height: 16),

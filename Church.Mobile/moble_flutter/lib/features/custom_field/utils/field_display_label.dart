@@ -6,16 +6,31 @@ import '../../unified_form/models/unified_form_models.dart';
 import '../models/custom_field_models.dart';
 import 'custom_field_l10n.dart';
 
+String _labelLanguageCode(AppLocalizations l10n, String? languageCode) {
+  final code = (languageCode ?? l10n.locale.languageCode).toLowerCase();
+  return code == 'ar' ? 'ar' : 'en';
+}
+
+AppLocalizations _labelLocalizations(
+  AppLocalizations l10n,
+  String? languageCode,
+) {
+  final code = _labelLanguageCode(l10n, languageCode);
+  if (code == l10n.locale.languageCode) return l10n;
+  return AppLocalizations.forLocale(Locale(code));
+}
+
 /// Picks English or Arabic display text with cross-language fallback.
 String localizedDisplayNamePair({
   required String? displayName,
   required String? displayNameAr,
   required AppLocalizations l10n,
   required String fallbackKey,
+  String? languageCode,
 }) {
   final en = displayName?.trim() ?? '';
   final ar = displayNameAr?.trim() ?? '';
-  final isArabic = l10n.locale.languageCode == 'ar';
+  final isArabic = _labelLanguageCode(l10n, languageCode) == 'ar';
 
   if (isArabic) {
     if (ar.isNotEmpty) return ar;
@@ -36,13 +51,15 @@ String resolveFieldDisplayLabel({
   required AppLocalizations l10n,
   String? entityName,
   bool isBuiltIn = false,
+  String? languageCode,
 }) {
   final en = displayName.trim();
   final ar = (displayNameAr ?? '').trim();
-  final isArabic = l10n.locale.languageCode == 'ar';
+  final loc = _labelLocalizations(l10n, languageCode);
+  final isArabic = loc.locale.languageCode == 'ar';
 
   final system = entityName != null
-      ? systemFieldLabel(l10n, entityName, fieldKey)
+      ? systemFieldLabel(loc, entityName, fieldKey)
       : null;
   final hasSystem = system != null && system.isNotEmpty;
 
@@ -64,8 +81,9 @@ String resolveFieldDisplayLabel({
 /// User-facing label for a field definition (system or custom).
 String localizedFieldDisplayLabel(
   CustomFieldDefinitionReadDto definition,
-  AppLocalizations l10n,
-) {
+  AppLocalizations l10n, {
+  String? languageCode,
+}) {
   return resolveFieldDisplayLabel(
     fieldKey: definition.name,
     displayName: definition.displayName,
@@ -73,6 +91,7 @@ String localizedFieldDisplayLabel(
     l10n: l10n,
     entityName: definition.entityName,
     isBuiltIn: definition.isBuiltIn || definition.isSystemField,
+    languageCode: languageCode,
   );
 }
 
@@ -96,10 +115,13 @@ String unifiedFieldLabel(
 int compareFieldDefinitionLabels(
   CustomFieldDefinitionReadDto a,
   CustomFieldDefinitionReadDto b,
-  AppLocalizations l10n,
-) {
-  return localizedFieldDisplayLabel(a, l10n)
-      .compareTo(localizedFieldDisplayLabel(b, l10n));
+  AppLocalizations l10n, {
+  String? languageCode,
+}) {
+  return localizedFieldDisplayLabel(a, l10n, languageCode: languageCode)
+      .compareTo(
+        localizedFieldDisplayLabel(b, l10n, languageCode: languageCode),
+      );
 }
 
 int compareUnifiedFieldLabels(

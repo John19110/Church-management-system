@@ -7,13 +7,19 @@ import 'field_display_label.dart';
 List<CustomFieldDefinitionReadDto> sortedActiveProvisionedFields(
   Iterable<CustomFieldDefinitionReadDto> fields, {
   AppLocalizations? l10n,
+  String? languageCode,
 }) {
   final list = fields.where((d) => d.isActive && d.id > 0).toList()
     ..sort((a, b) {
       final order = a.sortOrder.compareTo(b.sortOrder);
       if (order != 0) return order;
       if (l10n != null) {
-        return compareFieldDefinitionLabels(a, b, l10n);
+        return compareFieldDefinitionLabels(
+          a,
+          b,
+          l10n,
+          languageCode: languageCode,
+        );
       }
       return a.displayName.compareTo(b.displayName);
     });

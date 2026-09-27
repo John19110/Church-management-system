@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/providers/customization_language_provider.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/common_widgets.dart';
@@ -250,7 +251,15 @@ class _FieldFormScreenState extends ConsumerState<FieldFormScreen> {
                     .map(
                       (entity) => DropdownMenuItem(
                         value: entity.id,
-                        child: Text(entityDisplayName(entity, l10n)),
+                        child: Text(
+                          entityDisplayName(
+                            entity,
+                            l10n,
+                            languageCode: ref.watch(
+                              resolvedCustomizationLanguageProvider,
+                            ),
+                          ),
+                        ),
                       ),
                     )
                     .toList(),

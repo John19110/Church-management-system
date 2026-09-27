@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/providers/customization_language_provider.dart';
 import '../models/custom_field_models.dart';
 import '../utils/field_display_label.dart';
 
-class FieldDefinitionCard extends StatelessWidget {
+class FieldDefinitionCard extends ConsumerWidget {
   final CustomFieldDefinitionReadDto definition;
   final VoidCallback? onTap;
   final VoidCallback? onDeactivate;
@@ -21,11 +23,15 @@ class FieldDefinitionCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isSystem = definition.isBuiltIn || definition.isSystemField;
-    final displayLabel = localizedFieldDisplayLabel(definition, l10n);
+    final displayLabel = localizedFieldDisplayLabel(
+      definition,
+      l10n,
+      languageCode: ref.watch(resolvedCustomizationLanguageProvider),
+    );
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),

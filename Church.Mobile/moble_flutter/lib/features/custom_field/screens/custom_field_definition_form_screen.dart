@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/providers/customization_language_provider.dart';
 import '../models/custom_field_models.dart';
 import '../providers/custom_field_cache_providers.dart';
 import '../providers/custom_field_providers.dart';
@@ -152,7 +153,11 @@ class _CustomFieldDefinitionFormScreenState
           onRetry: () => ref.invalidate(customFieldDefinitionsProvider(defsQuery)),
         ),
         data: (defs) {
-          final sortedActive = sortedActiveProvisionedFields(defs, l10n: l10n);
+          final sortedActive = sortedActiveProvisionedFields(
+            defs,
+            l10n: l10n,
+            languageCode: ref.watch(resolvedCustomizationLanguageProvider),
+          );
           _ensureDefaultPosition(sortedActive);
           final positionCount = positionOptionCount(
             isCreate: !_isEdit,
@@ -196,7 +201,13 @@ class _CustomFieldDefinitionFormScreenState
                           const SizedBox(height: AppSpacing.xxs),
                           Text(
                             l10n.systemFieldKeyLockedLabel(
-                              localizedFieldDisplayLabel(widget.existing!, l10n),
+                              localizedFieldDisplayLabel(
+                                widget.existing!,
+                                l10n,
+                                languageCode: ref.watch(
+                                  resolvedCustomizationLanguageProvider,
+                                ),
+                              ),
                             ),
                             style: Theme.of(context).textTheme.bodySmall,
                           ),

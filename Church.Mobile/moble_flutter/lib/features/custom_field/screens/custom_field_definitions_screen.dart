@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/providers/customization_language_provider.dart';
 import '../../../core/theme/app_palette.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
@@ -94,9 +95,22 @@ class _CustomFieldDefinitionsScreenState
                   ref.invalidate(customFieldDefinitionsProvider(defsQuery)),
             ),
             data: (defs) {
-              final ordered = sortedActiveProvisionedFields(defs, l10n: l10n);
+              final customLang =
+                  ref.watch(resolvedCustomizationLanguageProvider);
+              final ordered = sortedActiveProvisionedFields(
+                defs,
+                l10n: l10n,
+                languageCode: customLang,
+              );
               final inactive = defs.where((d) => !d.isActive && d.id > 0).toList()
-                ..sort((a, b) => compareFieldDefinitionLabels(a, b, l10n));
+                ..sort(
+                  (a, b) => compareFieldDefinitionLabels(
+                    a,
+                    b,
+                    l10n,
+                    languageCode: customLang,
+                  ),
+                );
 
               if (ordered.isEmpty && inactive.isEmpty) {
                 return RefreshIndicator(
@@ -210,6 +224,7 @@ class _CustomFieldDefinitionsScreenState
 
   Future<void> _confirmDeactivate(CustomFieldDefinitionReadDto def) async {
     final l10n = AppLocalizations.of(context);
+    final customLang = ref.read(resolvedCustomizationLanguageProvider);
     if (!def.isDeletable) {
       showErrorSnackbar(context, l10n.systemFieldCannotDeactivate);
       return;
@@ -219,7 +234,7 @@ class _CustomFieldDefinitionsScreenState
       context,
       title: l10n.deactivateField,
       content: l10n.deactivateFieldConfirm(
-        localizedFieldDisplayLabel(def, l10n),
+        localizedFieldDisplayLabel(def, l10n, languageCode: customLang),
       ),
       confirmText: l10n.deactivate,
       confirmColor: context.palette.warning,
@@ -241,11 +256,12 @@ class _CustomFieldDefinitionsScreenState
 
   Future<void> _confirmReactivate(CustomFieldDefinitionReadDto def) async {
     final l10n = AppLocalizations.of(context);
+    final customLang = ref.read(resolvedCustomizationLanguageProvider);
     final ok = await showConfirmDialog(
       context,
       title: l10n.reactivateField,
       content: l10n.reactivateFieldConfirm(
-        localizedFieldDisplayLabel(def, l10n),
+        localizedFieldDisplayLabel(def, l10n, languageCode: customLang),
       ),
       confirmText: l10n.reactivate,
     );
@@ -266,6 +282,7 @@ class _CustomFieldDefinitionsScreenState
 
   Future<void> _confirmDeletePermanently(CustomFieldDefinitionReadDto def) async {
     final l10n = AppLocalizations.of(context);
+    final customLang = ref.read(resolvedCustomizationLanguageProvider);
     if (!def.isDeletable) {
       showErrorSnackbar(context, l10n.systemFieldCannotDelete);
       return;
@@ -275,7 +292,7 @@ class _CustomFieldDefinitionsScreenState
       context,
       title: l10n.deleteFieldPermanently,
       content: l10n.deleteFieldPermanentlyConfirm(
-        localizedFieldDisplayLabel(def, l10n),
+        localizedFieldDisplayLabel(def, l10n, languageCode: customLang),
       ),
       confirmText: l10n.deletePermanently,
       confirmColor: Theme.of(context).colorScheme.error,

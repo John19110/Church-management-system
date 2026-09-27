@@ -1,31 +1,48 @@
 import '../../../core/l10n/app_localizations.dart';
 import '../models/custom_feature_models.dart';
 
-String featureDisplayName(CustomFeatureReadDto feature, AppLocalizations l10n) {
-  final isArabic = l10n.locale.languageCode == 'ar';
+bool _useArabic(AppLocalizations l10n, String? languageCode) {
+  final code = (languageCode ?? l10n.locale.languageCode).toLowerCase();
+  return code == 'ar';
+}
+
+String featureDisplayName(
+  CustomFeatureReadDto feature,
+  AppLocalizations l10n, {
+  String? languageCode,
+}) {
+  final isArabic = _useArabic(l10n, languageCode);
   if (isArabic && (feature.displayNameAr?.trim().isNotEmpty ?? false)) {
     return feature.displayNameAr!.trim();
   }
   return feature.displayName;
 }
 
-String entityDisplayName(CustomEntityReadDto entity, AppLocalizations l10n) {
-  final isArabic = l10n.locale.languageCode == 'ar';
+String entityDisplayName(
+  CustomEntityReadDto entity,
+  AppLocalizations l10n, {
+  String? languageCode,
+}) {
+  final isArabic = _useArabic(l10n, languageCode);
   if (isArabic && (entity.displayNameAr?.trim().isNotEmpty ?? false)) {
     return entity.displayNameAr!.trim();
   }
   return entity.displayName;
 }
 
-String entityPluralName(CustomEntityReadDto entity, AppLocalizations l10n) {
-  final isArabic = l10n.locale.languageCode == 'ar';
+String entityPluralName(
+  CustomEntityReadDto entity,
+  AppLocalizations l10n, {
+  String? languageCode,
+}) {
+  final isArabic = _useArabic(l10n, languageCode);
   if (isArabic && (entity.pluralDisplayNameAr?.trim().isNotEmpty ?? false)) {
     return entity.pluralDisplayNameAr!.trim();
   }
   if (entity.pluralDisplayName.trim().isNotEmpty) {
     return entity.pluralDisplayName;
   }
-  return entityDisplayName(entity, l10n);
+  return entityDisplayName(entity, l10n, languageCode: languageCode);
 }
 
 String fieldTypeKey(CustomEntityFieldType type) {
@@ -33,8 +50,12 @@ String fieldTypeKey(CustomEntityFieldType type) {
   return name[0].toLowerCase() + name.substring(1);
 }
 
-String fieldDisplayName(CustomEntityFieldReadDto field, AppLocalizations l10n) {
-  final isArabic = l10n.locale.languageCode == 'ar';
+String fieldDisplayName(
+  CustomEntityFieldReadDto field,
+  AppLocalizations l10n, {
+  String? languageCode,
+}) {
+  final isArabic = _useArabic(l10n, languageCode);
   if (isArabic && (field.displayNameAr?.trim().isNotEmpty ?? false)) {
     return field.displayNameAr!.trim();
   }

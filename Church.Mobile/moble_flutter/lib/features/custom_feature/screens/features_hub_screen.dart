@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/providers/customization_language_provider.dart';
 import '../../../core/routing/app_router.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../auth/providers/auth_providers.dart';
@@ -26,6 +27,7 @@ class FeaturesHubScreen extends ConsumerWidget {
     }
 
     final async = ref.watch(customFeaturesProvider(true));
+    final customLang = ref.watch(resolvedCustomizationLanguageProvider);
     return Scaffold(
       appBar: AppBar(title: Text(l10n.customFeatures)),
       floatingActionButton: FloatingActionButton(
@@ -58,7 +60,13 @@ class FeaturesHubScreen extends ConsumerWidget {
                         ? Icons.extension
                         : Icons.extension_off_outlined,
                   ),
-                  title: Text(featureDisplayName(feature, l10n)),
+                  title: Text(
+                    featureDisplayName(
+                      feature,
+                      l10n,
+                      languageCode: customLang,
+                    ),
+                  ),
                   subtitle: Text(
                     [
                       feature.isActive ? l10n.active : l10n.inactive,

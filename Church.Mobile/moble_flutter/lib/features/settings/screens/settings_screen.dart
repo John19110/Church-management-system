@@ -7,8 +7,8 @@ import '../../../core/routing/app_router.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../auth/providers/auth_providers.dart';
-import '../../auth/utils/auth_role_utils.dart';
 import '../../auth/widgets/delete_account_section.dart';
+import '../widgets/application_language_card.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -33,6 +33,8 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 8),
+          const ApplicationLanguageCard(),
+          const SizedBox(height: AppSpacing.sm),
           Card(
             child: ListTile(
               leading: const Icon(Icons.tune),

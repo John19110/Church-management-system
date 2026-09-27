@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/l10n/organization_languages.dart';
+import '../../../core/providers/customization_language_provider.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../models/language_settings.dart';
@@ -34,50 +35,74 @@ class TranslatedNameFields extends ConsumerWidget {
         !showArabic;
     final arabicRequired = defaultLanguage == OrganizationLanguages.arabic ||
         !showEnglish;
+    final arabicFirst = ref.watch(resolvedCustomizationLanguageProvider) ==
+            OrganizationLanguages.arabic &&
+        showArabic;
+
+    final englishField = AppTextField(
+      controller: english,
+      label: englishRequired
+          ? '${englishLabel ?? l10n.displayNameEnglishLabel} *'
+          : (englishLabel ?? l10n.displayNameEnglishLabel),
+      textInputAction: TextInputAction.next,
+      textCapitalization: TextCapitalization.sentences,
+      validator: (v) {
+        if (!englishRequired) return null;
+        return v == null || v.trim().isEmpty ? l10n.displayNameRequired : null;
+      },
+    );
+
+    final arabicField = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppTextField(
+          controller: arabic,
+          label: arabicRequired
+              ? '${arabicLabel ?? l10n.displayNameArabicLabel} *'
+              : (arabicLabel ?? l10n.displayNameArabicLabel),
+          validator: (v) {
+            if (!arabicRequired) return null;
+            return v == null || v.trim().isEmpty
+                ? l10n.displayNameRequired
+                : null;
+          },
+        ),
+        if (!arabicRequired)
+          Padding(
+            padding: const EdgeInsets.only(top: 4, bottom: AppSpacing.sm),
+            child: Text(
+              l10n.arabicTranslationOptional,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          )
+        else
+          const SizedBox(height: AppSpacing.sm),
+      ],
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (showEnglish) ...[
-          AppTextField(
-            controller: english,
-            label: englishRequired
-                ? '${englishLabel ?? l10n.displayNameEnglishLabel} *'
-                : (englishLabel ?? l10n.displayNameEnglishLabel),
-            textInputAction: TextInputAction.next,
-            textCapitalization: TextCapitalization.sentences,
-            validator: (v) {
-              if (!englishRequired) return null;
-              return v == null || v.trim().isEmpty
-                  ? l10n.displayNameRequired
-                  : null;
-            },
+        if (showEnglish && showArabic)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+            child: Text(
+              l10n.customizationWorkingLanguageHint,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
           ),
-          const SizedBox(height: AppSpacing.sm),
-        ],
-        if (showArabic) ...[
-          AppTextField(
-            controller: arabic,
-            label: arabicRequired
-                ? '${arabicLabel ?? l10n.displayNameArabicLabel} *'
-                : (arabicLabel ?? l10n.displayNameArabicLabel),
-            validator: (v) {
-              if (!arabicRequired) return null;
-              return v == null || v.trim().isEmpty
-                  ? l10n.displayNameRequired
-                  : null;
-            },
-          ),
-          if (!arabicRequired)
-            Padding(
-              padding: const EdgeInsets.only(top: 4, bottom: AppSpacing.sm),
-              child: Text(
-                l10n.arabicTranslationOptional,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            )
-          else
+        if (arabicFirst) ...[
+          if (showArabic) arabicField,
+          if (showEnglish) ...[
+            englishField,
             const SizedBox(height: AppSpacing.sm),
+          ],
+        ] else ...[
+          if (showEnglish) ...[
+            englishField,
+            const SizedBox(height: AppSpacing.sm),
+          ],
+          if (showArabic) arabicField,
         ],
       ],
     );
