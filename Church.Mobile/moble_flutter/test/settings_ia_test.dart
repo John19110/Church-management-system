@@ -253,6 +253,7 @@ void main() {
 
     expect(find.text('Application Language'), findsOneWidget);
     expect(find.text('Customization Language'), findsNothing);
+    expect(find.text('Languages'), findsOneWidget);
     expect(find.text('Delete Account'), findsOneWidget);
     expect(find.text('Account'), findsOneWidget);
     expect(find.text('Danger zone'), findsOneWidget);
@@ -319,7 +320,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Customization Language'), findsOneWidget);
+    expect(find.byType(CustomizationLanguageCard), findsOneWidget);
     expect(find.text('Application Language'), findsNothing);
+    expect(find.text('Languages'), findsNothing);
     expect(find.text('Appearance'), findsNothing);
     expect(find.text('Delete Account'), findsNothing);
     expect(find.text('Custom fields', skipOffstage: false), findsOneWidget);

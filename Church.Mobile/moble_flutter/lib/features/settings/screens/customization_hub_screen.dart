@@ -38,16 +38,6 @@ class CustomizationHubScreen extends ConsumerWidget {
             const SizedBox(height: AppSpacing.sm),
             Card(
               child: ListTile(
-                leading: const Icon(Icons.public),
-                title: Text(l10n.churchLanguages),
-                subtitle: Text(l10n.churchLanguagesDescription),
-                trailing: AppIcons.chevronForward(context),
-                onTap: () => context.push(AppRoutes.churchLanguages),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Card(
-              child: ListTile(
                 leading: const Icon(Icons.tune),
                 title: Text(l10n.customFields),
                 subtitle: Text(l10n.customFieldsLanding),
