@@ -3,17 +3,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/l10n/organization_languages.dart';
-import '../../../core/providers/customization_language_provider.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../models/language_settings.dart';
 import '../providers/language_settings_providers.dart';
 
+/// Name inputs for custom fields/features based on church customization languages.
+///
+/// [english] maps to the required API `displayName` column. For Arabic-only churches
+/// the single name is still stored there (and mirrored to Arabic on save by callers
+/// that use [mirrorArabicOnlyName]).
 class TranslatedNameFields extends ConsumerWidget {
   final TextEditingController english;
   final TextEditingController arabic;
   final String? englishLabel;
   final String? arabicLabel;
+  final String? singleLanguageLabel;
 
   const TranslatedNameFields({
     super.key,
@@ -21,89 +26,77 @@ class TranslatedNameFields extends ConsumerWidget {
     required this.arabic,
     this.englishLabel,
     this.arabicLabel,
+    this.singleLanguageLabel,
   });
+
+  /// When the church is Arabic-only, keep DisplayNameAr in sync with the single name.
+  static void mirrorArabicOnlyName({
+    required ChurchLanguages church,
+    required TextEditingController english,
+    required TextEditingController arabic,
+  }) {
+    if (church.supportsArabic && !church.supportsEnglish) {
+      arabic.text = english.text;
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final church = ref.watch(churchLanguagesProvider).valueOrNull ??
-        ChurchLanguages.bilingual();
-    final defaultLanguage = church.defaultLanguage;
+        ChurchLanguages.bilingual(isConfigured: true);
     final showEnglish = church.supportsEnglish;
     final showArabic = church.supportsArabic;
-    final englishRequired = defaultLanguage == OrganizationLanguages.english ||
-        !showArabic;
-    final arabicRequired = defaultLanguage == OrganizationLanguages.arabic ||
-        !showEnglish;
-    final arabicFirst = ref.watch(resolvedCustomizationLanguageProvider) ==
-            OrganizationLanguages.arabic &&
-        showArabic;
+    final bilingual = showEnglish && showArabic;
+    final appIsArabic = l10n.locale.languageCode == OrganizationLanguages.arabic;
+
+    if (!bilingual) {
+      // Single language: one required field bound to the API primary displayName.
+      return AppTextField(
+        controller: english,
+        label: '${singleLanguageLabel ?? l10n.displayNameLabel} *',
+        textInputAction: TextInputAction.next,
+        textCapitalization: TextCapitalization.sentences,
+        validator: (v) =>
+            v == null || v.trim().isEmpty ? l10n.displayNameRequired : null,
+      );
+    }
 
     final englishField = AppTextField(
       controller: english,
-      label: englishRequired
-          ? '${englishLabel ?? l10n.displayNameEnglishLabel} *'
-          : (englishLabel ?? l10n.displayNameEnglishLabel),
+      label: '${englishLabel ?? l10n.displayNameEnglishLabel} *',
       textInputAction: TextInputAction.next,
       textCapitalization: TextCapitalization.sentences,
-      validator: (v) {
-        if (!englishRequired) return null;
-        return v == null || v.trim().isEmpty ? l10n.displayNameRequired : null;
-      },
+      validator: (v) =>
+          v == null || v.trim().isEmpty ? l10n.displayNameRequired : null,
     );
 
-    final arabicField = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        AppTextField(
-          controller: arabic,
-          label: arabicRequired
-              ? '${arabicLabel ?? l10n.displayNameArabicLabel} *'
-              : (arabicLabel ?? l10n.displayNameArabicLabel),
-          validator: (v) {
-            if (!arabicRequired) return null;
-            return v == null || v.trim().isEmpty
-                ? l10n.displayNameRequired
-                : null;
-          },
-        ),
-        if (!arabicRequired)
-          Padding(
-            padding: const EdgeInsets.only(top: 4, bottom: AppSpacing.sm),
-            child: Text(
-              l10n.arabicTranslationOptional,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          )
-        else
-          const SizedBox(height: AppSpacing.sm),
-      ],
+    final arabicField = AppTextField(
+      controller: arabic,
+      label: '${arabicLabel ?? l10n.displayNameArabicLabel} *',
+      textInputAction: TextInputAction.next,
+      textCapitalization: TextCapitalization.sentences,
+      validator: (v) =>
+          v == null || v.trim().isEmpty ? l10n.displayNameRequired : null,
     );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (showEnglish && showArabic)
-          Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-            child: Text(
-              l10n.customizationWorkingLanguageHint,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ),
-        if (arabicFirst) ...[
-          if (showArabic) arabicField,
-          if (showEnglish) ...[
-            englishField,
-            const SizedBox(height: AppSpacing.sm),
-          ],
+        if (appIsArabic) ...[
+          arabicField,
+          const SizedBox(height: AppSpacing.sm),
+          englishField,
         ] else ...[
-          if (showEnglish) ...[
-            englishField,
-            const SizedBox(height: AppSpacing.sm),
-          ],
-          if (showArabic) arabicField,
+          englishField,
+          const SizedBox(height: AppSpacing.sm),
+          arabicField,
         ],
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          l10n.customizationNamePerLanguageHint,
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
       ],
     );
   }

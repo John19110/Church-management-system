@@ -18,8 +18,10 @@ import '../../unified_form/widgets/entity_fields_empty_state.dart';
 import '../../unified_form/widgets/unified_entity_detail_header.dart';
 import '../../unified_form/widgets/unified_entity_form.dart';
 import '../../settings/widgets/appearance_mode_card.dart';
+import '../../auth/widgets/delete_account_section.dart';
 import '../models/servant_models.dart';
 import '../providers/servants_providers.dart';
+import '../widgets/application_language_card.dart';
 
 class ProfileScreen extends ConsumerWidget {
   final bool showAppBar;
@@ -127,18 +129,36 @@ class ProfileScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const AppearanceModeCard(),
-                const SizedBox(height: 16),
                 _RoleContextCard(profile: profile, role: role),
                 const SizedBox(height: 16),
-                Card(
-                  child: ListTile(
-                    leading: const Icon(Icons.settings_outlined),
-                    title: Text(l10n.settings),
-                    trailing: AppIcons.chevronForward(context),
-                    onTap: () => context.push(AppRoutes.settings),
+
+                const AppearanceModeCard(),
+                const SizedBox(height: 16),
+                const ApplicationLanguageCard(),
+                if (AuthRoleUtils.canManageCustomFields(role)) ...[
+                  const SizedBox(height: 16),
+                  Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.tune),
+                      title: Text(l10n.customization),
+                      subtitle: Text(l10n.customizeYourChurch),
+                      trailing: AppIcons.chevronForward(context),
+                      onTap: () => context.push(AppRoutes.customization),
+                    ),
                   ),
-                ),
+                ],
+                if (role == 'superadmin') ...[
+                  const SizedBox(height: 16),
+                  Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.table_view_outlined),
+                      title: Text(l10n.memberExcelChurchTitle),
+                      subtitle: Text(l10n.memberExcelSettingsTile),
+                      trailing: AppIcons.chevronForward(context),
+                      onTap: () => context.push(AppRoutes.churchMembersExcel),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: AppSpacing.md),
                 SizedBox(
                   width: double.infinity,
@@ -158,6 +178,19 @@ class ProfileScreen extends ConsumerWidget {
                     label: Text(l10n.editProfile),
                   ),
                 ),
+                const SizedBox(height: AppSpacing.xl),
+                Text(
+                  l10n.accountSection,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  l10n.dangerZone,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                const DeleteAccountSection(),
                 const SizedBox(height: AppSpacing.md),
               ],
             ),

@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/l10n/app_localizations.dart';
-import '../../../core/providers/customization_language_provider.dart';
 import '../models/custom_field_models.dart';
 import '../utils/field_display_label.dart';
 
-class FieldDefinitionCard extends ConsumerWidget {
+class FieldDefinitionCard extends StatelessWidget {
   final CustomFieldDefinitionReadDto definition;
   final VoidCallback? onTap;
   final VoidCallback? onDeactivate;
@@ -23,15 +21,11 @@ class FieldDefinitionCard extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isSystem = definition.isBuiltIn || definition.isSystemField;
-    final displayLabel = localizedFieldDisplayLabel(
-      definition,
-      l10n,
-      languageCode: ref.watch(resolvedCustomizationLanguageProvider),
-    );
+    final displayLabel = localizedFieldDisplayLabel(definition, l10n);
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -113,12 +107,12 @@ class FieldDefinitionCard extends ConsumerWidget {
   ) {
     final hasEn = definition.displayName.trim().isNotEmpty;
     final hasAr = (definition.displayNameAr ?? '').trim().isNotEmpty;
-    if (hasEn && hasAr) return '${l10n.englishShort} ✓   ${l10n.arabicShort} ✓';
+    if (hasEn && hasAr) return '${l10n.englishShort} Γ£ô   ${l10n.arabicShort} Γ£ô';
     if (hasEn && !hasAr) {
-      return '${l10n.englishShort} ✓   ${l10n.arabicShort} ⚠  ${l10n.arabicTranslationMissing}';
+      return '${l10n.englishShort} Γ£ô   ${l10n.arabicShort} ΓÜá  ${l10n.arabicTranslationMissing}';
     }
     if (!hasEn && hasAr) {
-      return '${l10n.englishShort} ⚠   ${l10n.arabicShort} ✓  ${l10n.englishTranslationMissing}';
+      return '${l10n.englishShort} ΓÜá   ${l10n.arabicShort} Γ£ô  ${l10n.englishTranslationMissing}';
     }
     return l10n.translationMissing;
   }

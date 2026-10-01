@@ -4,10 +4,12 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
-import '../../../core/providers/customization_language_provider.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/common_widgets.dart';
+import '../../settings/models/language_settings.dart';
+import '../../settings/providers/language_settings_providers.dart';
+import '../../settings/widgets/translated_name_fields.dart';
 import '../models/custom_feature_models.dart';
 import '../providers/custom_feature_providers.dart';
 import '../utils/custom_feature_labels.dart';
@@ -107,6 +109,13 @@ class _FieldFormScreenState extends ConsumerState<FieldFormScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
     final l10n = AppLocalizations.of(context);
+    final church = ref.read(churchLanguagesProvider).valueOrNull ??
+        ChurchLanguages.bilingual(isConfigured: true);
+    TranslatedNameFields.mirrorArabicOnlyName(
+      church: church,
+      english: _displayName,
+      arabic: _displayNameAr,
+    );
     try {
       final body = <String, dynamic>{
         'displayName': _displayName.text.trim(),
@@ -216,15 +225,9 @@ class _FieldFormScreenState extends ConsumerState<FieldFormScreen> {
         key: _formKey,
         child: AppFormListView(
           children: [
-            AppTextField(
-              controller: _displayName,
-              label: l10n.displayNameEnglishLabel,
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? l10n.required : null,
-            ),
-            AppTextField(
-              controller: _displayNameAr,
-              label: l10n.displayNameArabicLabel,
+            TranslatedNameFields(
+              english: _displayName,
+              arabic: _displayNameAr,
             ),
             DropdownButtonFormField<CustomEntityFieldType>(
               value: _type,
@@ -255,10 +258,7 @@ class _FieldFormScreenState extends ConsumerState<FieldFormScreen> {
                           entityDisplayName(
                             entity,
                             l10n,
-                            languageCode: ref.watch(
-                              resolvedCustomizationLanguageProvider,
                             ),
-                          ),
                         ),
                       ),
                     )

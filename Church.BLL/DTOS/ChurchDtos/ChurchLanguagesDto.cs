@@ -4,6 +4,7 @@ namespace Church.BLL.DTOS.ChurchDtos
     {
         public IReadOnlyList<string> SupportedLanguages { get; set; } = Array.Empty<string>();
         public string DefaultLanguage { get; set; } = "en";
+        public bool IsCustomizationLanguagesConfigured { get; set; }
     }
 
     public class ChurchLanguagesUpdateDto

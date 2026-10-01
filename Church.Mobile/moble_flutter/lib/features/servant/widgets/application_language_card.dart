@@ -3,13 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/l10n/organization_languages.dart';
 import '../../../core/providers/locale_provider.dart';
 import '../../../shared/widgets/common_widgets.dart' as cw;
-import '../models/language_settings.dart';
-import '../providers/language_settings_providers.dart';
-import 'language_option_radios.dart';
+import '../../settings/providers/language_settings_providers.dart';
 
 /// Controls the My Church application UI language. Uses [localeProvider].
+/// Independent of church customization languages.
 class ApplicationLanguageCard extends ConsumerWidget {
   const ApplicationLanguageCard({super.key});
 
@@ -17,12 +17,6 @@ class ApplicationLanguageCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final locale = ref.watch(localeProvider);
-    final church = ref.watch(churchLanguagesProvider).valueOrNull ??
-        ChurchLanguages.bilingual();
-    final supported = List<String>.from(church.supportedLanguages);
-    if (!supported.contains(locale.languageCode)) {
-      supported.add(locale.languageCode);
-    }
 
     return Card(
       child: Column(
@@ -34,10 +28,21 @@ class ApplicationLanguageCard extends ConsumerWidget {
             subtitle: Text(l10n.applicationLanguageDescription),
           ),
           const Divider(height: 0),
-          LanguageOptionRadios(
+          RadioListTile<String>(
+            value: OrganizationLanguages.english,
             groupValue: locale.languageCode,
-            supportedLanguages: supported,
-            onChanged: (code) => _changeLanguage(context, ref, code),
+            title: Text(l10n.english),
+            onChanged: (value) {
+              if (value != null) _changeLanguage(context, ref, value);
+            },
+          ),
+          RadioListTile<String>(
+            value: OrganizationLanguages.arabic,
+            groupValue: locale.languageCode,
+            title: Text(l10n.arabic),
+            onChanged: (value) {
+              if (value != null) _changeLanguage(context, ref, value);
+            },
           ),
         ],
       ),

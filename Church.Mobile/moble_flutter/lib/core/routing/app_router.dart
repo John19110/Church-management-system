@@ -20,7 +20,6 @@ import '../../features/servant/screens/servant_detail_screen.dart';
 import '../../features/servant/screens/servant_edit_screen.dart';
 import '../../features/servant/screens/profile_screen.dart';
 import '../../features/servant/screens/edit_profile_screen.dart';
-import '../../features/settings/screens/settings_screen.dart';
 import '../../features/settings/screens/custom_fields_hub_screen.dart';
 import '../../features/custom_feature/screens/features_hub_screen.dart';
 import '../../features/custom_feature/screens/feature_form_screen.dart';
@@ -47,7 +46,6 @@ import '../../features/classroom/screens/classroom_add_screen.dart';
 import '../../features/classroom/screens/classrooms_home_screen.dart';
 import '../../features/admin/screens/admin_home_screen.dart';
 import '../../features/settings/screens/customization_hub_screen.dart';
-import '../../features/settings/screens/church_languages_screen.dart';
 import '../../features/servant/screens/servant_home_screen.dart';
 import '../../features/notifications/screens/notifications_screen.dart';
 import '../../features/custom_field/screens/custom_field_definitions_screen.dart';
@@ -75,9 +73,7 @@ class AppRoutes {
   static const classroomsHome = '/classrooms-home';
   static const profile = '/profile';
   static const profileEdit = '/profile/edit';
-  static const settings = '/settings';
   static const customization = '/settings/customization';
-  static const churchLanguages = '/settings/languages';
   static const customFieldsHub = '/settings/custom-fields';
   static const customFeaturesHub = '/settings/features';
   static const customFeatureNew = '/settings/features/new';
@@ -235,18 +231,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
 
       GoRoute(
-        path: AppRoutes.settings,
-        builder: (_, __) => const SettingsScreen(),
-      ),
-
-      GoRoute(
         path: AppRoutes.customization,
         builder: (_, __) => const CustomizationHubScreen(),
-      ),
-
-      GoRoute(
-        path: AppRoutes.churchLanguages,
-        builder: (_, __) => const ChurchLanguagesScreen(),
       ),
 
       GoRoute(

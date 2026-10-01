@@ -170,7 +170,8 @@ namespace Church.BLL.Manager.Implementations
                     Name = dto.ChurchName.Trim(),
                     PublicId = await _churchPublicIdService.GenerateUniqueAsync(),
                     SupportedLanguages = churchLanguages.Supported,
-                    DefaultLanguage = churchLanguages.Default
+                    DefaultLanguage = churchLanguages.Default,
+                    IsCustomizationLanguagesConfigured = true
                 };
 
                 await _churchRepo.AddAsync(church);
@@ -282,7 +283,8 @@ namespace Church.BLL.Manager.Implementations
                     Name = registerMeetingAdminDTO.ChurchName.Trim(),
                     PublicId = await _churchPublicIdService.GenerateUniqueAsync(),
                     SupportedLanguages = churchLanguages.Supported,
-                    DefaultLanguage = churchLanguages.Default
+                    DefaultLanguage = churchLanguages.Default,
+                    IsCustomizationLanguagesConfigured = true
                 };
                 await _churchRepo.AddAsync(church);
                 await _unitOfWork.SaveChangesAsync();
@@ -868,7 +870,8 @@ namespace Church.BLL.Manager.Implementations
                 SupportedLanguages = supported,
                 DefaultLanguage = OrganizationLanguages.NormalizeDefault(
                     church.DefaultLanguage,
-                    supported)
+                    supported),
+                IsCustomizationLanguagesConfigured = church.IsCustomizationLanguagesConfigured
             };
         }
 
@@ -892,27 +895,24 @@ namespace Church.BLL.Manager.Implementations
 
             return new LanguageProfileDto
             {
-                PreferredLanguage = OrganizationLanguages.NormalizePreferred(
-                    user.PreferredLanguage,
-                    supported),
+                PreferredLanguage = OrganizationLanguages.NormalizeUiLanguage(user.PreferredLanguage),
                 SupportedLanguages = supported,
-                DefaultLanguage = defaultLanguage
+                DefaultLanguage = defaultLanguage,
+                IsCustomizationLanguagesConfigured =
+                    church?.IsCustomizationLanguagesConfigured ?? false
             };
         }
 
         public async Task UpdatePreferredLanguageAsync(string userId, string preferredLanguage)
         {
-            var profile = await GetLanguageProfileAsync(userId);
-            var code = OrganizationLanguages.NormalizePreferred(
-                preferredLanguage,
-                profile.SupportedLanguages);
+            var code = OrganizationLanguages.NormalizeUiLanguage(preferredLanguage);
             if (code == null)
             {
                 throw new ValidationException(new Dictionary<string, string[]>
                 {
                     ["PreferredLanguage"] = new[]
                     {
-                        "Choose a language supported by this church."
+                        "Choose English or Arabic."
                     }
                 });
             }

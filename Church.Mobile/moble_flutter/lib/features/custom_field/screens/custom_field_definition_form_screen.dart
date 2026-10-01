@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
-import '../../../core/providers/customization_language_provider.dart';
 import '../models/custom_field_models.dart';
 import '../providers/custom_field_cache_providers.dart';
 import '../providers/custom_field_providers.dart';
@@ -15,6 +14,7 @@ import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../../core/theme/app_dimens.dart';
+import '../../settings/models/language_settings.dart';
 import '../../settings/providers/language_settings_providers.dart';
 import '../../settings/widgets/translated_name_fields.dart';
 
@@ -156,8 +156,7 @@ class _CustomFieldDefinitionFormScreenState
           final sortedActive = sortedActiveProvisionedFields(
             defs,
             l10n: l10n,
-            languageCode: ref.watch(resolvedCustomizationLanguageProvider),
-          );
+            );
           _ensureDefaultPosition(sortedActive);
           final positionCount = positionOptionCount(
             isCreate: !_isEdit,
@@ -204,10 +203,7 @@ class _CustomFieldDefinitionFormScreenState
                               localizedFieldDisplayLabel(
                                 widget.existing!,
                                 l10n,
-                                languageCode: ref.watch(
-                                  resolvedCustomizationLanguageProvider,
                                 ),
-                              ),
                             ),
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
@@ -370,20 +366,26 @@ class _CustomFieldDefinitionFormScreenState
 
     var displayName = _displayNameController.text.trim();
     var displayNameAr = _displayNameArController.text.trim();
+    final church = ref.read(churchLanguagesProvider).valueOrNull ??
+        ChurchLanguages.bilingual(isConfigured: true);
+    TranslatedNameFields.mirrorArabicOnlyName(
+      church: church,
+      english: _displayNameController,
+      arabic: _displayNameArController,
+    );
+    displayName = _displayNameController.text.trim();
+    displayNameAr = _displayNameArController.text.trim();
     if (displayName.isEmpty && displayNameAr.isNotEmpty) {
       displayName = displayNameAr;
     }
-    if (displayNameAr.isEmpty && displayName.isNotEmpty) {
-      final church = ref.read(churchLanguagesProvider).valueOrNull;
-      if (church != null && church.isBilingual) {
-        final saveAnyway = await showConfirmDialog(
-          context,
-          title: l10n.translationMissing,
-          content: l10n.missingTranslationWarning,
-          confirmText: l10n.saveAnyway,
-        );
-        if (!saveAnyway) return;
-      }
+    if (displayNameAr.isEmpty && displayName.isNotEmpty && church.isBilingual) {
+      final saveAnyway = await showConfirmDialog(
+        context,
+        title: l10n.translationMissing,
+        content: l10n.missingTranslationWarning,
+        confirmText: l10n.saveAnyway,
+      );
+      if (!saveAnyway) return;
     }
 
     setState(() => _loading = true);

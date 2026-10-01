@@ -4,9 +4,12 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
-import '../../../shared/widgets/app_form_fields.dart';
+import '../../../core/theme/app_dimens.dart';
 import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/common_widgets.dart';
+import '../../settings/models/language_settings.dart';
+import '../../settings/providers/language_settings_providers.dart';
+import '../../settings/widgets/translated_name_fields.dart';
 import '../models/custom_feature_models.dart';
 import '../providers/custom_feature_providers.dart';
 
@@ -61,6 +64,18 @@ class _EntityFormScreenState extends ConsumerState<EntityFormScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
     final l10n = AppLocalizations.of(context);
+    final church = ref.read(churchLanguagesProvider).valueOrNull ??
+        ChurchLanguages.bilingual(isConfigured: true);
+    TranslatedNameFields.mirrorArabicOnlyName(
+      church: church,
+      english: _displayName,
+      arabic: _displayNameAr,
+    );
+    TranslatedNameFields.mirrorArabicOnlyName(
+      church: church,
+      english: _plural,
+      arabic: _pluralAr,
+    );
     try {
       final repo = ref.read(customFeatureRepositoryProvider);
       if (_isEdit) {
@@ -104,23 +119,17 @@ class _EntityFormScreenState extends ConsumerState<EntityFormScreen> {
         key: _formKey,
         child: AppFormListView(
           children: [
-            AppTextField(
-              controller: _displayName,
-              label: l10n.displayNameEnglishLabel,
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? l10n.required : null,
+            TranslatedNameFields(
+              english: _displayName,
+              arabic: _displayNameAr,
             ),
-            AppTextField(
-              controller: _displayNameAr,
-              label: l10n.displayNameArabicLabel,
-            ),
-            AppTextField(
-              controller: _plural,
-              label: l10n.pluralDisplayNameEnglish,
-            ),
-            AppTextField(
-              controller: _pluralAr,
-              label: l10n.pluralDisplayNameArabic,
+            const SizedBox(height: AppSpacing.sm),
+            TranslatedNameFields(
+              english: _plural,
+              arabic: _pluralAr,
+              englishLabel: l10n.pluralDisplayNameEnglish,
+              arabicLabel: l10n.pluralDisplayNameArabic,
+              singleLanguageLabel: l10n.pluralDisplayNameEnglish,
             ),
             if (_isEdit)
               SwitchListTile(

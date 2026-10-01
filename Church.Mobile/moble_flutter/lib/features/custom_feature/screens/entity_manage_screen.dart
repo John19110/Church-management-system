@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
-import '../../../core/providers/customization_language_provider.dart';
 import '../../../core/routing/app_router.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../providers/custom_feature_providers.dart';
@@ -33,11 +32,10 @@ class EntityManageScreen extends ConsumerWidget {
         ),
       ),
       data: (entity) {
-        final customLang = ref.watch(resolvedCustomizationLanguageProvider);
         return Scaffold(
           appBar: AppBar(
             title: Text(
-              entityDisplayName(entity, l10n, languageCode: customLang),
+              entityDisplayName(entity, l10n),
             ),
             actions: [
               IconButton(
@@ -87,7 +85,7 @@ class EntityManageScreen extends ConsumerWidget {
                 child: ListTile(
                   leading: const Icon(Icons.list_alt),
                   title: Text(
-                    entityPluralName(entity, l10n, languageCode: customLang),
+                    entityPluralName(entity, l10n),
                   ),
                   subtitle: Text(l10n.openRecords),
                   trailing: const Icon(Icons.chevron_right),
@@ -123,7 +121,6 @@ class EntityManageScreen extends ConsumerWidget {
                         fieldDisplayName(
                           field,
                           l10n,
-                          languageCode: customLang,
                         ),
                       ),
                       subtitle: Text(

@@ -336,6 +336,10 @@ namespace Church.DAL.Migrations
                         .HasMaxLength(8)
                         .HasColumnType("nvarchar(8)");
 
+                    b.Property<bool>("IsCustomizationLanguagesConfigured")
+                        .IsRequired()
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");

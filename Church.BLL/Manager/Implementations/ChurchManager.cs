@@ -106,6 +106,7 @@ namespace Church.BLL.Manager.Implementations
                 DefaultLanguage = OrganizationLanguages.NormalizeDefault(
                     church.DefaultLanguage,
                     supported),
+                IsCustomizationLanguagesConfigured = church.IsCustomizationLanguagesConfigured,
             };
         }
 
@@ -167,6 +168,7 @@ namespace Church.BLL.Manager.Implementations
                     church,
                     dto.SupportedLanguages ?? OrganizationLanguages.ParseSupported(church.SupportedLanguages),
                     dto.DefaultLanguage ?? church.DefaultLanguage);
+                church.IsCustomizationLanguagesConfigured = true;
             }
 
             await _churchRepository.UpdateAsync(church);
@@ -201,6 +203,7 @@ namespace Church.BLL.Manager.Implementations
                 throw new NotFoundException($"Church with id {id} not found.");
 
             ApplyLanguages(church, dto.SupportedLanguages, dto.DefaultLanguage);
+            church.IsCustomizationLanguagesConfigured = true;
             await _churchRepository.UpdateAsync(church);
 
             var ctx = _cacheContext.TryGet();

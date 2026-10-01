@@ -27,6 +27,10 @@ namespace Church.DAL.Configurations
                 .HasMaxLength(8)
                 .HasDefaultValue("en");
 
+            builder.Property(c => c.IsCustomizationLanguagesConfigured)
+                .IsRequired()
+                .HasDefaultValue(false);
+
             builder.HasIndex(c => c.PublicId)
                 .IsUnique();
         }

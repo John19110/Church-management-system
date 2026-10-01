@@ -449,6 +449,28 @@ class AppLocalizations {
       _t('customizationLanguageDescription');
   String get customizationWorkingLanguageHint =>
       _t('customizationWorkingLanguageHint');
+  String get customizationLanguagesTitle => _t('customizationLanguagesTitle');
+  String get customizationLanguagesSetupIntro =>
+      _t('customizationLanguagesSetupIntro');
+  String get customizationLanguagesSetupPurpose =>
+      _t('customizationLanguagesSetupPurpose');
+  String customizationLanguagesYourLanguage(String language) =>
+      _t('customizationLanguagesYourLanguage').replaceAll('{language}', language);
+  String customizationLanguagesOtherQuestion(String language) =>
+      _t('customizationLanguagesOtherQuestion')
+          .replaceAll('{language}', language);
+  String get customizationLanguagesPreviewTitle =>
+      _t('customizationLanguagesPreviewTitle');
+  String get customizationLanguagesSummaryBody =>
+      _t('customizationLanguagesSummaryBody');
+  String get customizationLanguagesAnswerRequired =>
+      _t('customizationLanguagesAnswerRequired');
+  String get customizationLanguagesSaveFailed =>
+      _t('customizationLanguagesSaveFailed');
+  String get customizationNamePerLanguageHint =>
+      _t('customizationNamePerLanguageHint');
+  String get continueLabel => _t('continueLabel');
+  String get editLabel => _t('editLabel');
   String get chooseYourLanguage => _t('chooseYourLanguage');
   String get chooseYourLanguageHint => _t('chooseYourLanguageHint');
   String get arabicTranslationOptional => _t('arabicTranslationOptional');
@@ -1794,6 +1816,25 @@ class AppLocalizations {
           'Choose the language used when creating and managing custom fields and custom features. This does not change the language of the My Church application.',
       'customizationWorkingLanguageHint':
           'The selected customization language is shown first when editing names.',
+      'customizationLanguagesTitle': 'Customization Languages',
+      'customizationLanguagesSetupIntro':
+          'Custom Fields and Custom Features can have names in both English and Arabic. Tell us which languages are used by people in this meeting/church so we can show each user the appropriate name.',
+      'customizationLanguagesSetupPurpose':
+          'This setting is used for Custom Fields and Custom Features. If your meeting uses more than one language, you can provide names in each supported language. Users will see the name that matches their application language. This does not change the language of the My Church application.',
+      'customizationLanguagesYourLanguage': 'Your language: {language}',
+      'customizationLanguagesOtherQuestion':
+          'Is {language} used by anyone in this meeting/church?',
+      'customizationLanguagesPreviewTitle': 'Languages:',
+      'customizationLanguagesSummaryBody':
+          'Used for Custom Field and Feature names. Users will see the name matching their application language.',
+      'customizationLanguagesAnswerRequired':
+          'Please answer whether the other language is used.',
+      'customizationLanguagesSaveFailed':
+          'Could not save customization languages. Please try again.',
+      'customizationNamePerLanguageHint':
+          'Each name will appear only to users who use that language.',
+      'continueLabel': 'Continue',
+      'editLabel': 'Edit',
       'chooseYourLanguage': 'Choose your language',
       'chooseYourLanguageHint':
           'Select the language you would like to use in My Church.',
@@ -2656,6 +2697,25 @@ class AppLocalizations {
           'اختر اللغة المستخدمة عند إنشاء الحقول والميزات المخصصة وإدارتها. هذا لا يغيّر لغة تطبيق كنيستي.',
       'customizationWorkingLanguageHint':
           'تظهر لغة التخصيص المحددة أولاً عند تعديل الأسماء.',
+      'customizationLanguagesTitle': 'لغات التخصيص',
+      'customizationLanguagesSetupIntro':
+          'يمكن أن يكون للحقول والميزات المخصصة أسماء بالإنجليزية والعربية. أخبرنا باللغات المستخدمة في هذا الاجتماع/الكنيسة حتى نعرض لكل مستخدم الاسم المناسب.',
+      'customizationLanguagesSetupPurpose':
+          'يُستخدم هذا الإعداد لأسماء الحقول والميزات المخصصة. إذا كان اجتماعك يستخدم أكثر من لغة، يمكنك إدخال اسم بكل لغة مدعومة. سيرى المستخدم الاسم المطابق للغة التطبيق. هذا لا يغيّر لغة تطبيق كنيستي.',
+      'customizationLanguagesYourLanguage': 'لغتك: {language}',
+      'customizationLanguagesOtherQuestion':
+          'هل يستخدم أحد في هذا الاجتماع/الكنيسة اللغة {language}؟',
+      'customizationLanguagesPreviewTitle': 'اللغات:',
+      'customizationLanguagesSummaryBody':
+          'تُستخدم لأسماء الحقول والميزات المخصصة. يرى المستخدمون الاسم المطابق للغة التطبيق لديهم.',
+      'customizationLanguagesAnswerRequired':
+          'يرجى الإجابة عما إذا كانت اللغة الأخرى مستخدمة.',
+      'customizationLanguagesSaveFailed':
+          'تعذر حفظ لغات التخصيص. يرجى المحاولة مرة أخرى.',
+      'customizationNamePerLanguageHint':
+          'سيظهر كل اسم فقط للمستخدمين الذين يستخدمون تلك اللغة.',
+      'continueLabel': 'متابعة',
+      'editLabel': 'تعديل',
       'chooseYourLanguage': 'اختر لغتك',
       'chooseYourLanguageHint':
           'اختر اللغة التي تريد استخدامها في كنيستي.',

@@ -65,6 +65,15 @@ namespace Church.BLL.Services
             return supported.Contains(code, StringComparer.Ordinal) ? code : null;
         }
 
+        /// <summary>
+        /// Application UI language. Independent of church customization SupportedLanguages.
+        /// </summary>
+        public static string? NormalizeUiLanguage(string? preferred)
+        {
+            var code = Normalize(preferred);
+            return code.Length == 0 ? null : code;
+        }
+
         public static (string Supported, string Default) FromRegistration(
             string? supportedRaw,
             string? defaultRaw)

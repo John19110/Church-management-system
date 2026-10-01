@@ -3,15 +3,19 @@ import '../../../core/l10n/organization_languages.dart';
 class ChurchLanguages {
   final List<String> supportedLanguages;
   final String defaultLanguage;
+  final bool isConfigured;
 
   const ChurchLanguages({
     required this.supportedLanguages,
     required this.defaultLanguage,
+    this.isConfigured = false,
   });
 
-  factory ChurchLanguages.bilingual() => ChurchLanguages(
+  factory ChurchLanguages.bilingual({bool isConfigured = false}) =>
+      ChurchLanguages(
         supportedLanguages: List<String>.from(OrganizationLanguages.bilingual),
         defaultLanguage: OrganizationLanguages.english,
+        isConfigured: isConfigured,
       );
 
   factory ChurchLanguages.fromJson(Map<String, dynamic> json) {
@@ -25,6 +29,8 @@ class ChurchLanguages {
         json['defaultLanguage']?.toString(),
         supported,
       ),
+      isConfigured: json['isCustomizationLanguagesConfigured'] == true ||
+          json['isConfigured'] == true,
     );
   }
 
@@ -37,6 +43,7 @@ class ChurchLanguages {
   Map<String, dynamic> toJson() => {
         'supportedLanguages': supportedLanguages,
         'defaultLanguage': defaultLanguage,
+        'isCustomizationLanguagesConfigured': isConfigured,
       };
 }
 
@@ -51,11 +58,11 @@ class LanguageProfile {
 
   factory LanguageProfile.fromJson(Map<String, dynamic> json) {
     final church = ChurchLanguages.fromJson(json);
+    final preferred = OrganizationLanguages.normalize(
+      json['preferredLanguage']?.toString(),
+    );
     return LanguageProfile(
-      preferredLanguage: OrganizationLanguages.normalizePreferred(
-        json['preferredLanguage']?.toString(),
-        church.supportedLanguages,
-      ),
+      preferredLanguage: preferred.isEmpty ? null : preferred,
       church: church,
     );
   }

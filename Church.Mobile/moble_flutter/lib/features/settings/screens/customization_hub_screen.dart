@@ -8,7 +8,8 @@ import '../../../core/theme/app_dimens.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
-import '../widgets/customization_language_card.dart';
+import '../providers/language_settings_providers.dart';
+import '../widgets/customization_languages_section.dart';
 
 class CustomizationHubScreen extends ConsumerWidget {
   const CustomizationHubScreen({super.key});
@@ -18,6 +19,15 @@ class CustomizationHubScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final role = ref.watch(currentUserRoleProvider).resolvedRoleOrNull;
     final canManage = AuthRoleUtils.canManageCustomFields(role);
+    final church = ref.watch(churchLanguagesProvider).valueOrNull;
+    final configured = church?.isConfigured == true;
+
+    if (!canManage) {
+      return Scaffold(
+        appBar: AppBar(title: Text(l10n.customization)),
+        body: Center(child: Text(l10n.notAuthorized)),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.customization)),
@@ -33,8 +43,8 @@ class CustomizationHubScreen extends ConsumerWidget {
           const SizedBox(height: AppSpacing.sm),
           Text(l10n.customizationIntro),
           const SizedBox(height: AppSpacing.lg),
-          const CustomizationLanguageCard(),
-          if (canManage) ...[
+          const CustomizationLanguagesSection(),
+          if (configured) ...[
             const SizedBox(height: AppSpacing.sm),
             Card(
               child: ListTile(

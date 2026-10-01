@@ -22,5 +22,11 @@ namespace Church.DAL.Models
 
         /// <summary>Fallback language for user-generated content. Must be one of <see cref="SupportedLanguages"/>.</summary>
         public string DefaultLanguage { get; set; } = "en";
+
+        /// <summary>
+        /// True after customization languages have been configured (registration or Customization setup).
+        /// Existing translations are never deleted when languages are removed from <see cref="SupportedLanguages"/>.
+        /// </summary>
+        public bool IsCustomizationLanguagesConfigured { get; set; }
     }
 }

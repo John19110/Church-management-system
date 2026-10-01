@@ -7,6 +7,8 @@ import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/common_widgets.dart';
+import '../../settings/models/language_settings.dart';
+import '../../settings/providers/language_settings_providers.dart';
 import '../../settings/widgets/translated_name_fields.dart';
 import '../models/custom_feature_models.dart';
 import '../providers/custom_feature_providers.dart';
@@ -51,6 +53,13 @@ class _FeatureFormScreenState extends ConsumerState<FeatureFormScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
     final l10n = AppLocalizations.of(context);
+    final church = ref.read(churchLanguagesProvider).valueOrNull ??
+        ChurchLanguages.bilingual(isConfigured: true);
+    TranslatedNameFields.mirrorArabicOnlyName(
+      church: church,
+      english: _displayName,
+      arabic: _displayNameAr,
+    );
     try {
       final repo = ref.read(customFeatureRepositoryProvider);
       if (_isEdit) {

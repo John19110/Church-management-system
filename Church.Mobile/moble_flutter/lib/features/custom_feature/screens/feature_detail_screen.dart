@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
-import '../../../core/providers/customization_language_provider.dart';
 import '../../../core/routing/app_router.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../providers/custom_feature_providers.dart';
@@ -33,11 +32,10 @@ class FeatureDetailScreen extends ConsumerWidget {
         ),
       ),
       data: (feature) {
-        final customLang = ref.watch(resolvedCustomizationLanguageProvider);
         return Scaffold(
           appBar: AppBar(
             title: Text(
-              featureDisplayName(feature, l10n, languageCode: customLang),
+              featureDisplayName(feature, l10n),
             ),
             actions: [
               IconButton(
@@ -94,7 +92,6 @@ class FeatureDetailScreen extends ConsumerWidget {
                           entityPluralName(
                             entity,
                             l10n,
-                            languageCode: customLang,
                           ),
                         ),
                         subtitle: Text(
