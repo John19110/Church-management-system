@@ -72,14 +72,8 @@ class _CustomFieldDefinitionsScreenState
 
         return Scaffold(
           appBar: AppBar(
-            title: Text(l10n.customFieldsForEntity(widget.entityName)),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.add),
-                tooltip: l10n.createField,
-                onPressed: _openAddField,
-              ),
-            ],
+            title: Text(l10n.customFieldsForEntity(widget.entityName))
+
           ),
           floatingActionButton: FloatingActionButton.extended(
             onPressed: _openAddField,
