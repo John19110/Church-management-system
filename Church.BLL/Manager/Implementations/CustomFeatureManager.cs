@@ -384,7 +384,19 @@ namespace Church.BLL.Manager.Implementations
 
         public async Task<CustomEntityRecordReadDto?> GetRecordByIdAsync(int entityId, int recordId)
         {
-            var entity = await RequireActiveEntityForRecordAsync(entityId, requireRead: true);
+            // Soft-not-found for missing/cross-tenant entities (matches nullable API + controller 404).
+            // Mutations and GetRecordsAsync still throw via RequireActiveEntityForRecordAsync.
+            EnsureAuthenticated();
+            var entity = await _repository.GetEntityByIdAsync(entityId);
+            if (entity == null || entity.Feature == null || !entity.Feature.IsActive || !entity.IsActive)
+                return null;
+
+            var permission = PermissionForCaller(entity);
+            if (permission == null)
+                throw new UnauthorizedAccessException("You do not have access to this entity.");
+            if (!permission.CanRead)
+                throw new UnauthorizedAccessException("Read permission is required.");
+
             var record = await _repository.GetRecordByIdAsync(recordId);
             if (record == null || record.EntityId != entity.Id)
                 return null;
