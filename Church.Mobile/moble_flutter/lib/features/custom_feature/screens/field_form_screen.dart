@@ -4,10 +4,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/error/app_exception.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/l10n/organization_languages.dart';
+import '../../../core/theme/app_dimens.dart';
 import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/common_widgets.dart';
-import '../../settings/models/language_settings.dart';
 import '../../settings/providers/language_settings_providers.dart';
 import '../../settings/widgets/translated_name_fields.dart';
 import '../models/custom_feature_models.dart';
@@ -18,11 +19,7 @@ class FieldFormScreen extends ConsumerStatefulWidget {
   final int entityId;
   final CustomEntityFieldReadDto? existing;
 
-  const FieldFormScreen({
-    super.key,
-    required this.entityId,
-    this.existing,
-  });
+  const FieldFormScreen({super.key, required this.entityId, this.existing});
 
   @override
   ConsumerState<FieldFormScreen> createState() => _FieldFormScreenState();
@@ -33,13 +30,10 @@ class _OptionRow {
   final TextEditingController label;
   final TextEditingController labelAr;
 
-  _OptionRow({
-    String value = '',
-    String label = '',
-    String labelAr = '',
-  })  : value = TextEditingController(text: value),
-        label = TextEditingController(text: label),
-        labelAr = TextEditingController(text: labelAr);
+  _OptionRow({String value = '', String label = '', String labelAr = ''})
+    : value = TextEditingController(text: value),
+      label = TextEditingController(text: label),
+      labelAr = TextEditingController(text: labelAr);
 
   void dispose() {
     value.dispose();
@@ -62,6 +56,7 @@ class _FieldFormScreenState extends ConsumerState<FieldFormScreen> {
   bool _showOnDetails = true;
   int? _targetEntityId;
   bool _saving = false;
+  bool _namesSeeded = false;
   final List<_OptionRow> _options = [];
 
   bool get _isEdit => widget.existing != null;
@@ -105,17 +100,75 @@ class _FieldFormScreenState extends ConsumerState<FieldFormScreen> {
     super.dispose();
   }
 
+  void _scheduleSeedNames(AppLocalizations l10n) {
+    if (_namesSeeded || !_isEdit) return;
+    final existing = widget.existing;
+    if (existing == null) return;
+    final churchSnapshot = ref.read(churchLanguagesProvider).valueOrNull;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _namesSeeded) return;
+      final church = TranslatedNameFields.resolveLanguages(
+        church: churchSnapshot ?? ref.read(churchLanguagesProvider).valueOrNull,
+        appLanguageCode: l10n.locale.languageCode,
+      );
+      TranslatedNameFields.seedFromStored(
+        church: church,
+        english: _displayName,
+        arabic: _displayNameAr,
+        displayName: existing.displayName,
+        displayNameAr: existing.displayNameAr,
+      );
+      if (church.isArabicOnly) {
+        for (final option in _options) {
+          final ar = option.labelAr.text.trim();
+          final en = option.label.text.trim();
+          final primary = ar.isNotEmpty ? ar : en;
+          option.label.text = primary;
+          option.labelAr.text = primary;
+        }
+      }
+      _namesSeeded = true;
+    });
+  }
+
+  List<Map<String, dynamic>> _optionPayloads({required bool arabicOnly}) {
+    return _options.map((o) {
+      final label = o.label.text.trim();
+      final labelAr = arabicOnly
+          ? (o.labelAr.text.trim().isEmpty ? label : o.labelAr.text.trim())
+          : o.labelAr.text.trim();
+      final value = o.value.text.trim().isEmpty ? label : o.value.text.trim();
+      return {
+        'value': value,
+        'displayText': label.isEmpty && arabicOnly ? labelAr : label,
+        'displayTextAr': labelAr,
+      };
+    }).toList();
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
     final l10n = AppLocalizations.of(context);
-    final church = ref.read(churchLanguagesProvider).valueOrNull ??
-        ChurchLanguages.bilingual(isConfigured: true);
+    final church = TranslatedNameFields.resolveLanguages(
+      church: ref.read(churchLanguagesProvider).valueOrNull,
+      appLanguageCode: l10n.locale.languageCode,
+    );
     TranslatedNameFields.mirrorArabicOnlyName(
       church: church,
       english: _displayName,
       arabic: _displayNameAr,
     );
+    if (church.isArabicOnly) {
+      for (final option in _options) {
+        if (option.labelAr.text.trim().isEmpty) {
+          option.labelAr.text = option.label.text;
+        }
+        if (option.label.text.trim().isEmpty) {
+          option.label.text = option.labelAr.text;
+        }
+      }
+    }
     try {
       final body = <String, dynamic>{
         'displayName': _displayName.text.trim(),
@@ -132,30 +185,10 @@ class _FieldFormScreenState extends ConsumerState<FieldFormScreen> {
         body['fieldType'] = _type.apiName;
         if (_type.isEntityRef) body['targetEntityId'] = _targetEntityId;
         if (_type.isSelect) {
-          body['options'] = _options
-              .map(
-                (o) => {
-                  'value': o.value.text.trim().isEmpty
-                      ? o.label.text.trim()
-                      : o.value.text.trim(),
-                  'displayText': o.label.text.trim(),
-                  'displayTextAr': o.labelAr.text.trim(),
-                },
-              )
-              .toList();
+          body['options'] = _optionPayloads(arabicOnly: church.isArabicOnly);
         }
       } else if (_type.isSelect) {
-        body['options'] = _options
-            .map(
-              (o) => {
-                'value': o.value.text.trim().isEmpty
-                    ? o.label.text.trim()
-                    : o.value.text.trim(),
-                'displayText': o.label.text.trim(),
-                'displayTextAr': o.labelAr.text.trim(),
-              },
-            )
-            .toList();
+        body['options'] = _optionPayloads(arabicOnly: church.isArabicOnly);
       }
 
       final repo = ref.read(customFeatureRepositoryProvider);
@@ -179,6 +212,14 @@ class _FieldFormScreenState extends ConsumerState<FieldFormScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    ref.watch(churchLanguagesProvider);
+    _scheduleSeedNames(l10n);
+    final church = TranslatedNameFields.resolveLanguages(
+      church: ref.watch(churchLanguagesProvider).valueOrNull,
+      appLanguageCode: l10n.locale.languageCode,
+    );
+    final appIsArabic =
+        l10n.locale.languageCode == OrganizationLanguages.arabic;
     final entityAsync = ref.watch(customEntityProvider(widget.entityId));
     final siblingEntities = entityAsync.maybeWhen(
       data: (entity) {
@@ -225,10 +266,7 @@ class _FieldFormScreenState extends ConsumerState<FieldFormScreen> {
         key: _formKey,
         child: AppFormListView(
           children: [
-            TranslatedNameFields(
-              english: _displayName,
-              arabic: _displayNameAr,
-            ),
+            TranslatedNameFields(english: _displayName, arabic: _displayNameAr),
             DropdownButtonFormField<CustomEntityFieldType>(
               value: _type,
               decoration: InputDecoration(labelText: l10n.fieldTypeLabel),
@@ -236,7 +274,9 @@ class _FieldFormScreenState extends ConsumerState<FieldFormScreen> {
                   .map(
                     (type) => DropdownMenuItem(
                       value: type,
-                      child: Text(l10n.customFieldDataTypeLabel(fieldTypeKey(type))),
+                      child: Text(
+                        l10n.customFieldDataTypeLabel(fieldTypeKey(type)),
+                      ),
                     ),
                   )
                   .toList(),
@@ -254,18 +294,12 @@ class _FieldFormScreenState extends ConsumerState<FieldFormScreen> {
                     .map(
                       (entity) => DropdownMenuItem(
                         value: entity.id,
-                        child: Text(
-                          entityDisplayName(
-                            entity,
-                            l10n,
-                            ),
-                        ),
+                        child: Text(entityDisplayName(entity, l10n)),
                       ),
                     )
                     .toList(),
                 onChanged: (value) => setState(() => _targetEntityId = value),
-                validator: (value) =>
-                    value == null ? l10n.required : null,
+                validator: (value) => value == null ? l10n.required : null,
               ),
             AppTextField(
               controller: _placeholder,
@@ -302,28 +336,63 @@ class _FieldFormScreenState extends ConsumerState<FieldFormScreen> {
               onChanged: (v) => setState(() => _showOnDetails = v),
             ),
             if (_type.isSelect) ...[
-              const SizedBox(height: 8),
-              Text(l10n.customFieldOptions, style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                l10n.customFieldOptions,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
               ..._options.map(
                 (option) => Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: AppTextField(
+                  padding: const EdgeInsets.only(top: AppSpacing.sm),
+                  child: church.isBilingual
+                      ? Column(
+                          children: appIsArabic
+                              ? [
+                                  AppTextField(
+                                    controller: option.labelAr,
+                                    label: '${l10n.displayNameArabicLabel} *',
+                                    validator: (v) =>
+                                        v == null || v.trim().isEmpty
+                                        ? l10n.arabicNameRequired
+                                        : null,
+                                  ),
+                                  const SizedBox(height: AppSpacing.sm),
+                                  AppTextField(
+                                    controller: option.label,
+                                    label: '${l10n.displayNameEnglishLabel} *',
+                                    validator: (v) =>
+                                        v == null || v.trim().isEmpty
+                                        ? l10n.englishNameRequired
+                                        : null,
+                                  ),
+                                ]
+                              : [
+                                  AppTextField(
+                                    controller: option.label,
+                                    label: '${l10n.displayNameEnglishLabel} *',
+                                    validator: (v) =>
+                                        v == null || v.trim().isEmpty
+                                        ? l10n.englishNameRequired
+                                        : null,
+                                  ),
+                                  const SizedBox(height: AppSpacing.sm),
+                                  AppTextField(
+                                    controller: option.labelAr,
+                                    label: '${l10n.displayNameArabicLabel} *',
+                                    validator: (v) =>
+                                        v == null || v.trim().isEmpty
+                                        ? l10n.arabicNameRequired
+                                        : null,
+                                  ),
+                                ],
+                        )
+                      : AppTextField(
                           controller: option.label,
-                          label: l10n.displayNameEnglishLabel,
+                          label: '${l10n.nameLabel} *',
+                          validator: (v) => v == null || v.trim().isEmpty
+                              ? l10n.displayNameRequired
+                              : null,
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: AppTextField(
-                          controller: option.labelAr,
-                          label: l10n.displayNameArabicLabel,
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
               ),
               TextButton.icon(

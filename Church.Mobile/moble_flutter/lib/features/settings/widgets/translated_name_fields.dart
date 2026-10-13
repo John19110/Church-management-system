@@ -29,32 +29,67 @@ class TranslatedNameFields extends ConsumerWidget {
     this.singleLanguageLabel,
   });
 
+  /// Resolves which name languages the UI should collect right now.
+  static ChurchLanguages resolveLanguages({
+    required ChurchLanguages? church,
+    required String appLanguageCode,
+  }) => ChurchLanguages.forNameFields(
+    church: church,
+    appLanguageCode: appLanguageCode,
+  );
+
   /// When the church is Arabic-only, keep DisplayNameAr in sync with the single name.
   static void mirrorArabicOnlyName({
     required ChurchLanguages church,
     required TextEditingController english,
     required TextEditingController arabic,
   }) {
-    if (church.supportsArabic && !church.supportsEnglish) {
+    if (church.isArabicOnly) {
       arabic.text = english.text;
     }
+  }
+
+  /// Seeds controllers from stored API values using the effective church languages.
+  ///
+  /// For Arabic-only UI, the primary (API `displayName`) controller is filled from
+  /// the Arabic value when present so edits don't surface a stale English string.
+  static void seedFromStored({
+    required ChurchLanguages church,
+    required TextEditingController english,
+    required TextEditingController arabic,
+    required String? displayName,
+    required String? displayNameAr,
+  }) {
+    final en = displayName?.trim() ?? '';
+    final ar = displayNameAr?.trim() ?? '';
+    if (church.isArabicOnly) {
+      final primary = ar.isNotEmpty ? ar : en;
+      english.text = primary;
+      arabic.text = primary;
+      return;
+    }
+    english.text = en;
+    arabic.text = ar;
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final church = ref.watch(churchLanguagesProvider).valueOrNull ??
-        ChurchLanguages.bilingual(isConfigured: true);
+    final appCode = l10n.locale.languageCode;
+    final church = resolveLanguages(
+      church: ref.watch(churchLanguagesProvider).valueOrNull,
+      appLanguageCode: appCode,
+    );
     final showEnglish = church.supportsEnglish;
     final showArabic = church.supportsArabic;
     final bilingual = showEnglish && showArabic;
-    final appIsArabic = l10n.locale.languageCode == OrganizationLanguages.arabic;
+    final appIsArabic = appCode == OrganizationLanguages.arabic;
 
     if (!bilingual) {
       // Single language: one required field bound to the API primary displayName.
       return AppTextField(
         controller: english,
-        label: '${singleLanguageLabel ?? l10n.displayNameLabel} *',
+        label: '${singleLanguageLabel ?? l10n.nameLabel} *',
         textInputAction: TextInputAction.next,
         textCapitalization: TextCapitalization.sentences,
         validator: (v) =>
@@ -68,7 +103,7 @@ class TranslatedNameFields extends ConsumerWidget {
       textInputAction: TextInputAction.next,
       textCapitalization: TextCapitalization.sentences,
       validator: (v) =>
-          v == null || v.trim().isEmpty ? l10n.displayNameRequired : null,
+          v == null || v.trim().isEmpty ? l10n.englishNameRequired : null,
     );
 
     final arabicField = AppTextField(
@@ -77,7 +112,7 @@ class TranslatedNameFields extends ConsumerWidget {
       textInputAction: TextInputAction.next,
       textCapitalization: TextCapitalization.sentences,
       validator: (v) =>
-          v == null || v.trim().isEmpty ? l10n.displayNameRequired : null,
+          v == null || v.trim().isEmpty ? l10n.arabicNameRequired : null,
     );
 
     return Column(

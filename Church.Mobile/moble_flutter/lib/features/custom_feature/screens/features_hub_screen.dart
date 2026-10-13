@@ -8,6 +8,8 @@ import '../../../core/routing/app_router.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../auth/utils/auth_role_utils.dart';
+import '../../settings/providers/language_settings_providers.dart';
+import '../../settings/widgets/translated_name_fields.dart';
 import '../providers/custom_feature_providers.dart';
 import '../utils/custom_feature_labels.dart';
 
@@ -26,6 +28,10 @@ class FeaturesHubScreen extends ConsumerWidget {
     }
 
     final async = ref.watch(customFeaturesProvider(true));
+    final church = TranslatedNameFields.resolveLanguages(
+      church: ref.watch(churchLanguagesProvider).valueOrNull,
+      appLanguageCode: l10n.locale.languageCode,
+    );
     return Scaffold(
       appBar: AppBar(title: Text(l10n.customFeatures)),
       floatingActionButton: FloatingActionButton(
@@ -51,6 +57,17 @@ class FeaturesHubScreen extends ConsumerWidget {
             separatorBuilder: (_, __) => const SizedBox(height: 8),
             itemBuilder: (_, index) {
               final feature = features[index];
+              final subtitleParts = <String>[
+                feature.isActive ? l10n.active : l10n.inactive,
+              ];
+              if (church.isBilingual) {
+                final hasAr = (feature.displayNameAr ?? '').trim().isNotEmpty;
+                subtitleParts.add(
+                  hasAr
+                      ? '${l10n.englishShort} ✓   ${l10n.arabicShort} ✓'
+                      : l10n.arabicTranslationMissing,
+                );
+              }
               return Card(
                 child: ListTile(
                   leading: Icon(
@@ -59,18 +76,11 @@ class FeaturesHubScreen extends ConsumerWidget {
                         : Icons.extension_off_outlined,
                   ),
                   title: Text(featureDisplayName(feature, l10n)),
-                  subtitle: Text(
-                    [
-                      feature.isActive ? l10n.active : l10n.inactive,
-                      if ((feature.displayNameAr ?? '').trim().isEmpty)
-                        l10n.arabicTranslationMissing
-                      else
-                        '${l10n.englishShort} ✓   ${l10n.arabicShort} ✓',
-                    ].join('\n'),
-                  ),
+                  subtitle: Text(subtitleParts.join('\n')),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () =>
-                      context.push('${AppRoutes.customFeaturesHub}/${feature.id}'),
+                  onTap: () => context.push(
+                    '${AppRoutes.customFeaturesHub}/${feature.id}',
+                  ),
                 ),
               );
             },

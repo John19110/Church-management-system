@@ -29,7 +29,8 @@ class ChurchLanguages {
         json['defaultLanguage']?.toString(),
         supported,
       ),
-      isConfigured: json['isCustomizationLanguagesConfigured'] == true ||
+      isConfigured:
+          json['isCustomizationLanguagesConfigured'] == true ||
           json['isConfigured'] == true,
     );
   }
@@ -39,12 +40,34 @@ class ChurchLanguages {
   bool get supportsArabic =>
       OrganizationLanguages.supportsArabic(supportedLanguages);
   bool get isBilingual => OrganizationLanguages.isBilingual(supportedLanguages);
+  bool get isArabicOnly => supportsArabic && !supportsEnglish;
+  bool get isEnglishOnly => supportsEnglish && !supportsArabic;
+
+  /// Name-field visibility for Custom Fields / Features.
+  ///
+  /// Until church customization languages are configured (or while loading),
+  /// only the current application language is required — never force bilingual
+  /// English+Arabic inputs for an Arabic-only app session.
+  factory ChurchLanguages.forNameFields({
+    ChurchLanguages? church,
+    required String appLanguageCode,
+  }) {
+    if (church != null && church.isConfigured) return church;
+
+    final app = OrganizationLanguages.normalize(appLanguageCode);
+    final lang = app.isEmpty ? OrganizationLanguages.english : app;
+    return ChurchLanguages(
+      supportedLanguages: [lang],
+      defaultLanguage: lang,
+      isConfigured: false,
+    );
+  }
 
   Map<String, dynamic> toJson() => {
-        'supportedLanguages': supportedLanguages,
-        'defaultLanguage': defaultLanguage,
-        'isCustomizationLanguagesConfigured': isConfigured,
-      };
+    'supportedLanguages': supportedLanguages,
+    'defaultLanguage': defaultLanguage,
+    'isCustomizationLanguagesConfigured': isConfigured,
+  };
 }
 
 class LanguageProfile {

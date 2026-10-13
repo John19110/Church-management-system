@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/l10n/app_localizations.dart';
+import '../../settings/providers/language_settings_providers.dart';
+import '../../settings/widgets/translated_name_fields.dart';
 import '../models/custom_field_models.dart';
 import '../utils/field_display_label.dart';
 
-class FieldDefinitionCard extends StatelessWidget {
+class FieldDefinitionCard extends ConsumerWidget {
   final CustomFieldDefinitionReadDto definition;
   final VoidCallback? onTap;
   final VoidCallback? onDeactivate;
@@ -21,11 +24,15 @@ class FieldDefinitionCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isSystem = definition.isBuiltIn || definition.isSystemField;
     final displayLabel = localizedFieldDisplayLabel(definition, l10n);
+    final church = TranslatedNameFields.resolveLanguages(
+      church: ref.watch(churchLanguagesProvider).valueOrNull,
+      appLanguageCode: l10n.locale.languageCode,
+    );
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -37,10 +44,7 @@ class FieldDefinitionCard extends StatelessWidget {
         title: Row(
           children: [
             Expanded(
-              child: Text(
-                displayLabel,
-                style: theme.textTheme.titleMedium,
-              ),
+              child: Text(displayLabel, style: theme.textTheme.titleMedium),
             ),
             if (isSystem)
               Padding(
@@ -65,11 +69,13 @@ class FieldDefinitionCard extends StatelessWidget {
               style: theme.textTheme.bodySmall,
             ),
             const SizedBox(height: 4),
-            Text(
-              _translationStatus(definition, l10n),
-              style: theme.textTheme.bodySmall,
-            ),
-            const SizedBox(height: 2),
+            if (church.isBilingual) ...[
+              Text(
+                _translationStatus(definition, l10n),
+                style: theme.textTheme.bodySmall,
+              ),
+              const SizedBox(height: 2),
+            ],
             Text(
               definition.isRequired
                   ? l10n.fieldStatusRequired
@@ -107,12 +113,14 @@ class FieldDefinitionCard extends StatelessWidget {
   ) {
     final hasEn = definition.displayName.trim().isNotEmpty;
     final hasAr = (definition.displayNameAr ?? '').trim().isNotEmpty;
-    if (hasEn && hasAr) return '${l10n.englishShort} Γ£ô   ${l10n.arabicShort} Γ£ô';
+    if (hasEn && hasAr) {
+      return '${l10n.englishShort} ✓   ${l10n.arabicShort} ✓';
+    }
     if (hasEn && !hasAr) {
-      return '${l10n.englishShort} Γ£ô   ${l10n.arabicShort} ΓÜá  ${l10n.arabicTranslationMissing}';
+      return '${l10n.englishShort} ✓   ${l10n.arabicShort} ✗  ${l10n.arabicTranslationMissing}';
     }
     if (!hasEn && hasAr) {
-      return '${l10n.englishShort} ΓÜá   ${l10n.arabicShort} Γ£ô  ${l10n.englishTranslationMissing}';
+      return '${l10n.englishShort} ✗   ${l10n.arabicShort} ✓  ${l10n.englishTranslationMissing}';
     }
     return l10n.translationMissing;
   }
@@ -120,9 +128,7 @@ class FieldDefinitionCard extends StatelessWidget {
   Widget _buildTrailing(AppLocalizations l10n, ThemeData theme) {
     final menuItems = <PopupMenuEntry<String>>[];
 
-    if (definition.isActive &&
-        onDeactivate != null &&
-        definition.isDeletable) {
+    if (definition.isActive && onDeactivate != null && definition.isDeletable) {
       menuItems.add(
         PopupMenuItem(
           value: 'deactivate',
@@ -158,8 +164,11 @@ class FieldDefinitionCard extends StatelessWidget {
           value: 'delete',
           child: Row(
             children: [
-              Icon(Icons.delete_forever_outlined,
-                  size: 20, color: theme.colorScheme.error),
+              Icon(
+                Icons.delete_forever_outlined,
+                size: 20,
+                color: theme.colorScheme.error,
+              ),
               const SizedBox(width: 12),
               Text(
                 l10n.deletePermanently,

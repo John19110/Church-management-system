@@ -7,7 +7,6 @@ import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/common_widgets.dart';
-import '../../settings/models/language_settings.dart';
 import '../../settings/providers/language_settings_providers.dart';
 import '../../settings/widgets/translated_name_fields.dart';
 import '../models/custom_feature_models.dart';
@@ -28,6 +27,7 @@ class _FeatureFormScreenState extends ConsumerState<FeatureFormScreen> {
   final _displayNameAr = TextEditingController();
   bool _isActive = true;
   bool _saving = false;
+  bool _namesSeeded = false;
 
   bool get _isEdit => widget.existing != null;
 
@@ -49,12 +49,36 @@ class _FeatureFormScreenState extends ConsumerState<FeatureFormScreen> {
     super.dispose();
   }
 
+  void _scheduleSeedNames(AppLocalizations l10n) {
+    if (_namesSeeded || !_isEdit) return;
+    final existing = widget.existing;
+    if (existing == null) return;
+    final churchSnapshot = ref.read(churchLanguagesProvider).valueOrNull;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _namesSeeded) return;
+      final church = TranslatedNameFields.resolveLanguages(
+        church: churchSnapshot ?? ref.read(churchLanguagesProvider).valueOrNull,
+        appLanguageCode: l10n.locale.languageCode,
+      );
+      TranslatedNameFields.seedFromStored(
+        church: church,
+        english: _displayName,
+        arabic: _displayNameAr,
+        displayName: existing.displayName,
+        displayNameAr: existing.displayNameAr,
+      );
+      _namesSeeded = true;
+    });
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
     final l10n = AppLocalizations.of(context);
-    final church = ref.read(churchLanguagesProvider).valueOrNull ??
-        ChurchLanguages.bilingual(isConfigured: true);
+    final church = TranslatedNameFields.resolveLanguages(
+      church: ref.read(churchLanguagesProvider).valueOrNull,
+      appLanguageCode: l10n.locale.languageCode,
+    );
     TranslatedNameFields.mirrorArabicOnlyName(
       church: church,
       english: _displayName,
@@ -90,6 +114,8 @@ class _FeatureFormScreenState extends ConsumerState<FeatureFormScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    ref.watch(churchLanguagesProvider);
+    _scheduleSeedNames(l10n);
     return Scaffold(
       appBar: AppBar(
         title: Text(_isEdit ? l10n.editCustomFeature : l10n.newCustomFeature),
@@ -98,32 +124,29 @@ class _FeatureFormScreenState extends ConsumerState<FeatureFormScreen> {
         key: _formKey,
         child: AppFormListView(
           children: [
-          Text(
-            l10n.customFeaturesLanding,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          TranslatedNameFields(
-            english: _displayName,
-            arabic: _displayNameAr,
-          ),
-          if (_isEdit)
-            SwitchListTile(
-              title: Text(l10n.active),
-              value: _isActive,
-              onChanged: (v) => setState(() => _isActive = v),
+            Text(
+              l10n.customFeaturesLanding,
+              style: Theme.of(context).textTheme.bodySmall,
             ),
-          FilledButton(
-            onPressed: _saving ? null : _save,
-            child: _saving
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Text(l10n.save),
-          ),
-        ],
+            const SizedBox(height: AppSpacing.sm),
+            TranslatedNameFields(english: _displayName, arabic: _displayNameAr),
+            if (_isEdit)
+              SwitchListTile(
+                title: Text(l10n.active),
+                value: _isActive,
+                onChanged: (v) => setState(() => _isActive = v),
+              ),
+            FilledButton(
+              onPressed: _saving ? null : _save,
+              child: _saving
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(l10n.save),
+            ),
+          ],
         ),
       ),
     );

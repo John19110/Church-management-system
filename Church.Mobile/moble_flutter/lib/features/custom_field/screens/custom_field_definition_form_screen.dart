@@ -14,7 +14,6 @@ import '../../../shared/widgets/app_form_fields.dart';
 import '../../../shared/widgets/app_form_shell.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../../core/theme/app_dimens.dart';
-import '../../settings/models/language_settings.dart';
 import '../../settings/providers/language_settings_providers.dart';
 import '../../settings/widgets/translated_name_fields.dart';
 
@@ -38,11 +37,7 @@ class _OptionControllers {
   final TextEditingController value;
   final TextEditingController label;
 
-  const _OptionControllers({
-    this.id,
-    required this.value,
-    required this.label,
-  });
+  const _OptionControllers({this.id, required this.value, required this.label});
 }
 
 class _CustomFieldDefinitionFormScreenState
@@ -57,6 +52,7 @@ class _CustomFieldDefinitionFormScreenState
   bool _isReadOnly = false;
   bool _isHidden = false;
   bool _loading = false;
+  bool _namesSeeded = false;
   int? _displayPosition;
 
   final List<_OptionControllers> _options = [];
@@ -107,6 +103,28 @@ class _CustomFieldDefinitionFormScreenState
     super.dispose();
   }
 
+  void _scheduleSeedNames(AppLocalizations l10n) {
+    if (_namesSeeded || !_isEdit) return;
+    final existing = widget.existing;
+    if (existing == null) return;
+    final churchSnapshot = ref.read(churchLanguagesProvider).valueOrNull;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _namesSeeded) return;
+      final church = TranslatedNameFields.resolveLanguages(
+        church: churchSnapshot ?? ref.read(churchLanguagesProvider).valueOrNull,
+        appLanguageCode: l10n.locale.languageCode,
+      );
+      TranslatedNameFields.seedFromStored(
+        church: church,
+        english: _displayNameController,
+        arabic: _displayNameArController,
+        displayName: existing.displayName,
+        displayNameAr: existing.displayNameAr,
+      );
+      _namesSeeded = true;
+    });
+  }
+
   void _ensureDefaultPosition(List<CustomFieldDefinitionReadDto> sortedActive) {
     final positionCount = positionOptionCount(
       isCreate: !_isEdit,
@@ -131,10 +149,9 @@ class _CustomFieldDefinitionFormScreenState
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final defsQuery = (
-      entityName: widget.entityName,
-      includeInactive: true,
-    );
+    ref.watch(churchLanguagesProvider);
+    _scheduleSeedNames(l10n);
+    final defsQuery = (entityName: widget.entityName, includeInactive: true);
     final defsAsync = ref.watch(customFieldDefinitionsProvider(defsQuery));
 
     return Scaffold(
@@ -150,13 +167,11 @@ class _CustomFieldDefinitionFormScreenState
         loading: () => const LoadingWidget(useSkeleton: true),
         error: (e, _) => AppErrorWidget(
           message: userFriendlyMessage(e, l10n),
-          onRetry: () => ref.invalidate(customFieldDefinitionsProvider(defsQuery)),
+          onRetry: () =>
+              ref.invalidate(customFieldDefinitionsProvider(defsQuery)),
         ),
         data: (defs) {
-          final sortedActive = sortedActiveProvisionedFields(
-            defs,
-            l10n: l10n,
-            );
+          final sortedActive = sortedActiveProvisionedFields(defs, l10n: l10n);
           _ensureDefaultPosition(sortedActive);
           final positionCount = positionOptionCount(
             isCreate: !_isEdit,
@@ -203,7 +218,7 @@ class _CustomFieldDefinitionFormScreenState
                               localizedFieldDisplayLabel(
                                 widget.existing!,
                                 l10n,
-                                ),
+                              ),
                             ),
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
@@ -264,8 +279,10 @@ class _CustomFieldDefinitionFormScreenState
                 SwitchListTile(
                   title: Text(l10n.fieldReadOnlyLabel),
                   value: _isReadOnly,
-                  onChanged: (_isCriticalField ||
-                          (_isSystemField && widget.existing?.isReadOnly == true))
+                  onChanged:
+                      (_isCriticalField ||
+                          (_isSystemField &&
+                              widget.existing?.isReadOnly == true))
                       ? null
                       : (v) => setState(() => _isReadOnly = v),
                 ),
@@ -361,13 +378,16 @@ class _CustomFieldDefinitionFormScreenState
       return;
     }
 
-    final displayPosition = _displayPosition ??
+    final displayPosition =
+        _displayPosition ??
         positionOptionCount(isCreate: !_isEdit, sortedActive: sortedActive);
 
     var displayName = _displayNameController.text.trim();
     var displayNameAr = _displayNameArController.text.trim();
-    final church = ref.read(churchLanguagesProvider).valueOrNull ??
-        ChurchLanguages.bilingual(isConfigured: true);
+    final church = TranslatedNameFields.resolveLanguages(
+      church: ref.read(churchLanguagesProvider).valueOrNull,
+      appLanguageCode: l10n.locale.languageCode,
+    );
     TranslatedNameFields.mirrorArabicOnlyName(
       church: church,
       english: _displayNameController,
@@ -378,6 +398,8 @@ class _CustomFieldDefinitionFormScreenState
     if (displayName.isEmpty && displayNameAr.isNotEmpty) {
       displayName = displayNameAr;
     }
+    // Bilingual forms already require both fields via validators. Keep this as a
+    // safety net for programmatic/partial submissions.
     if (displayNameAr.isEmpty && displayName.isNotEmpty && church.isBilingual) {
       final saveAnyway = await showConfirmDialog(
         context,

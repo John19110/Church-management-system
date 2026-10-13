@@ -340,13 +340,10 @@ class AppLocalizations {
       _t('deleteAttendanceCriterionConfirm');
   String get criterionDisplayName => _t('criterionDisplayName');
   String get criterionDisplayNameAr => _t('criterionDisplayNameAr');
-  String get criterionDisplayNameRequired =>
-      _t('criterionDisplayNameRequired');
+  String get criterionDisplayNameRequired => _t('criterionDisplayNameRequired');
   String get criterionAddedSuccessfully => _t('criterionAddedSuccessfully');
-  String get criterionUpdatedSuccessfully =>
-      _t('criterionUpdatedSuccessfully');
-  String get criterionDeletedSuccessfully =>
-      _t('criterionDeletedSuccessfully');
+  String get criterionUpdatedSuccessfully => _t('criterionUpdatedSuccessfully');
+  String get criterionDeletedSuccessfully => _t('criterionDeletedSuccessfully');
   String get noAttendanceCriteriaYet => _t('noAttendanceCriteriaYet');
   String get active => _t('active');
   String get inactive => _t('inactive');
@@ -420,9 +417,9 @@ class AppLocalizations {
   String get searchServants => _t('searchServants');
   String get requestedAccess => _t('requestedAccess');
   String get approveRequestTitle => _t('approveRequestTitle');
-  String approveRequestBody(String name, String role) => _t('approveRequestBody')
-      .replaceAll('{name}', name)
-      .replaceAll('{role}', role);
+  String approveRequestBody(String name, String role) => _t(
+    'approveRequestBody',
+  ).replaceAll('{name}', name).replaceAll('{role}', role);
   String get rejectRequestTitle => _t('rejectRequestTitle');
   String get rejectRequestBody => _t('rejectRequestBody');
   String get requestApproved => _t('requestApproved');
@@ -454,11 +451,12 @@ class AppLocalizations {
       _t('customizationLanguagesSetupIntro');
   String get customizationLanguagesSetupPurpose =>
       _t('customizationLanguagesSetupPurpose');
-  String customizationLanguagesYourLanguage(String language) =>
-      _t('customizationLanguagesYourLanguage').replaceAll('{language}', language);
-  String customizationLanguagesOtherQuestion(String language) =>
-      _t('customizationLanguagesOtherQuestion')
-          .replaceAll('{language}', language);
+  String customizationLanguagesYourLanguage(String language) => _t(
+    'customizationLanguagesYourLanguage',
+  ).replaceAll('{language}', language);
+  String customizationLanguagesOtherQuestion(String language) => _t(
+    'customizationLanguagesOtherQuestion',
+  ).replaceAll('{language}', language);
   String get customizationLanguagesPreviewTitle =>
       _t('customizationLanguagesPreviewTitle');
   String get customizationLanguagesSummaryBody =>
@@ -491,7 +489,8 @@ class AppLocalizations {
   String get hidePassword => _t('hidePassword');
   String get loginFailedNoToken => _t('loginFailedNoToken');
   String get close => _t('close');
-  String get memberExcelConfirmUpdateTitle => _t('memberExcelConfirmUpdateTitle');
+  String get memberExcelConfirmUpdateTitle =>
+      _t('memberExcelConfirmUpdateTitle');
   String get memberExcelConfirmUpdateBody => _t('memberExcelConfirmUpdateBody');
   String get englishShort => _t('englishShort');
   String get arabicShort => _t('arabicShort');
@@ -520,7 +519,8 @@ class AppLocalizations {
   String get memberExcelExportMembers => _t('memberExcelExportMembers');
   String get memberExcelExportTitle => _t('memberExcelExportTitle');
   String get memberExcelExportHint => _t('memberExcelExportHint');
-  String get memberExcelTemplateDownloaded => _t('memberExcelTemplateDownloaded');
+  String get memberExcelTemplateDownloaded =>
+      _t('memberExcelTemplateDownloaded');
   String get memberExcelExportDownloaded => _t('memberExcelExportDownloaded');
   String get memberExcelExportNoFields => _t('memberExcelExportNoFields');
   String get memberExcelExportFieldsLoading =>
@@ -693,6 +693,8 @@ class AppLocalizations {
   String get displayNameEnglishLabel => _t('displayNameEnglishLabel');
   String get displayNameArabicLabel => _t('displayNameArabicLabel');
   String get displayNameRequired => _t('displayNameRequired');
+  String get englishNameRequired => _t('englishNameRequired');
+  String get arabicNameRequired => _t('arabicNameRequired');
   String get fieldTypeLabel => _t('fieldTypeLabel');
   String get fieldRequiredLabel => _t('fieldRequiredLabel');
   String get fieldReadOnlyLabel => _t('fieldReadOnlyLabel');
@@ -737,6 +739,7 @@ class AppLocalizations {
   String get editCustomEntity => _t('editCustomEntity');
   String get deleteCustomEntity => _t('deleteCustomEntity');
   String get deleteCustomEntityForever => _t('deleteCustomEntityForever');
+  String get pluralDisplayNameLabel => _t('pluralDisplayNameLabel');
   String get pluralDisplayNameEnglish => _t('pluralDisplayNameEnglish');
   String get pluralDisplayNameArabic => _t('pluralDisplayNameArabic');
   String get fields => _t('fields');
@@ -765,8 +768,7 @@ class AppLocalizations {
   // ── Auth extras ─────────────────────────────────────────────────────────────
   String get registrationSuccessfulPleaseSignIn =>
       _t('registrationSuccessfulPleaseSignIn');
-  String get registrationPendingApproval =>
-      _t('registrationPendingApproval');
+  String get registrationPendingApproval => _t('registrationPendingApproval');
 
   // ── Common booleans / placeholders ────────────────────────────────────────
   String get yes => _t('yes');
@@ -788,12 +790,10 @@ class AppLocalizations {
   String get landingFeaturePeopleBody => _t('landingFeaturePeopleBody');
   String get landingFeatureAttendanceTitle =>
       _t('landingFeatureAttendanceTitle');
-  String get landingFeatureAttendanceBody =>
-      _t('landingFeatureAttendanceBody');
+  String get landingFeatureAttendanceBody => _t('landingFeatureAttendanceBody');
   String get landingFeatureClassroomsTitle =>
       _t('landingFeatureClassroomsTitle');
-  String get landingFeatureClassroomsBody =>
-      _t('landingFeatureClassroomsBody');
+  String get landingFeatureClassroomsBody => _t('landingFeatureClassroomsBody');
   String get landingFeatureCustomFieldsTitle =>
       _t('landingFeatureCustomFieldsTitle');
   String get landingFeatureCustomFieldsBody =>
@@ -1383,7 +1383,8 @@ class AppLocalizations {
           'Your Excel file is ready. Click Save File to download it.',
       'memberExcelSaveFile': 'Save File',
       'memberExcelSaveFailed': 'Could not prepare the Excel file for download.',
-      'memberExcelInvalidFile': 'Please choose a valid Excel file (.xlsx or .xls).',
+      'memberExcelInvalidFile':
+          'Please choose a valid Excel file (.xlsx or .xls).',
       'memberExcelTemplateOutdated':
           'This Excel template is outdated. Please download the latest template.',
       'memberExcelInvalidColumns': 'Invalid columns',
@@ -1417,11 +1418,11 @@ class AppLocalizations {
       'memberViewAssignedOnlyTitle': 'Assigned members only',
       'memberViewAssignedOnlyDesc':
           'Servants can only view members they are assigned to.',
-      'memberViewAllAndAssignedTitle': 'Allow selected servants to view all members',
+      'memberViewAllAndAssignedTitle':
+          'Allow selected servants to view all members',
       'memberViewAllAndAssignedDesc':
           'Choose which servants can see all meeting members. Others only see their assigned members.',
-      'selectServantsForAllMembersView':
-          'Servants allowed to view all members',
+      'selectServantsForAllMembersView': 'Servants allowed to view all members',
       'noServantsInMeetingYet': 'No servants in this meeting yet.',
       'memberViewModeUpdated': 'Member view setting updated',
       'allMeetingMembers': 'All members',
@@ -1513,9 +1514,11 @@ class AppLocalizations {
       'editCustomField': 'Edit custom field',
       'newCustomField': 'New custom field',
       'displayNameLabel': 'Display name',
-      'displayNameEnglishLabel': 'Display name (English)',
-      'displayNameArabicLabel': 'Display name (Arabic)',
-      'displayNameRequired': 'Display name is required',
+      'displayNameEnglishLabel': 'English name',
+      'displayNameArabicLabel': 'Arabic name',
+      'displayNameRequired': 'Name is required',
+      'englishNameRequired': 'English name is required',
+      'arabicNameRequired': 'Arabic name is required',
       'fieldTypeLabel': 'Field type',
       'fieldRequiredLabel': 'Required',
       'fieldReadOnlyLabel': 'Read only',
@@ -1572,8 +1575,9 @@ class AppLocalizations {
       'deleteCustomEntity': 'Delete entity',
       'deleteCustomEntityForever':
           'This permanently deletes the entity, its fields, and all records.',
-      'pluralDisplayNameEnglish': 'Plural name (English)',
-      'pluralDisplayNameArabic': 'Plural name (Arabic)',
+      'pluralDisplayNameLabel': 'Plural name',
+      'pluralDisplayNameEnglish': 'English plural name',
+      'pluralDisplayNameArabic': 'Arabic plural name',
       'fields': 'Fields',
       'permissions': 'Permissions',
       'openRecords': 'Open records',
@@ -1763,8 +1767,7 @@ class AppLocalizations {
           'Review people waiting to join this church or meeting.',
       'assignedMembersScopeHint':
           'You are viewing members assigned to your classroom or group — not every member in this meeting.',
-      'allMembersScopeHint':
-          'You are viewing every member in this meeting.',
+      'allMembersScopeHint': 'You are viewing every member in this meeting.',
       'noMembersYetTitle': 'No members yet',
       'noMembersYetBody':
           'No members have been added here yet. Add a member if you have permission.',
@@ -1779,8 +1782,7 @@ class AppLocalizations {
       'pendingRequests': 'Pending Requests',
       'pendingRequestsCount': '{count} people are waiting for approval.',
       'noPendingRequests': 'No pending requests.',
-      'noPendingRequestsBody':
-          'New registration requests will appear here.',
+      'noPendingRequestsBody': 'New registration requests will appear here.',
       'activeServants': 'Active',
       'searchServants': 'Search servants...',
       'requestedAccess': 'Requested access',
@@ -1794,8 +1796,7 @@ class AppLocalizations {
       'requestRejected': 'Request rejected.',
       'requestApproveFailed':
           "We couldn't approve this request. Please try again.",
-      'requestAlreadyProcessed':
-          'This request has already been processed.',
+      'requestAlreadyProcessed': 'This request has already been processed.',
       'servantActive': 'Active',
       'churchLanguages': 'Languages',
       'churchLanguagesDescription':
@@ -2269,13 +2270,11 @@ class AppLocalizations {
       'memberExcelExportNoFields': 'اختر حقلًا واحدًا على الأقل للتصدير.',
       'memberExcelExportFieldsLoading': 'جاري تحميل حقول التصدير…',
       'memberExcelFileReadyTitle': 'الملف جاهز',
-      'memberExcelFileReadyBody':
-          'ملف Excel جاهز. اضغط "حفظ الملف" لتنزيله.',
+      'memberExcelFileReadyBody': 'ملف Excel جاهز. اضغط "حفظ الملف" لتنزيله.',
       'memberExcelSaveFile': 'حفظ الملف',
       'memberExcelSaveFailed': 'تعذر تجهيز ملف Excel للتنزيل.',
       'memberExcelInvalidFile': 'يرجى اختيار ملف Excel صالح (.xlsx أو .xls).',
-      'memberExcelTemplateOutdated':
-          'قالب Excel قديم. يرجى تحميل أحدث قالب.',
+      'memberExcelTemplateOutdated': 'قالب Excel قديم. يرجى تحميل أحدث قالب.',
       'memberExcelInvalidColumns': 'أعمدة غير صالحة',
       'memberExcelImportPreview': 'معاينة الاستيراد',
       'memberExcelTotalRows': 'إجمالي الصفوف',
@@ -2310,8 +2309,7 @@ class AppLocalizations {
       'memberViewAllAndAssignedTitle': 'السماح لخدام محددين برؤية كل الأعضاء',
       'memberViewAllAndAssignedDesc':
           'اختر الخدام الذين يمكنهم رؤية كل أعضاء الاجتماع. الباقون يرون أعضائهم المعيَّنين فقط.',
-      'selectServantsForAllMembersView':
-          'الخدام المسموح لهم برؤية كل الأعضاء',
+      'selectServantsForAllMembersView': 'الخدام المسموح لهم برؤية كل الأعضاء',
       'noServantsInMeetingYet': 'لا يوجد خدام في هذا الاجتماع بعد.',
       'memberViewModeUpdated': 'تم تحديث إعداد عرض الأعضاء',
       'allMeetingMembers': 'كل الأعضاء',
@@ -2401,9 +2399,11 @@ class AppLocalizations {
       'editCustomField': 'تعديل حقل مخصص',
       'newCustomField': 'حقل مخصص جديد',
       'displayNameLabel': 'الاسم المعروض',
-      'displayNameEnglishLabel': 'الاسم المعروض (إنجليزي)',
-      'displayNameArabicLabel': 'الاسم المعروض (عربي)',
-      'displayNameRequired': 'الاسم المعروض مطلوب',
+      'displayNameEnglishLabel': 'الاسم بالإنجليزية',
+      'displayNameArabicLabel': 'الاسم بالعربية',
+      'displayNameRequired': 'الاسم مطلوب',
+      'englishNameRequired': 'الاسم بالإنجليزية مطلوب',
+      'arabicNameRequired': 'الاسم بالعربية مطلوب',
       'fieldTypeLabel': 'نوع الحقل',
       'fieldRequiredLabel': 'إلزامي',
       'fieldReadOnlyLabel': 'للقراءة فقط',
@@ -2458,10 +2458,10 @@ class AppLocalizations {
       'newCustomEntity': 'كيان جديد',
       'editCustomEntity': 'تعديل الكيان',
       'deleteCustomEntity': 'حذف الكيان',
-      'deleteCustomEntityForever':
-          'هيتمسح الكيان والحقول والسجلات كلها نهائي.',
-      'pluralDisplayNameEnglish': 'الاسم الجمع (إنجليزي)',
-      'pluralDisplayNameArabic': 'الاسم الجمع (عربي)',
+      'deleteCustomEntityForever': 'هيتمسح الكيان والحقول والسجلات كلها نهائي.',
+      'pluralDisplayNameLabel': 'الاسم الجمع',
+      'pluralDisplayNameEnglish': 'الاسم الجمع بالإنجليزية',
+      'pluralDisplayNameArabic': 'الاسم الجمع بالعربية',
       'fields': 'الحقول',
       'permissions': 'الصلاحيات',
       'openRecords': 'فتح السجلات',
@@ -2633,8 +2633,7 @@ class AppLocalizations {
       'landingContactHint':
           'اضغط على الهاتف أو البريد للتواصل معنا بشأن الأفكار والتحسينات.',
       'landingCtaTitle': 'هل أنت مستعد لتنظيم كنيستك؟',
-      'landingCtaSubtitle':
-          'أنشئ حسابًا أو سجّل الدخول للمتابعة إلى كنيستي.',
+      'landingCtaSubtitle': 'أنشئ حسابًا أو سجّل الدخول للمتابعة إلى كنيستي.',
       'landingFooterTagline':
           'إدارة الكنيسة للاجتماعات والفصول والمخدومين والحضور والمزيد.',
       'landingPrivacyPolicy': 'سياسة الخصوصية',
@@ -2642,7 +2641,8 @@ class AppLocalizations {
       'landingBackToHome': 'العودة للرئيسية',
       'landingFooterCopyright': '© {year} كنيستي (My Church)',
       'approvals': 'الموافقات',
-      'approvalsSubtitle': 'راجع الأشخاص الذين ينتظرون الانضمام إلى هذه الكنيسة أو هذا الاجتماع.',
+      'approvalsSubtitle':
+          'راجع الأشخاص الذين ينتظرون الانضمام إلى هذه الكنيسة أو هذا الاجتماع.',
       'assignedMembersScopeHint':
           'أنت تعرض الأعضاء المعيَّنين لفصلك أو مجموعتك فقط — وليس كل أعضاء الاجتماع.',
       'allMembersScopeHint': 'أنت تعرض كل أعضاء هذا الاجتماع.',
@@ -2660,8 +2660,7 @@ class AppLocalizations {
       'pendingRequests': 'الطلبات المعلقة',
       'pendingRequestsCount': '{count} أشخاص ينتظرون الموافقة.',
       'noPendingRequests': 'لا توجد طلبات معلقة.',
-      'noPendingRequestsBody':
-          'ستظهر طلبات التسجيل الجديدة هنا.',
+      'noPendingRequestsBody': 'ستظهر طلبات التسجيل الجديدة هنا.',
       'activeServants': 'النشطون',
       'searchServants': 'ابحث عن الخدام...',
       'requestedAccess': 'الوصول المطلوب',
@@ -2669,14 +2668,11 @@ class AppLocalizations {
       'approveRequestBody':
           'ستتم إضافة {name} كـ {role} وسيحصل على الصلاحيات المعرّفة لهذا الاجتماع.',
       'rejectRequestTitle': 'رفض هذا الطلب؟',
-      'rejectRequestBody':
-          'لن يُمنح هذا الشخص وصولاً إلى هذا الاجتماع.',
+      'rejectRequestBody': 'لن يُمنح هذا الشخص وصولاً إلى هذا الاجتماع.',
       'requestApproved': 'تمت الموافقة على الطلب بنجاح.',
       'requestRejected': 'تم رفض الطلب.',
-      'requestApproveFailed':
-          'تعذرت الموافقة على هذا الطلب. حاول مرة أخرى.',
-      'requestAlreadyProcessed':
-          'تمت معالجة هذا الطلب مسبقاً.',
+      'requestApproveFailed': 'تعذرت الموافقة على هذا الطلب. حاول مرة أخرى.',
+      'requestAlreadyProcessed': 'تمت معالجة هذا الطلب مسبقاً.',
       'servantActive': 'نشط',
       'churchLanguages': 'اللغات',
       'churchLanguagesDescription':
@@ -2717,8 +2713,7 @@ class AppLocalizations {
       'continueLabel': 'متابعة',
       'editLabel': 'تعديل',
       'chooseYourLanguage': 'اختر لغتك',
-      'chooseYourLanguageHint':
-          'اختر اللغة التي تريد استخدامها في كنيستي.',
+      'chooseYourLanguageHint': 'اختر اللغة التي تريد استخدامها في كنيستي.',
       'arabicTranslationOptional': 'الترجمة العربية اختيارية.',
       'translationMissing': 'الترجمة غير مكتملة',
       'missingTranslationWarning':
@@ -2728,8 +2723,7 @@ class AppLocalizations {
       'customizeYourChurch': 'خصّص كنيستك',
       'customizationIntro':
           'الحقول المخصصة تخزن معلومات إضافية. الميزات المخصصة تضيف وظائف إضافية.',
-      'customFieldsLanding':
-          'أضف معلومات إضافية خاصة بكنيستك أو اجتماعك.',
+      'customFieldsLanding': 'أضف معلومات إضافية خاصة بكنيستك أو اجتماعك.',
       'customFieldsExamples':
           'مثال: تاريخ الميلاد، المدرسة، العنوان، أو الخدمة.',
       'customFeaturesLanding':
