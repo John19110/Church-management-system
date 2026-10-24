@@ -140,6 +140,7 @@ class AppLocalizations {
   String get contactHasNoPhone => _t('contactHasNoPhone');
   String get selectContactPhoneNumber => _t('selectContactPhoneNumber');
   String get contactsPickerUnavailable => _t('contactsPickerUnavailable');
+  String get contactsPickerFailed => _t('contactsPickerFailed');
   String get removeBrother => _t('removeBrother');
   String get removeNote => _t('removeNote');
   String get phoneRelationMember => _t('phoneRelationMember');
@@ -1079,7 +1080,9 @@ class AppLocalizations {
       'contactHasNoPhone': 'That contact has no phone number.',
       'selectContactPhoneNumber': 'Select a phone number',
       'contactsPickerUnavailable':
-          'Contact picker is not available on this device.',
+          'Contact selection is not supported in this browser. Enter or paste the phone number instead.',
+      'contactsPickerFailed':
+          'Could not open the contact picker. Enter or paste the phone number instead.',
       'removeBrother': 'Remove brother',
       'removeNote': 'Remove note',
       'phoneRelationMember': 'Member',
@@ -1975,7 +1978,9 @@ class AppLocalizations {
       'contactHasNoPhone': 'جهة الاتصال هذه لا تحتوي على رقم هاتف.',
       'selectContactPhoneNumber': 'اختر رقم هاتف',
       'contactsPickerUnavailable':
-          'منتقي جهات الاتصال غير متاح على هذا الجهاز.',
+          'اختيار جهات الاتصال غير مدعوم في هذا المتصفح. أدخل رقم الهاتف أو الصقه يدوياً.',
+      'contactsPickerFailed':
+          'تعذر فتح منتقي جهات الاتصال. أدخل رقم الهاتف أو الصقه يدوياً.',
       'removeBrother': 'إزالة أخ',
       'removeNote': 'إزالة ملاحظة',
       'phoneRelationMember': 'المخدوم',

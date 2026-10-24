@@ -6,24 +6,34 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../shared/widgets/common_widgets.dart';
 import '../../auth/utils/phone_number_validator.dart';
+import 'web_contact_picker.dart';
 
-/// Opens the device native contact picker and returns a phone number only.
+/// Opens a platform contact picker and returns a phone number only.
 ///
-/// Flow (Android/iOS):
+/// **Android / iOS**
 /// 1. Open the **permissionless** native contact picker (visible UI on tap).
 /// 2. After a contact is chosen, request READ contacts permission.
 /// 3. Load that contact's phone numbers and return one.
+///
+/// **Web**
+/// Uses the browser Contact Picker API (`navigator.contacts.select`) when
+/// available (typically Chromium on Android over HTTPS). No separate
+/// Permissions API request — the picker itself is the consent UI. Unsupported
+/// browsers keep the manual phone field and show a short explanation.
 ///
 /// Contacts are never stored or uploaded — only the chosen number is returned.
 abstract final class ContactPhonePicker {
   static Future<String?> pickPhoneNumber(BuildContext context) async {
     final l10n = AppLocalizations.of(context);
 
-    if (kIsWeb ||
-        (defaultTargetPlatform != TargetPlatform.android &&
-            defaultTargetPlatform != TargetPlatform.iOS)) {
+    if (kIsWeb) {
+      return _pickPhoneNumberWeb(context, l10n);
+    }
+
+    if (defaultTargetPlatform != TargetPlatform.android &&
+        defaultTargetPlatform != TargetPlatform.iOS) {
       if (context.mounted) {
-        showErrorSnackbar(context, l10n.contactsPickerUnavailable);
+        showInfoSnackbar(context, l10n.contactsPickerUnavailable);
       }
       return null;
     }
@@ -64,7 +74,7 @@ abstract final class ContactPhonePicker {
     } on MissingPluginException catch (e, st) {
       debugPrint('ContactPhonePicker MissingPluginException: $e\n$st');
       if (context.mounted) {
-        showErrorSnackbar(context, l10n.contactsPickerUnavailable);
+        showInfoSnackbar(context, l10n.contactsPickerUnavailable);
       }
       return null;
     } on PlatformException catch (e, st) {
@@ -72,13 +82,67 @@ abstract final class ContactPhonePicker {
         'ContactPhonePicker PlatformException: ${e.code} ${e.message}\n$st',
       );
       if (context.mounted) {
-        showErrorSnackbar(context, l10n.contactsPickerUnavailable);
+        showInfoSnackbar(context, l10n.contactsPickerUnavailable);
       }
       return null;
     } catch (e, st) {
       debugPrint('ContactPhonePicker error: $e\n$st');
       if (context.mounted) {
         showErrorSnackbar(context, l10n.contactsPickerUnavailable);
+      }
+      return null;
+    }
+  }
+
+  /// Browser Contact Picker — no await before [pickWebContactPhones] so the
+  /// click's user activation is still valid when `select()` runs.
+  static Future<String?> _pickPhoneNumberWeb(
+    BuildContext context,
+    AppLocalizations l10n,
+  ) async {
+    if (!isWebContactPickerSupported()) {
+      if (context.mounted) {
+        showInfoSnackbar(context, l10n.contactsPickerUnavailable);
+      }
+      return null;
+    }
+
+    try {
+      final result = await pickWebContactPhones();
+      if (!context.mounted) return null;
+
+      switch (result.kind) {
+        case WebContactPickKind.cancelled:
+          return null;
+        case WebContactPickKind.unsupported:
+          showInfoSnackbar(context, l10n.contactsPickerUnavailable);
+          return null;
+        case WebContactPickKind.noPhone:
+          showErrorSnackbar(context, l10n.contactHasNoPhone);
+          return null;
+        case WebContactPickKind.failed:
+          showErrorSnackbar(context, l10n.contactsPickerFailed);
+          return null;
+        case WebContactPickKind.success:
+          break;
+      }
+
+      final phones = result.phones;
+      if (phones.isEmpty) {
+        showErrorSnackbar(context, l10n.contactHasNoPhone);
+        return null;
+      }
+
+      final raw = phones.length == 1
+          ? phones.first
+          : await _chooseRawPhone(context, l10n, phones);
+      if (raw == null || !context.mounted) return null;
+
+      return _normalizeRawPhone(raw);
+    } catch (e, st) {
+      debugPrint('ContactPhonePicker web error: $e\n$st');
+      if (context.mounted) {
+        showErrorSnackbar(context, l10n.contactsPickerFailed);
       }
       return null;
     }
@@ -211,11 +275,61 @@ abstract final class ContactPhonePicker {
     );
   }
 
+  static Future<String?> _chooseRawPhone(
+    BuildContext context,
+    AppLocalizations l10n,
+    List<String> phones,
+  ) {
+    return showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) {
+        return SafeArea(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(ctx).height * 0.5,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                  child: Text(
+                    l10n.selectContactPhoneNumber,
+                    style: Theme.of(ctx).textTheme.titleMedium,
+                  ),
+                ),
+                Flexible(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: phones.length,
+                    itemBuilder: (context, index) {
+                      final phone = phones[index];
+                      return ListTile(
+                        leading: const Icon(Icons.phone_outlined),
+                        title: Text(phone),
+                        onTap: () => Navigator.of(ctx).pop(phone),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   static String _forFormField(Phone phone) {
     final raw = (phone.normalizedNumber?.trim().isNotEmpty == true)
         ? phone.normalizedNumber!.trim()
         : phone.number.trim();
+    return _normalizeRawPhone(raw);
+  }
 
+  static String _normalizeRawPhone(String raw) {
     final normalized = PhoneNumberValidator.normalize(raw);
     if (normalized != null) return normalized;
 
