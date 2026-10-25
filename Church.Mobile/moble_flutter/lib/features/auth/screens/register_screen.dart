@@ -73,10 +73,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   // Requested role for existing-church member registration.
   String _requestedRole = 'Servant';
+  /// Preferred UI language for join-existing-church registration.
+  /// New-church admin forms omit language UI and rely on backend defaults,
+  /// with preferred language taken from the current app locale when submitted.
   String _preferredLanguage = OrganizationLanguages.arabic;
-  bool _supportEnglish = true;
-  bool _supportArabic = true;
-  String _defaultLanguage = OrganizationLanguages.english;
   List<String> _existingChurchLanguages = OrganizationLanguages.bilingual;
 
   // Church/Meeting admin controllers
@@ -153,14 +153,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     } catch (_) {
       // Keep bilingual options until the church is identified.
     }
-  }
-
-  String get _supportedLanguagesPayload {
-    final codes = <String>[
-      if (_supportEnglish) OrganizationLanguages.english,
-      if (_supportArabic) OrganizationLanguages.arabic,
-    ];
-    return codes.join(',');
   }
 
   @override
@@ -426,6 +418,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           break;
 
         case _RegisterType.churchAdmin:
+          // Church languages omit UI: backend defaults to bilingual (en,ar).
+          // Preferred language follows the current app locale when set.
           result = await ref.read(authRepositoryProvider)
               .registerChurchSuperAdmin(
             RegisterChurchSuperAdminDto(
@@ -437,14 +431,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               birthDate: _birthController.text.trim().nullIfEmpty,
               joiningDate: _joiningController.text.trim().nullIfEmpty,
               image: _image,
-              supportedLanguages: _supportedLanguagesPayload,
-              defaultLanguage: _defaultLanguage,
               preferredLanguage: _preferredLanguage,
             ),
           );
           break;
 
         case _RegisterType.meetingAdmin:
+          // Same language defaults as church-admin registration (no language UI).
           result = await ref.read(authRepositoryProvider).registerMeetingAdmin(
             RegisterMeetingAdminDto(
               name: _nameController.text.trim(),
@@ -459,8 +452,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               birthDate: _birthController.text.trim().nullIfEmpty,
               joiningDate: _joiningController.text.trim().nullIfEmpty,
               image: _image,
-              supportedLanguages: _supportedLanguagesPayload,
-              defaultLanguage: _defaultLanguage,
               preferredLanguage: _preferredLanguage,
             ),
           );
@@ -867,14 +858,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           : null,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  _churchLanguageFields(),
-                  _preferredLanguageFields(
-                    supported: [
-                      if (_supportEnglish) OrganizationLanguages.english,
-                      if (_supportArabic) OrganizationLanguages.arabic,
-                    ],
-                  ),
                 ],
 
                 if (_selectedType == _RegisterType.meetingAdmin) ...[
@@ -891,15 +874,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           : null,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  _churchLanguageFields(),
-                  _preferredLanguageFields(
-                    supported: [
-                      if (_supportEnglish) OrganizationLanguages.english,
-                      if (_supportArabic) OrganizationLanguages.arabic,
-                    ],
-                  ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.md),
                   AppTextField(
                     controller: _meetingNameController,
                     focusNode: _meetingNameFocus,
@@ -1001,67 +976,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         ),
       ),
     ),
-    );
-  }
-
-  Widget _churchLanguageFields() {
-    final l10n = AppLocalizations.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(l10n.churchLanguages, style: Theme.of(context).textTheme.titleSmall),
-        const SizedBox(height: 8),
-        Text(l10n.churchLanguagesDescription),
-        CheckboxListTile(
-          value: _supportEnglish,
-          title: Text(l10n.english),
-          onChanged: (value) {
-            if (value == false && !_supportArabic) return;
-            setState(() {
-              _supportEnglish = value ?? true;
-              if (!_supportEnglish) {
-                _defaultLanguage = OrganizationLanguages.arabic;
-                _preferredLanguage = OrganizationLanguages.arabic;
-              }
-            });
-          },
-        ),
-        CheckboxListTile(
-          value: _supportArabic,
-          title: Text(l10n.arabic),
-          onChanged: (value) {
-            if (value == false && !_supportEnglish) return;
-            setState(() {
-              _supportArabic = value ?? true;
-              if (!_supportArabic) {
-                _defaultLanguage = OrganizationLanguages.english;
-                _preferredLanguage = OrganizationLanguages.english;
-              }
-            });
-          },
-        ),
-        DropdownButtonFormField<String>(
-          initialValue: _defaultLanguage,
-          decoration: InputDecoration(labelText: l10n.defaultLanguage),
-          items: [
-            if (_supportEnglish)
-              DropdownMenuItem(
-                value: OrganizationLanguages.english,
-                child: Text(l10n.english),
-              ),
-            if (_supportArabic)
-              DropdownMenuItem(
-                value: OrganizationLanguages.arabic,
-                child: Text(l10n.arabic),
-              ),
-          ],
-          onChanged: (value) {
-            if (value == null) return;
-            setState(() => _defaultLanguage = value);
-          },
-        ),
-        const SizedBox(height: 16),
-      ],
     );
   }
 
