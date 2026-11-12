@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Privacy Policy for the My Church application.">
+  <title>Privacy Policy | My Church</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f6fa;
+      --surface: #ffffff;
+      --text: #161c27;
+      --muted: #5b6575;
+      --primary: #2563eb;
+      --border: #e4e8f0;
+      --shadow: 0 16px 40px rgba(22, 28, 39, .08);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        color-scheme: dark;
+        --bg: #0e1622;
+        --surface: #18212f;
+        --text: #e7ecf3;
+        --muted: #9ba6b6;
+        --primary: #60a5fa;
+        --border: #2a3546;
+        --shadow: none;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 16px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Arabic", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+    }
+    .wrap {
+      width: min(860px, calc(100% - 32px));
+      margin: 28px auto 48px;
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      letter-spacing: .01em;
+    }
+    .mark {
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      color: #fff;
+      background: var(--primary);
+      font-size: 22px;
+    }
+    .lang {
+      display: inline-flex;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+      background: var(--surface);
+    }
+    .lang button {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      padding: 8px 14px;
+      font: inherit;
+      font-weight: 650;
+      cursor: pointer;
+    }
+    .lang button[aria-pressed="true"] {
+      background: var(--primary);
+      color: #fff;
+    }
+    article {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: clamp(22px, 4.5vw, 44px);
+      box-shadow: var(--shadow);
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.8rem, 5vw, 2.5rem);
+      line-height: 1.2;
+    }
+    h2 {
+      margin: 1.75rem 0 .7rem;
+      color: var(--primary);
+      font-size: 1.15rem;
+    }
+    p, li { color: var(--muted); }
+    ul { padding-inline-start: 1.2rem; }
+    li { margin: .35rem 0; }
+    a { color: var(--primary); font-weight: 650; }
+    .meta { color: var(--muted); margin: 0 0 1.2rem; }
+    .hidden { display: none; }
+    footer {
+      margin-top: 18px;
+      text-align: center;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+    [dir="rtl"] article { text-align: right; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="toolbar">
+      <div class="brand">
+        <span class="mark" aria-hidden="true">✝</span>
+        <span>My Church</span>
+      </div>
+      <div class="lang" role="group" aria-label="Language">
+        <button type="button" id="btn-en" aria-pressed="true">English</button>
+        <button type="button" id="btn-ar" aria-pressed="false">العربية</button>
+      </div>
+    </div>
+
+    <article id="panel-en" lang="en" dir="ltr">
+      <h1>Privacy Policy</h1>
+      <p class="meta"><strong>Effective date:</strong> November 12, 2026</p>
+      <p>
+        This Privacy Policy describes how <strong>My Church</strong> (“the App”, “we”)
+        collects, uses, stores, and shares information when you use the My Church mobile
+        and web applications and related backend services for church administration.
+      </p>
+
+      <h2>1. Who this policy covers</h2>
+      <p>
+        My Church is a church-management application used by authorized church staff
+        (for example administrators and servants) to manage membership, classes,
+        meetings, attendance, and related records for their church.
+      </p>
+
+      <h2>2. Information we collect</h2>
+      <p>Depending on how the App is used, we may process:</p>
+      <ul>
+        <li>
+          <strong>Account information:</strong> display name, phone number used as the
+          login identifier, password (stored as a secure hash), account role, church/meeting
+          association, approval status, and preferred language (English or Arabic).
+        </li>
+        <li>
+          <strong>Profile information:</strong> optional profile photo, birth date, and
+          church joining date where provided.
+        </li>
+        <li>
+          <strong>Church operational records:</strong> member and class information entered
+          by authorized users (for example names, gender, address, dates of birth, guardian
+          phone numbers, notes, attendance, exams, custom fields, and related church records).
+        </li>
+        <li>
+          <strong>Uploaded files:</strong> profile and member images selected by the user;
+          Excel files imported or exported for membership management.
+        </li>
+        <li>
+          <strong>Device and app data on your device:</strong> authentication tokens stored
+          securely on the device; local preferences (such as language and theme); and, when
+          notifications are enabled, notification content cached locally for an in-app inbox.
+        </li>
+        <li>
+          <strong>Technical information:</strong> limited diagnostic and network information
+          needed to operate and secure the service (for example standard server logs).
+        </li>
+      </ul>
+      <p>
+        The App does <strong>not</strong> use Firebase Authentication, Cloud Firestore, or
+        Firebase Storage for account or church data. Account and church records are stored in
+        our application database. Images are stored on our application servers.
+      </p>
+
+      <h2>3. Permissions and local device access</h2>
+      <ul>
+        <li><strong>Internet:</strong> required to communicate with our servers.</li>
+        <li>
+          <strong>Notifications:</strong> optional; used to deliver church-related messages
+          through Firebase Cloud Messaging when enabled.
+        </li>
+        <li>
+          <strong>Photo / media selection:</strong> the App lets you choose an image through
+          the system photo picker for profile or member photos. The App does not require
+          broad access to your entire photo or video library.
+        </li>
+        <li>
+          <strong>Contacts:</strong> optional “Select from Contacts” helps fill a phone-number
+          field. The App reads only the contact you select for that purpose and does not upload
+          or store your full contact list.
+        </li>
+      </ul>
+
+      <h2>4. How we use information</h2>
+      <ul>
+        <li>Create, authenticate, and manage user accounts (phone number and password, JWT sessions).</li>
+        <li>Provide church-management features (members, meetings, classes, attendance, custom fields, Excel import/export).</li>
+        <li>Store and display profile and member photos you upload.</li>
+        <li>Send optional push notifications related to the service.</li>
+        <li>Protect security, prevent abuse, troubleshoot issues, and meet legal obligations.</li>
+      </ul>
+
+      <h2>5. How information is stored and protected</h2>
+      <ul>
+        <li>Account credentials use hashed password storage through our identity system.</li>
+        <li>Session tokens are issued by our API and stored in secure on-device storage in the mobile app.</li>
+        <li>Application data is hosted on our cloud backend and database providers.</li>
+        <li>We apply reasonable administrative and technical safeguards. No method of transmission or storage is 100% secure.</li>
+      </ul>
+
+      <h2>6. Sharing with third parties</h2>
+      <p>We do <strong>not sell</strong> personal information.</p>
+      <p>Information may be shared only:</p>
+      <ul>
+        <li>With authorized users and administrators of your church within the App.</li>
+        <li>
+          With service providers that help operate the App, such as cloud hosting for the API
+          and database, and Google Firebase for push notifications (and Firebase Hosting for
+          the web app where used).
+        </li>
+        <li>When required by law or to protect rights, safety, and security.</li>
+      </ul>
+      <p>
+        Those providers process information under their own terms and privacy policies for
+        the services they provide to us.
+      </p>
+
+      <h2>7. Retention</h2>
+      <p>
+        We retain account and church operational data while needed to provide the service to
+        your church, or as required by law or legitimate operational needs (including security,
+        fraud prevention, and dispute resolution).
+      </p>
+      <p>
+        Encrypted disaster-recovery backups may contain deleted information for up to
+        <strong>30 days</strong>, after which backups are rotated. If a backup is restored,
+        deletion requests are reapplied.
+      </p>
+
+      <h2>8. Account deletion and your rights</h2>
+      <p>
+        You may permanently delete your account from the Profile screen in the App, or follow
+        the instructions on our
+        <a href="account-deletion/">Account Deletion page</a>.
+      </p>
+      <p>
+        Account deletion removes your login account, credentials, authentication records,
+        roles, contact details used for your account, registration data, profile photo,
+        servant profile data tied to your account, assignments, and personal custom-field
+        values. Issued authentication tokens are rejected after deletion.
+      </p>
+      <p>
+        Shared church records (for example membership or attendance records that belong to
+        the church organization) may remain where removing them would disrupt other users’
+        records; references to your deleted account are removed or anonymized where applicable.
+      </p>
+      <p>
+        Subject to applicable law, you may also request access to or correction of your
+        personal information by contacting us.
+      </p>
+
+      <h2>9. Children’s information</h2>
+      <p>
+        My Church is used for church administration and may include records about children
+        that authorized church staff enter as part of membership and class management.
+        The App is not directed at children creating their own accounts. We do not knowingly
+        collect personal information directly from children for account creation without
+        appropriate parent, guardian, or church authorization.
+      </p>
+
+      <h2>10. International processing</h2>
+      <p>
+        Our service providers may process data in the countries where they operate. If you
+        use the App, your information may be processed outside your country of residence.
+      </p>
+
+      <h2>11. Changes to this policy</h2>
+      <p>
+        We may update this Privacy Policy from time to time. The effective date at the top
+        of this page will be revised when changes are posted.
+      </p>
+
+      <h2>12. Contact</h2>
+      <p>
+        Questions about this Privacy Policy or privacy requests:<br>
+        <strong>Email:</strong>
+        <a href="mailto:johnpolis122@gmail.com">johnpolis122@gmail.com</a>
+      </p>
+    </article>
+
+    <article id="panel-ar" class="hidden" lang="ar" dir="rtl">
+      <h1>سياسة الخصوصية</h1>
+      <p class="meta"><strong>تاريخ السريان:</strong> 12 نوفمبر 2026</p>
+      <p>
+        توضح سياسة الخصوصية هذه كيف يجمع تطبيق <strong>كنيستي (My Church)</strong> المعلومات
+        ويستخدمها ويخزّنها ويشاركها عند استخدام تطبيقات الجوال والويب والخدمات الخلفية المرتبطة
+        بإدارة شؤون الكنيسة.
+      </p>
+
+      <h2>1. نطاق السياسة</h2>
+      <p>
+        كنيستي تطبيق لإدارة الكنيسة يستخدمه المسؤولون والخدام المصرّح لهم لإدارة العضوية
+        والفصول والاجتماعات والحضور والسجلات ذات الصلة داخل كنيستهم.
+      </p>
+
+      <h2>2. المعلومات التي نجمعها</h2>
+      <ul>
+        <li>
+          <strong>معلومات الحساب:</strong> الاسم المعروض، رقم الهاتف المستخدم لتسجيل الدخول،
+          كلمة المرور (مخزّنة كتجزئة آمنة)، الدور، ارتباط الكنيسة/الاجتماع، حالة الاعتماد،
+          واللغة المفضّلة (العربية أو الإنجليزية).
+        </li>
+        <li>
+          <strong>معلومات الملف الشخصي:</strong> صورة اختيارية، تاريخ الميلاد، وتاريخ الانضمام
+          للكنيسة عند تقديمها.
+        </li>
+        <li>
+          <strong>سجلات تشغيل الكنيسة:</strong> بيانات الأعضاء والفصول التي يدخلها المستخدمون
+          المصرّح لهم (مثل الأسماء والعنوان وتواريخ الميلاد وأرقام هواتف أولياء الأمور
+          والملاحظات والحضور والحقول المخصّصة).
+        </li>
+        <li>
+          <strong>الملفات المرفوعة:</strong> صور الملف الشخصي أو الأعضاء، وملفات Excel
+          المستوردة أو المُصدَّرة لإدارة العضوية.
+        </li>
+        <li>
+          <strong>بيانات على جهازك:</strong> رمز المصادقة المخزّن بأمان، وتفضيلات اللغة والمظهر،
+          ومحتوى الإشعارات المخزّن محليًا عند تفعيل الإشعارات.
+        </li>
+        <li>
+          <strong>معلومات تقنية محدودة:</strong> سجلات تشغيل وأمان لازمة لعمل الخدمة.
+        </li>
+      </ul>
+      <p>
+        لا يستخدم التطبيق Firebase Authentication أو Cloud Firestore أو Firebase Storage
+        لحسابات أو بيانات الكنيسة. تُخزَّن السجلات في قاعدة بيانات التطبيق، وتُخزَّن الصور
+        على خوادم التطبيق.
+      </p>
+
+      <h2>3. الأذونات والوصول المحلي</h2>
+      <ul>
+        <li><strong>الإنترنت:</strong> مطلوب للاتصال بخوادمنا.</li>
+        <li><strong>الإشعارات:</strong> اختيارية عبر Firebase Cloud Messaging.</li>
+        <li>
+          <strong>اختيار الصور:</strong> عبر منتقي النظام لاختيار صورة واحدة. لا يتطلب التطبيق
+          وصولًا واسعًا إلى مكتبة الصور أو الفيديو بالكامل.
+        </li>
+        <li>
+          <strong>جهات الاتصال:</strong> اختيار اختياري لملء رقم هاتف. لا يتم رفع قائمة جهات
+          الاتصال بالكامل أو تخزينها.
+        </li>
+      </ul>
+
+      <h2>4. كيف نستخدم المعلومات</h2>
+      <ul>
+        <li>إنشاء الحسابات والمصادقة عليها وإدارتها.</li>
+        <li>توفير ميزات إدارة الكنيسة (الأعضاء والاجتماعات والحضور والاستيراد/التصدير).</li>
+        <li>تخزين وعرض الصور التي ترفعها.</li>
+        <li>إرسال إشعارات اختيارية متعلقة بالخدمة.</li>
+        <li>حماية الأمان ومعالجة الأعطال والامتثال للالتزامات القانونية.</li>
+      </ul>
+
+      <h2>5. التخزين والحماية</h2>
+      <ul>
+        <li>تُخزَّن كلمات المرور بشكل مجزأ عبر نظام الهوية.</li>
+        <li>تُخزَّن رموز الجلسة بأمان على الجهاز في تطبيق الجوال.</li>
+        <li>تُستضاف البيانات عبر مزوّدي الحوسبة السحابية وقاعدة البيانات.</li>
+        <li>نطبّق ضمانات إدارية وتقنية معقولة، مع العلم أنه لا توجد حماية مطلقة.</li>
+      </ul>
+
+      <h2>6. المشاركة مع أطراف ثالثة</h2>
+      <p>نحن <strong>لا نبيع</strong> المعلومات الشخصية.</p>
+      <ul>
+        <li>مع مستخدمي كنيستك المصرّح لهم داخل التطبيق.</li>
+        <li>مع مزوّدي الخدمة مثل الاستضافة وقاعدة البيانات وFirebase للإشعارات.</li>
+        <li>عند الاقتضاء بموجب القانون أو لحماية الحقوق والأمان.</li>
+      </ul>
+
+      <h2>7. الاحتفاظ بالبيانات</h2>
+      <p>
+        نحتفظ بالبيانات طالما كانت لازمة لتقديم الخدمة أو وفق القانون أو الاحتياجات التشغيلية
+        المشروعة. قد تحتوي النسخ الاحتياطية المشفّرة على معلومات محذوفة لمدة تصل إلى
+        <strong>30 يومًا</strong> ثم تُدار بالتدوير المعتاد.
+      </p>
+
+      <h2>8. حذف الحساب وحقوقك</h2>
+      <p>
+        يمكنك حذف حسابك نهائيًا من شاشة الملف الشخصي، أو عبر
+        <a href="account-deletion/">صفحة حذف الحساب</a>.
+      </p>
+      <p>
+        يحذف ذلك حساب الدخول وبيانات الاعتماد وسجلات المصادقة والبيانات الشخصية المرتبطة
+        بحسابك وصورة الملف وبيانات الخادم المرتبطة بحسابك. قد تبقى سجلات الكنيسة المشتركة
+        عندما يكون حذفها مؤثرًا على مستخدمين آخرين، مع إزالة أو إخفاء هوية الإشارات إلى حسابك
+        المحذوف حيث ينطبق ذلك.
+      </p>
+
+      <h2>9. معلومات الأطفال</h2>
+      <p>
+        قد يتضمن التطبيق سجلات عن الأطفال يدخلها مسؤولو الكنيسة ضمن إدارة العضوية والفصول.
+        التطبيق غير موجّه لإنشاء حسابات من قِبل الأطفال مباشرة دون تفويض مناسب من ولي الأمر
+        أو مسؤول الكنيسة.
+      </p>
+
+      <h2>10. التغييرات</h2>
+      <p>
+        قد نحدّث هذه السياسة من وقت لآخر. سيتم تحديث تاريخ السريان أعلى الصفحة عند نشر التغييرات.
+      </p>
+
+      <h2>11. التواصل</h2>
+      <p>
+        للاستفسارات أو طلبات الخصوصية:<br>
+        <strong>البريد الإلكتروني:</strong>
+        <a href="mailto:johnpolis122@gmail.com">johnpolis122@gmail.com</a>
+      </p>
+    </article>
+
+    <footer>© 2026 My Church. All rights reserved.</footer>
+  </div>
+
+  <script>
+    (function () {
+      var en = document.getElementById('panel-en');
+      var ar = document.getElementById('panel-ar');
+      var btnEn = document.getElementById('btn-en');
+      var btnAr = document.getElementById('btn-ar');
+
+      function setLang(which) {
+        var isAr = which === 'ar';
+        en.classList.toggle('hidden', isAr);
+        ar.classList.toggle('hidden', !isAr);
+        btnEn.setAttribute('aria-pressed', String(!isAr));
+        btnAr.setAttribute('aria-pressed', String(isAr));
+        document.documentElement.lang = isAr ? 'ar' : 'en';
+        document.documentElement.dir = isAr ? 'rtl' : 'ltr';
+        try { localStorage.setItem('my-church-privacy-lang', isAr ? 'ar' : 'en'); } catch (e) {}
+      }
+
+      btnEn.addEventListener('click', function () { setLang('en'); });
+      btnAr.addEventListener('click', function () { setLang('ar'); });
+
+      var initial = 'en';
+      try {
+        var saved = localStorage.getItem('my-church-privacy-lang');
+        if (saved === 'ar' || saved === 'en') initial = saved;
+        else if ((navigator.language || '').toLowerCase().startsWith('ar')) initial = 'ar';
+      } catch (e) {}
+      setLang(initial);
+    })();
+  </script>
+</body>
+</html>
