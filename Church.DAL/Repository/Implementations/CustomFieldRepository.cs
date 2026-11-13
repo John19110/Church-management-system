@@ -239,6 +239,7 @@ namespace Church.DAL.Repository.Implementations
                 CustomFieldEntityNames.Classroom => await _context.Classrooms.AnyAsync(c => c.Id == entityId),
                 CustomFieldEntityNames.Servant => await _context.Servants.AnyAsync(s => s.Id == entityId),
                 CustomFieldEntityNames.Meeting => await _context.Meetings.AnyAsync(m => m.Id == entityId),
+                CustomFieldEntityNames.StockItem => await _context.StockItems.AnyAsync(s => s.Id == entityId),
                 _ => false
             };
         }

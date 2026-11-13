@@ -59,10 +59,10 @@ class CustomizationHubScreen extends ConsumerWidget {
             Card(
               child: ListTile(
                 leading: const Icon(Icons.extension_outlined),
-                title: Text(l10n.customFeatures),
-                subtitle: Text(l10n.customFeaturesLanding),
+                title: Text(l10n.optionalFeatures),
+                subtitle: Text(l10n.optionalFeaturesLanding),
                 trailing: AppIcons.chevronForward(context),
-                onTap: () => context.push(AppRoutes.customFeaturesHub),
+                onTap: () => context.push(AppRoutes.optionalFeaturesHub),
               ),
             ),
           ],

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'core/media/android_photo_picker_config.dart';
 import 'core/routing/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/providers/theme_provider.dart';
@@ -23,6 +24,8 @@ import 'shared/widgets/app_form_shell.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Gallery picks via Photo Picker only (no broad READ_MEDIA_* access).
+  configureAndroidPhotoPicker();
 
   // So /login and /register from the HTML landing resolve as real paths
   // (not /#/login). Without this, Register often landed on the login screen.

@@ -17,6 +17,7 @@ class CustomFieldsHubScreen extends ConsumerWidget {
     (UnifiedEntityNames.servant, Icons.badge_outlined),
     (UnifiedEntityNames.meeting, Icons.event_outlined),
     (UnifiedEntityNames.church, Icons.account_balance_outlined),
+    (UnifiedEntityNames.stockItem, Icons.inventory_2_outlined),
   ];
 
   @override

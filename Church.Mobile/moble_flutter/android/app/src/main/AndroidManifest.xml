@@ -1,4 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- ✅ REQUIRED: allow internet access -->
     <uses-permission android:name="android.permission.INTERNET"/>
@@ -6,6 +7,18 @@
     <uses-permission android:name="android.permission.READ_CONTACTS"/>
     <!-- Android 13+ runtime permission for posting notifications (FCM). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
+    <!--
+      open_filex merges broad media/storage permissions for opening arbitrary
+      shared-storage files. My Church only opens app-owned Excel exports from
+      the cache/temp directory via FileProvider, and profile images use the
+      Android Photo Picker (image_picker) — no broad library access.
+    -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" tools:node="remove"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" tools:node="remove"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" tools:node="remove"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" tools:node="remove"/>
 
     <application
         android:label="My Church"

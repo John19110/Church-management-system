@@ -3,6 +3,7 @@ using Church.DAL.Abstractions;
 using Church.DAL.Models;
 using Church.DAL.Models.CustomFields;
 using Church.DAL.Models.CustomFeatures;
+using Church.DAL.Models.OptionalModules;
 using Church.Domain;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -55,6 +56,9 @@ namespace Church.DAL.DBcontext
         public DbSet<CustomEntityPermission> CustomEntityPermissions { get; set; }
         public DbSet<CustomEntityRecord> CustomEntityRecords { get; set; }
         public DbSet<CustomEntityRecordReference> CustomEntityRecordReferences { get; set; }
+
+        public DbSet<OrganizationModuleActivation> OrganizationModuleActivations { get; set; }
+        public DbSet<StockItem> StockItems { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -215,6 +219,23 @@ namespace Church.DAL.DBcontext
                     (!CurrentMeetingId.HasValue ||
                      r.Record!.MeetingId == null ||
                      r.Record!.MeetingId == CurrentMeetingId));
+
+            // Church-wide optional module activations / stock remain visible under meeting scope.
+            builder.Entity<OrganizationModuleActivation>()
+                .HasQueryFilter(a =>
+                    CurrentChurchId.HasValue &&
+                    a.ChurchId == CurrentChurchId &&
+                    (!CurrentMeetingId.HasValue ||
+                     a.MeetingId == null ||
+                     a.MeetingId == CurrentMeetingId));
+
+            builder.Entity<StockItem>()
+                .HasQueryFilter(i =>
+                    CurrentChurchId.HasValue &&
+                    i.ChurchId == CurrentChurchId &&
+                    (!CurrentMeetingId.HasValue ||
+                     i.MeetingId == null ||
+                     i.MeetingId == CurrentMeetingId));
 
             // Classroom's own key is Id, not ClassroomId — the generic filter cannot classroom-scope it.
             builder.Entity<Classroom>()

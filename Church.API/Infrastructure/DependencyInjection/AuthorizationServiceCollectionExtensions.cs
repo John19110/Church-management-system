@@ -17,6 +17,7 @@ namespace Church.API.Infrastructure.DependencyInjection
 
             services.AddCustomFieldAuthorization();
             services.AddCustomFeatureAuthorization();
+            services.AddOptionalModuleAuthorization();
 
             return services;
         }

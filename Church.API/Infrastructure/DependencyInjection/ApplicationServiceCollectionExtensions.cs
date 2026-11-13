@@ -461,6 +461,16 @@ namespace Church.API.Infrastructure.DependencyInjection
                 CustomFeatureRepository
             >();
 
+            services.AddScoped<
+                IOptionalModuleRepository,
+                OptionalModuleRepository
+            >();
+
+            services.AddScoped<
+                IStockItemRepository,
+                StockItemRepository
+            >();
+
 
             // Return IServiceCollection to allow method chaining.
             return services;
@@ -546,6 +556,16 @@ namespace Church.API.Infrastructure.DependencyInjection
             services.AddScoped<
                 ICustomFeatureManager,
                 CustomFeatureManager
+            >();
+
+            services.AddScoped<
+                IOptionalModuleManager,
+                OptionalModuleManager
+            >();
+
+            services.AddScoped<
+                IStockItemManager,
+                StockItemManager
             >();
 
             // Handles forms that can work with multiple/unified

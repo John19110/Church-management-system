@@ -260,4 +260,5 @@ class UnifiedEntityNames {
   static const servant = 'Servant';
   static const meeting = 'Meeting';
   static const church = 'Church';
+  static const stockItem = 'StockItem';
 }

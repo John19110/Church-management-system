@@ -77,6 +77,9 @@ class AppConstants {
   static const String customFeaturesEndpoint = '/api/custom-features';
   static const String customEntitiesEndpoint = '/api/custom-entities';
 
+  static const String optionalModulesEndpoint = '/api/optional-modules';
+  static const String stockItemsEndpoint = '/api/stock-items';
+
   // AttendanceSession endpoints
   static const String attendanceEndpoint = '/api/attendance-sessions';
 

@@ -15,7 +15,7 @@ import '../../../shared/widgets/common_widgets.dart' as cw;
 import '../models/classroom_models.dart';
 import '../providers/classroom_providers.dart';
 import '../../meeting/utils/meeting_delete_actions.dart';
-import '../../custom_feature/widgets/enabled_features_section.dart';
+import '../../optional_module/widgets/enabled_optional_modules_section.dart';
 
 class ClassroomsHomeScreen extends ConsumerStatefulWidget {
   /// When false, no [AppBar] is shown so this screen can be embedded under a
@@ -136,7 +136,7 @@ class _ClassroomsHomeScreenState extends ConsumerState<ClassroomsHomeScreen>
               return ListView(
                 padding: const EdgeInsets.all(AppSpacing.md),
                 children: [
-                  const EnabledFeaturesSection(),
+                  const EnabledOptionalModulesSection(),
                   const SizedBox(height: AppSpacing.md),
                   if (filtered.isEmpty)
                     cw.EmptyWidget(

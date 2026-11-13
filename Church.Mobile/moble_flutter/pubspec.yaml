@@ -3,7 +3,7 @@ description: Church Management System — Flutter mobile client.
 
 publish_to: "none"
 
-version: 1.0.0+8
+version: 1.0.0+10
 
 environment:
   # Aligned with path_provider 2.1.6 (requires Dart ^3.10 / Flutter >=3.38).
@@ -19,6 +19,9 @@ dependencies:
   cupertino_icons: ^1.0.9
   google_fonts: ^8.1.0
   image_picker: ^1.2.2
+  # Direct deps so we can enable Android Photo Picker (Play photo/video policy).
+  image_picker_android: ^0.8.13+17
+  image_picker_platform_interface: ^2.11.1
 
   # Navigation
   go_router: ^17.3.0

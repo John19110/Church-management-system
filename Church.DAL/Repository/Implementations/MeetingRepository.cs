@@ -255,6 +255,32 @@ namespace Church.DAL.Repository.Implementations
                         .Where(t => t.MeetingId == id)
                         .ExecuteDeleteAsync();
 
+                    var meetingStockIds = await _context.StockItems
+                        .IgnoreQueryFilters()
+                        .Where(s => s.MeetingId == id)
+                        .Select(s => s.Id)
+                        .ToListAsync();
+
+                    if (meetingStockIds.Count > 0)
+                    {
+                        await _context.CustomFieldValues
+                            .IgnoreQueryFilters()
+                            .Where(v =>
+                                v.EntityName == CustomFieldEntityNames.StockItem &&
+                                meetingStockIds.Contains(v.EntityId))
+                            .ExecuteDeleteAsync();
+
+                        await _context.StockItems
+                            .IgnoreQueryFilters()
+                            .Where(s => s.MeetingId == id)
+                            .ExecuteDeleteAsync();
+                    }
+
+                    await _context.OrganizationModuleActivations
+                        .IgnoreQueryFilters()
+                        .Where(a => a.MeetingId == id)
+                        .ExecuteDeleteAsync();
+
                     await _context.SpiritualCurriculums
                         .IgnoreQueryFilters()
                         .Where(s => s.MeetingId == id)

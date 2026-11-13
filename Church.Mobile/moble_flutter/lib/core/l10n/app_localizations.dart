@@ -483,6 +483,25 @@ class AppLocalizations {
   String get customFieldsExamples => _t('customFieldsExamples');
   String get customFeaturesLanding => _t('customFeaturesLanding');
   String get noCustomFeaturesYetBody => _t('noCustomFeaturesYetBody');
+  String get optionalFeatures => _t('optionalFeatures');
+  String get optionalFeaturesLanding => _t('optionalFeaturesLanding');
+  String get noOptionalModulesYet => _t('noOptionalModulesYet');
+  String get stockModule => _t('stockModule');
+  String get addStockItem => _t('addStockItem');
+  String get editStockItem => _t('editStockItem');
+  String get deleteStockItem => _t('deleteStockItem');
+  String confirmDeleteStockItem(String name) =>
+      _t('confirmDeleteStockItem').replaceAll('{name}', name);
+  String get noStockItemsYet => _t('noStockItemsYet');
+  String get stockAmount => _t('stockAmount');
+  String get stockDescription => _t('stockDescription');
+  String get stockDescriptionAr => _t('stockDescriptionAr');
+  String get stockItemCreated => _t('stockItemCreated');
+  String get stockItemUpdated => _t('stockItemUpdated');
+  String get stockItemDeleted => _t('stockItemDeleted');
+  String get amountCannotBeNegative => _t('amountCannotBeNegative');
+  String get stockInvalidAmount => _t('stockInvalidAmount');
+  String get moduleNotEnabled => _t('moduleNotEnabled');
   String get arabicTranslationMissing => _t('arabicTranslationMissing');
   String get englishTranslationMissing => _t('englishTranslationMissing');
   String get fieldNameHelp => _t('fieldNameHelp');
@@ -623,6 +642,8 @@ class AppLocalizations {
         return _t('entityMeeting');
       case 'Church':
         return _t('entityChurch');
+      case 'StockItem':
+        return _t('entityStockItem');
       default:
         return entityName;
     }
@@ -1850,7 +1871,7 @@ class AppLocalizations {
       'customization': 'Customization',
       'customizeYourChurch': 'Customize your church',
       'customizationIntro':
-          'Custom Fields store additional information. Custom Features add extra functionality.',
+          'Custom Fields store additional information. Optional Features add predefined modules such as Stock.',
       'customFieldsLanding':
           'Add additional information that is specific to your church or meeting.',
       'customFieldsExamples':
@@ -1859,6 +1880,28 @@ class AppLocalizations {
           'Customize your meeting with additional features that fit the way your church works.',
       'noCustomFeaturesYetBody':
           'Custom features can help you add information, workflows, or options that are not part of the standard setup.',
+      'optionalFeatures': 'Optional Features',
+      'optionalFeaturesLanding':
+          'Enable predefined modules for your church or meeting. When enabled, they become available to authorized users.',
+      'noOptionalModulesYet': 'No optional modules are available yet.',
+      'stockModule': 'Stock',
+      'addStockItem': 'Add item',
+      'editStockItem': 'Edit item',
+      'deleteStockItem': 'Delete item',
+      'confirmDeleteStockItem':
+          'Are you sure you want to delete "{name}" from stock?',
+      'noStockItemsYet': 'No stock items yet. Add your first item.',
+      'stockAmount': 'Amount',
+      'stockDescription': 'Description',
+      'stockDescriptionAr': 'Description (Arabic)',
+      'stockItemCreated': 'Stock item created.',
+      'stockItemUpdated': 'Stock item updated.',
+      'stockItemDeleted': 'Stock item deleted.',
+      'amountCannotBeNegative': 'Amount cannot be negative.',
+      'stockInvalidAmount': 'Enter a valid amount.',
+      'moduleNotEnabled':
+          'This module is not enabled for your organization.',
+      'entityStockItem': 'Stock item',
       'arabicTranslationMissing': 'Arabic translation missing',
       'englishTranslationMissing': 'English translation missing',
       'fieldNameHelp':
@@ -2727,7 +2770,7 @@ class AppLocalizations {
       'customization': 'التخصيص',
       'customizeYourChurch': 'خصّص كنيستك',
       'customizationIntro':
-          'الحقول المخصصة تخزن معلومات إضافية. الميزات المخصصة تضيف وظائف إضافية.',
+          'الحقول المخصصة تخزن معلومات إضافية. الميزات الاختيارية تضيف وحدات جاهزة مثل المخزن.',
       'customFieldsLanding': 'أضف معلومات إضافية خاصة بكنيستك أو اجتماعك.',
       'customFieldsExamples':
           'مثال: تاريخ الميلاد، المدرسة، العنوان، أو الخدمة.',
@@ -2735,6 +2778,26 @@ class AppLocalizations {
           'خصّص اجتماعك بميزات إضافية تناسب طريقة عمل كنيستك.',
       'noCustomFeaturesYetBody':
           'تساعد الميزات المخصصة على إضافة معلومات أو خطوات عمل أو خيارات ليست ضمن الإعداد القياسي.',
+      'optionalFeatures': 'الميزات الاختيارية',
+      'optionalFeaturesLanding':
+          'فعّل وحدات جاهزة لكنيستك أو اجتماعك. عند التفعيل تصبح متاحة للمستخدمين المصرّح لهم.',
+      'noOptionalModulesYet': 'لا توجد ميزات اختيارية متاحة حالياً.',
+      'stockModule': 'المخزن',
+      'addStockItem': 'إضافة صنف',
+      'editStockItem': 'تعديل الصنف',
+      'deleteStockItem': 'حذف الصنف',
+      'confirmDeleteStockItem': 'هل أنت متأكد من حذف "{name}" من المخزن؟',
+      'noStockItemsYet': 'لا توجد أصناف في المخزن بعد. أضف أول صنف.',
+      'stockAmount': 'الكمية',
+      'stockDescription': 'الوصف',
+      'stockDescriptionAr': 'الوصف (عربي)',
+      'stockItemCreated': 'تم إنشاء صنف المخزن.',
+      'stockItemUpdated': 'تم تحديث صنف المخزن.',
+      'stockItemDeleted': 'تم حذف صنف المخزن.',
+      'amountCannotBeNegative': 'لا يمكن أن تكون الكمية سالبة.',
+      'stockInvalidAmount': 'أدخل كمية صحيحة.',
+      'moduleNotEnabled': 'هذه الوحدة غير مفعّلة لمؤسستك.',
+      'entityStockItem': 'صنف المخزن',
       'arabicTranslationMissing': 'الترجمة العربية غير موجودة',
       'englishTranslationMissing': 'الترجمة الإنجليزية غير موجودة',
       'fieldNameHelp':

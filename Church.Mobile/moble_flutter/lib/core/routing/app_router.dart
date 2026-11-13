@@ -53,6 +53,9 @@ import '../../features/custom_field/screens/custom_field_definition_form_screen.
 import '../../features/unified_form/screens/unified_entity_edit_screen.dart';
 import '../../features/unified_form/models/unified_form_models.dart';
 import '../../features/custom_field/models/custom_field_models.dart';
+import '../../features/optional_module/screens/optional_features_hub_screen.dart';
+import '../../features/optional_module/screens/stock_list_screen.dart';
+import '../../features/optional_module/screens/stock_item_form_screen.dart';
 import '../../core/storage/token_storage.dart';
 import '../../core/notifications/notification_service.dart';
 
@@ -78,6 +81,9 @@ class AppRoutes {
   static const customFeaturesHub = '/settings/features';
   static const customFeatureNew = '/settings/features/new';
   static const customEntities = '/custom-entities';
+  static const optionalFeaturesHub = '/settings/optional-features';
+  static const stock = '/stock';
+  static const stockNew = '/stock/new';
   static const churchMembersExcel = '/church/members/excel';
   static const pendingAdmins = '/super-admin/pending-admins';
   static const pendingUsers = '/super-admin/pending-users';
@@ -238,6 +244,29 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.customFieldsHub,
         builder: (_, __) => const CustomFieldsHubScreen(),
+      ),
+
+      GoRoute(
+        path: AppRoutes.optionalFeaturesHub,
+        builder: (_, __) => const OptionalFeaturesHubScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.stock,
+        builder: (_, __) => const StockListScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.stockNew,
+        builder: (_, __) => const StockItemFormScreen(),
+      ),
+      GoRoute(
+        path: '${AppRoutes.stock}/:itemId/edit',
+        builder: (_, state) {
+          final id = int.tryParse(state.pathParameters['itemId'] ?? '');
+          if (id == null || id <= 0) {
+            return const StockListScreen();
+          }
+          return StockItemFormScreen(itemId: id);
+        },
       ),
 
       GoRoute(

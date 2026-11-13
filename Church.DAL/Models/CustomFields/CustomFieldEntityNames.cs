@@ -10,10 +10,11 @@ namespace Church.DAL.Models.CustomFields
         public const string Servant = "Servant";
         public const string Meeting = "Meeting";
         public const string Church = "Church";
+        public const string StockItem = "StockItem";
 
         public static readonly IReadOnlySet<string> All = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            Member, Classroom, Servant, Meeting, Church
+            Member, Classroom, Servant, Meeting, Church, StockItem
         };
 
         public static bool IsSupported(string entityName) =>
