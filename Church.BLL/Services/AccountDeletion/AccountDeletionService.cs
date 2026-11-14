@@ -1,10 +1,17 @@
+using System.Security.Cryptography;
+using System.Text;
 using Church.BLL.Abstractions;
+using Church.BLL.DTOS.AccountDtos;
 using Church.BLL.Exceptions;
+using Church.BLL.Services.Auth;
+using Church.BLL.Services.Email;
 using Church.DAL.DBcontext;
+using Church.DAL.Models;
 using Church.DAL.Repository.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Church.BLL.Services.AccountDeletion
 {
@@ -16,24 +23,32 @@ namespace Church.BLL.Services.AccountDeletion
     public sealed class AccountDeletionService : IAccountDeletionService
     {
         private const string ServantEntityName = "Servant";
+        private const string GenericRequestMessage =
+            "If an account matches this request, a confirmation link has been sent to the email address you provided. The link expires in 24 hours.";
 
         private readonly ProgramContext _db;
-        private readonly UserManager<Church.DAL.Models.ApplicationUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly ICurrentUserContext _currentUser;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IEmailSender _emailSender;
+        private readonly AccountDeletionOptions _options;
         private readonly ILogger<AccountDeletionService> _logger;
 
         public AccountDeletionService(
             ProgramContext db,
-            UserManager<Church.DAL.Models.ApplicationUser> userManager,
+            UserManager<ApplicationUser> userManager,
             ICurrentUserContext currentUser,
             IUnitOfWork unitOfWork,
+            IEmailSender emailSender,
+            IOptions<AccountDeletionOptions> options,
             ILogger<AccountDeletionService> logger)
         {
             _db = db;
             _userManager = userManager;
             _currentUser = currentUser;
             _unitOfWork = unitOfWork;
+            _emailSender = emailSender;
+            _options = options.Value;
             _logger = logger;
         }
 
@@ -45,7 +60,203 @@ namespace Church.BLL.Services.AccountDeletion
             if (!_currentUser.IsAuthenticated || string.IsNullOrWhiteSpace(_currentUser.UserId))
                 throw new UnauthorizedAccessException("Authentication is required.");
 
-            var userId = _currentUser.UserId;
+            await DeleteAccountByUserIdAsync(
+                _currentUser.UserId,
+                webRootPath,
+                cancellationToken);
+        }
+
+        /// <inheritdoc />
+        public async Task<AccountDeletionRequestResponseDto> RequestDeletionAsync(
+            CreateAccountDeletionRequestDto dto,
+            string? requestIp,
+            CancellationToken cancellationToken = default)
+        {
+            if (dto == null)
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    [""] = new[] { "Request body is required." }
+                });
+
+            var email = NormalizeEmail(dto.Email);
+            if (email == null)
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["Email"] = new[] { "A valid email address is required." }
+                });
+            }
+
+            if (string.IsNullOrWhiteSpace(_options.PublicBaseUrl))
+            {
+                throw new InvalidOperationException(
+                    "Missing required configuration 'AccountDeletion:PublicBaseUrl'.");
+            }
+
+            var response = new AccountDeletionRequestResponseDto
+            {
+                Message = GenericRequestMessage
+            };
+
+            var user = await FindAccountForDeletionRequestAsync(
+                email,
+                dto.PhoneNumber,
+                cancellationToken);
+
+            var organizationHint = Truncate(dto.ChurchOrMeetingName?.Trim(), 200);
+
+            if (user == null)
+            {
+                _logger.LogInformation(
+                    "Account deletion request produced no match. EmailDomain={EmailDomain} OrganizationHint={OrganizationHint}",
+                    GetEmailDomain(email),
+                    organizationHint);
+                return response;
+            }
+
+            // When the account already has an Identity email, the request must prove
+            // ownership of that address — not an arbitrary inbox.
+            if (!string.IsNullOrWhiteSpace(user.Email)
+                && !string.Equals(
+                    user.NormalizedEmail,
+                    email.ToUpperInvariant(),
+                    StringComparison.Ordinal))
+            {
+                _logger.LogInformation(
+                    "Account deletion request email did not match stored Identity email. UserId={UserId}",
+                    user.Id);
+                return response;
+            }
+
+            var rawToken = CreateToken();
+            var tokenHash = HashToken(rawToken);
+            var now = DateTime.UtcNow;
+            var lifetimeHours = Math.Clamp(_options.TokenLifetimeHours, 1, 168);
+
+            var pending = await _db.AccountDeletionRequests
+                .Where(r =>
+                    r.UserId == user.Id &&
+                    r.Status == AccountDeletionRequestStatus.PendingVerification)
+                .ToListAsync(cancellationToken);
+            foreach (var prior in pending)
+                prior.Status = AccountDeletionRequestStatus.Cancelled;
+
+            var request = new AccountDeletionRequest
+            {
+                Id = Guid.NewGuid(),
+                UserId = user.Id,
+                Email = email,
+                TokenHash = tokenHash,
+                Status = AccountDeletionRequestStatus.PendingVerification,
+                CreatedAtUtc = now,
+                ExpiresAtUtc = now.AddHours(lifetimeHours),
+                RequestIp = Truncate(requestIp, 64)
+            };
+            _db.AccountDeletionRequests.Add(request);
+            await _unitOfWork.SaveChangesAsync();
+
+            var confirmUrl = BuildConfirmUrl(rawToken);
+            await _emailSender.SendAsync(
+                email,
+                "Confirm My Church account deletion",
+                BuildPlainTextEmail(confirmUrl, lifetimeHours),
+                BuildHtmlEmail(confirmUrl, lifetimeHours),
+                cancellationToken);
+
+            _logger.LogInformation(
+                "Account deletion verification emailed. RequestId={RequestId} UserId={UserId} ExpiresAtUtc={ExpiresAtUtc} OrganizationHint={OrganizationHint}",
+                request.Id,
+                user.Id,
+                request.ExpiresAtUtc,
+                organizationHint);
+
+            return response;
+        }
+
+        /// <inheritdoc />
+        public async Task ConfirmDeletionAsync(
+            ConfirmAccountDeletionRequestDto dto,
+            string webRootPath,
+            CancellationToken cancellationToken = default)
+        {
+            if (dto == null || string.IsNullOrWhiteSpace(dto.Token))
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["Token"] = new[] { "A confirmation token is required." }
+                });
+            }
+
+            var tokenHash = HashToken(dto.Token.Trim());
+            var request = await _db.AccountDeletionRequests
+                .SingleOrDefaultAsync(r => r.TokenHash == tokenHash, cancellationToken);
+
+            if (request == null)
+                throw new NotFoundException("This confirmation link is invalid or has already been used.");
+
+            if (request.Status == AccountDeletionRequestStatus.Completed)
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["Token"] = new[] { "This account deletion request was already completed." }
+                });
+            }
+
+            if (request.Status != AccountDeletionRequestStatus.PendingVerification)
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["Token"] = new[] { "This confirmation link is no longer valid." }
+                });
+            }
+
+            if (request.ExpiresAtUtc <= DateTime.UtcNow)
+            {
+                request.Status = AccountDeletionRequestStatus.Expired;
+                await _unitOfWork.SaveChangesAsync();
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["Token"] = new[]
+                    {
+                        "This confirmation link has expired. Submit a new deletion request."
+                    }
+                });
+            }
+
+            var userStillExists = await _userManager.Users
+                .IgnoreQueryFilters()
+                .AnyAsync(u => u.Id == request.UserId, cancellationToken);
+            if (!userStillExists)
+            {
+                request.Status = AccountDeletionRequestStatus.Cancelled;
+                await _unitOfWork.SaveChangesAsync();
+                throw new NotFoundException("Account not found.");
+            }
+
+            request.ConfirmedAtUtc = DateTime.UtcNow;
+            await _unitOfWork.SaveChangesAsync();
+
+            await DeleteAccountByUserIdAsync(
+                request.UserId,
+                webRootPath,
+                cancellationToken);
+
+            // Cascade delete removes the request row with the user; if anything remains, mark done.
+            var leftover = await _db.AccountDeletionRequests
+                .SingleOrDefaultAsync(r => r.Id == request.Id, cancellationToken);
+            if (leftover != null)
+            {
+                leftover.Status = AccountDeletionRequestStatus.Completed;
+                leftover.CompletedAtUtc = DateTime.UtcNow;
+                await _unitOfWork.SaveChangesAsync();
+            }
+        }
+
+        private async Task DeleteAccountByUserIdAsync(
+            string userId,
+            string webRootPath,
+            CancellationToken cancellationToken)
+        {
             var user = await _userManager.Users
                 .IgnoreQueryFilters()
                 .SingleOrDefaultAsync(u => u.Id == userId, cancellationToken);
@@ -127,6 +338,97 @@ namespace Church.BLL.Services.AccountDeletion
                     userId);
                 throw;
             }
+        }
+
+        private async Task<ApplicationUser?> FindAccountForDeletionRequestAsync(
+            string normalizedEmail,
+            string? phoneNumber,
+            CancellationToken cancellationToken)
+        {
+            var byEmail = await _userManager.Users
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(
+                    u => u.NormalizedEmail == normalizedEmail.ToUpperInvariant(),
+                    cancellationToken);
+            if (byEmail != null)
+                return byEmail;
+
+            if (string.IsNullOrWhiteSpace(phoneNumber))
+                return null;
+
+            var candidates = PhoneNumberNormalizer.GetLookupCandidates(phoneNumber);
+            if (candidates.Count == 0)
+                return null;
+
+            return await _userManager.Users
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(
+                    u => u.PhoneNumber != null && candidates.Contains(u.PhoneNumber),
+                    cancellationToken);
+        }
+
+        private string BuildConfirmUrl(string rawToken)
+        {
+            var baseUrl = (_options.PublicBaseUrl ?? string.Empty).Trim().TrimEnd('/');
+            if (string.IsNullOrWhiteSpace(baseUrl))
+            {
+                throw new InvalidOperationException(
+                    "Missing required configuration 'AccountDeletion:PublicBaseUrl'.");
+            }
+
+            return $"{baseUrl}/account-deletion?token={Uri.EscapeDataString(rawToken)}";
+        }
+
+        private static string BuildPlainTextEmail(string confirmUrl, int lifetimeHours) =>
+            "You requested deletion of your My Church account.\r\n\r\n" +
+            "If you made this request, open the link below to permanently delete your account. " +
+            $"This link expires in {lifetimeHours} hours.\r\n\r\n" +
+            confirmUrl +
+            "\r\n\r\nIf you did not request this, ignore this email. Your account will not be deleted.";
+
+        private static string BuildHtmlEmail(string confirmUrl, int lifetimeHours) =>
+            "<p>You requested deletion of your <strong>My Church</strong> account.</p>" +
+            "<p>If you made this request, open the link below to permanently delete your account. " +
+            $"This link expires in {lifetimeHours} hours.</p>" +
+            $"<p><a href=\"{confirmUrl}\">Confirm account deletion</a></p>" +
+            "<p>If you did not request this, ignore this email. Your account will not be deleted.</p>";
+
+        private static string? NormalizeEmail(string? email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return null;
+
+            var trimmed = email.Trim();
+            return trimmed.Contains('@', StringComparison.Ordinal) ? trimmed : null;
+        }
+
+        private static string GetEmailDomain(string email)
+        {
+            var at = email.LastIndexOf('@');
+            return at >= 0 && at < email.Length - 1 ? email[(at + 1)..] : "(none)";
+        }
+
+        private static string CreateToken()
+        {
+            Span<byte> bytes = stackalloc byte[32];
+            RandomNumberGenerator.Fill(bytes);
+            return Convert.ToBase64String(bytes)
+                .TrimEnd('=')
+                .Replace('+', '-')
+                .Replace('/', '_');
+        }
+
+        private static string HashToken(string rawToken)
+        {
+            var hash = SHA256.HashData(Encoding.UTF8.GetBytes(rawToken));
+            return Convert.ToHexString(hash);
+        }
+
+        private static string? Truncate(string? value, int maxLength)
+        {
+            if (string.IsNullOrEmpty(value))
+                return value;
+            return value.Length <= maxLength ? value : value[..maxLength];
         }
 
         private async Task RemoveServantLinksAndPersonalDataAsync(

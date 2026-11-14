@@ -68,6 +68,26 @@ namespace Church.API.Infrastructure.DependencyInjection
 
             app.UseHttpsRedirection();
 
+            // Rewrite compliance directory URLs to index.html before UseStaticFiles so
+            // GET/HEAD /account-deletion and /privacy-policy are served anonymously without
+            // hitting the JWT fallback policy (static files short-circuit before auth).
+            app.Use(async (context, next) =>
+            {
+                var path = context.Request.Path;
+                if (path.Equals("/account-deletion", StringComparison.OrdinalIgnoreCase)
+                    || path.Equals("/account-deletion/", StringComparison.OrdinalIgnoreCase))
+                {
+                    context.Request.Path = "/account-deletion/index.html";
+                }
+                else if (path.Equals("/privacy-policy", StringComparison.OrdinalIgnoreCase)
+                    || path.Equals("/privacy-policy/", StringComparison.OrdinalIgnoreCase))
+                {
+                    context.Request.Path = "/privacy-policy/index.html";
+                }
+
+                await next();
+            });
+
             app.UseStaticFiles(new StaticFileOptions
             {
                 OnPrepareResponse = ctx =>
@@ -77,7 +97,9 @@ namespace Church.API.Infrastructure.DependencyInjection
                     // an ACAO header here. These paths are intentionally public read-only files.
                     var path = ctx.Context.Request.Path.Value ?? string.Empty;
                     if (path.StartsWith("/uploads", StringComparison.OrdinalIgnoreCase) ||
-                        path.StartsWith("/images", StringComparison.OrdinalIgnoreCase))
+                        path.StartsWith("/images", StringComparison.OrdinalIgnoreCase) ||
+                        path.StartsWith("/account-deletion", StringComparison.OrdinalIgnoreCase) ||
+                        path.StartsWith("/privacy-policy", StringComparison.OrdinalIgnoreCase))
                     {
                         ctx.Context.Response.Headers["Access-Control-Allow-Origin"] = "*";
                         ctx.Context.Response.Headers["Access-Control-Allow-Headers"] = "*";
@@ -103,27 +125,38 @@ namespace Church.API.Infrastructure.DependencyInjection
         {
             app.MapControllers();
 
-            app.MapGet(
-                    "/account-deletion",
-                    (IWebHostEnvironment environment) => Results.File(
-                        Path.Combine(environment.WebRootPath, "account-deletion", "index.html"),
-                        "text/html; charset=utf-8"))
-                .AllowAnonymous();
-
-            app.MapGet(
-                    "/privacy-policy",
-                    (IWebHostEnvironment environment) => Results.File(
-                        Path.Combine(environment.WebRootPath, "privacy-policy", "index.html"),
-                        "text/html; charset=utf-8"))
-                .AllowAnonymous();
+            // Belt-and-suspenders: if static rewrite/file serving is unavailable, still expose
+            // the compliance pages anonymously for GET and HEAD (store crawlers use both).
+            MapAnonymousHtmlFile(app, "/account-deletion", "account-deletion", "index.html");
+            MapAnonymousHtmlFile(app, "/privacy-policy", "privacy-policy", "index.html");
 
             var swaggerEnabled = app.IsSwaggerEnabled();
-            app.MapGet(
+            app.MapMethods(
                     "/",
+                    new[] { "GET", "HEAD" },
                     () => swaggerEnabled ? Results.Redirect("/swagger") : Results.NoContent())
                 .AllowAnonymous();
 
             return app;
+        }
+
+        private static void MapAnonymousHtmlFile(
+            WebApplication app,
+            string route,
+            string folder,
+            string fileName)
+        {
+            app.MapMethods(
+                    route,
+                    new[] { "GET", "HEAD" },
+                    (IWebHostEnvironment environment) =>
+                    {
+                        var webRoot = environment.WebRootPath
+                            ?? Path.Combine(environment.ContentRootPath, "wwwroot");
+                        var fullPath = Path.Combine(webRoot, folder, fileName);
+                        return Results.File(fullPath, "text/html; charset=utf-8");
+                    })
+                .AllowAnonymous();
         }
     }
 }

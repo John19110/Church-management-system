@@ -11,7 +11,9 @@ using Church.BLL.Configuration;
 using Church.BLL.Manager.Implementations;
 using Church.BLL.Manager.Interfaces;
 using Church.BLL.Services;
+using Church.API.Infrastructure.Email;
 using Church.BLL.Services.AccountDeletion;
+using Church.BLL.Services.Email;
 using Church.BLL.Services.CustomFields;
 
 using Church.DAL.Abstractions;
@@ -66,6 +68,14 @@ namespace Church.API.Infrastructure.DependencyInjection
             // }
             services.Configure<ServantProfileOptions>(
                 configuration.GetSection(ServantProfileOptions.SectionName));
+
+            services.Configure<AccountDeletionOptions>(
+                configuration.GetSection(AccountDeletionOptions.SectionName));
+
+            services.Configure<SmtpEmailOptions>(
+                configuration.GetSection(SmtpEmailOptions.SectionName));
+
+            services.AddSingleton<IEmailSender, SmtpEmailSender>();
 
 
             // --------------------------------------------------------

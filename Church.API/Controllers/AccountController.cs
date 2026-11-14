@@ -124,5 +124,42 @@ namespace Church.API.Controllers
                 cancellationToken);
             return NoContent();
         }
+
+        /// <summary>
+        /// Starts a public account-deletion request. Ownership is verified by emailed token;
+        /// this endpoint never deletes an account by itself.
+        /// </summary>
+        [HttpPost("deletion-requests")]
+        [AllowAnonymous]
+        [ProducesResponseType(typeof(AccountDeletionRequestResponseDto), StatusCodes.Status200OK)]
+        public async Task<ActionResult<AccountDeletionRequestResponseDto>> RequestAccountDeletion(
+            [FromBody] CreateAccountDeletionRequestDto dto,
+            CancellationToken cancellationToken)
+        {
+            var result = await _accountDeletionService.RequestDeletionAsync(
+                dto,
+                HttpContext.Connection.RemoteIpAddress?.ToString(),
+                cancellationToken);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Completes account deletion after the emailed confirmation token is validated.
+        /// </summary>
+        [HttpPost("deletion-requests/confirm")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> ConfirmAccountDeletion(
+            [FromBody] ConfirmAccountDeletionRequestDto dto,
+            CancellationToken cancellationToken)
+        {
+            await _accountDeletionService.ConfirmDeletionAsync(
+                dto,
+                _env.WebRootPath,
+                cancellationToken);
+            return NoContent();
+        }
     }
 }

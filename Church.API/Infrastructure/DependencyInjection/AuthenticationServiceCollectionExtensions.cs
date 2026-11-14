@@ -94,7 +94,11 @@ namespace Church.API.Infrastructure.DependencyInjection
             return path.StartsWithSegments("/api/account/login")
                 || path.StartsWithSegments("/api/account/register-servant")
                 || path.StartsWithSegments("/api/account/register-church-superadmin")
-                || path.StartsWithSegments("/api/account/register-meeting-admin-new-church");
+                || path.StartsWithSegments("/api/account/register-meeting-admin-new-church")
+                || path.StartsWithSegments("/api/account/organization-languages")
+                || path.StartsWithSegments("/api/account/deletion-requests")
+                || path.StartsWithSegments("/account-deletion")
+                || path.StartsWithSegments("/privacy-policy");
         }
 
         /// <summary>

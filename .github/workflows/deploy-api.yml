@@ -193,8 +193,9 @@ jobs:
               "ASPNETCORE_ENVIRONMENT=Production" \
               "Cors__AllowedOrigins__0=${{ env.CORS_ALLOWED_ORIGIN_0 }}" \
               "Cors__AllowedOrigins__1=${{ env.CORS_ALLOWED_ORIGIN_1 }}" \
+              "AccountDeletion__PublicBaseUrl=https://${{ env.AZURE_WEBAPP_HOSTNAME }}" \
             --output none
-          echo "Ensured ASPNETCORE_ENVIRONMENT and Cors__AllowedOrigins__0/__1 on ${{ env.AZURE_WEBAPP_NAME }}."
+          echo "Ensured ASPNETCORE_ENVIRONMENT, Cors__AllowedOrigins__0/__1, and AccountDeletion__PublicBaseUrl on ${{ env.AZURE_WEBAPP_NAME }}."
 
       - name: Deploy to Azure Web App
         run: |
@@ -220,13 +221,24 @@ jobs:
             CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 "$URL" || echo "000")
             if [ "$CODE" = "204" ] || [ "$CODE" = "200" ]; then
               echo "API is up (HTTP $CODE)."
-              exit 0
+              break
             fi
             echo "Attempt $i: HTTP $CODE; waiting 10s..."
             sleep 10
+            if [ "$i" -eq 30 ]; then
+              echo "::error::API did not become healthy after deploy."
+              exit 1
+            fi
           done
-          echo "::error::API did not become healthy after deploy."
-          exit 1
+
+          # Google Play account-deletion URL must stay publicly reachable without auth.
+          DELETION_URL="https://${{ env.AZURE_WEBAPP_HOSTNAME }}/account-deletion"
+          DEL_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 "$DELETION_URL" || echo "000")
+          echo "Account deletion page: $DELETION_URL -> HTTP $DEL_CODE"
+          if [ "$DEL_CODE" != "200" ]; then
+            echo "::error::GET /account-deletion must return HTTP 200 anonymously (got $DEL_CODE)."
+            exit 1
+          fi
 
       - name: Verify CORS preflight for Flutter Web origin
         run: |

@@ -59,6 +59,7 @@ namespace Church.DAL.DBcontext
 
         public DbSet<OrganizationModuleActivation> OrganizationModuleActivations { get; set; }
         public DbSet<StockItem> StockItems { get; set; }
+        public DbSet<AccountDeletionRequest> AccountDeletionRequests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
