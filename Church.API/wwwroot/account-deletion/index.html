@@ -170,7 +170,7 @@
 
       <h2>Need help?</h2>
       <p>Email <a href="mailto:johnpolis122@gmail.com">johnpolis122@gmail.com</a> or read our
-        <a href="/privacy-policy">Privacy Policy</a>.</p>
+        <a class="privacy-link" href="/privacy-policy">Privacy Policy</a>.</p>
     </article>
 
     <article id="panel-ar" class="hidden" lang="ar" dir="rtl">
@@ -231,7 +231,7 @@
 
       <h2>هل تحتاج مساعدة؟</h2>
       <p>راسلنا على <a href="mailto:johnpolis122@gmail.com">johnpolis122@gmail.com</a> أو اقرأ
-        <a href="/privacy-policy">سياسة الخصوصية</a>.</p>
+        <a class="privacy-link" href="/privacy-policy">سياسة الخصوصية</a>.</p>
     </article>
 
     <footer>© 2026 My Church. All rights reserved.</footer>
@@ -239,6 +239,17 @@
 
   <script>
     (function () {
+      // GitHub Pages is static-only; API calls must target the Azure API host.
+      var AZURE_API_BASE =
+        'https://mychurchwebapp-cdfpdedgfdd7cqhb.germanywestcentral-01.azurewebsites.net';
+      var onGitHubPages = /github\.io$/i.test(location.hostname);
+      var API_BASE = onGitHubPages ? AZURE_API_BASE : '';
+      var privacyHref = onGitHubPages ? '../privacy-policy.html' : '/privacy-policy';
+
+      document.querySelectorAll('.privacy-link').forEach(function (link) {
+        link.setAttribute('href', privacyHref);
+      });
+
       var btnEn = document.getElementById('btn-en');
       var btnAr = document.getElementById('btn-ar');
       var panelEn = document.getElementById('panel-en');
@@ -331,7 +342,7 @@
         if (churchOrMeetingName) payload.churchOrMeetingName = churchOrMeetingName;
 
         try {
-          var res = await fetch('/api/account/deletion-requests', {
+          var res = await fetch(API_BASE + '/api/account/deletion-requests', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
             body: JSON.stringify(payload)
@@ -365,7 +376,7 @@
         var statusEl = document.getElementById(lang === 'ar' ? 'status-ar' : 'status-en');
         setStatus(statusEl, t.confirming, null);
         try {
-          var res = await fetch('/api/account/deletion-requests/confirm', {
+          var res = await fetch(API_BASE + '/api/account/deletion-requests/confirm', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
             body: JSON.stringify({ token: token })
@@ -377,7 +388,7 @@
           }
           setStatus(statusEl, t.confirmed, 'ok');
           if (window.history && window.history.replaceState) {
-            window.history.replaceState({}, '', '/account-deletion');
+            window.history.replaceState({}, '', location.pathname);
           }
         } catch (e) {
           setStatus(statusEl, t.confirmFailed, 'err');

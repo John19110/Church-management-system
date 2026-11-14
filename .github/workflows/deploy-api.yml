@@ -45,6 +45,8 @@ env:
   # Not secrets — these are public origins and must match the browser's Origin header exactly.
   CORS_ALLOWED_ORIGIN_0: https://my-church-e838a.web.app
   CORS_ALLOWED_ORIGIN_1: https://my-church-e838a.firebaseapp.com
+  # GitHub Pages hosts the public account-deletion / privacy docs and posts to this API.
+  CORS_ALLOWED_ORIGIN_2: https://john19110.github.io
 
 jobs:
   build:
@@ -193,9 +195,10 @@ jobs:
               "ASPNETCORE_ENVIRONMENT=Production" \
               "Cors__AllowedOrigins__0=${{ env.CORS_ALLOWED_ORIGIN_0 }}" \
               "Cors__AllowedOrigins__1=${{ env.CORS_ALLOWED_ORIGIN_1 }}" \
+              "Cors__AllowedOrigins__2=${{ env.CORS_ALLOWED_ORIGIN_2 }}" \
               "AccountDeletion__PublicBaseUrl=https://${{ env.AZURE_WEBAPP_HOSTNAME }}" \
             --output none
-          echo "Ensured ASPNETCORE_ENVIRONMENT, Cors__AllowedOrigins__0/__1, and AccountDeletion__PublicBaseUrl on ${{ env.AZURE_WEBAPP_NAME }}."
+          echo "Ensured ASPNETCORE_ENVIRONMENT, Cors__AllowedOrigins__0/__1/__2, and AccountDeletion__PublicBaseUrl on ${{ env.AZURE_WEBAPP_NAME }}."
 
       - name: Deploy to Azure Web App
         run: |

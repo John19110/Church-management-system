@@ -2,11 +2,403 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="refresh" content="0; url=/account-deletion">
-  <title>Account Deletion | My Church</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Request deletion of your My Church account and associated personal data.">
+  <title>Delete Your Account | My Church</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f6fa;
+      --surface: #ffffff;
+      --text: #161c27;
+      --muted: #6b7280;
+      --primary: #2563eb;
+      --danger: #d92d20;
+      --border: #e4e8f0;
+      --shadow: 0 16px 40px rgba(22, 28, 39, .08);
+      --ok: #067647;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        color-scheme: dark;
+        --bg: #0e1622;
+        --surface: #18212f;
+        --text: #e7ecf3;
+        --muted: #9ba6b6;
+        --primary: #60a5fa;
+        --danger: #ff7b72;
+        --border: #2a3546;
+        --shadow: none;
+        --ok: #75e0a7;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 16px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Arabic", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+    }
+    .wrap { width: min(760px, calc(100% - 32px)); margin: 28px auto 48px; }
+    .toolbar {
+      display: flex; flex-wrap: wrap; gap: 10px;
+      justify-content: space-between; align-items: center; margin-bottom: 16px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; }
+    .mark {
+      display: grid; place-items: center; width: 40px; height: 40px;
+      color: #fff; background: var(--primary); border-radius: 12px; font-size: 22px;
+    }
+    .lang {
+      display: inline-flex; border: 1px solid var(--border); border-radius: 999px;
+      overflow: hidden; background: var(--surface);
+    }
+    .lang button {
+      border: 0; background: transparent; color: var(--muted);
+      padding: 8px 14px; font: inherit; font-weight: 650; cursor: pointer;
+    }
+    .lang button[aria-pressed="true"] { background: var(--primary); color: #fff; }
+    article {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 20px; padding: clamp(24px, 5vw, 48px); box-shadow: var(--shadow);
+    }
+    h1 { margin: 0 0 12px; font-size: clamp(1.8rem, 5vw, 2.6rem); line-height: 1.15; }
+    h2 { margin-top: 30px; font-size: 1.2rem; }
+    p, li { color: var(--muted); }
+    .hint { margin: 0; font-size: .92rem; font-weight: 500; color: var(--muted); }
+    .warning {
+      padding: 16px 18px; border-left: 4px solid var(--danger);
+      border-radius: 8px; background: color-mix(in srgb, var(--danger) 9%, transparent);
+      color: var(--text);
+    }
+    [dir="rtl"] .warning { border-left: 0; border-right: 4px solid var(--danger); }
+    ol, ul { padding-inline-start: 24px; }
+    a { color: var(--primary); font-weight: 650; }
+    form {
+      margin-top: 18px; display: grid; gap: 14px;
+      padding: 18px; border: 1px solid var(--border); border-radius: 14px;
+    }
+    label { display: grid; gap: 6px; color: var(--text); font-weight: 650; }
+    input {
+      width: 100%; padding: 12px 14px; border-radius: 10px;
+      border: 1px solid var(--border); background: transparent; color: var(--text);
+      font: inherit;
+    }
+    button.submit {
+      justify-self: start; border: 0; border-radius: 10px; cursor: pointer;
+      padding: 12px 18px; background: var(--danger); color: #fff;
+      font: inherit; font-weight: 700;
+    }
+    button.submit:disabled { opacity: .6; cursor: wait; }
+    .status { min-height: 1.4em; font-weight: 650; }
+    .status.ok { color: var(--ok); }
+    .status.err { color: var(--danger); }
+    .hidden { display: none; }
+    footer { margin-top: 18px; text-align: center; color: var(--muted); font-size: .9rem; }
+    [dir="rtl"] article { text-align: right; }
+    [dir="rtl"] button.submit { justify-self: end; }
+  </style>
 </head>
 <body>
-  <p>This page has moved to the live API host path
-    <a href="/account-deletion">/account-deletion</a>.</p>
+  <div class="wrap">
+    <div class="toolbar">
+      <div class="brand"><span class="mark" aria-hidden="true">✝</span> My Church</div>
+      <div class="lang" role="group" aria-label="Language">
+        <button type="button" id="btn-en" aria-pressed="true">English</button>
+        <button type="button" id="btn-ar" aria-pressed="false">العربية</button>
+      </div>
+    </div>
+
+    <article id="panel-en" lang="en" dir="ltr">
+      <h1>Delete your My Church account</h1>
+      <p class="warning"><strong>Account deletion is permanent and cannot be undone.</strong></p>
+
+      <h2>Delete from the app</h2>
+      <ol>
+        <li>Sign in to My Church.</li>
+        <li>Open <strong>Profile</strong> and scroll to the bottom.</li>
+        <li>Select <strong>Delete Account</strong>.</li>
+        <li>Review the warning and confirm <strong>Delete Account</strong> again.</li>
+      </ol>
+      <p>In-app deletion is normally completed immediately. Backup copies may take up to
+        <strong>30 days</strong> to rotate out.</p>
+
+      <h2>Request deletion on the web</h2>
+      <p>If you cannot access the app, use the form below to request account deletion.
+        We email a confirmation link to verify ownership.
+        <strong>Your account is never deleted until you confirm that email link.</strong></p>
+
+      <form id="deletion-form-en" novalidate>
+        <label>Registered email address
+          <input type="email" name="email" autocomplete="email" required maxlength="256"
+            placeholder="you@example.com">
+        </label>
+        <label>Phone number <span class="hint">(optional)</span>
+          <input type="tel" name="phoneNumber" autocomplete="tel" maxlength="32"
+            placeholder="+2010…">
+        </label>
+        <label>Church / meeting name
+          <input type="text" name="churchOrMeetingName" autocomplete="organization" maxlength="200"
+            placeholder="e.g. St. Mark Church — Preparatory Boys">
+        </label>
+        <button class="submit" type="submit">Submit request</button>
+        <p class="status" id="status-en" role="status" aria-live="polite"></p>
+      </form>
+
+      <h2>After you confirm</h2>
+      <p>Opening the emailed link permanently deletes your account. Confirmation links expire
+        after <strong>24 hours</strong>.</p>
+
+      <h2>Data permanently deleted</h2>
+      <ul>
+        <li>Your login account, credentials, roles, claims, tokens, and authentication records.</li>
+        <li>Your name, phone number, profile photo, birth/joining dates, and pending-registration data.</li>
+        <li>Your servant profile, classroom assignments, and personal custom-field values.</li>
+        <li>Locally stored authentication tokens, preferences, and cached user data on devices that sync after deletion.</li>
+      </ul>
+
+      <h2>Data that may be retained</h2>
+      <p>Shared church operational records may remain where deleting them would affect other
+        users—for example attendance events or shared field definitions—but they are detached
+        from and no longer identify your deleted account. Minimal records may be retained when
+        required for legal compliance, security, fraud prevention, dispute resolution, or
+        enforcement of agreements.</p>
+      <p>Encrypted disaster-recovery backups may retain deleted data for up to
+        <strong>30 days</strong>. Backup copies are isolated from normal application use and
+        are removed through regular backup rotation.</p>
+
+      <h2>Need help?</h2>
+      <p>Email <a href="mailto:johnpolis122@gmail.com">johnpolis122@gmail.com</a> or read our
+        <a class="privacy-link" href="/privacy-policy">Privacy Policy</a>.</p>
+    </article>
+
+    <article id="panel-ar" class="hidden" lang="ar" dir="rtl">
+      <h1>حذف حساب My Church</h1>
+      <p class="warning"><strong>حذف الحساب نهائي ولا يمكن التراجع عنه.</strong></p>
+
+      <h2>الحذف من التطبيق</h2>
+      <ol>
+        <li>سجّل الدخول إلى My Church.</li>
+        <li>افتح <strong>الملف الشخصي</strong> وانتقل إلى الأسفل.</li>
+        <li>اختر <strong>حذف الحساب</strong>.</li>
+        <li>راجع التحذير وأكّد <strong>حذف الحساب</strong> مرة أخرى.</li>
+      </ol>
+      <p>عادةً يكتمل الحذف من التطبيق فورًا. قد تستغرق نسخ النسخ الاحتياطي حتى
+        <strong>30 يومًا</strong> لإزالتها.</p>
+
+      <h2>طلب الحذف عبر الويب</h2>
+      <p>إذا تعذّر الوصول إلى التطبيق، استخدم النموذج أدناه لطلب حذف الحساب.
+        نرسل رابط تأكيد بالبريد للتحقق من الملكية.
+        <strong>لن يُحذف حسابك إلا بعد تأكيد رابط البريد الإلكتروني.</strong></p>
+
+      <form id="deletion-form-ar" novalidate>
+        <label>البريد الإلكتروني المسجّل
+          <input type="email" name="email" autocomplete="email" required maxlength="256"
+            placeholder="you@example.com">
+        </label>
+        <label>رقم الهاتف <span class="hint">(اختياري)</span>
+          <input type="tel" name="phoneNumber" autocomplete="tel" maxlength="32"
+            placeholder="+2010…">
+        </label>
+        <label>اسم الكنيسة / الاجتماع
+          <input type="text" name="churchOrMeetingName" autocomplete="organization" maxlength="200"
+            placeholder="مثال: كنيسة مرقس — إعدادي بنين">
+        </label>
+        <button class="submit" type="submit">إرسال الطلب</button>
+        <p class="status" id="status-ar" role="status" aria-live="polite"></p>
+      </form>
+
+      <h2>بعد التأكيد</h2>
+      <p>فتح الرابط المرسل بالبريد يحذف حسابك نهائيًا. تنتهي صلاحية الروابط بعد
+        <strong>24 ساعة</strong>.</p>
+
+      <h2>البيانات التي تُحذف نهائيًا</h2>
+      <ul>
+        <li>حساب تسجيل الدخول وبيانات الاعتماد والأدوار والمطالبات والرموز وسجلات المصادقة.</li>
+        <li>الاسم ورقم الهاتف وصورة الملف وتواريخ الميلاد/الانضمام وبيانات التسجيل المعلّق.</li>
+        <li>ملف الخادم وتعيينات الفصول وقيم الحقول المخصصة الشخصية.</li>
+        <li>الرموز والتفضيلات والبيانات المخزّنة محليًا على الأجهزة بعد المزامنة.</li>
+      </ul>
+
+      <h2>البيانات التي قد تُحتفظ بها</h2>
+      <p>قد تبقى سجلات تشغيل الكنيسة المشتركة عندما يؤثر حذفها على مستخدمين آخرين—مثل سجلات
+        الحضور أو تعريفات الحقول المشتركة—لكنها تُفصل عن حسابك المحذوف ولا تعرّف هويتك.
+        قد تُحتفظ بسجلات محدودة عند الاقتضاء للامتثال القانوني أو الأمن أو منع الاحتيال أو
+        حل النزاعات أو إنفاذ الاتفاقيات.</p>
+      <p>قد تحتفظ النسخ الاحتياطية المشفّرة بالبيانات المحذوفة لمدة تصل إلى
+        <strong>30 يومًا</strong>، ثم تُزال عبر دورة النسخ الاحتياطي المعتادة.</p>
+
+      <h2>هل تحتاج مساعدة؟</h2>
+      <p>راسلنا على <a href="mailto:johnpolis122@gmail.com">johnpolis122@gmail.com</a> أو اقرأ
+        <a class="privacy-link" href="/privacy-policy">سياسة الخصوصية</a>.</p>
+    </article>
+
+    <footer>© 2026 My Church. All rights reserved.</footer>
+  </div>
+
+  <script>
+    (function () {
+      // GitHub Pages is static-only; API calls must target the Azure API host.
+      var AZURE_API_BASE =
+        'https://mychurchwebapp-cdfpdedgfdd7cqhb.germanywestcentral-01.azurewebsites.net';
+      var onGitHubPages = /github\.io$/i.test(location.hostname);
+      var API_BASE = onGitHubPages ? AZURE_API_BASE : '';
+      var privacyHref = onGitHubPages ? '../privacy-policy.html' : '/privacy-policy';
+
+      document.querySelectorAll('.privacy-link').forEach(function (link) {
+        link.setAttribute('href', privacyHref);
+      });
+
+      var btnEn = document.getElementById('btn-en');
+      var btnAr = document.getElementById('btn-ar');
+      var panelEn = document.getElementById('panel-en');
+      var panelAr = document.getElementById('panel-ar');
+
+      function setLang(lang) {
+        var isAr = lang === 'ar';
+        document.documentElement.lang = lang;
+        document.documentElement.dir = isAr ? 'rtl' : 'ltr';
+        panelEn.classList.toggle('hidden', isAr);
+        panelAr.classList.toggle('hidden', !isAr);
+        btnEn.setAttribute('aria-pressed', isAr ? 'false' : 'true');
+        btnAr.setAttribute('aria-pressed', isAr ? 'true' : 'false');
+        try { localStorage.setItem('mychurch-account-deletion-lang', lang); } catch (e) {}
+      }
+
+      btnEn.addEventListener('click', function () { setLang('en'); });
+      btnAr.addEventListener('click', function () { setLang('ar'); });
+
+      var saved = null;
+      try { saved = localStorage.getItem('mychurch-account-deletion-lang'); } catch (e) {}
+      if (saved === 'ar' || saved === 'en') setLang(saved);
+      else if ((navigator.language || '').toLowerCase().startsWith('ar')) setLang('ar');
+
+      var messages = {
+        en: {
+          sending: 'Submitting your request…',
+          sent: 'If an account matches this request, a confirmation link has been sent. Check your email within 24 hours. Your account will not be deleted until you confirm.',
+          confirming: 'Verifying your confirmation link…',
+          confirmed: 'Your My Church account has been permanently deleted.',
+          invalidEmail: 'Please enter a valid registered email address.',
+          failed: 'Something went wrong. Please try again or email support.',
+          confirmFailed: 'This confirmation link is invalid, expired, or already used. Submit a new request if you still need deletion.'
+        },
+        ar: {
+          sending: 'جاري إرسال طلبك…',
+          sent: 'إذا وُجد حساب مطابق، تم إرسال رابط التأكيد. راجع بريدك خلال 24 ساعة. لن يُحذف الحساب قبل التأكيد.',
+          confirming: 'جاري التحقق من رابط التأكيد…',
+          confirmed: 'تم حذف حساب My Church نهائيًا.',
+          invalidEmail: 'يرجى إدخال بريد إلكتروني مسجّل صالح.',
+          failed: 'حدث خطأ. حاول مرة أخرى أو راسل الدعم.',
+          confirmFailed: 'رابط التأكيد غير صالح أو منتهٍ أو مستخدم مسبقًا. أرسل طلبًا جديدًا إذا ما زلت بحاجة للحذف.'
+        }
+      };
+
+      function currentLang() {
+        return panelAr.classList.contains('hidden') ? 'en' : 'ar';
+      }
+
+      function setStatus(el, text, kind) {
+        el.textContent = text || '';
+        el.classList.remove('ok', 'err');
+        if (kind) el.classList.add(kind);
+      }
+
+      function readApiError(data, fallback) {
+        if (!data) return fallback;
+        if (typeof data.message === 'string' && data.message.trim()) return data.message;
+        if (typeof data.title === 'string' && data.title.trim()) return data.title;
+        if (data.errors && typeof data.errors === 'object') {
+          var parts = [];
+          Object.keys(data.errors).forEach(function (key) {
+            var vals = data.errors[key];
+            if (Array.isArray(vals)) parts = parts.concat(vals);
+            else if (vals) parts.push(String(vals));
+          });
+          if (parts.length) return parts.join(' ');
+        }
+        return fallback;
+      }
+
+      async function submitRequest(form, statusEl) {
+        var lang = currentLang();
+        var t = messages[lang];
+        var email = (form.email.value || '').trim();
+        var phoneNumber = (form.phoneNumber.value || '').trim();
+        var churchOrMeetingName = (form.churchOrMeetingName.value || '').trim();
+
+        if (!email || email.indexOf('@') < 1) {
+          setStatus(statusEl, t.invalidEmail, 'err');
+          return;
+        }
+
+        var button = form.querySelector('button.submit');
+        button.disabled = true;
+        setStatus(statusEl, t.sending, null);
+
+        var payload = { email: email };
+        if (phoneNumber) payload.phoneNumber = phoneNumber;
+        if (churchOrMeetingName) payload.churchOrMeetingName = churchOrMeetingName;
+
+        try {
+          var res = await fetch(API_BASE + '/api/account/deletion-requests', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          var data = await res.json().catch(function () { return {}; });
+          if (!res.ok) {
+            setStatus(statusEl, readApiError(data, t.failed), 'err');
+            return;
+          }
+          setStatus(statusEl, data.message || t.sent, 'ok');
+          form.reset();
+        } catch (e) {
+          setStatus(statusEl, t.failed, 'err');
+        } finally {
+          button.disabled = false;
+        }
+      }
+
+      document.getElementById('deletion-form-en').addEventListener('submit', function (e) {
+        e.preventDefault();
+        submitRequest(e.target, document.getElementById('status-en'));
+      });
+      document.getElementById('deletion-form-ar').addEventListener('submit', function (e) {
+        e.preventDefault();
+        submitRequest(e.target, document.getElementById('status-ar'));
+      });
+
+      async function confirmToken(token) {
+        var lang = currentLang();
+        var t = messages[lang];
+        var statusEl = document.getElementById(lang === 'ar' ? 'status-ar' : 'status-en');
+        setStatus(statusEl, t.confirming, null);
+        try {
+          var res = await fetch(API_BASE + '/api/account/deletion-requests/confirm', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({ token: token })
+          });
+          var data = await res.json().catch(function () { return {}; });
+          if (!res.ok) {
+            setStatus(statusEl, readApiError(data, t.confirmFailed), 'err');
+            return;
+          }
+          setStatus(statusEl, t.confirmed, 'ok');
+          if (window.history && window.history.replaceState) {
+            window.history.replaceState({}, '', location.pathname);
+          }
+        } catch (e) {
+          setStatus(statusEl, t.confirmFailed, 'err');
+        }
+      }
+
+      var params = new URLSearchParams(window.location.search);
+      var token = params.get('token');
+      if (token) confirmToken(token);
+    })();
+  </script>
 </body>
 </html>
